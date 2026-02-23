@@ -10,6 +10,7 @@ import {
   X,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
 import type { Topic, Prompt, CreatePromptInput, UpdatePromptInput } from '@/types';
 
 type FormMode = 'closed' | 'create' | 'edit';
@@ -21,11 +22,11 @@ interface TopicWithPrompts extends Topic {
 export function PromptsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [groups, setGroups] = useState<TopicWithPrompts[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [toast, setToast] = useState('');
 
   // Collapsed state per topic
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
@@ -37,11 +38,6 @@ export function PromptsPage() {
   const [formText, setFormText] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [saving, setSaving] = useState(false);
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 3000);
-  }, []);
 
   const loadAll = useCallback(async () => {
     try {
@@ -374,10 +370,6 @@ export function PromptsPage() {
         </div>
       )}
 
-      {/* Toast */}
-      {toast && (
-        <div className="toast toast-success">{toast}</div>
-      )}
     </div>
   );
 }

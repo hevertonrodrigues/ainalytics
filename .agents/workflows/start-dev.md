@@ -27,7 +27,7 @@ cd /Users/hr/Desktop/dev/ainalytics && npm run dev
 4. Start Edge Functions (in a separate terminal):
 
 ```bash
-cd /Users/hr/Desktop/dev/ainalytics && npx supabase functions serve --no-verify-jwt
+cd /Users/hr/Desktop/dev/ainalytics && npx supabase functions serve --no-verify-jwt --env-file supabase/.env.local
 ```
 
 5. Access the app at `http://localhost:5173`

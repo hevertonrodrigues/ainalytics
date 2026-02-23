@@ -108,6 +108,49 @@ export interface UpdatePromptInput {
 }
 
 // ────────────────────────────────────────────────────────────
+// Platforms, Models & Answers (AI Integration)
+// ────────────────────────────────────────────────────────────
+
+export interface Model {
+  id: string;
+  tenant_id: string;
+  platform_id: string;
+  slug: string;
+  name: string;
+  is_default: boolean;
+  created_at: string;
+}
+
+export interface Platform extends BaseEntity {
+  slug: string;
+  name: string;
+  is_active: boolean;
+  default_model_id: string | null;
+  default_model: Model | null; // joined from models
+}
+
+export interface PromptAnswer {
+  id: string;
+  tenant_id: string;
+  prompt_id: string;
+  platform_slug: string;
+  platform_id: string | null;
+  model: string;
+  answer_text: string | null;
+  tokens_used: { input: number; output: number } | null;
+  latency_ms: number | null;
+  error: string | null;
+  searched_at: string;
+  created_at: string;
+}
+
+export interface SearchPromptInput {
+  prompt_id: string;
+  prompt_text: string;
+  platforms: Array<{ slug: string; model: string; platform_id: string }>;
+}
+
+// ────────────────────────────────────────────────────────────
 // API Response Envelope
 // ────────────────────────────────────────────────────────────
 

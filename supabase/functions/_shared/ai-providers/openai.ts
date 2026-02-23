@@ -1,0 +1,47 @@
+import type { AiAdapter, AiRequest, AiResponse } from "./types.ts";
+
+/**
+ * OpenAI adapter — uses the Responses API (POST /v1/responses).
+ */
+export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse> => {
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) return { text: null, model: req.model, tokens: null, latency_ms: 0, error: "OPENAI_API_KEY not configured" };
+
+  const start = Date.now();
+
+  try {
+    const body: Record<string, unknown> = {
+      model: req.model,
+      input: req.prompt,
+      temperature: 0,
+    };
+    if (req.systemInstruction) body.instructions = req.systemInstruction;
+
+    const res = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+
+    const latency_ms = Date.now() - start;
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      return { text: null, model: req.model, tokens: null, latency_ms, error: `HTTP ${res.status}: ${errBody}` };
+    }
+
+    const data = await res.json();
+
+    return {
+      text: data.output_text ?? data.output?.[0]?.content?.[0]?.text ?? null,
+      model: data.model ?? req.model,
+      tokens: data.usage ? { input: data.usage.input_tokens ?? 0, output: data.usage.output_tokens ?? 0 } : null,
+      latency_ms,
+    };
+  } catch (err) {
+    return { text: null, model: req.model, tokens: null, latency_ms: Date.now() - start, error: String(err) };
+  }
+};

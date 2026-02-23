@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TenantProvider } from '@/contexts/TenantContext';
+import { ToastProvider } from '@/contexts/ToastContext';
 import { ProtectedRoute } from '@/components/guards/ProtectedRoute';
 import { GuestRoute } from '@/components/guards/GuestRoute';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -18,11 +19,14 @@ import { ProfilePage } from '@/pages/profile/Profile';
 import { TenantSettings } from '@/pages/settings/TenantSettings';
 import { TopicsPage } from '@/pages/topics/TopicsPage';
 import { TopicDetailPage } from '@/pages/topics/TopicDetailPage';
+import { TopicAnswersPage } from '@/pages/topics/TopicAnswersPage';
 import { PromptsPage } from '@/pages/prompts/PromptsPage';
+import { PlatformsPage } from '@/pages/platforms/PlatformsPage';
 
 export function App() {
   return (
     <ThemeProvider>
+      <ToastProvider>
       <BrowserRouter>
         <AuthProvider>
           <Routes>
@@ -39,11 +43,14 @@ export function App() {
               <Route path="settings" element={<TenantSettings />} />
               <Route path="topics" element={<TopicsPage />} />
               <Route path="topics/:id" element={<TopicDetailPage />} />
+              <Route path="topics/:id/answers" element={<TopicAnswersPage />} />
               <Route path="prompts" element={<PromptsPage />} />
+              <Route path="platforms" element={<PlatformsPage />} />
             </Route>
           </Routes>
         </AuthProvider>
       </BrowserRouter>
+      </ToastProvider>
     </ThemeProvider>
   );
 }

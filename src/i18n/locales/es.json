@@ -61,9 +61,35 @@
     "anomalies": "Detección de Anomalías",
     "reports": "Análisis Personalizado",
     "documents": "Tipos de Documento",
+    "platforms": "Plataformas",
     "support": "Soporte",
     "sectionMain": "Principal",
     "sectionAnalytics": "Monitoreo IA"
+  },
+  "platforms": {
+    "title": "Plataformas IA",
+    "subtitle": "Gestionar plataformas de IA para pruebas de prompts",
+    "noPlatforms": "No hay plataformas configuradas.",
+    "defaultModel": "Modelo Predeterminado",
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "activated": "{{name}} activada",
+    "deactivated": "{{name}} desactivada",
+    "modelUpdated": "Modelo actualizado",
+    "syncModels": "Sincronizar Modelos",
+    "synced": "{{count}} modelos nuevos sincronizados"
+  },
+  "answers": {
+    "title": "Respuestas de Prompts",
+    "search": "Buscar",
+    "searching": "Buscando...",
+    "searchComplete": "Búsqueda completa",
+    "platforms": "Plataformas",
+    "selectPlatforms": "Seleccionar plataformas para este tópico",
+    "noPlatformsEnabled": "Habilite al menos una plataforma para buscar",
+    "noPrompts": "No hay prompts en este tópico. Agregue prompts primero.",
+    "noResults": "Sin resultados. Haga clic en Buscar para probar este prompt.",
+    "results": "resultados"
   },
   "topics": {
     "title": "Tópicos",

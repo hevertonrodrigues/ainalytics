@@ -10,6 +10,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
 import type { Topic, CreateTopicInput, UpdateTopicInput } from '@/types';
 
 type FormMode = 'closed' | 'create' | 'edit';
@@ -17,11 +18,11 @@ type FormMode = 'closed' | 'create' | 'edit';
 export function TopicsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [toast, setToast] = useState('');
 
   // Form state
   const [formMode, setFormMode] = useState<FormMode>('closed');
@@ -29,11 +30,6 @@ export function TopicsPage() {
   const [formName, setFormName] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [saving, setSaving] = useState(false);
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 3000);
-  }, []);
 
   const loadTopics = useCallback(async () => {
     try {
@@ -301,10 +297,6 @@ export function TopicsPage() {
         </div>
       )}
 
-      {/* Toast */}
-      {toast && (
-        <div className="toast toast-success">{toast}</div>
-      )}
     </div>
   );
 }

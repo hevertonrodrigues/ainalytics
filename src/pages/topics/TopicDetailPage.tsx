@@ -8,8 +8,10 @@ import {
   ArrowLeft,
   X,
   MessageSquare,
+  Search,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
 import type { Topic, Prompt, CreatePromptInput, UpdatePromptInput } from '@/types';
 
 type FormMode = 'closed' | 'create' | 'edit';
@@ -18,12 +20,12 @@ export function TopicDetailPage() {
   const { t } = useTranslation();
   const { id: topicId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const [topic, setTopic] = useState<Topic | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [toast, setToast] = useState('');
 
   // Form state
   const [formMode, setFormMode] = useState<FormMode>('closed');
@@ -31,11 +33,6 @@ export function TopicDetailPage() {
   const [formText, setFormText] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [saving, setSaving] = useState(false);
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 3000);
-  }, []);
 
   const loadData = useCallback(async () => {
     if (!topicId) return;
@@ -179,10 +176,19 @@ export function TopicDetailPage() {
             )}
           </div>
           {formMode === 'closed' && (
-            <button onClick={openCreate} className="btn btn-primary btn-sm">
-              <Plus className="w-4 h-4" />
-              {t('prompts.newPrompt')}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => navigate(`/topics/${topicId}/answers`)}
+                className="btn btn-ghost btn-sm"
+              >
+                <Search className="w-4 h-4" />
+                {t('answers.title')}
+              </button>
+              <button onClick={openCreate} className="btn btn-primary btn-sm">
+                <Plus className="w-4 h-4" />
+                {t('prompts.newPrompt')}
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -318,10 +324,6 @@ export function TopicDetailPage() {
         </div>
       )}
 
-      {/* Toast */}
-      {toast && (
-        <div className="toast toast-success">{toast}</div>
-      )}
     </div>
   );
 }

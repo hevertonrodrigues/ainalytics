@@ -61,9 +61,35 @@
     "anomalies": "Anomaly Detection",
     "reports": "Custom Analysis",
     "documents": "Document Types",
+    "platforms": "Platforms",
     "support": "Support",
     "sectionMain": "Main",
     "sectionAnalytics": "AI Monitoring"
+  },
+  "platforms": {
+    "title": "AI Platforms",
+    "subtitle": "Manage AI platforms for prompt testing",
+    "noPlatforms": "No platforms configured yet.",
+    "defaultModel": "Default Model",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activated": "{{name}} activated",
+    "deactivated": "{{name}} deactivated",
+    "modelUpdated": "Model updated",
+    "syncModels": "Sync Models",
+    "synced": "{{count}} new models synced"
+  },
+  "answers": {
+    "title": "Prompt Answers",
+    "search": "Search",
+    "searching": "Searching...",
+    "searchComplete": "Search complete",
+    "platforms": "Platforms",
+    "selectPlatforms": "Select platforms for this topic",
+    "noPlatformsEnabled": "Enable at least one platform to search",
+    "noPrompts": "No prompts in this topic. Add prompts first.",
+    "noResults": "No results yet. Click Search to test this prompt.",
+    "results": "results"
   },
   "topics": {
     "title": "Topics",
