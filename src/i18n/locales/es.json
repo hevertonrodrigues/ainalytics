@@ -63,6 +63,7 @@
     "documents": "Tipos de Documento",
     "platforms": "Plataformas",
     "models": "Modelos",
+    "plans": "Planes",
     "support": "Soporte",
     "sectionMain": "Principal",
     "sectionAnalytics": "Monitoreo IA"
@@ -143,7 +144,24 @@
     "confirmDelete": "¿Eliminar este prompt?",
     "textPlaceholder": "ej. Barcos para alquiler en Brasil",
     "descriptionPlaceholder": "Notas opcionales sobre este prompt",
-    "backToTopics": "Volver a Tópicos"
+    "backToTopics": "Volver a Tópicos",
+    "charCount": "{{count}}/{{max}} caracteres",
+    "charLimitExceeded": "El texto del prompt no debe exceder {{max}} caracteres"
+  },
+  "plans": {
+    "title": "Elija su Plan",
+    "subtitle": "Seleccione el plan perfecto para su organización. Cambie o mejore en cualquier momento.",
+    "badge": "Planes de Precios",
+    "currentPlan": "Plan Actual",
+    "selectPlan": "Seleccionar Plan",
+    "planSelected": "Plan actualizado con éxito",
+    "free": "Gratis",
+    "custom": "Personalizado",
+    "perMonth": "/mes",
+    "noPlans": "No hay planes disponibles en este momento.",
+    "ownerOnly": "Solo los propietarios de la organización pueden cambiar el plan.",
+    "mostPopular": "Más Popular",
+    "contactSales": "Contactar Ventas"
   },
   "analytics": {
     "totalDocuments": "Total de Documentos",
@@ -188,5 +206,149 @@
     "INTERNAL_ERROR": "Algo salió mal. Intente nuevamente.",
     "TENANT_REQUIRED": "Seleccione una organización",
     "INVALID_TENANT": "Organización inválida"
+  },
+  "landing": {
+    "nav": {
+      "features": "Características",
+      "howItWorks": "Cómo Funciona",
+      "pricing": "Precios",
+      "signIn": "Iniciar Sesión",
+      "getStarted": "Verifique su Visibilidad IA"
+    },
+    "hero": {
+      "badge": "Su Marca en los Ojos de la IA",
+      "title": "La IA Ya Está Hablando",
+      "titleHighlight": "Sobre Usted.",
+      "titleEnd": "¿Sabe Qué Está Diciendo?",
+      "subtitle": "Ahora mismo, millones de personas le preguntan a ChatGPT, Gemini, Grok y Perplexity sobre su industria. Si su marca no aparece en las respuestas de IA — su competencia está ocupando su lugar.",
+      "cta": "Descubra Qué Dice la IA Sobre Usted",
+      "ctaSecondary": "Ver Demo en Vivo",
+      "trustedBy": "Las marcas que pierden visibilidad en IA no la recuperan. Actúe ahora."
+    },
+    "logos": {
+      "title": "Monitoree cómo estas plataformas de IA ven su marca"
+    },
+    "features": {
+      "title": "Deje de Ser Invisible para",
+      "titleHighlight": "las IAs que Importan",
+      "subtitle": "Sus clientes están reemplazando Google por IA. Si la IA no sabe que usted existe, ellos tampoco.",
+      "multiModel": {
+        "title": "Vea Qué Dice Cada IA Sobre Usted",
+        "description": "Haga la misma pregunta en ChatGPT, Claude, Gemini, Grok y Perplexity. Descubra cuáles mencionan su marca — y cuáles envían clientes a su competencia."
+      },
+      "webSearch": {
+        "title": "¿Las IAs Realmente lo Encuentran?",
+        "description": "Algunos modelos de IA dicen buscar en la web pero nunca muestran su contenido. Verificamos cuáles realmente fundamentan respuestas en datos reales — y cuáles lo están dejando fuera."
+      },
+      "topicOrg": {
+        "title": "Monitoree Cada Ángulo",
+        "description": "Rastree cómo la IA responde sobre su marca, productos, industria y competidores. Organice por tópico y observe cómo cambia su visibilidad con el tiempo."
+      },
+      "multiTenant": {
+        "title": "Un Dashboard por Cliente",
+        "description": "Agencias y consultores: ejecuten monitoreo aislado para cada cliente. Cada marca tiene su propio espacio, prompts e informes de visibilidad IA."
+      },
+      "analytics": {
+        "title": "Scorecards de Visibilidad",
+        "description": "Scores de calidad de respuesta, frecuencia de mención, comparación con competidores y alertas de anomalías. Sepa al instante cuando una IA deja de recomendarlo."
+      },
+      "i18n": {
+        "title": "La IA lo Ve Diferente por Idioma",
+        "description": "Monitoree cómo la IA responde sobre su marca en inglés, español y portugués. Diferentes idiomas, diferente visibilidad. ¿Está perdiendo mercados enteros?"
+      }
+    },
+    "howItWorks": {
+      "title": "Descúbralo en",
+      "titleHighlight": "Tres Minutos",
+      "subtitle": "No espere semanas para descubrir que ha sido invisible para la IA todo este tiempo.",
+      "step1": {
+        "label": "Paso 1",
+        "title": "Díganos su Marca y Tópicos",
+        "description": "Ingrese el nombre de su marca, productos y palabras clave de la industria. Crearemos los prompts que sus clientes reales ya están preguntando a las plataformas de IA."
+      },
+      "step2": {
+        "label": "Paso 2",
+        "title": "Consultamos Cada IA Principal",
+        "description": "Ainalytics pregunta simultáneamente a ChatGPT, Claude, Gemini, Grok y Perplexity. En segundos, verá exactamente qué le dice cada IA a la gente sobre usted."
+      },
+      "step3": {
+        "label": "Paso 3",
+        "title": "Vea Dónde Está Ausente",
+        "description": "Obtenga un informe claro de visibilidad: qué IAs lo mencionan, cuáles recomiendan a competidores en su lugar, y dónde es completamente invisible. Luego actúe."
+      }
+    },
+    "preview": {
+      "title": "Visibilidad IA en Tiempo Real,",
+      "titleHighlight": "Un Solo Dashboard",
+      "subtitle": "Deje de adivinar. Vea exactamente cómo cada plataforma de IA percibe su marca — actualizado en tiempo real."
+    },
+    "pricing": {
+      "title": "¿Cuánto le Está Costando",
+      "titleHighlight": "Ser Invisible?",
+      "subtitle": "Cada día que no monitorea, la IA está enviando a sus clientes a otro lugar.",
+      "monthly": "/mes",
+      "free": {
+        "name": "Starter",
+        "price": "Gratis",
+        "description": "Vea qué dice la IA sobre usted ahora mismo. Sin excusas para no empezar.",
+        "cta": "Verificar Mi Visibilidad",
+        "features": [
+          "3 plataformas IA monitoreadas",
+          "100 consultas de marca/mes",
+          "5 tópicos de monitoreo",
+          "Score básico de visibilidad",
+          "Soporte comunitario"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$49",
+        "description": "Visibilidad total en cada IA. Sepa en el momento que algo cambie.",
+        "cta": "Empezar a Monitorear",
+        "popular": "Más Popular",
+        "features": [
+          "Las 5 plataformas IA",
+          "Consultas de marca ilimitadas",
+          "Tópicos ilimitados",
+          "Análisis de visibilidad avanzado",
+          "Verificación de búsqueda web",
+          "Espacios multi-marca",
+          "Soporte prioritario"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Personalizado",
+        "description": "Para agencias y marcas que no pueden permitirse un solo punto ciego.",
+        "cta": "Contactar Ventas",
+        "features": [
+          "Todo lo de Pro",
+          "Integraciones IA personalizadas",
+          "SSO y SAML",
+          "Gerente de éxito dedicado",
+          "Garantía SLA",
+          "Implementación on-premise",
+          "Reportes white-label"
+        ]
+      }
+    },
+    "cta": {
+      "title": "Su Competencia Ya Está Monitoreando Esto.",
+      "subtitle": "Cada hora que espera, la IA está formando opiniones sobre su marca sin que usted lo sepa. Las marcas que monitorean ganan. Las que no, desaparecen.",
+      "button": "Verificar Mi Visibilidad IA — Gratis",
+      "noCard": "No se requiere tarjeta de crédito · Configuración en 60 segundos"
+    },
+    "footer": {
+      "description": "La plataforma de monitoreo de visibilidad IA. Sepa qué dice la IA sobre usted antes que sus clientes.",
+      "product": "Producto",
+      "company": "Empresa",
+      "legal": "Legal",
+      "about": "Nosotros",
+      "blog": "Blog",
+      "careers": "Empleo",
+      "privacy": "Política de Privacidad",
+      "terms": "Términos de Servicio",
+      "rights": "Todos los derechos reservados."
+    }
   }
 }

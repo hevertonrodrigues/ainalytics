@@ -14,6 +14,7 @@ import { useToast } from '@/contexts/ToastContext';
 import type { Topic, Prompt, CreatePromptInput, UpdatePromptInput } from '@/types';
 
 type FormMode = 'closed' | 'create' | 'edit';
+const PROMPT_MAX_LENGTH = 500;
 
 interface TopicWithPrompts extends Topic {
   prompts_list: Prompt[];
@@ -197,7 +198,7 @@ export function PromptsPage() {
         <div className="dashboard-card p-12 text-center">
           <p className="text-text-muted text-sm">{t('prompts.noPrompts')}</p>
           <button
-            onClick={() => navigate('/topics')}
+            onClick={() => navigate('/dashboard/topics')}
             className="btn btn-primary btn-sm mt-4"
           >
             {t('topics.newTopic')}
@@ -274,12 +275,15 @@ export function PromptsPage() {
                         />
 
                         {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <span className="text-sm text-text-primary block truncate">
+                        <div 
+                          className="flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => navigate(`/dashboard/prompts/${prompt.id}`)}
+                        >
+                          <span className="text-sm text-text-primary block truncate hover:underline">
                             {prompt.text}
                           </span>
                           {prompt.description && (
-                            <p className="text-xs text-text-muted truncate">
+                            <p className="text-xs text-text-muted truncate mt-0.5">
                               {prompt.description}
                             </p>
                           )}
@@ -336,14 +340,26 @@ export function PromptsPage() {
                     </div>
                   )}
 
-                  <input
-                    type="text"
-                    value={formText}
-                    onChange={(e) => setFormText(e.target.value)}
-                    placeholder={t('prompts.textPlaceholder')}
-                    className="input-field text-sm"
-                    autoFocus
-                  />
+                  <div>
+                    <input
+                      type="text"
+                      value={formText}
+                      onChange={(e) => setFormText(e.target.value)}
+                      placeholder={t('prompts.textPlaceholder')}
+                      maxLength={PROMPT_MAX_LENGTH}
+                      className="input-field text-sm"
+                      autoFocus
+                    />
+                    <div className={`flex justify-end mt-1 text-xs ${
+                      formText.length >= PROMPT_MAX_LENGTH
+                        ? 'text-error'
+                        : formText.length >= PROMPT_MAX_LENGTH * 0.9
+                          ? 'text-warning'
+                          : 'text-text-muted'
+                    }`}>
+                      {t('prompts.charCount', { count: formText.length, max: PROMPT_MAX_LENGTH })}
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={formDesc}
@@ -354,7 +370,7 @@ export function PromptsPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleSubmit}
-                      disabled={saving || !formText.trim()}
+                      disabled={saving || !formText.trim() || formText.trim().length > PROMPT_MAX_LENGTH}
                       className="btn btn-primary btn-sm"
                     >
                       {saving ? t('common.loading') : formMode === 'create' ? t('common.create') : t('common.save')}

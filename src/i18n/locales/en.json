@@ -63,6 +63,7 @@
     "documents": "Document Types",
     "platforms": "Platforms",
     "models": "Models",
+    "plans": "Plans",
     "support": "Support",
     "sectionMain": "Main",
     "sectionAnalytics": "AI Monitoring"
@@ -143,7 +144,34 @@
     "confirmDelete": "Delete this prompt?",
     "textPlaceholder": "e.g. Boats for rental in Brasil",
     "descriptionPlaceholder": "Optional notes about this prompt",
-    "backToTopics": "Back to Topics"
+    "backToTopics": "Back to Topics",
+    "charCount": "{{count}}/{{max}} characters",
+    "charLimitExceeded": "Prompt text must not exceed {{max}} characters"
+  },
+  "promptDetail": {
+    "title": "Prompt Detail",
+    "backToPrompts": "Back to Prompts",
+    "answersGrouped": "Answers by Platform",
+    "noAnswers": "No answers yet. Run a search from the topic page.",
+    "answersCount": "{{count}} answers",
+    "model": "Model",
+    "tokens": "tokens",
+    "webSearch": "Web search"
+  },
+  "plans": {
+    "title": "Choose Your Plan",
+    "subtitle": "Select the perfect plan for your organization. Upgrade or change anytime.",
+    "badge": "Pricing Plans",
+    "currentPlan": "Current Plan",
+    "selectPlan": "Select Plan",
+    "planSelected": "Plan updated successfully",
+    "free": "Free",
+    "custom": "Custom",
+    "perMonth": "/month",
+    "noPlans": "No plans available at the moment.",
+    "ownerOnly": "Only organization owners can change the plan.",
+    "mostPopular": "Most Popular",
+    "contactSales": "Contact Sales"
   },
   "analytics": {
     "totalDocuments": "Total Documents",
@@ -188,5 +216,149 @@
     "INTERNAL_ERROR": "Something went wrong. Please try again.",
     "TENANT_REQUIRED": "Please select an organization",
     "INVALID_TENANT": "Invalid organization"
+  },
+  "landing": {
+    "nav": {
+      "features": "Features",
+      "howItWorks": "How It Works",
+      "pricing": "Pricing",
+      "signIn": "Sign In",
+      "getStarted": "Check Your AI Visibility"
+    },
+    "hero": {
+      "badge": "Your Brand in the Eyes of AI",
+      "title": "AI Is Already Talking",
+      "titleHighlight": "About You.",
+      "titleEnd": "Do You Know What It's Saying?",
+      "subtitle": "Right now, millions of people are asking ChatGPT, Gemini, Grok, and Perplexity about your industry. If your brand isn't showing up in AI-generated answers — your competitors are taking your place.",
+      "cta": "Discover What AI Says About You",
+      "ctaSecondary": "See a Live Demo",
+      "trustedBy": "Brands losing AI visibility can't get it back. Act now."
+    },
+    "logos": {
+      "title": "Monitor how these AI platforms see your brand"
+    },
+    "features": {
+      "title": "Stop Being Invisible to",
+      "titleHighlight": "the AIs That Matter",
+      "subtitle": "Your customers are replacing Google with AI. If AI doesn't know you exist, neither do they.",
+      "multiModel": {
+        "title": "See What Every AI Says About You",
+        "description": "Ask the same question across ChatGPT, Claude, Gemini, Grok, and Perplexity. Find out which ones mention your brand — and which ones are sending customers to your competition."
+      },
+      "webSearch": {
+        "title": "Are AIs Actually Finding You?",
+        "description": "Some AI models claim to search the web but never surface your content. We verify which ones actually ground answers in real data — and which ones are leaving you out."
+      },
+      "topicOrg": {
+        "title": "Monitor Every Angle",
+        "description": "Track how AI responds to prompts about your brand, products, industry, and competitors. Organize by topic and watch your visibility shift over time."
+      },
+      "multiTenant": {
+        "title": "One Dashboard Per Client",
+        "description": "Agencies and consultants: run isolated monitoring for every client. Each brand gets their own workspace, prompts, and AI visibility reports."
+      },
+      "analytics": {
+        "title": "Visibility Scorecards",
+        "description": "Response quality scores, mention frequency, competitor comparisons, and anomaly alerts. Know the instant an AI stops recommending you."
+      },
+      "i18n": {
+        "title": "AI Sees You Differently by Language",
+        "description": "Monitor how AI responds about your brand in English, Spanish, and Portuguese. Different languages, different visibility. Are you missing entire markets?"
+      }
+    },
+    "howItWorks": {
+      "title": "Find Out in",
+      "titleHighlight": "Three Minutes",
+      "subtitle": "Don't wait weeks to discover you've been invisible to AI this whole time.",
+      "step1": {
+        "label": "Step 1",
+        "title": "Tell Us Your Brand & Topics",
+        "description": "Enter your brand name, products, and industry keywords. We'll create the prompts that real customers are already asking AI platforms."
+      },
+      "step2": {
+        "label": "Step 2",
+        "title": "We Query Every Major AI",
+        "description": "Ainalytics simultaneously asks ChatGPT, Claude, Gemini, Grok, and Perplexity. In seconds, you'll see exactly what each AI tells people about you."
+      },
+      "step3": {
+        "label": "Step 3",
+        "title": "See Where You're Missing",
+        "description": "Get a clear visibility report: which AIs mention you, which recommend competitors instead, and where you're completely invisible. Then take action."
+      }
+    },
+    "preview": {
+      "title": "Real-Time AI Visibility,",
+      "titleHighlight": "One Dashboard",
+      "subtitle": "Stop guessing. See exactly how every major AI platform perceives your brand — updated in real time."
+    },
+    "pricing": {
+      "title": "How Much Is",
+      "titleHighlight": "Invisibility Costing You?",
+      "subtitle": "Every day you're not monitoring, AI is sending your customers somewhere else.",
+      "monthly": "/month",
+      "free": {
+        "name": "Starter",
+        "price": "Free",
+        "description": "See what AI says about you right now. No excuses not to start.",
+        "cta": "Check My Visibility",
+        "features": [
+          "3 AI platforms monitored",
+          "100 brand queries/month",
+          "5 monitoring topics",
+          "Basic visibility score",
+          "Community support"
+        ]
+      },
+      "pro": {
+        "name": "Pro",
+        "price": "$49",
+        "description": "Full visibility across every AI. Know the moment something changes.",
+        "cta": "Start Monitoring Now",
+        "popular": "Most Popular",
+        "features": [
+          "All 5 AI platforms",
+          "Unlimited brand queries",
+          "Unlimited topics",
+          "Advanced visibility analytics",
+          "Web search grounding verification",
+          "Multi-brand workspaces",
+          "Priority support"
+        ]
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Custom",
+        "description": "For agencies and brands that can't afford a single blind spot.",
+        "cta": "Contact Sales",
+        "features": [
+          "Everything in Pro",
+          "Custom AI integrations",
+          "SSO & SAML",
+          "Dedicated success manager",
+          "SLA guarantee",
+          "On-premise deployment",
+          "White-label reporting"
+        ]
+      }
+    },
+    "cta": {
+      "title": "Your Competitors Are Already Monitoring This.",
+      "subtitle": "Every hour you wait, AI is shaping opinions about your brand without your knowledge. The brands that monitor win. The ones that don't disappear.",
+      "button": "Check My AI Visibility — Free",
+      "noCard": "No credit card required · Setup in 60 seconds"
+    },
+    "footer": {
+      "description": "The AI visibility monitoring platform. Know what AI says about you before your customers do.",
+      "product": "Product",
+      "company": "Company",
+      "legal": "Legal",
+      "about": "About",
+      "blog": "Blog",
+      "careers": "Careers",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "rights": "All rights reserved."
+    }
   }
 }

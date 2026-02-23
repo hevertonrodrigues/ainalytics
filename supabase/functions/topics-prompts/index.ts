@@ -229,6 +229,9 @@ async function createPrompt(req: Request): Promise<Response> {
   if (!body.text || typeof body.text !== "string" || !body.text.trim()) {
     return badRequest("text is required");
   }
+  if (body.text.trim().length > 500) {
+    return badRequest("Prompt text must not exceed 500 characters");
+  }
 
   const db = createAdminClient();
 
@@ -273,7 +276,12 @@ async function updatePrompt(req: Request): Promise<Response> {
   const db = createAdminClient();
 
   const updates: Record<string, unknown> = {};
-  if (body.text !== undefined) updates.text = body.text.trim();
+  if (body.text !== undefined) {
+    if (typeof body.text === "string" && body.text.trim().length > 500) {
+      return badRequest("Prompt text must not exceed 500 characters");
+    }
+    updates.text = body.text.trim();
+  }
   if (body.description !== undefined) updates.description = body.description?.trim() || null;
   if (body.is_active !== undefined) updates.is_active = body.is_active;
 

@@ -33,7 +33,7 @@ export function SignUp() {
     try {
       await signUp(email, password, fullName, tenantName);
       // Hard redirect — guarantees AuthContext restores session from localStorage
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');
       setError(msg);

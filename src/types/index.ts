@@ -10,6 +10,20 @@ export interface BaseEntity {
 }
 
 // ────────────────────────────────────────────────────────────
+// Plans (global — no tenant_id)
+// ────────────────────────────────────────────────────────────
+
+export interface Plan {
+  id: string;
+  name: string;
+  price: number;
+  is_active: boolean;
+  settings: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+// ────────────────────────────────────────────────────────────
 // Tenants (NO tenant_id — tenants is the root table)
 // ────────────────────────────────────────────────────────────
 
@@ -17,6 +31,7 @@ export interface Tenant {
   id: string;
   name: string;
   slug: string;
+  plan_id: string | null;
   created_at: string;
   updated_at: string;
 }

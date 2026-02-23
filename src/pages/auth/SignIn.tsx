@@ -21,7 +21,7 @@ export function SignIn() {
     try {
       await signIn(email, password);
       // Hard redirect — guarantees AuthContext restores session from localStorage
-      window.location.href = '/';
+      window.location.href = '/dashboard';
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');
       setError(msg);

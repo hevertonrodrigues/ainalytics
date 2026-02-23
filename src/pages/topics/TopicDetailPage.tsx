@@ -44,7 +44,7 @@ export function TopicDetailPage() {
       ]);
       const found = topicsRes.data.find((t: Topic) => t.id === topicId);
       if (!found) {
-        navigate('/topics', { replace: true });
+        navigate('/dashboard/topics', { replace: true });
         return;
       }
       setTopic(found);
@@ -162,7 +162,7 @@ export function TopicDetailPage() {
       {/* Back + Header */}
       <div>
         <button
-          onClick={() => navigate('/topics')}
+          onClick={() => navigate('/dashboard/topics')}
           className="flex items-center gap-1 text-sm text-text-muted hover:text-text-secondary transition-colors mb-3"
         >
           <ArrowLeft className="w-4 h-4" />
@@ -178,7 +178,7 @@ export function TopicDetailPage() {
           {formMode === 'closed' && (
             <div className="flex items-center gap-2">
               <button
-                onClick={() => navigate(`/topics/${topicId}/answers`)}
+                onClick={() => navigate(`/dashboard/topics/${topicId}/answers`)}
                 className="btn btn-ghost btn-sm"
               >
                 <Search className="w-4 h-4" />
@@ -281,8 +281,11 @@ export function TopicDetailPage() {
               />
 
               {/* Content */}
-              <div className="flex-1 min-w-0">
-                <span className="text-sm font-medium text-text-primary block truncate">
+              <div
+                className="flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => navigate(`/dashboard/prompts/${prompt.id}`)}
+              >
+                <span className="text-sm font-medium text-text-primary block truncate hover:underline">
                   {prompt.text}
                 </span>
                 {prompt.description && (

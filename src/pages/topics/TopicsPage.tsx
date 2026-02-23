@@ -233,7 +233,7 @@ export function TopicsPage() {
             <div
               key={topic.id}
               className="dashboard-card p-4 flex items-center gap-4 group cursor-pointer"
-              onClick={() => navigate(`/topics/${topic.id}`)}
+              onClick={() => navigate(`/dashboard/topics/${topic.id}`)}
             >
               {/* Status dot */}
               <div

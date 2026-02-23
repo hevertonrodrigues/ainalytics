@@ -175,7 +175,7 @@ export function TopicAnswersPage() {
     <div className="stagger-enter space-y-6 max-w-5xl">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate(`/topics/${topicId}`)} className="icon-btn">
+        <button onClick={() => navigate(`/dashboard/topics/${topicId}`)} className="icon-btn">
           <ArrowLeft className="w-4 h-4" />
         </button>
         <div className="flex-1">

@@ -21,8 +21,11 @@ import { TopicsPage } from '@/pages/topics/TopicsPage';
 import { TopicDetailPage } from '@/pages/topics/TopicDetailPage';
 import { TopicAnswersPage } from '@/pages/topics/TopicAnswersPage';
 import { PromptsPage } from '@/pages/prompts/PromptsPage';
+import { PromptDetailPage } from '@/pages/prompts/PromptDetailPage';
 import { PlatformsPage } from '@/pages/platforms/PlatformsPage';
 import { ModelsPage } from '@/pages/models/ModelsPage';
+import { LandingPage } from '@/pages/landing/LandingPage';
+import { PlansPage } from '@/pages/plans/PlansPage';
 
 export function App() {
   return (
@@ -31,6 +34,8 @@ export function App() {
       <BrowserRouter>
         <AuthProvider>
           <Routes>
+            {/* Public landing page */}
+            <Route index element={<LandingPage />} />
             {/* Public (guest) routes */}
             <Route path="/signin" element={<GuestRoute><SignIn /></GuestRoute>} />
             <Route path="/signup" element={<GuestRoute><SignUp /></GuestRoute>} />
@@ -38,7 +43,7 @@ export function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected routes with app shell */}
-            <Route element={<ProtectedRoute><TenantProvider><AppLayout /></TenantProvider></ProtectedRoute>}>
+            <Route path="/dashboard" element={<ProtectedRoute><TenantProvider><AppLayout /></TenantProvider></ProtectedRoute>}>
               <Route index element={<Dashboard />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<TenantSettings />} />
@@ -46,8 +51,10 @@ export function App() {
               <Route path="topics/:id" element={<TopicDetailPage />} />
               <Route path="topics/:id/answers" element={<TopicAnswersPage />} />
               <Route path="prompts" element={<PromptsPage />} />
+              <Route path="prompts/:id" element={<PromptDetailPage />} />
               <Route path="platforms" element={<PlatformsPage />} />
               <Route path="models" element={<ModelsPage />} />
+              <Route path="plans" element={<PlansPage />} />
             </Route>
           </Routes>
         </AuthProvider>

@@ -16,6 +16,7 @@ import {
   ChevronUp,
   Cpu,
   Layers,
+  CreditCard,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -30,16 +31,16 @@ interface NavItem {
 }
 
 const MAIN_NAV: NavItem[] = [
-  { key: 'nav.overview', path: '/', icon: LayoutDashboard },
+  { key: 'nav.overview', path: '/dashboard', icon: LayoutDashboard },
 ];
 
 const ANALYTICS_NAV: NavItem[] = [
-  { key: 'nav.topics', path: '/topics', icon: MessageSquare },
-  { key: 'nav.prompts', path: '/prompts', icon: List },
-  { key: 'nav.platforms', path: '/platforms', icon: Cpu },
-  { key: 'nav.models', path: '/models', icon: Layers },
-  { key: 'nav.anomalies', path: '/anomalies', icon: AlertTriangle },
-  { key: 'nav.reports', path: '/reports', icon: BarChart3 },
+  { key: 'nav.topics', path: '/dashboard/topics', icon: MessageSquare },
+  { key: 'nav.prompts', path: '/dashboard/prompts', icon: List },
+  { key: 'nav.platforms', path: '/dashboard/platforms', icon: Cpu },
+  { key: 'nav.models', path: '/dashboard/models', icon: Layers },
+  { key: 'nav.anomalies', path: '/dashboard/anomalies', icon: AlertTriangle },
+  { key: 'nav.reports', path: '/dashboard/reports', icon: BarChart3 },
 ];
 
 export function Sidebar() {
@@ -52,7 +53,7 @@ export function Sidebar() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/signin', { replace: true });
+    navigate('/', { replace: true });
   };
 
   return (
@@ -86,7 +87,7 @@ export function Sidebar() {
             <NavLink
               key={path}
               to={path}
-              end={path === '/'}
+              end={path === '/dashboard'}
               className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
             >
               <Icon className="nav-link-icon" />
@@ -134,7 +135,7 @@ export function Sidebar() {
         {/* Settings */}
         <div className="px-3 pb-1">
           <NavLink
-            to="/settings"
+            to="/dashboard/settings"
             className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
           >
             <Settings className="nav-link-icon" />
@@ -149,11 +150,18 @@ export function Sidebar() {
             {userMenuOpen && (
               <div className="px-3 pt-2 pb-1 space-y-0.5">
                 <NavLink
-                  to="/profile"
+                  to="/dashboard/profile"
                   className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
                 >
                   <User className="nav-link-icon" />
                   <span>{t('nav.profile')}</span>
+                </NavLink>
+                <NavLink
+                  to="/dashboard/plans"
+                  className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                >
+                  <CreditCard className="nav-link-icon" />
+                  <span>{t('nav.plans')}</span>
                 </NavLink>
                 <button className="sidebar-action">
                   <HelpCircle className="nav-link-icon" />
