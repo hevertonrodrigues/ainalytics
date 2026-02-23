@@ -1,0 +1,91 @@
+{
+  "auth": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "newPassword": "New Password",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "createAccount": "Create Account",
+    "sendResetLink": "Send Reset Link",
+    "backToSignIn": "Back to Sign In",
+    "fullName": "Full Name",
+    "orgName": "Organization Name",
+    "resetSent": "Password reset link sent! Check your email.",
+    "resetSuccess": "Password reset successfully. You can now sign in.",
+    "signUpSuccess": "Account created! Welcome aboard."
+  },
+  "profile": {
+    "title": "My Profile",
+    "fullName": "Full Name",
+    "phone": "Phone",
+    "avatar": "Avatar",
+    "locale": "Language",
+    "saved": "Profile updated successfully"
+  },
+  "settings": {
+    "title": "Settings",
+    "tenantName": "Organization Name",
+    "key": "Key",
+    "value": "Value",
+    "addSetting": "Add Setting",
+    "saved": "Settings saved successfully",
+    "deleted": "Setting deleted",
+    "noSettings": "No settings configured yet"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back",
+    "welcomeUser": "Welcome back, {{name}}!",
+    "subtitle": "Your workspace is ready. Explore your profile, settings, or invite team members."
+  },
+  "tenant": {
+    "switch": "Switch Organization",
+    "settings": "Organization Settings",
+    "name": "Organization Name",
+    "members": "Members",
+    "current": "Current Organization"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "members": "Members"
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "confirm": "Confirm",
+    "back": "Back",
+    "search": "Search",
+    "noResults": "No results found",
+    "actions": "Actions"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "passwordMin": "Password must be at least {{min}} characters",
+    "passwordMatch": "Passwords do not match",
+    "nameMin": "Name must be at least {{min}} characters"
+  },
+  "errors": {
+    "UNAUTHORIZED": "Please sign in to continue",
+    "FORBIDDEN": "You don't have permission for this action",
+    "NOT_FOUND": "Resource not found",
+    "CONFLICT": "This email is already in use",
+    "VALIDATION_ERROR": "Please check your input",
+    "INTERNAL_ERROR": "Something went wrong. Please try again.",
+    "TENANT_REQUIRED": "Please select an organization",
+    "INVALID_TENANT": "Invalid organization"
+  }
+}

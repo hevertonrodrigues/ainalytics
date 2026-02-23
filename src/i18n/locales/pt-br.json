@@ -1,0 +1,91 @@
+{
+  "auth": {
+    "signIn": "Entrar",
+    "signUp": "Cadastrar",
+    "signOut": "Sair",
+    "email": "E-mail",
+    "password": "Senha",
+    "confirmPassword": "Confirmar Senha",
+    "forgotPassword": "Esqueceu sua senha?",
+    "resetPassword": "Redefinir Senha",
+    "newPassword": "Nova Senha",
+    "noAccount": "Não tem uma conta?",
+    "hasAccount": "Já tem uma conta?",
+    "createAccount": "Criar Conta",
+    "sendResetLink": "Enviar Link",
+    "backToSignIn": "Voltar para Login",
+    "fullName": "Nome Completo",
+    "orgName": "Nome da Organização",
+    "resetSent": "Link de redefinição enviado! Verifique seu e-mail.",
+    "resetSuccess": "Senha redefinida. Agora você pode entrar.",
+    "signUpSuccess": "Conta criada! Bem-vindo."
+  },
+  "profile": {
+    "title": "Meu Perfil",
+    "fullName": "Nome Completo",
+    "phone": "Telefone",
+    "avatar": "Avatar",
+    "locale": "Idioma",
+    "saved": "Perfil atualizado com sucesso"
+  },
+  "settings": {
+    "title": "Configurações",
+    "tenantName": "Nome da Organização",
+    "key": "Chave",
+    "value": "Valor",
+    "addSetting": "Adicionar Configuração",
+    "saved": "Configurações salvas com sucesso",
+    "deleted": "Configuração excluída",
+    "noSettings": "Nenhuma configuração cadastrada"
+  },
+  "dashboard": {
+    "title": "Painel",
+    "welcome": "Bem-vindo de volta",
+    "welcomeUser": "Bem-vindo de volta, {{name}}!",
+    "subtitle": "Seu espaço de trabalho está pronto. Explore seu perfil, configurações ou convide membros."
+  },
+  "tenant": {
+    "switch": "Trocar Organização",
+    "settings": "Configurações da Organização",
+    "name": "Nome da Organização",
+    "members": "Membros",
+    "current": "Organização Atual"
+  },
+  "nav": {
+    "dashboard": "Painel",
+    "profile": "Perfil",
+    "settings": "Configurações",
+    "members": "Membros"
+  },
+  "common": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "loading": "Carregando...",
+    "error": "Ocorreu um erro",
+    "success": "Sucesso",
+    "confirm": "Confirmar",
+    "back": "Voltar",
+    "search": "Buscar",
+    "noResults": "Nenhum resultado encontrado",
+    "actions": "Ações"
+  },
+  "validation": {
+    "required": "Este campo é obrigatório",
+    "invalidEmail": "E-mail inválido",
+    "passwordMin": "A senha deve ter pelo menos {{min}} caracteres",
+    "passwordMatch": "As senhas não coincidem",
+    "nameMin": "O nome deve ter pelo menos {{min}} caracteres"
+  },
+  "errors": {
+    "UNAUTHORIZED": "Faça login para continuar",
+    "FORBIDDEN": "Você não tem permissão para esta ação",
+    "NOT_FOUND": "Recurso não encontrado",
+    "CONFLICT": "Este e-mail já está em uso",
+    "VALIDATION_ERROR": "Verifique sua entrada",
+    "INTERNAL_ERROR": "Algo deu errado. Tente novamente.",
+    "TENANT_REQUIRED": "Selecione uma organização",
+    "INVALID_TENANT": "Organização inválida"
+  }
+}

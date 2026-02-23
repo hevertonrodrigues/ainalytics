@@ -1,0 +1,352 @@
+@import "tailwindcss";
+
+/* ────────────────────────────────────────────────────────────
+   Design System Tokens — Refined Dark Luxury
+   ──────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Base backgrounds */
+  --color-bg-primary: #0a0a0f;
+  --color-bg-secondary: #12121a;
+  --color-bg-tertiary: #1a1a2e;
+  --color-bg-elevated: #222236;
+
+  /* Brand */
+  --color-brand-primary: #6c5ce7;
+  --color-brand-secondary: #a29bfe;
+  --color-brand-accent: #fd79a8;
+  --color-brand-glow: rgba(108, 92, 231, 0.35);
+
+  /* Text */
+  --color-text-primary: #f0f0f5;
+  --color-text-secondary: #9898b0;
+  --color-text-muted: #555570;
+
+  /* Status */
+  --color-success: #00cec9;
+  --color-warning: #fdcb6e;
+  --color-error: #ff6b6b;
+
+  /* Glass */
+  --color-glass-bg: rgba(255, 255, 255, 0.04);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-glass-hover: rgba(255, 255, 255, 0.08);
+
+  /* Fonts */
+  --font-display: "Outfit", sans-serif;
+  --font-body: "Plus Jakarta Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Radii */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+}
+
+/* ────────────────────────────────────────────────────────────
+   Reset & Base
+   Tailwind v4 includes its own preflight — only add what's needed
+   ──────────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* ────────────────────────────────────────────────────────────
+   Glass Card
+   ──────────────────────────────────────────────────────────── */
+
+.glass-card {
+  background: var(--color-glass-bg);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-xl);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.glass-card:hover {
+  background: var(--color-glass-hover);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+/* ────────────────────────────────────────────────────────────
+   Input / Form
+   ──────────────────────────────────────────────────────────── */
+
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-glass-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  outline: none;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.input-field::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input-field:focus {
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 3px var(--color-brand-glow);
+}
+
+.input-field:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ────────────────────────────────────────────────────────────
+   Buttons
+   ──────────────────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all 200ms ease;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-brand-primary), #7c6cf0);
+  color: white;
+  box-shadow: 0 4px 20px var(--color-brand-glow);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px var(--color-brand-glow);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: var(--color-glass-bg);
+  border: 1px solid var(--color-glass-border);
+  color: var(--color-text-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-glass-hover);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-text-primary);
+  background: var(--color-glass-bg);
+}
+
+.btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.0625rem;
+}
+
+/* ────────────────────────────────────────────────────────────
+   Skeleton Loader
+   ──────────────────────────────────────────────────────────── */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.06) 25%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.8s infinite ease-in-out;
+  border-radius: var(--radius-md);
+}
+
+@keyframes skeleton-pulse {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Staggered Page Enter
+   ──────────────────────────────────────────────────────────── */
+
+.stagger-enter > * {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: stagger-in 0.5s ease forwards;
+}
+
+.stagger-enter > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.stagger-enter > *:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.stagger-enter > *:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.stagger-enter > *:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.stagger-enter > *:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.stagger-enter > *:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.stagger-enter > *:nth-child(7) {
+  animation-delay: 0.35s;
+}
+.stagger-enter > *:nth-child(8) {
+  animation-delay: 0.4s;
+}
+
+@keyframes stagger-in {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Auth Page Background
+   ──────────────────────────────────────────────────────────── */
+
+.auth-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(
+      ellipse 80% 60% at 50% 0%,
+      rgba(108, 92, 231, 0.12) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 60% 50% at 80% 100%,
+      rgba(253, 121, 168, 0.08) 0%,
+      transparent 50%
+    ),
+    var(--color-bg-primary);
+}
+
+/* ────────────────────────────────────────────────────────────
+   Scrollbar
+   ──────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-glass-border);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* ────────────────────────────────────────────────────────────
+   Toast / Alert
+   ──────────────────────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-lg);
+  font-size: 0.875rem;
+  font-weight: 500;
+  backdrop-filter: blur(16px);
+  animation: toast-in 0.3s ease;
+}
+
+.toast-success {
+  background: rgba(0, 206, 201, 0.15);
+  border: 1px solid rgba(0, 206, 201, 0.3);
+  color: var(--color-success);
+}
+
+.toast-error {
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid rgba(255, 107, 107, 0.3);
+  color: var(--color-error);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
