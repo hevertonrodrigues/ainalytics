@@ -6,18 +6,18 @@
     "email": "Correo Electrónico",
     "password": "Contraseña",
     "confirmPassword": "Confirmar Contraseña",
-    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "forgotPassword": "¿Olvidó su contraseña?",
     "resetPassword": "Restablecer Contraseña",
     "newPassword": "Nueva Contraseña",
-    "noAccount": "¿No tienes una cuenta?",
-    "hasAccount": "¿Ya tienes una cuenta?",
+    "noAccount": "¿No tiene una cuenta?",
+    "hasAccount": "¿Ya tiene una cuenta?",
     "createAccount": "Crear Cuenta",
-    "sendResetLink": "Enviar Enlace",
+    "sendResetLink": "Enviar Enlace de Restablecimiento",
     "backToSignIn": "Volver a Iniciar Sesión",
     "fullName": "Nombre Completo",
     "orgName": "Nombre de la Organización",
-    "resetSent": "¡Enlace de restablecimiento enviado! Revisa tu correo.",
-    "resetSuccess": "Contraseña restablecida. Ya puedes iniciar sesión.",
+    "resetSent": "Enlace de restablecimiento enviado. Revise su correo.",
+    "resetSuccess": "Contraseña restablecida. Ahora puede iniciar sesión.",
     "signUpSuccess": "¡Cuenta creada! Bienvenido."
   },
   "profile": {
@@ -26,7 +26,7 @@
     "phone": "Teléfono",
     "avatar": "Avatar",
     "locale": "Idioma",
-    "saved": "Perfil actualizado correctamente"
+    "saved": "Perfil actualizado con éxito"
   },
   "settings": {
     "title": "Configuración",
@@ -34,15 +34,15 @@
     "key": "Clave",
     "value": "Valor",
     "addSetting": "Agregar Configuración",
-    "saved": "Configuración guardada correctamente",
+    "saved": "Configuración guardada con éxito",
     "deleted": "Configuración eliminada",
-    "noSettings": "No hay configuraciones aún"
+    "noSettings": "Ninguna configuración registrada"
   },
   "dashboard": {
     "title": "Resumen de Categorías",
-    "welcome": "Bienvenido de vuelta",
-    "welcomeUser": "¡Bienvenido de vuelta, {{name}}!",
-    "subtitle": "Tu espacio de trabajo está listo. Explora tu perfil, configuración o invita miembros."
+    "welcome": "Bienvenido de regreso",
+    "welcomeUser": "¡Bienvenido de regreso, {{name}}!",
+    "subtitle": "Su espacio de trabajo está listo."
   },
   "tenant": {
     "switch": "Cambiar Organización",
@@ -52,26 +52,61 @@
     "current": "Organización Actual"
   },
   "nav": {
-    "overview": "Resumen",
+    "overview": "Visión General",
     "profile": "Perfil",
     "settings": "Configuración",
     "members": "Miembros",
-    "trends": "Tendencias",
+    "topics": "Tópicos",
+    "prompts": "Prompts",
     "anomalies": "Detección de Anomalías",
     "reports": "Análisis Personalizado",
     "documents": "Tipos de Documento",
     "support": "Soporte",
     "sectionMain": "Principal",
-    "sectionAnalytics": "Analítica"
+    "sectionAnalytics": "Monitoreo IA"
+  },
+  "topics": {
+    "title": "Tópicos",
+    "newTopic": "Nuevo Tópico",
+    "editTopic": "Editar Tópico",
+    "name": "Nombre del Tópico",
+    "description": "Descripción",
+    "promptCount": "Prompts",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "noTopics": "Aún no hay tópicos. Cree el primero para comenzar el monitoreo.",
+    "created": "Tópico creado",
+    "updated": "Tópico actualizado",
+    "deleted": "Tópico eliminado",
+    "confirmDelete": "¿Eliminar este tópico y todos sus prompts?",
+    "namePlaceholder": "ej. Alquiler de Barcos",
+    "descriptionPlaceholder": "Describa lo que cubre este tópico"
+  },
+  "prompts": {
+    "title": "Prompts",
+    "newPrompt": "Nuevo Prompt",
+    "editPrompt": "Editar Prompt",
+    "text": "Texto del Prompt",
+    "description": "Descripción",
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "noPrompts": "Aún no hay prompts en este tópico. Agregue prompts para iniciar el monitoreo.",
+    "created": "Prompt creado",
+    "updated": "Prompt actualizado",
+    "deleted": "Prompt eliminado",
+    "confirmDelete": "¿Eliminar este prompt?",
+    "textPlaceholder": "ej. Barcos para alquiler en Brasil",
+    "descriptionPlaceholder": "Notas opcionales sobre este prompt",
+    "backToTopics": "Volver a Tópicos"
   },
   "analytics": {
-    "totalDocuments": "Total Documentos",
+    "totalDocuments": "Total de Documentos",
     "detectedErrors": "Errores Detectados",
     "anomalies": "Anomalías",
     "accuracy": "Precisión",
     "volumeBySize": "Volumen por Tamaño",
     "volumeUSD": "Volumen (USD) por Tamaño",
-    "documentStatus": "Estado de Documentos",
+    "documentStatus": "Status de Documentos",
     "riskIndicators": "Indicadores de Riesgo",
     "identifiedAnomalies": "Anomalías Identificadas"
   },
@@ -86,24 +121,26 @@
     "confirm": "Confirmar",
     "back": "Volver",
     "search": "Buscar",
-    "noResults": "Sin resultados",
-    "actions": "Acciones"
+    "noResults": "No se encontraron resultados",
+    "actions": "Acciones",
+    "create": "Crear",
+    "status": "Estado"
   },
   "validation": {
     "required": "Este campo es obligatorio",
-    "invalidEmail": "Correo electrónico inválido",
+    "invalidEmail": "Dirección de correo inválida",
     "passwordMin": "La contraseña debe tener al menos {{min}} caracteres",
     "passwordMatch": "Las contraseñas no coinciden",
     "nameMin": "El nombre debe tener al menos {{min}} caracteres"
   },
   "errors": {
-    "UNAUTHORIZED": "Inicia sesión para continuar",
-    "FORBIDDEN": "No tienes permiso para esta acción",
+    "UNAUTHORIZED": "Inicie sesión para continuar",
+    "FORBIDDEN": "No tiene permiso para esta acción",
     "NOT_FOUND": "Recurso no encontrado",
-    "CONFLICT": "Este correo ya está en uso",
-    "VALIDATION_ERROR": "Verifica tu entrada",
-    "INTERNAL_ERROR": "Algo salió mal. Intenta de nuevo.",
-    "TENANT_REQUIRED": "Selecciona una organización",
+    "CONFLICT": "Esto ya existe",
+    "VALIDATION_ERROR": "Verifique su entrada",
+    "INTERNAL_ERROR": "Algo salió mal. Intente nuevamente.",
+    "TENANT_REQUIRED": "Seleccione una organización",
     "INVALID_TENANT": "Organización inválida"
   }
 }

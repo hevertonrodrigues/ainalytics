@@ -63,6 +63,51 @@ export interface TenantSetting extends BaseEntity {
 }
 
 // ────────────────────────────────────────────────────────────
+// Topics & Prompts (AI Monitoring)
+// ────────────────────────────────────────────────────────────
+
+export interface Topic extends BaseEntity {
+  name: string;
+  description: string | null;
+  is_active: boolean;
+  prompt_count?: number; // virtual, from join
+}
+
+export interface Prompt extends BaseEntity {
+  topic_id: string;
+  text: string;
+  description: string | null;
+  is_active: boolean;
+}
+
+export interface CreateTopicInput {
+  name: string;
+  description?: string;
+  is_active?: boolean;
+}
+
+export interface UpdateTopicInput {
+  id: string;
+  name?: string;
+  description?: string;
+  is_active?: boolean;
+}
+
+export interface CreatePromptInput {
+  topic_id: string;
+  text: string;
+  description?: string;
+  is_active?: boolean;
+}
+
+export interface UpdatePromptInput {
+  id: string;
+  text?: string;
+  description?: string;
+  is_active?: boolean;
+}
+
+// ────────────────────────────────────────────────────────────
 // API Response Envelope
 // ────────────────────────────────────────────────────────────
 

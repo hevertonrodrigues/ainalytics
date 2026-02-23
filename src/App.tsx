@@ -16,6 +16,9 @@ import { ResetPassword } from '@/pages/auth/ResetPassword';
 import { Dashboard } from '@/pages/dashboard/Dashboard';
 import { ProfilePage } from '@/pages/profile/Profile';
 import { TenantSettings } from '@/pages/settings/TenantSettings';
+import { TopicsPage } from '@/pages/topics/TopicsPage';
+import { TopicDetailPage } from '@/pages/topics/TopicDetailPage';
+import { PromptsPage } from '@/pages/prompts/PromptsPage';
 
 export function App() {
   return (
@@ -34,6 +37,9 @@ export function App() {
               <Route index element={<Dashboard />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings" element={<TenantSettings />} />
+              <Route path="topics" element={<TopicsPage />} />
+              <Route path="topics/:id" element={<TopicDetailPage />} />
+              <Route path="prompts" element={<PromptsPage />} />
             </Route>
           </Routes>
         </AuthProvider>

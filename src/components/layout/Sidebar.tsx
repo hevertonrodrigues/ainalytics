@@ -5,10 +5,10 @@ import {
   User,
   Settings,
   LogOut,
-  TrendingUp,
+  MessageSquare,
   AlertTriangle,
   BarChart3,
-  FileSearch,
+  List,
   HelpCircle,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -29,10 +29,10 @@ const MAIN_NAV: NavItem[] = [
 ];
 
 const ANALYTICS_NAV: NavItem[] = [
-  { key: 'nav.trends', path: '/trends', icon: TrendingUp },
+  { key: 'nav.topics', path: '/topics', icon: MessageSquare },
+  { key: 'nav.prompts', path: '/prompts', icon: List },
   { key: 'nav.anomalies', path: '/anomalies', icon: AlertTriangle },
   { key: 'nav.reports', path: '/reports', icon: BarChart3 },
-  { key: 'nav.documents', path: '/documents', icon: FileSearch },
 ];
 
 export function Sidebar() {

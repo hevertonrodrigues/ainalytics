@@ -6,19 +6,19 @@
     "email": "E-mail",
     "password": "Senha",
     "confirmPassword": "Confirmar Senha",
-    "forgotPassword": "Esqueceu sua senha?",
+    "forgotPassword": "Esqueceu a senha?",
     "resetPassword": "Redefinir Senha",
     "newPassword": "Nova Senha",
     "noAccount": "Não tem uma conta?",
     "hasAccount": "Já tem uma conta?",
     "createAccount": "Criar Conta",
-    "sendResetLink": "Enviar Link",
+    "sendResetLink": "Enviar Link de Redefinição",
     "backToSignIn": "Voltar para Login",
     "fullName": "Nome Completo",
     "orgName": "Nome da Organização",
     "resetSent": "Link de redefinição enviado! Verifique seu e-mail.",
-    "resetSuccess": "Senha redefinida. Agora você pode entrar.",
-    "signUpSuccess": "Conta criada! Bem-vindo."
+    "resetSuccess": "Senha redefinida com sucesso. Você já pode entrar.",
+    "signUpSuccess": "Conta criada! Bem-vindo a bordo."
   },
   "profile": {
     "title": "Meu Perfil",
@@ -35,14 +35,14 @@
     "value": "Valor",
     "addSetting": "Adicionar Configuração",
     "saved": "Configurações salvas com sucesso",
-    "deleted": "Configuração excluída",
+    "deleted": "Configuração removida",
     "noSettings": "Nenhuma configuração cadastrada"
   },
   "dashboard": {
     "title": "Resumo de Categorias",
     "welcome": "Bem-vindo de volta",
     "welcomeUser": "Bem-vindo de volta, {{name}}!",
-    "subtitle": "Seu espaço de trabalho está pronto. Explore seu perfil, configurações ou convide membros."
+    "subtitle": "Seu espaço de trabalho está pronto."
   },
   "tenant": {
     "switch": "Trocar Organização",
@@ -56,13 +56,48 @@
     "profile": "Perfil",
     "settings": "Configurações",
     "members": "Membros",
-    "trends": "Tendências",
+    "topics": "Tópicos",
+    "prompts": "Prompts",
     "anomalies": "Detecção de Anomalias",
     "reports": "Análise Personalizada",
     "documents": "Tipos de Documento",
     "support": "Suporte",
     "sectionMain": "Principal",
-    "sectionAnalytics": "Analítica"
+    "sectionAnalytics": "Monitoramento IA"
+  },
+  "topics": {
+    "title": "Tópicos",
+    "newTopic": "Novo Tópico",
+    "editTopic": "Editar Tópico",
+    "name": "Nome do Tópico",
+    "description": "Descrição",
+    "promptCount": "Prompts",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "noTopics": "Nenhum tópico ainda. Crie o primeiro para começar o monitoramento.",
+    "created": "Tópico criado",
+    "updated": "Tópico atualizado",
+    "deleted": "Tópico excluído",
+    "confirmDelete": "Excluir este tópico e todos os seus prompts?",
+    "namePlaceholder": "ex. Aluguel de Barcos",
+    "descriptionPlaceholder": "Descreva o que este tópico abrange"
+  },
+  "prompts": {
+    "title": "Prompts",
+    "newPrompt": "Novo Prompt",
+    "editPrompt": "Editar Prompt",
+    "text": "Texto do Prompt",
+    "description": "Descrição",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "noPrompts": "Nenhum prompt neste tópico ainda. Adicione prompts para iniciar o monitoramento.",
+    "created": "Prompt criado",
+    "updated": "Prompt atualizado",
+    "deleted": "Prompt excluído",
+    "confirmDelete": "Excluir este prompt?",
+    "textPlaceholder": "ex. Barcos para aluguel no Brasil",
+    "descriptionPlaceholder": "Notas opcionais sobre este prompt",
+    "backToTopics": "Voltar para Tópicos"
   },
   "analytics": {
     "totalDocuments": "Total de Documentos",
@@ -87,11 +122,13 @@
     "back": "Voltar",
     "search": "Buscar",
     "noResults": "Nenhum resultado encontrado",
-    "actions": "Ações"
+    "actions": "Ações",
+    "create": "Criar",
+    "status": "Status"
   },
   "validation": {
     "required": "Este campo é obrigatório",
-    "invalidEmail": "E-mail inválido",
+    "invalidEmail": "Endereço de e-mail inválido",
     "passwordMin": "A senha deve ter pelo menos {{min}} caracteres",
     "passwordMatch": "As senhas não coincidem",
     "nameMin": "O nome deve ter pelo menos {{min}} caracteres"
@@ -100,7 +137,7 @@
     "UNAUTHORIZED": "Faça login para continuar",
     "FORBIDDEN": "Você não tem permissão para esta ação",
     "NOT_FOUND": "Recurso não encontrado",
-    "CONFLICT": "Este e-mail já está em uso",
+    "CONFLICT": "Isto já existe",
     "VALIDATION_ERROR": "Verifique sua entrada",
     "INTERNAL_ERROR": "Algo deu errado. Tente novamente.",
     "TENANT_REQUIRED": "Selecione uma organização",
