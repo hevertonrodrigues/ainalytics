@@ -113,20 +113,35 @@ export interface UpdatePromptInput {
 
 export interface Model {
   id: string;
-  tenant_id: string;
   platform_id: string;
   slug: string;
   name: string;
   is_default: boolean;
+  is_active: boolean;
   created_at: string;
 }
 
-export interface Platform extends BaseEntity {
+export interface Platform {
+  id: string;
   slug: string;
   name: string;
   is_active: boolean;
   default_model_id: string | null;
   default_model: Model | null; // joined from models
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TenantPlatformModel {
+  id: string;
+  tenant_id: string;
+  platform_id: string;
+  model_id: string;
+  is_active: boolean;
+  platform?: { id: string; slug: string; name: string };
+  model?: { id: string; slug: string; name: string };
+  created_at: string;
+  updated_at: string;
 }
 
 export interface PromptAnswer {
@@ -139,6 +154,8 @@ export interface PromptAnswer {
   answer_text: string | null;
   tokens_used: { input: number; output: number } | null;
   latency_ms: number | null;
+  raw_request: unknown | null;
+  raw_response: unknown | null;
   error: string | null;
   searched_at: string;
   created_at: string;

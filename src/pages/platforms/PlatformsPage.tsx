@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Cpu, RefreshCw, ChevronDown, Download } from 'lucide-react';
+import { Cpu, RefreshCw, Download } from 'lucide-react';
+import { SearchSelect, type SelectOption } from '@/components/ui/SearchSelect';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import type { Platform, Model } from '@/types';
@@ -15,7 +16,7 @@ export function PlatformsPage() {
   const [error, setError] = useState('');
   const [toggling, setToggling] = useState<string | null>(null);
   const [modelsMap, setModelsMap] = useState<Record<string, Model[]>>({});
-  const [openModelDropdown, setOpenModelDropdown] = useState<string | null>(null);
+
   const [syncing, setSyncing] = useState<string | null>(null);
 
   const loadPlatforms = useCallback(async () => {
@@ -32,6 +33,11 @@ export function PlatformsPage() {
   useEffect(() => {
     loadPlatforms();
   }, [loadPlatforms]);
+
+  // Pre-load models for all platforms
+  useEffect(() => {
+    platforms.forEach((p) => loadModels(p.id));
+  }, [platforms]);
 
   const loadModels = async (platformId: string) => {
     if (modelsMap[platformId]) return;
@@ -63,26 +69,16 @@ export function PlatformsPage() {
     }
   };
 
-  const handleModelSelect = async (platform: Platform, model: Model) => {
+  const handleModelSelect = async (platform: Platform, modelId: string) => {
     try {
       await apiClient.put('/platforms', {
         id: platform.id,
-        default_model_id: model.id,
+        default_model_id: modelId,
       });
       showToast(t('platforms.modelUpdated'));
-      setOpenModelDropdown(null);
       await loadPlatforms();
     } catch {
       setError(t('common.error'));
-    }
-  };
-
-  const toggleModelDropdown = (platformId: string) => {
-    if (openModelDropdown === platformId) {
-      setOpenModelDropdown(null);
-    } else {
-      setOpenModelDropdown(platformId);
-      loadModels(platformId);
     }
   };
 
@@ -98,10 +94,6 @@ export function PlatformsPage() {
       showToast(message || t('platforms.synced', { count: synced }));
       // Refresh models cache
       setModelsMap((prev) => ({ ...prev, [platform.id]: undefined as unknown as Model[] }));
-      if (openModelDropdown === platform.id) {
-        const mRes = await apiClient.get<Model[]>(`/platforms/models?platformId=${platform.id}`);
-        setModelsMap((prev) => ({ ...prev, [platform.id]: mRes.data }));
-      }
     } catch {
       setError(t('common.error'));
     } finally {
@@ -165,10 +157,14 @@ export function PlatformsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {platforms.map((platform) => {
             const models = modelsMap[platform.id] || [];
-            const isDropdownOpen = openModelDropdown === platform.id;
+            const modelOptions: SelectOption[] = models.map((m) => ({
+              value: m.id,
+              label: `${m.name} (${m.slug})`,
+            }));
+
 
             return (
-              <div key={platform.id} className={`dashboard-card p-5 space-y-4 ${isDropdownOpen ? 'relative z-30' : ''}`}>
+              <div key={platform.id} className="dashboard-card p-5 space-y-4">
                 {/* Top row: logo/name + toggle */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -200,39 +196,18 @@ export function PlatformsPage() {
                   </button>
                 </div>
 
-                {/* Model selector dropdown */}
-                <div className="relative">
+                {/* Model selector */}
+                <div>
                   <label className="block text-xs font-medium text-text-secondary mb-1">
                     {t('platforms.defaultModel')}
                   </label>
-                  <button
-                    onClick={() => toggleModelDropdown(platform.id)}
-                    className="input-field text-xs flex items-center justify-between w-full text-left"
-                  >
-                    <span className="truncate">
-                      {platform.default_model?.name || platform.default_model?.slug || '—'}
-                    </span>
-                    <ChevronDown className={`w-3.5 h-3.5 text-text-muted shrink-0 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {isDropdownOpen && models.length > 0 && (
-                    <div className="absolute z-20 mt-1 w-full bg-bg-secondary border border-glass-border rounded-xs shadow-lg max-h-48 overflow-y-auto">
-                      {models.map((model) => (
-                        <button
-                          key={model.id}
-                          onClick={() => handleModelSelect(platform, model)}
-                          className={`w-full text-left px-3 py-2 text-xs transition-colors hover:bg-glass-hover ${
-                            platform.default_model_id === model.id
-                              ? 'text-brand-primary font-semibold bg-brand-primary/5'
-                              : 'text-text-secondary'
-                          }`}
-                        >
-                          {model.name}
-                          <span className="block text-text-muted text-[10px]">{model.slug}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                  <SearchSelect
+                    options={modelOptions}
+                    value={platform.default_model_id || ''}
+                    onChange={(val) => handleModelSelect(platform, val)}
+                    placeholder={platform.default_model?.name || platform.default_model?.slug || '—'}
+                    searchPlaceholder={t('common.search')}
+                  />
                 </div>
 
                 {/* Status + Sync */}

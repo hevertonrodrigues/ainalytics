@@ -10,6 +10,7 @@ import {
   Clock,
   AlertCircle,
   Cpu,
+  RefreshCw,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
@@ -29,6 +30,7 @@ export function TopicAnswersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchingPromptId, setSearchingPromptId] = useState<string | null>(null);
+  const [retryingAnswerId, setRetryingAnswerId] = useState<string | null>(null);
   const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(new Set());
   const [showPlatformConfig, setShowPlatformConfig] = useState(false);
 
@@ -101,6 +103,42 @@ export function TopicAnswersPage() {
       setError(msg);
     } finally {
       setSearchingPromptId(null);
+    }
+  };
+
+  // Retry a single failed answer
+  const handleRetrySingle = async (answer: PromptAnswer) => {
+    const prompt = prompts.find((p) => p.id === answer.prompt_id);
+    if (!prompt) return;
+
+    const platform = platforms.find((p) => p.slug === answer.platform_slug);
+    if (!platform) return;
+
+    setRetryingAnswerId(answer.id);
+    setError('');
+
+    try {
+      const res = await apiClient.post<PromptAnswer[]>('/prompt-search', {
+        prompt_id: prompt.id,
+        prompt_text: prompt.text,
+        platforms: [{
+          slug: platform.slug,
+          model: platform.default_model?.slug || platform.slug,
+          platform_id: platform.id,
+        }],
+      });
+
+      // Replace the failed answer with the new one
+      setAnswers((prev) => {
+        const filtered = prev.filter((a) => a.id !== answer.id);
+        return [...res.data, ...filtered];
+      });
+      showToast(t('answers.retryComplete'));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t('common.error');
+      showToast(msg, 'error');
+    } finally {
+      setRetryingAnswerId(null);
     }
   };
 
@@ -334,8 +372,16 @@ export function TopicAnswersPage() {
                         </div>
 
                         {answer.error ? (
-                          <div className="p-2 rounded-xs bg-error/10 text-error text-xs">
-                            {answer.error}
+                          <div className="p-2 rounded-xs bg-error/10 text-error text-xs flex items-center justify-between gap-2">
+                            <span className="flex-1 min-w-0">{answer.error}</span>
+                            <button
+                              onClick={() => handleRetrySingle(answer)}
+                              disabled={retryingAnswerId === answer.id}
+                              className="btn btn-ghost btn-sm text-error shrink-0 gap-1"
+                            >
+                              <RefreshCw className={`w-3.5 h-3.5 ${retryingAnswerId === answer.id ? 'animate-spin' : ''}`} />
+                              {t('answers.retry')}
+                            </button>
                           </div>
                         ) : (
                           <div className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">

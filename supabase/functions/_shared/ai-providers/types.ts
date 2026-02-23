@@ -14,6 +14,8 @@ export interface AiResponse {
   model: string;
   tokens: { input: number; output: number } | null;
   latency_ms: number;
+  raw_request?: unknown;
+  raw_response?: unknown;
   error?: string;
 }
 

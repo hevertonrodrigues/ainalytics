@@ -30,7 +30,7 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
 
     if (!res.ok) {
       const errBody = await res.text();
-      return { text: null, model: req.model, tokens: null, latency_ms, error: `HTTP ${res.status}: ${errBody}` };
+      return { text: null, model: req.model, tokens: null, latency_ms, raw_request: body, raw_response: errBody, error: `HTTP ${res.status}: ${errBody}` };
     }
 
     const data = await res.json();
@@ -40,6 +40,8 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       model: data.model ?? req.model,
       tokens: data.usage ? { input: data.usage.input_tokens ?? 0, output: data.usage.output_tokens ?? 0 } : null,
       latency_ms,
+      raw_request: body,
+      raw_response: data,
     };
   } catch (err) {
     return { text: null, model: req.model, tokens: null, latency_ms: Date.now() - start, error: String(err) };

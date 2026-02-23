@@ -30,7 +30,7 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
 
     if (!res.ok) {
       const errBody = await res.text();
-      return { text: null, model: req.model, tokens: null, latency_ms, error: `HTTP ${res.status}: ${errBody}` };
+      return { text: null, model: req.model, tokens: null, latency_ms, raw_request: body, raw_response: errBody, error: `HTTP ${res.status}: ${errBody}` };
     }
 
     const data = await res.json();
@@ -42,6 +42,8 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       model: req.model,
       tokens: usage ? { input: usage.promptTokenCount ?? 0, output: usage.candidatesTokenCount ?? 0 } : null,
       latency_ms,
+      raw_request: body,
+      raw_response: data,
     };
   } catch (err) {
     return { text: null, model: req.model, tokens: null, latency_ms: Date.now() - start, error: String(err) };

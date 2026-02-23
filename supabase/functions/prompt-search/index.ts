@@ -70,6 +70,8 @@ async function handleSearch(req: Request, tenantId: string) {
     answer_text: r.text,
     tokens_used: r.tokens,
     latency_ms: r.latency_ms,
+    raw_request: r.raw_request ?? null,
+    raw_response: r.raw_response ?? null,
     error: r.error || null,
     searched_at: searchedAt,
   }));

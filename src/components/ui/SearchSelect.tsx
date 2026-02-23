@@ -28,7 +28,7 @@ export function SearchSelect({
   disabled = false,
   id,
   className = '',
-  searchThreshold = 5,
+  searchThreshold = 0,
 }: SearchSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');

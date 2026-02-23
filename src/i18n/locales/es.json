@@ -84,6 +84,8 @@
     "search": "Buscar",
     "searching": "Buscando...",
     "searchComplete": "Búsqueda completa",
+    "retry": "Reintentar",
+    "retryComplete": "Reintento exitoso",
     "platforms": "Plataformas",
     "selectPlatforms": "Seleccionar plataformas para este tópico",
     "noPlatformsEnabled": "Habilite al menos una plataforma para buscar",

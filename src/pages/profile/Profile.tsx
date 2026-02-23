@@ -145,7 +145,6 @@ export function ProfilePage() {
               options={LOCALE_OPTIONS}
               value={locale}
               onChange={(val) => setLocale(val as 'en' | 'es' | 'pt-br')}
-              searchThreshold={99}
             />
           </div>
 

@@ -14,25 +14,27 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
     if (req.systemInstruction) messages.push({ role: "system", content: req.systemInstruction });
     messages.push({ role: "user", content: req.prompt });
 
+    const body = {
+      model: req.model,
+      messages,
+      temperature: 0.7,
+      max_tokens: 4096,
+    };
+
     const res = await fetch("https://api.x.ai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: req.model,
-        messages,
-        temperature: 0.7,
-        max_tokens: 4096,
-      }),
+      body: JSON.stringify(body),
     });
 
     const latency_ms = Date.now() - start;
 
     if (!res.ok) {
       const errBody = await res.text();
-      return { text: null, model: req.model, tokens: null, latency_ms, error: `HTTP ${res.status}: ${errBody}` };
+      return { text: null, model: req.model, tokens: null, latency_ms, raw_request: body, raw_response: errBody, error: `HTTP ${res.status}: ${errBody}` };
     }
 
     const data = await res.json();
@@ -42,6 +44,8 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
       model: data.model ?? req.model,
       tokens: data.usage ? { input: data.usage.prompt_tokens ?? 0, output: data.usage.completion_tokens ?? 0 } : null,
       latency_ms,
+      raw_request: body,
+      raw_response: data,
     };
   } catch (err) {
     return { text: null, model: req.model, tokens: null, latency_ms: Date.now() - start, error: String(err) };
