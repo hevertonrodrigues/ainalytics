@@ -1,8 +1,8 @@
+import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
-  User,
   Settings,
   LogOut,
   MessageSquare,
@@ -10,10 +10,15 @@ import {
   BarChart3,
   List,
   HelpCircle,
+  Sun,
+  Moon,
+  User,
+  ChevronUp,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
-import { APP_NAME } from '@/lib/constants';
+import { useTheme } from '@/contexts/ThemeContext';
+import { APP_NAME, LOCALES } from '@/lib/constants';
 import { SearchSelect } from '@/components/ui/SearchSelect';
 
 interface NavItem {
@@ -24,8 +29,6 @@ interface NavItem {
 
 const MAIN_NAV: NavItem[] = [
   { key: 'nav.overview', path: '/', icon: LayoutDashboard },
-  { key: 'nav.profile', path: '/profile', icon: User },
-  { key: 'nav.settings', path: '/settings', icon: Settings },
 ];
 
 const ANALYTICS_NAV: NavItem[] = [
@@ -36,10 +39,12 @@ const ANALYTICS_NAV: NavItem[] = [
 ];
 
 export function Sidebar() {
-  const { t } = useTranslation();
-  const { signOut } = useAuth();
+  const { t, i18n } = useTranslation();
+  const { signOut, profile } = useAuth();
   const { currentTenant, tenants, switchTenant } = useTenant();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -102,16 +107,87 @@ export function Sidebar() {
         </div>
       </nav>
 
-      {/* Bottom actions */}
-      <div className="p-3 border-t border-glass-border space-y-0.5">
-        <button className="sidebar-action">
-          <HelpCircle className="nav-link-icon" />
-          <span>{t('nav.support')}</span>
-        </button>
-        <button onClick={handleSignOut} className="sidebar-action sidebar-action-danger">
-          <LogOut className="nav-link-icon" />
-          <span>{t('auth.signOut')}</span>
-        </button>
+      {/* Bottom section */}
+      <div className="border-t border-glass-border">
+        {/* Theme + Language row */}
+        <div className="px-3 py-2.5 flex items-center justify-between">
+          <button onClick={toggleTheme} className="icon-btn" aria-label="Toggle theme">
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
+          <div className="locale-switcher">
+            {Object.values(LOCALES).map((locale) => (
+              <button
+                key={locale}
+                onClick={() => i18n.changeLanguage(locale)}
+                className={`locale-btn${i18n.language === locale ? ' active' : ''}`}
+              >
+                {locale.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Settings */}
+        <div className="px-3 pb-1">
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+          >
+            <Settings className="nav-link-icon" />
+            <span>{t('nav.settings')}</span>
+          </NavLink>
+        </div>
+
+        {/* User card with expandable sub-menu */}
+        {profile && (
+          <div className="border-t border-glass-border">
+            {/* Sub-items (Profile, Support, Logout) */}
+            {userMenuOpen && (
+              <div className="px-3 pt-2 pb-1 space-y-0.5">
+                <NavLink
+                  to="/profile"
+                  className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                >
+                  <User className="nav-link-icon" />
+                  <span>{t('nav.profile')}</span>
+                </NavLink>
+                <button className="sidebar-action">
+                  <HelpCircle className="nav-link-icon" />
+                  <span>{t('nav.support')}</span>
+                </button>
+                <button onClick={handleSignOut} className="sidebar-action sidebar-action-danger">
+                  <LogOut className="nav-link-icon" />
+                  <span>{t('auth.signOut')}</span>
+                </button>
+              </div>
+            )}
+
+            {/* User card trigger */}
+            <div className="px-3 py-3">
+              <button
+                onClick={() => setUserMenuOpen((prev) => !prev)}
+                className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-xs hover:bg-glass-hover transition-colors text-left"
+              >
+                <div className="user-avatar shrink-0">
+                  {profile.full_name?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-text-primary block truncate">
+                    {profile.full_name}
+                  </span>
+                  <span className="text-xs text-text-muted block truncate">
+                    {profile.email}
+                  </span>
+                </div>
+                <ChevronUp
+                  className={`w-4 h-4 text-text-muted shrink-0 transition-transform duration-200 ${
+                    userMenuOpen ? '' : 'rotate-180'
+                  }`}
+                />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </aside>
   );
