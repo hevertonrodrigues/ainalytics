@@ -30,7 +30,7 @@ ON CONFLICT (platform_id, slug) DO NOTHING;
 
 -- Gemini (google_search grounding tool)
 INSERT INTO models (platform_id, slug, name, is_active) VALUES
-  ((SELECT id FROM platforms WHERE slug = 'gemini'), 'gemini-3.1-pro-preview',         'Gemini 3.1 Pro Preview',         true),
+  ((SELECT id FROM platforms WHERE slug = 'gemini'), 'gemini-2.5-pro',         'Gemini 2.5 Pro',         true),
   ((SELECT id FROM platforms WHERE slug = 'gemini'), 'gemini-2.5-flash-lite',  'Gemini 2.5 Flash-Lite',  true)
 ON CONFLICT (platform_id, slug) DO NOTHING;
 
