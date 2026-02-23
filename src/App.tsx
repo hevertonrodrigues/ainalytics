@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TenantProvider } from '@/contexts/TenantContext';
@@ -27,15 +27,22 @@ import { ModelsPage } from '@/pages/models/ModelsPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { PlansPage } from '@/pages/plans/PlansPage';
 
+/** Simple layout route that passes through to child routes */
+function AuthOutlet() {
+  return <Outlet />;
+}
+
 export function App() {
   return (
     <ThemeProvider>
       <ToastProvider>
       <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            {/* Public landing page */}
-            <Route index element={<LandingPage />} />
+        <Routes>
+          {/* Public landing page — no auth provider needed */}
+          <Route index element={<LandingPage />} />
+
+          {/* All other routes require AuthProvider */}
+          <Route element={<AuthProvider><AuthOutlet /></AuthProvider>}>
             {/* Public (guest) routes */}
             <Route path="/signin" element={<GuestRoute><SignIn /></GuestRoute>} />
             <Route path="/signup" element={<GuestRoute><SignUp /></GuestRoute>} />
@@ -56,8 +63,8 @@ export function App() {
               <Route path="models" element={<ModelsPage />} />
               <Route path="plans" element={<PlansPage />} />
             </Route>
-          </Routes>
-        </AuthProvider>
+          </Route>
+        </Routes>
       </BrowserRouter>
       </ToastProvider>
     </ThemeProvider>

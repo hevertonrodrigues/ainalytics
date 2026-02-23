@@ -9,10 +9,12 @@ import {
   ChevronRight,
   Database,
   RefreshCw,
+  Search,
+  Loader2,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
-import type { Prompt, PromptAnswer, Topic } from '@/types';
+import type { Prompt, PromptAnswer, Topic, TenantPlatformModel } from '@/types';
 
 type PlatformGroup = {
   platform_slug: string;
@@ -40,8 +42,10 @@ export function PromptDetailPage() {
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [topic, setTopic] = useState<Topic | null>(null);
   const [answers, setAnswers] = useState<PromptAnswer[]>([]);
+  const [tenantModels, setTenantModels] = useState<TenantPlatformModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [searching, setSearching] = useState(false);
   
   const [retryingAnswerId, setRetryingAnswerId] = useState<string | null>(null);
   const [expandedPlatforms, setExpandedPlatforms] = useState<Set<string>>(new Set());
@@ -55,6 +59,10 @@ export function PromptDetailPage() {
         `/prompt-search?promptId=${promptId}`,
       );
       setAnswers(answersRes.data);
+
+      // 2. Load tenant's active models
+      const modelsRes = await apiClient.get<TenantPlatformModel[]>('/platforms/preferences');
+      setTenantModels(modelsRes.data.filter((m: TenantPlatformModel) => m.is_active));
 
       // 2. We need the prompt info. The easiest way is to fetch all topics/prompts 
       // and find it, since we don't have a single GET /prompts/:id endpoint.
@@ -87,6 +95,25 @@ export function PromptDetailPage() {
       setLoading(false);
     }
   }, [promptId, t]);
+
+  const handleSearch = async () => {
+    if (!prompt || tenantModels.length === 0) return;
+    setSearching(true);
+    setError('');
+    try {
+      const res = await apiClient.post<PromptAnswer[]>('/prompt-search', {
+        prompt_id: prompt.id,
+        prompt_text: prompt.text,
+      });
+      setAnswers(prev => [...res.data, ...prev]);
+      showToast(t('answers.searchComplete'));
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t('common.error');
+      showToast(msg, 'error');
+    } finally {
+      setSearching(false);
+    }
+  };
 
   useEffect(() => {
     loadAll();
@@ -235,6 +262,25 @@ export function PromptDetailPage() {
                   {t('prompts.inactive')}
                 </span>
               )}
+              <div className="ml-auto">
+                <button
+                  onClick={handleSearch}
+                  disabled={searching || tenantModels.length === 0}
+                  className="btn btn-primary btn-sm"
+                >
+                  {searching ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      {t('answers.searching')}
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4" />
+                      {t('answers.search')}
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             <h1 className="text-lg font-medium text-text-primary mb-2">
               {prompt.text}
