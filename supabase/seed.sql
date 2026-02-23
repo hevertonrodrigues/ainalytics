@@ -21,7 +21,7 @@ INSERT INTO models (platform_id, slug, name, is_active) VALUES
   ((SELECT id FROM platforms WHERE slug = 'openai'), 'gpt-4.1-mini', 'GPT-4.1 Mini', true)
 ON CONFLICT (platform_id, slug) DO NOTHING;
 
--- Anthropic
+-- Anthropic (web_search_20250305 supported on all models)
 INSERT INTO models (platform_id, slug, name, is_active) VALUES
   ((SELECT id FROM platforms WHERE slug = 'anthropic'), 'claude-sonnet-4-5-20250929',  'Claude Sonnet 4.5',  true),
   ((SELECT id FROM platforms WHERE slug = 'anthropic'), 'claude-opus-4-6',             'Claude Opus 4.6',    true),
@@ -34,10 +34,10 @@ INSERT INTO models (platform_id, slug, name, is_active) VALUES
   ((SELECT id FROM platforms WHERE slug = 'gemini'), 'gemini-2.5-flash-lite',  'Gemini 2.5 Flash-Lite',  true)
 ON CONFLICT (platform_id, slug) DO NOTHING;
 
--- Grok (xAI)
+-- Grok (xAI) — uses Responses API with web_search tool
 INSERT INTO models (platform_id, slug, name, is_active) VALUES
-  ((SELECT id FROM platforms WHERE slug = 'grok'), 'grok-4-1-fast-reasoning',      'Grok 4.1 Fast Reasoning',      true),
-  ((SELECT id FROM platforms WHERE slug = 'grok'), 'grok-4-fast-non-reasoning',    'Grok 4 Fast Non-Reasoning',    true)
+  ((SELECT id FROM platforms WHERE slug = 'grok'), 'grok-4-1-fast',  'Grok 4.1 Fast',  true),
+  ((SELECT id FROM platforms WHERE slug = 'grok'), 'grok-4',         'Grok 4',         true)
 ON CONFLICT (platform_id, slug) DO NOTHING;
 
 -- -- Perplexity
@@ -52,5 +52,5 @@ ON CONFLICT (platform_id, slug) DO NOTHING;
 UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'gpt-5.2-pro') WHERE slug = 'openai';
 UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'claude-sonnet-4-5-20250929') WHERE slug = 'anthropic';
 UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'gemini-3.1-pro') WHERE slug = 'gemini';
-UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'grok-4-1-fast-reasoning') WHERE slug = 'grok';
+UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'grok-4-1-fast') WHERE slug = 'grok';
 -- UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'llama-3.1-sonar-large-online') WHERE slug = 'perplexity';
