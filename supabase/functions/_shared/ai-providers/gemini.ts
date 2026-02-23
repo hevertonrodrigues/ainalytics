@@ -1,13 +1,15 @@
-import type { AiAdapter, AiRequest, AiResponse } from "./types.ts";
+import type { AiAdapter, AiRequest, AiResponse, NormalizedAnnotation } from "./types.ts";
+import { buildErrorResponse, buildSuccessResponse, toSourcesArray, verifyWebSearchResults } from "./normalize.ts";
 
 /**
  * Gemini adapter — uses POST /v1beta/models/{model}:generateContent
  * with Google Search grounding tool.
+ * Web search is controlled by `req.webSearchEnabled` (from models.web_search_active).
  * If the model doesn't support grounding, retries without the tool.
  */
 export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse> => {
   const apiKey = Deno.env.get("GEMINI_API_KEY");
-  if (!apiKey) return { text: null, model: req.model, tokens: null, latency_ms: 0, error: "GEMINI_API_KEY not configured" };
+  if (!apiKey) return buildErrorResponse(req, Date.now(), "GEMINI_API_KEY not configured");
 
   const start = Date.now();
 
@@ -19,7 +21,7 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       body.systemInstruction = { parts: [{ text: req.systemInstruction }] };
     }
 
-    // Only add google_search tool if web search is enabled for this model
+    // Only add google_search tool if enabled for this model
     let webSearchEnabled = req.webSearchEnabled !== false;
     if (webSearchEnabled) {
       body.tools = [{ google_search: {} }];
@@ -51,16 +53,14 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
         continue;
       }
 
-      // Non-recoverable 400 error
-      const latency_ms = Date.now() - start;
-      return { text: null, model: req.model, tokens: null, latency_ms, raw_request: body, raw_response: errText, error: `HTTP 400: ${errText}` };
+      return buildErrorResponse(req, start, `HTTP 400: ${errText}`, body, errText);
     }
 
     const latency_ms = Date.now() - start;
 
     if (!res!.ok) {
       const errBody = await res!.text();
-      return { text: null, model: req.model, tokens: null, latency_ms, raw_request: body, raw_response: errBody, error: `HTTP ${res!.status}: ${errBody}` };
+      return buildErrorResponse(req, start, `HTTP ${res!.status}: ${errBody}`, body, errBody);
     }
 
     const data = await res!.json();
@@ -70,20 +70,15 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
     // ── Parse text ──
     const answerText = candidate?.content?.parts?.[0]?.text ?? null;
 
-    // ── Parse grounding metadata (citations & sources) ──
-    // Gemini returns groundingMetadata on the candidate with:
-    //   - webSearchQueries: string[] — search queries used
-    //   - searchEntryPoint: { renderedContent } — rendered search widget
-    //   - groundingChunks: [{ web: { uri, title } }] — source chunks
-    //   - groundingSupports: [{ segment: { startIndex, endIndex, text }, groundingChunkIndices: number[] }]
-    // deno-lint-ignore no-explicit-any
-    const annotations: Array<{ start_index: number; end_index: number; title: string; url: string }> = [];
+    // ── Parse grounding metadata ──
+    // groundingChunks: [{ web: { uri, title } }] — source chunks
+    // groundingSupports: [{ segment: { startIndex, endIndex }, groundingChunkIndices: number[] }]
+    const annotations: NormalizedAnnotation[] = [];
     const sourcesMap = new Map<string, { url: string; title: string }>();
 
     if (webSearchEnabled && candidate?.groundingMetadata) {
       const gm = candidate.groundingMetadata;
 
-      // 1) Extract sources from groundingChunks
       // deno-lint-ignore no-explicit-any
       const chunks: any[] = gm.groundingChunks ?? [];
       for (const chunk of chunks) {
@@ -93,7 +88,6 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
         }
       }
 
-      // 2) Extract citations from groundingSupports
       // deno-lint-ignore no-explicit-any
       const supports: any[] = gm.groundingSupports ?? [];
       for (const sup of supports) {
@@ -104,16 +98,17 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
           const web = chunk?.web;
           if (web?.uri) {
             annotations.push({
-              start_index: seg?.startIndex ?? 0,
-              end_index: seg?.endIndex ?? 0,
-              title: web.title ?? "",
+              start_index: seg?.startIndex ?? null,
+              end_index: seg?.endIndex ?? null,
               url: web.uri,
+              title: web.title ?? "",
+              cited_text: "",
             });
           }
         }
       }
 
-      // 3) Fallback: webResults (older API format)
+      // Fallback: older webResults format
       if (Array.isArray(gm.webResults)) {
         // deno-lint-ignore no-explicit-any
         for (const wr of gm.webResults as any[]) {
@@ -124,17 +119,9 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       }
     }
 
-    // ── Post-response verification ──
-    // If web search was enabled but no grounding metadata was returned,
-    // the model silently ignored the search tool (e.g. preview/thinking models)
-    if (webSearchEnabled && annotations.length === 0 && sourcesMap.size === 0) {
-      console.warn(`[gemini] web search was enabled but no groundingMetadata returned for ${req.model} — marking web_search_enabled as false`);
-      webSearchEnabled = false;
-    }
+    webSearchEnabled = verifyWebSearchResults("gemini", req.model, webSearchEnabled, annotations, sourcesMap);
 
-    const sources = [...sourcesMap.values()];
-
-    return {
+    return buildSuccessResponse({
       text: answerText,
       model: req.model,
       tokens: usage ? { input: usage.promptTokenCount ?? 0, output: usage.candidatesTokenCount ?? 0 } : null,
@@ -142,10 +129,10 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       raw_request: body,
       raw_response: data,
       web_search_enabled: webSearchEnabled,
-      annotations: annotations.length > 0 ? annotations : null,
-      sources: sources.length > 0 ? sources : null,
-    };
+      annotations,
+      sources: toSourcesArray(sourcesMap),
+    });
   } catch (err) {
-    return { text: null, model: req.model, tokens: null, latency_ms: Date.now() - start, error: String(err) };
+    return buildErrorResponse(req, start, String(err));
   }
 };

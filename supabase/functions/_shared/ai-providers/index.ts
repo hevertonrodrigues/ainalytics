@@ -49,7 +49,7 @@ export function isPlatformConfigured(slug: string): boolean {
 export async function executePrompt(slug: string, req: AiRequest): Promise<AiResponse> {
   const adapter = getAdapter(slug);
   if (!adapter) {
-    return { text: null, model: req.model, tokens: null, latency_ms: 0, error: `Unknown platform: ${slug}` };
+    return { text: null, model: req.model, tokens: null, latency_ms: 0, error: `Unknown platform: ${slug}`, web_search_enabled: false, annotations: null, sources: null };
   }
   return adapter(req);
 }
@@ -78,9 +78,12 @@ export async function executePromptMulti(
       tokens: null,
       latency_ms: 0,
       error: String(r.reason),
+      web_search_enabled: false,
+      annotations: null,
+      sources: null,
     };
   });
 }
 
 // Re-export types
-export type { AiRequest, AiResponse, PlatformRegistryEntry } from "./types.ts";
+export type { AiRequest, AiResponse, PlatformRegistryEntry, NormalizedAnnotation, NormalizedSource } from "./types.ts";

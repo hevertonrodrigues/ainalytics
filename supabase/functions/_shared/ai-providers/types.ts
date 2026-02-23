@@ -11,6 +11,26 @@ export interface AiRequest {
   webSearchEnabled?: boolean;
 }
 
+/** A single citation annotation linking text range to a source URL. */
+export interface NormalizedAnnotation {
+  /** Character start position in the answer text (0-based). Null if not available (e.g. Anthropic). */
+  start_index: number | null;
+  /** Character end position in the answer text (exclusive). Null if not available. */
+  end_index: number | null;
+  /** Source URL */
+  url: string;
+  /** Page/source title */
+  title: string;
+  /** Cited snippet from the source (Anthropic-specific, empty string otherwise) */
+  cited_text: string;
+}
+
+/** A deduplicated source URL reference. */
+export interface NormalizedSource {
+  url: string;
+  title: string;
+}
+
 export interface AiResponse {
   text: string | null;
   model: string;
@@ -19,12 +39,12 @@ export interface AiResponse {
   raw_request?: unknown;
   raw_response?: unknown;
   error?: string;
-  /** Whether web search was enabled for this request */
-  web_search_enabled?: boolean;
-  /** Inline url_citation annotations or "TBD" for unsupported platforms */
-  annotations?: unknown;
-  /** Deduplicated source URLs or "TBD" for unsupported platforms */
-  sources?: unknown;
+  /** Whether web search was actually used for this request */
+  web_search_enabled: boolean;
+  /** Inline citation annotations, null if none */
+  annotations: NormalizedAnnotation[] | null;
+  /** Deduplicated source URLs, null if none */
+  sources: NormalizedSource[] | null;
 }
 
 /**
