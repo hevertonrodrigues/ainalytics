@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { PricingPlans } from '@/components/PricingPlans';
+import { InterestFormModal } from '@/components/InterestFormModal';
 
 const AI_PLATFORMS = ['OpenAI', 'Anthropic', 'Google Gemini', 'xAI Grok', 'Perplexity'];
 
@@ -30,6 +31,7 @@ export function LandingPage() {
   const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [interestModalOpen, setInterestModalOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -307,6 +309,7 @@ export function LandingPage() {
                 cta: t('landing.pricing.custom.cta'),
                 features: t('landing.pricing.custom.features', { returnObjects: true }) as string[],
                 isBlock: true,
+                onSelect: () => setInterestModalOpen(true),
               },
             ]}
           />
@@ -371,6 +374,12 @@ export function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Interest Form Modal */}
+      <InterestFormModal
+        open={interestModalOpen}
+        onClose={() => setInterestModalOpen(false)}
+      />
     </div>
   );
 }

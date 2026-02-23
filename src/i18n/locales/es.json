@@ -151,7 +151,6 @@
   "plans": {
     "title": "Elija su Plan",
     "subtitle": "Seleccione el plan perfecto para su organización. Cambie o mejore en cualquier momento.",
-    "badge": "Planes de Precios",
     "currentPlan": "Plan Actual",
     "selectPlan": "Seleccionar Plan",
     "planSelected": "Plan actualizado con éxito",
@@ -364,5 +363,24 @@
       "terms": "Términos de Servicio",
       "rights": "Todos los derechos reservados."
     }
+  },
+  "interestForm": {
+    "title": "Diseñemos su Plan Personalizado",
+    "subtitle": "Cuéntenos sus necesidades y crearemos una solución de monitoreo IA a su medida.",
+    "name": "Nombre Completo",
+    "namePlaceholder": "Juan Pérez",
+    "email": "Correo Electrónico",
+    "emailPlaceholder": "juan@empresa.com",
+    "phone": "Teléfono",
+    "phonePlaceholder": "+52 (555) 000-0000",
+    "company": "Empresa",
+    "companyPlaceholder": "Nombre de su empresa",
+    "message": "Mensaje",
+    "messagePlaceholder": "Cuéntenos sus necesidades de monitoreo, tamaño del equipo o requisitos específicos...",
+    "submit": "Enviar Solicitud",
+    "sending": "Enviando...",
+    "successTitle": "¡Recibimos su Solicitud!",
+    "successMessage": "Nuestro equipo revisará sus necesidades y le contactará dentro de 24 horas.",
+    "close": "Cerrar"
   }
 }

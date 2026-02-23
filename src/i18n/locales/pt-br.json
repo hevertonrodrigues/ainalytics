@@ -151,7 +151,6 @@
   "plans": {
     "title": "Escolha seu Plano",
     "subtitle": "Selecione o plano perfeito para sua organização. Mude ou faça upgrade a qualquer momento.",
-    "badge": "Planos de Preços",
     "currentPlan": "Plano Atual",
     "selectPlan": "Selecionar Plano",
     "planSelected": "Plano atualizado com sucesso",
@@ -364,5 +363,24 @@
       "terms": "Termos de Serviço",
       "rights": "Todos os direitos reservados."
     }
+  },
+  "interestForm": {
+    "title": "Vamos Criar seu Plano Personalizado",
+    "subtitle": "Conte-nos suas necessidades e criaremos uma solução de monitoramento IA sob medida para você.",
+    "name": "Nome Completo",
+    "namePlaceholder": "João Silva",
+    "email": "E-mail",
+    "emailPlaceholder": "joao@empresa.com.br",
+    "phone": "Telefone",
+    "phonePlaceholder": "+55 (11) 99000-0000",
+    "company": "Empresa",
+    "companyPlaceholder": "Nome da sua empresa",
+    "message": "Mensagem",
+    "messagePlaceholder": "Conte-nos sobre suas necessidades de monitoramento, tamanho da equipe ou requisitos específicos...",
+    "submit": "Enviar Solicitação",
+    "sending": "Enviando...",
+    "successTitle": "Recebemos sua Solicitação!",
+    "successMessage": "Nossa equipe analisará suas necessidades e entrará em contato em até 24 horas.",
+    "close": "Fechar"
   }
 }

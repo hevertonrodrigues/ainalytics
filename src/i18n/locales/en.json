@@ -161,7 +161,6 @@
   "plans": {
     "title": "Choose Your Plan",
     "subtitle": "Select the perfect plan for your organization. Upgrade or change anytime.",
-    "badge": "Pricing Plans",
     "currentPlan": "Current Plan",
     "selectPlan": "Select Plan",
     "planSelected": "Plan updated successfully",
@@ -374,5 +373,24 @@
       "terms": "Terms of Service",
       "rights": "All rights reserved."
     }
+  },
+  "interestForm": {
+    "title": "Let's Build Your Custom Plan",
+    "subtitle": "Tell us about your needs and we'll craft a tailored AI monitoring solution for you.",
+    "name": "Full Name",
+    "namePlaceholder": "John Smith",
+    "email": "Email",
+    "emailPlaceholder": "john@company.com",
+    "phone": "Phone",
+    "phonePlaceholder": "+1 (555) 000-0000",
+    "company": "Company",
+    "companyPlaceholder": "Your company name",
+    "message": "Message",
+    "messagePlaceholder": "Tell us about your monitoring needs, team size, or any specific requirements...",
+    "submit": "Send Request",
+    "sending": "Sending...",
+    "successTitle": "We Got Your Request!",
+    "successMessage": "Our team will review your needs and get back to you within 24 hours.",
+    "close": "Close"
   }
 }

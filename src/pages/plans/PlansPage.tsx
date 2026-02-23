@@ -5,10 +5,11 @@ import { apiClient } from '@/lib/api';
 import { useTenant } from '@/contexts/TenantContext';
 import { PricingPlans } from '@/components/PricingPlans';
 import type { PricingPlan } from '@/components/PricingPlans';
+import { InterestFormModal } from '@/components/InterestFormModal';
 import type { Plan } from '@/types';
 
 export function PlansPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { currentTenant } = useTenant();
 
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -17,6 +18,7 @@ export function PlansPage() {
   const [selecting, setSelecting] = useState<string | null>(null);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [interestModalOpen, setInterestModalOpen] = useState(false);
 
   useEffect(() => {
     if (currentTenant) loadPlans();
@@ -60,8 +62,8 @@ export function PlansPage() {
   };
 
   const getFeatures = (plan: Plan): string[] => {
-    const settings = plan.settings as Record<string, unknown>;
-    return (settings?.features as string[]) || [];
+    const lang = i18n.language || 'en';
+    return plan.features?.[lang] || plan.features?.['en'] || [];
   };
 
   const getDescription = (plan: Plan): string => {
@@ -97,7 +99,11 @@ export function PlansPage() {
       popular: isPopular ? t('plans.mostPopular') : undefined,
       isBlock: idx >= 3,
       cta: isCustom ? t('plans.contactSales') : t('plans.selectPlan'),
-      onSelect: isCustom || isCurrentPlan ? undefined : () => handleSelectPlan(plan.id),
+      onSelect: isCustom
+        ? () => setInterestModalOpen(true)
+        : isCurrentPlan
+          ? undefined
+          : () => handleSelectPlan(plan.id),
       disabled: !!selecting,
       loading: selecting === plan.id,
       statusLabel: isCurrentPlan ? t('plans.currentPlan') : undefined,
@@ -108,10 +114,6 @@ export function PlansPage() {
     <div className="stagger-enter max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-primary/10 border border-brand-primary/20 text-brand-secondary text-xs font-medium mb-4">
-          <CreditCard className="w-3.5 h-3.5" />
-          {t('plans.badge')}
-        </div>
         <h1 className="text-3xl font-bold text-text-primary">{t('plans.title')}</h1>
         <p className="text-text-secondary mt-2 text-sm max-w-lg mx-auto">{t('plans.subtitle')}</p>
       </div>
@@ -142,6 +144,12 @@ export function PlansPage() {
       <p className="text-center text-xs text-text-muted">
         {t('plans.ownerOnly')}
       </p>
+
+      {/* Interest Form Modal */}
+      <InterestFormModal
+        open={interestModalOpen}
+        onClose={() => setInterestModalOpen(false)}
+      />
     </div>
   );
 }

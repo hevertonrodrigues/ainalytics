@@ -19,6 +19,7 @@ export interface Plan {
   price: number;
   is_active: boolean;
   settings: Record<string, unknown>;
+  features: Record<string, string[]>;
   created_at: string;
   updated_at: string;
 }
