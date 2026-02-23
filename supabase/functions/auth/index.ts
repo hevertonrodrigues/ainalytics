@@ -44,13 +44,18 @@ interface SignUpBody {
   password: string;
   full_name: string;
   tenant_name: string;
+  phone: string;
 }
 
 async function handleSignUp(body: SignUpBody): Promise<Response> {
-  const { email, password, full_name, tenant_name } = body;
+  const { email, password, full_name, tenant_name, phone } = body;
 
-  if (!email || !password || !full_name || !tenant_name) {
-    return badRequest("email, password, full_name, and tenant_name are required");
+  if (!email || !password || !full_name || !tenant_name || !phone) {
+    return badRequest("email, password, full_name, tenant_name, and phone are required");
+  }
+  const phoneDigits = phone.replace(/\D/g, '');
+  if (phoneDigits.length < 10) {
+    return badRequest("Phone must have at least 10 digits");
   }
   if (password.length < 8) {
     return badRequest("Password must be at least 8 characters");
@@ -92,6 +97,7 @@ async function handleSignUp(body: SignUpBody): Promise<Response> {
     tenant_id: tenant.id,
     full_name,
     email,
+    phone,
     locale: "en",
   });
 

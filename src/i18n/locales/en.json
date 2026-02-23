@@ -18,7 +18,17 @@
     "orgName": "Organization Name",
     "resetSent": "Password reset link sent! Check your email.",
     "resetSuccess": "Password reset successfully. You can now sign in.",
-    "signUpSuccess": "Account created! Welcome aboard."
+    "signUpSuccess": "Account created! Welcome aboard.",
+    "phone": "Phone",
+    "welcomeBack": "Welcome Back",
+    "startJourney": "Start Your Journey",
+    "signInSubtitle": "Sign in to your account to continue monitoring your AI visibility.",
+    "signUpSubtitle": "Create your account and start tracking what AI says about your brand.",
+    "signInDecor": "Monitor what AI platforms say about your brand in real-time. Stay ahead with actionable insights.",
+    "signUpDecor": "Join thousands of brands already monitoring their AI visibility across all major platforms.",
+    "decorFeature1": "Real-time AI monitoring across 5+ platforms",
+    "decorFeature2": "Actionable insights with detailed analytics",
+    "decorFeature3": "Set up in under 60 seconds"
   },
   "profile": {
     "title": "My Profile",
@@ -204,7 +214,8 @@
     "invalidEmail": "Invalid email address",
     "passwordMin": "Password must be at least {{min}} characters",
     "passwordMatch": "Passwords do not match",
-    "nameMin": "Name must be at least {{min}} characters"
+    "nameMin": "Name must be at least {{min}} characters",
+    "phoneMin": "Phone must have at least {{min}} digits"
   },
   "errors": {
     "UNAUTHORIZED": "Please sign in to continue",
@@ -365,13 +376,18 @@
       "description": "The AI visibility monitoring platform. Know what AI says about you before your customers do.",
       "product": "Product",
       "company": "Company",
+      "support": "Support",
+      "contact": "Contact Us",
+      "documentation": "Documentation",
+      "status": "Status",
       "legal": "Legal",
       "about": "About",
       "blog": "Blog",
       "careers": "Careers",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service",
-      "rights": "All rights reserved."
+      "rights": "All rights reserved.",
+      "madeWith": "Made with ♥ for AI-forward brands"
     }
   },
   "interestForm": {

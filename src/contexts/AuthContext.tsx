@@ -13,7 +13,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, tenantName: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, tenantName: string, phone: string) => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
@@ -85,12 +85,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ profile, tenants, loading: false, initialized: true });
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string, tenantName: string) => {
+  const signUp = useCallback(async (email: string, password: string, fullName: string, tenantName: string, phone: string) => {
     const res = await apiClient.post<AuthSession>('/auth/signup', {
       email,
       password,
       full_name: fullName,
       tenant_name: tenantName,
+      phone,
     });
     const { access_token, refresh_token, profile, tenants, current_tenant_id } = res.data;
 

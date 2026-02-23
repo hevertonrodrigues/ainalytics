@@ -1,15 +1,24 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useCallback, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
-import { APP_NAME } from '@/lib/constants';
+import { APP_NAME, LOCALES } from '@/lib/constants';
+import { Mail, Lock, ArrowRight, Eye, EyeOff, Sparkles } from 'lucide-react';
+
+const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
 
 export function SignIn() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { signIn } = useAuth();
+
+  const changeLang = useCallback(
+    (lng: string) => { i18n.changeLanguage(lng); },
+    [i18n],
+  );
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -30,76 +39,132 @@ export function SignIn() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div className="auth-page">
       <div className="auth-bg" />
 
-      <div className="w-full max-w-md stagger-enter">
-        {/* Logo */}
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
-            {APP_NAME}
-          </h1>
-          <p className="text-text-secondary mt-2 text-sm">{t('auth.signIn')}</p>
+      {/* Decorative side */}
+      <div className="auth-decor">
+        <div className="auth-decor-content">
+          <div className="auth-decor-icon">
+            <Sparkles className="w-10 h-10" />
+          </div>
+          <h2 className="auth-decor-title">{t('auth.welcomeBack')}</h2>
+          <p className="auth-decor-text">{t('auth.signInDecor')}</p>
+          <div className="auth-decor-features">
+            <div className="auth-decor-feature">
+              <span className="auth-decor-dot" />
+              {t('auth.decorFeature1')}
+            </div>
+            <div className="auth-decor-feature">
+              <span className="auth-decor-dot" />
+              {t('auth.decorFeature2')}
+            </div>
+            <div className="auth-decor-feature">
+              <span className="auth-decor-dot" />
+              {t('auth.decorFeature3')}
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Card */}
-        <div className="glass-card p-8">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="p-3 rounded-lg bg-error/10 border border-error/20 text-error text-sm">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="signin-email" className="block text-sm font-medium text-text-secondary mb-1.5">
-                {t('auth.email')}
-              </label>
-              <input
-                id="signin-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input-field"
-                placeholder="you@example.com"
-                required
-                autoComplete="email"
-              />
+      {/* Form side */}
+      <div className="auth-form-side">
+        <div className="auth-form-container stagger-enter">
+          <div className="auth-top-bar">
+            <Link to="/" className="auth-logo">
+              {APP_NAME}
+            </Link>
+            <div className="locale-switcher">
+              {Object.values(LOCALES).map((lng) => (
+                <button
+                  key={lng}
+                  className={`locale-btn${i18n.language === lng ? ' active' : ''}`}
+                  onClick={() => changeLang(lng)}
+                >
+                  {LOCALE_LABELS[lng]}
+                </button>
+              ))}
             </div>
+          </div>
+          <h1 className="auth-heading">{t('auth.signIn')}</h1>
+          <p className="auth-subheading">{t('auth.signInSubtitle')}</p>
 
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label htmlFor="signin-password" className="text-sm font-medium text-text-secondary">
-                  {t('auth.password')}
-                </label>
-                <Link to="/forgot-password" className="text-xs text-brand-secondary hover:text-brand-primary transition-colors">
-                  {t('auth.forgotPassword')}
-                </Link>
+          {/* Card */}
+          <div className="auth-card">
+            <form onSubmit={handleSubmit} className="auth-form">
+              {error && (
+                <div className="auth-error">
+                  {error}
+                </div>
+              )}
+
+              {/* Email */}
+              <div className="auth-field">
+                <label htmlFor="signin-email">{t('auth.email')}</label>
+                <div className="auth-input-wrap">
+                  <Mail className="auth-input-icon" />
+                  <input
+                    id="signin-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    autoComplete="email"
+                  />
+                </div>
               </div>
-              <input
-                id="signin-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field"
-                placeholder="••••••••"
-                required
-                autoComplete="current-password"
-              />
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn btn-primary w-full"
-            >
-              {loading ? t('common.loading') : t('auth.signIn')}
-            </button>
-          </form>
+              {/* Password */}
+              <div className="auth-field">
+                <div className="auth-field-header">
+                  <label htmlFor="signin-password">{t('auth.password')}</label>
+                  <Link to="/forgot-password" className="auth-forgot">
+                    {t('auth.forgotPassword')}
+                  </Link>
+                </div>
+                <div className="auth-input-wrap">
+                  <Lock className="auth-input-icon" />
+                  <input
+                    id="signin-password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    required
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="auth-input-toggle"
+                    onClick={() => setShowPassword(!showPassword)}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
 
-          <p className="text-center text-sm text-text-muted mt-6">
+              <button
+                type="submit"
+                disabled={loading}
+                className="auth-submit"
+              >
+                {loading ? (
+                  <span className="auth-spinner" />
+                ) : (
+                  <>
+                    {t('auth.signIn')}
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          <p className="auth-footer-text">
             {t('auth.noAccount')}{' '}
-            <Link to="/signup" className="text-brand-secondary hover:text-brand-primary transition-colors font-medium">
+            <Link to="/signup" className="auth-footer-link">
               {t('auth.signUp')}
             </Link>
           </p>

@@ -18,7 +18,17 @@
     "orgName": "Nome da Organização",
     "resetSent": "Link de redefinição enviado! Verifique seu e-mail.",
     "resetSuccess": "Senha redefinida com sucesso. Você já pode entrar.",
-    "signUpSuccess": "Conta criada! Bem-vindo a bordo."
+    "signUpSuccess": "Conta criada! Bem-vindo a bordo.",
+    "phone": "Telefone",
+    "welcomeBack": "Bem-vindo de Volta",
+    "startJourney": "Comece sua Jornada",
+    "signInSubtitle": "Faça login para continuar monitorando sua visibilidade em IA.",
+    "signUpSubtitle": "Crie sua conta e comece a rastrear o que a IA diz sobre sua marca.",
+    "signInDecor": "Monitore o que as plataformas de IA dizem sobre sua marca em tempo real. Fique à frente com insights acionáveis.",
+    "signUpDecor": "Junte-se a milhares de marcas que já monitoram sua visibilidade em IA em todas as principais plataformas.",
+    "decorFeature1": "Monitoramento IA em tempo real em 5+ plataformas",
+    "decorFeature2": "Insights acionáveis com análises detalhadas",
+    "decorFeature3": "Configure em menos de 60 segundos"
   },
   "profile": {
     "title": "Meu Perfil",
@@ -194,7 +204,8 @@
     "invalidEmail": "Endereço de e-mail inválido",
     "passwordMin": "A senha deve ter pelo menos {{min}} caracteres",
     "passwordMatch": "As senhas não coincidem",
-    "nameMin": "O nome deve ter pelo menos {{min}} caracteres"
+    "nameMin": "O nome deve ter pelo menos {{min}} caracteres",
+    "phoneMin": "O telefone deve ter pelo menos {{min}} dígitos"
   },
   "errors": {
     "UNAUTHORIZED": "Faça login para continuar",
@@ -355,13 +366,18 @@
       "description": "A plataforma de monitoramento de visibilidade IA. Saiba o que a IA diz sobre você antes dos seus clientes.",
       "product": "Produto",
       "company": "Empresa",
+      "support": "Suporte",
+      "contact": "Fale Conosco",
+      "documentation": "Documentação",
+      "status": "Status",
       "legal": "Legal",
       "about": "Sobre",
       "blog": "Blog",
       "careers": "Carreiras",
       "privacy": "Política de Privacidade",
       "terms": "Termos de Serviço",
-      "rights": "Todos os direitos reservados."
+      "rights": "Todos os direitos reservados.",
+      "madeWith": "Feito com ♥ para marcas que lideram com IA"
     }
   },
   "interestForm": {

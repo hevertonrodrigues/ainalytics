@@ -27,6 +27,10 @@ serve(async (req: Request) => {
     if (!body.email || typeof body.email !== "string" || !EMAIL_REGEX.test(body.email.trim())) {
       return withCors(req, badRequest("A valid email is required"));
     }
+    const phoneDigits = (body.phone || "").replace(/\D/g, "");
+    if (!body.phone || phoneDigits.length < 10) {
+      return withCors(req, badRequest("Phone is required (min 10 digits)"));
+    }
 
     // ── Extract metadata from headers ──
     const ip_address =

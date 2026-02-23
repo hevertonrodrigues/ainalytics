@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { EDGE_FUNCTION_BASE } from '@/lib/constants';
+import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
 
 interface InterestFormModalProps {
   open: boolean;
@@ -59,7 +60,7 @@ export function InterestFormModal({ open, onClose }: InterestFormModalProps) {
 
   if (!open) return null;
 
-  const isValid = name.trim() && email.trim() && EMAIL_REGEX.test(email.trim());
+  const isValid = name.trim() && email.trim() && EMAIL_REGEX.test(email.trim()) && getPhoneDigitCount(phone) >= MIN_PHONE_DIGITS;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,14 +176,21 @@ export function InterestFormModal({ open, onClose }: InterestFormModalProps) {
 
             {/* Phone */}
             <div className="interest-field">
-              <label htmlFor="interest-phone">{t('interestForm.phone')}</label>
-              <input
+              <label htmlFor="interest-phone">
+                {t('interestForm.phone')} <span className="text-error">*</span>
+              </label>
+              <PhoneInput
                 id="interest-phone"
-                type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={setPhone}
                 placeholder={t('interestForm.phonePlaceholder')}
+                required
               />
+              {phone && getPhoneDigitCount(phone) < MIN_PHONE_DIGITS && (
+                <span className="text-error" style={{ fontSize: '0.75rem' }}>
+                  {t('validation.phoneMin', { min: MIN_PHONE_DIGITS })}
+                </span>
+              )}
             </div>
 
             {/* Company */}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -8,12 +8,14 @@ import {
   Users,
   BarChart3,
   Languages,
-  Sparkles,
   Search,
   ChevronRight,
   ArrowRight,
   Menu,
   X,
+  Twitter,
+  Linkedin,
+  Github,
 } from 'lucide-react';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { PricingPlans } from '@/components/PricingPlans';
@@ -27,11 +29,49 @@ const LOCALE_LABELS: Record<string, string> = {
   'pt-br': 'PT',
 };
 
+/* ────────────────────────────────────────────────────────────
+   Scroll-reveal hook
+   ──────────────────────────────────────────────────────────── */
+
+function useScrollReveal() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReduced) {
+      el.querySelectorAll('.landing-reveal').forEach((node) => node.classList.add('visible'));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' },
+    );
+
+    el.querySelectorAll('.landing-reveal').forEach((node) => observer.observe(node));
+
+    return () => observer.disconnect();
+  }, []);
+
+  return ref;
+}
+
 export function LandingPage() {
   const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [interestModalOpen, setInterestModalOpen] = useState(false);
+  const revealRef = useScrollReveal();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -39,18 +79,21 @@ export function LandingPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const changeLang = (lng: string) => {
-    i18n.changeLanguage(lng);
-    setMobileMenuOpen(false);
-  };
+  const changeLang = useCallback(
+    (lng: string) => {
+      i18n.changeLanguage(lng);
+      setMobileMenuOpen(false);
+    },
+    [i18n],
+  );
 
   return (
-    <div className="landing-page">
+    <div className="landing-page" ref={revealRef}>
       {/* ─── Navbar ─── */}
       <nav className={`landing-nav${scrolled ? ' landing-nav-scrolled' : ''}`}>
         <div className="landing-container landing-nav-inner">
           <Link to="/" className="landing-logo">
-            <Sparkles className="w-6 h-6 text-brand-primary" />
+            <img src="/logo.svg" alt="Ainalytics" className="landing-logo-img" />
             <span>{APP_NAME}</span>
           </Link>
 
@@ -145,7 +188,7 @@ export function LandingPage() {
       </section>
 
       {/* ─── Logo Bar ─── */}
-      <section className="landing-logos">
+      <section className="landing-logos landing-reveal">
         <div className="landing-container">
           <p className="landing-logos-title">{t('landing.logos.title')}</p>
           <div className="landing-logos-grid">
@@ -161,7 +204,7 @@ export function LandingPage() {
       {/* ─── Features ─── */}
       <section id="features" className="landing-section">
         <div className="landing-container">
-          <div className="landing-section-header">
+          <div className="landing-section-header landing-reveal">
             <h2>
               {t('landing.features.title')}{' '}
               <span className="landing-gradient-text">{t('landing.features.titleHighlight')}</span>
@@ -173,31 +216,37 @@ export function LandingPage() {
               icon={<GitCompareArrows className="w-6 h-6" />}
               title={t('landing.features.multiModel.title')}
               description={t('landing.features.multiModel.description')}
+              delay={0}
             />
             <FeatureCard
               icon={<Globe className="w-6 h-6" />}
               title={t('landing.features.webSearch.title')}
               description={t('landing.features.webSearch.description')}
+              delay={1}
             />
             <FeatureCard
               icon={<FolderKanban className="w-6 h-6" />}
               title={t('landing.features.topicOrg.title')}
               description={t('landing.features.topicOrg.description')}
+              delay={2}
             />
             <FeatureCard
               icon={<Users className="w-6 h-6" />}
               title={t('landing.features.multiTenant.title')}
               description={t('landing.features.multiTenant.description')}
+              delay={0}
             />
             <FeatureCard
               icon={<BarChart3 className="w-6 h-6" />}
               title={t('landing.features.analytics.title')}
               description={t('landing.features.analytics.description')}
+              delay={1}
             />
             <FeatureCard
               icon={<Languages className="w-6 h-6" />}
               title={t('landing.features.i18n.title')}
               description={t('landing.features.i18n.description')}
+              delay={2}
             />
           </div>
         </div>
@@ -206,7 +255,7 @@ export function LandingPage() {
       {/* ─── How It Works ─── */}
       <section id="how-it-works" className="landing-section landing-section-alt">
         <div className="landing-container">
-          <div className="landing-section-header">
+          <div className="landing-section-header landing-reveal">
             <h2>
               {t('landing.howItWorks.title')}{' '}
               <span className="landing-gradient-text">{t('landing.howItWorks.titleHighlight')}</span>
@@ -220,6 +269,7 @@ export function LandingPage() {
               label={t('landing.howItWorks.step1.label')}
               title={t('landing.howItWorks.step1.title')}
               description={t('landing.howItWorks.step1.description')}
+              delay={0}
             />
             <div className="landing-step-arrow">
               <ChevronRight className="w-6 h-6" />
@@ -230,6 +280,7 @@ export function LandingPage() {
               label={t('landing.howItWorks.step2.label')}
               title={t('landing.howItWorks.step2.title')}
               description={t('landing.howItWorks.step2.description')}
+              delay={1}
             />
             <div className="landing-step-arrow">
               <ChevronRight className="w-6 h-6" />
@@ -240,6 +291,7 @@ export function LandingPage() {
               label={t('landing.howItWorks.step3.label')}
               title={t('landing.howItWorks.step3.title')}
               description={t('landing.howItWorks.step3.description')}
+              delay={2}
             />
           </div>
         </div>
@@ -248,14 +300,14 @@ export function LandingPage() {
       {/* ─── Dashboard Preview ─── */}
       <section id="preview" className="landing-section">
         <div className="landing-container">
-          <div className="landing-section-header">
+          <div className="landing-section-header landing-reveal">
             <h2>
               {t('landing.preview.title')}{' '}
               <span className="landing-gradient-text">{t('landing.preview.titleHighlight')}</span>
             </h2>
             <p>{t('landing.preview.subtitle')}</p>
           </div>
-          <div className="landing-preview-image">
+          <div className="landing-preview-image landing-reveal">
             <img
               src="/landing-dashboard.png"
               alt="Ainalytics Analytics Dashboard"
@@ -268,7 +320,7 @@ export function LandingPage() {
       {/* ─── Pricing ─── */}
       <section id="pricing" className="landing-section landing-section-alt">
         <div className="landing-container">
-          <div className="landing-section-header">
+          <div className="landing-section-header landing-reveal">
             <h2>
               {t('landing.pricing.title')}{' '}
               <span className="landing-gradient-text">{t('landing.pricing.titleHighlight')}</span>
@@ -317,7 +369,7 @@ export function LandingPage() {
       </section>
 
       {/* ─── Final CTA ─── */}
-      <section className="landing-final-cta">
+      <section className="landing-final-cta landing-reveal">
         <div className="landing-container landing-final-cta-inner">
           <h2>{t('landing.cta.title')}</h2>
           <p>{t('landing.cta.subtitle')}</p>
@@ -334,32 +386,53 @@ export function LandingPage() {
         <div className="landing-container landing-footer-inner">
           <div className="landing-footer-brand">
             <div className="landing-logo">
-              <Sparkles className="w-5 h-5 text-brand-primary" />
+              <img src="/logo.svg" alt="Ainalytics" className="landing-logo-img landing-logo-img-sm" />
               <span>{APP_NAME}</span>
             </div>
             <p>{t('landing.footer.description')}</p>
+            <div className="landing-footer-social">
+              <a href="#" aria-label="Twitter / X" target="_blank" rel="noopener noreferrer">
+                <Twitter className="w-4 h-4" />
+              </a>
+              <a href="#" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+                <Linkedin className="w-4 h-4" />
+              </a>
+              <a href="#" aria-label="GitHub" target="_blank" rel="noopener noreferrer">
+                <Github className="w-4 h-4" />
+              </a>
+            </div>
           </div>
+
           <div className="landing-footer-links">
-            <div>
-              <h4>{t('landing.footer.product')}</h4>
-              <a href="#features">{t('landing.nav.features')}</a>
-              <a href="#pricing">{t('landing.nav.pricing')}</a>
-              <a href="#how-it-works">{t('landing.nav.howItWorks')}</a>
-            </div>
-            <div>
-              <h4>{t('landing.footer.company')}</h4>
-              <a href="#">{t('landing.footer.about')}</a>
-              <a href="#">{t('landing.footer.blog')}</a>
-              <a href="#">{t('landing.footer.careers')}</a>
-            </div>
-            <div>
-              <h4>{t('landing.footer.legal')}</h4>
-              <a href="#">{t('landing.footer.privacy')}</a>
-              <a href="#">{t('landing.footer.terms')}</a>
-            </div>
+            <h4>{t('landing.footer.product')}</h4>
+            <a href="#features">{t('landing.nav.features')}</a>
+            <a href="#pricing">{t('landing.nav.pricing')}</a>
+            <a href="#how-it-works">{t('landing.nav.howItWorks')}</a>
           </div>
+
+          <div className="landing-footer-links">
+            <h4>{t('landing.footer.company')}</h4>
+            <a href="#">{t('landing.footer.about')}</a>
+            <a href="#">{t('landing.footer.blog')}</a>
+            <a href="#">{t('landing.footer.careers')}</a>
+          </div>
+
+          <div className="landing-footer-links">
+            <h4>{t('landing.footer.support')}</h4>
+            <a href="#">{t('landing.footer.contact')}</a>
+            <a href="#">{t('landing.footer.documentation')}</a>
+            <a href="#">{t('landing.footer.status')}</a>
+          </div>
+
+          <div className="landing-footer-links">
+            <h4>{t('landing.footer.legal')}</h4>
+            <a href="#">{t('landing.footer.privacy')}</a>
+            <a href="#">{t('landing.footer.terms')}</a>
+          </div>
+
           <div className="landing-footer-bottom">
             <span>© {new Date().getFullYear()} {APP_NAME}. {t('landing.footer.rights')}</span>
+            <span className="landing-footer-made">{t('landing.footer.madeWith')}</span>
             <div className="locale-switcher">
               {Object.values(LOCALES).map((lng) => (
                 <button
@@ -388,9 +461,9 @@ export function LandingPage() {
    Sub-components
    ──────────────────────────────────────────────────────────── */
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
+function FeatureCard({ icon, title, description, delay = 0 }: { icon: React.ReactNode; title: string; description: string; delay?: number }) {
   return (
-    <div className="landing-feature-card glass-card">
+    <div className={`landing-feature-card glass-card landing-reveal landing-reveal-delay-${delay}`}>
       <div className="landing-feature-icon">{icon}</div>
       <h3>{title}</h3>
       <p>{description}</p>
@@ -404,15 +477,17 @@ function StepCard({
   label,
   title,
   description,
+  delay = 0,
 }: {
   number: string;
   icon: React.ReactNode;
   label: string;
   title: string;
   description: string;
+  delay?: number;
 }) {
   return (
-    <div className="landing-step-card">
+    <div className={`landing-step-card landing-reveal landing-reveal-delay-${delay}`}>
       <div className="landing-step-number">{number}</div>
       <div className="landing-step-icon">{icon}</div>
       <span className="landing-step-label">{label}</span>
@@ -421,4 +496,3 @@ function StepCard({
     </div>
   );
 }
-
