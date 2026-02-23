@@ -11,12 +11,12 @@ import {
   Sparkles,
   Search,
   ChevronRight,
-  Check,
   ArrowRight,
   Menu,
   X,
 } from 'lucide-react';
 import { APP_NAME, LOCALES } from '@/lib/constants';
+import { PricingPlans } from '@/components/PricingPlans';
 
 const AI_PLATFORMS = ['OpenAI', 'Anthropic', 'Google Gemini', 'xAI Grok', 'Perplexity'];
 
@@ -114,10 +114,6 @@ export function LandingPage() {
       <section className="landing-hero">
         <div className="landing-hero-bg" />
         <div className="landing-container landing-hero-content">
-          <div className="landing-hero-badge">
-            <Sparkles className="w-3.5 h-3.5" />
-            {t('landing.hero.badge')}
-          </div>
           <h1 className="landing-hero-title">
             {t('landing.hero.title')}
             <br />
@@ -277,34 +273,43 @@ export function LandingPage() {
             </h2>
             <p>{t('landing.pricing.subtitle')}</p>
           </div>
-          <div className="landing-pricing-grid">
-            {/* Free */}
-            <PricingCard
-              name={t('landing.pricing.free.name')}
-              price={t('landing.pricing.free.price')}
-              description={t('landing.pricing.free.description')}
-              cta={t('landing.pricing.free.cta')}
-              features={t('landing.pricing.free.features', { returnObjects: true }) as string[]}
-            />
-            {/* Pro */}
-            <PricingCard
-              name={t('landing.pricing.pro.name')}
-              price={t('landing.pricing.pro.price')}
-              priceLabel={t('landing.pricing.monthly')}
-              description={t('landing.pricing.pro.description')}
-              cta={t('landing.pricing.pro.cta')}
-              features={t('landing.pricing.pro.features', { returnObjects: true }) as string[]}
-              popular={t('landing.pricing.pro.popular')}
-            />
-            {/* Enterprise */}
-            <PricingCard
-              name={t('landing.pricing.enterprise.name')}
-              price={t('landing.pricing.enterprise.price')}
-              description={t('landing.pricing.enterprise.description')}
-              cta={t('landing.pricing.enterprise.cta')}
-              features={t('landing.pricing.enterprise.features', { returnObjects: true }) as string[]}
-            />
-          </div>
+          <PricingPlans
+            plans={[
+              {
+                name: t('landing.pricing.free.name'),
+                price: t('landing.pricing.free.price'),
+                priceLabel: t('landing.pricing.monthly'),
+                description: t('landing.pricing.free.description'),
+                cta: t('landing.pricing.free.cta'),
+                features: t('landing.pricing.free.features', { returnObjects: true }) as string[],
+              },
+              {
+                name: t('landing.pricing.pro.name'),
+                price: t('landing.pricing.pro.price'),
+                priceLabel: t('landing.pricing.monthly'),
+                description: t('landing.pricing.pro.description'),
+                cta: t('landing.pricing.pro.cta'),
+                features: t('landing.pricing.pro.features', { returnObjects: true }) as string[],
+                popular: t('landing.pricing.pro.popular'),
+              },
+              {
+                name: t('landing.pricing.enterprise.name'),
+                price: t('landing.pricing.enterprise.price'),
+                priceLabel: t('landing.pricing.monthly'),
+                description: t('landing.pricing.enterprise.description'),
+                cta: t('landing.pricing.enterprise.cta'),
+                features: t('landing.pricing.enterprise.features', { returnObjects: true }) as string[],
+              },
+              {
+                name: t('landing.pricing.custom.name'),
+                price: t('landing.pricing.custom.price'),
+                description: t('landing.pricing.custom.description'),
+                cta: t('landing.pricing.custom.cta'),
+                features: t('landing.pricing.custom.features', { returnObjects: true }) as string[],
+                isBlock: true,
+              },
+            ]}
+          />
         </div>
       </section>
 
@@ -408,43 +413,3 @@ function StepCard({
   );
 }
 
-function PricingCard({
-  name,
-  price,
-  priceLabel,
-  description,
-  cta,
-  features,
-  popular,
-}: {
-  name: string;
-  price: string;
-  priceLabel?: string;
-  description: string;
-  cta: string;
-  features: string[];
-  popular?: string;
-}) {
-  return (
-    <div className={`landing-pricing-card glass-card${popular ? ' landing-pricing-popular' : ''}`}>
-      {popular && <div className="landing-pricing-badge">{popular}</div>}
-      <h3>{name}</h3>
-      <div className="landing-pricing-price">
-        <span className="landing-pricing-amount">{price}</span>
-        {priceLabel && <span className="landing-pricing-period">{priceLabel}</span>}
-      </div>
-      <p className="landing-pricing-desc">{description}</p>
-      <Link to="/signup" className={`btn ${popular ? 'btn-primary' : 'btn-secondary'} w-full`}>
-        {cta}
-      </Link>
-      <ul className="landing-pricing-features">
-        {features.map((f, i) => (
-          <li key={i}>
-            <Check className="w-4 h-4 text-success" />
-            {f}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}

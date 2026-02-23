@@ -44,7 +44,7 @@ async function handleGet(req: Request): Promise<Response> {
     .from("plans")
     .select("*")
     .eq("is_active", true)
-    .order("created_at", { ascending: true });
+    .order("sort_order", { ascending: true });
 
   if (plansError) return serverError(plansError.message);
 

@@ -226,7 +226,6 @@
       "getStarted": "Check Your AI Visibility"
     },
     "hero": {
-      "badge": "Your Brand in the Eyes of AI",
       "title": "AI Is Already Talking",
       "titleHighlight": "About You.",
       "titleEnd": "Do You Know What It's Saying?",
@@ -299,43 +298,58 @@
       "monthly": "/month",
       "free": {
         "name": "Starter",
-        "price": "Free",
-        "description": "See what AI says about you right now. No excuses not to start.",
+        "price": "$99",
+        "description": "Essential AI monitoring to get started. Perfect for freelancers and small businesses.",
         "cta": "Check My Visibility",
         "features": [
-          "3 AI platforms monitored",
-          "100 brand queries/month",
-          "5 monitoring topics",
+          "3 AI prompts",
+          "Monthly refresh",
+          "Up to 3 AI platforms",
           "Basic visibility score",
           "Community support"
         ]
       },
       "pro": {
-        "name": "Pro",
-        "price": "$49",
-        "description": "Full visibility across every AI. Know the moment something changes.",
+        "name": "Growth",
+        "price": "$189",
+        "description": "Scale your monitoring across all AI platforms with weekly insights.",
         "cta": "Start Monitoring Now",
         "popular": "Most Popular",
         "features": [
+          "10 AI prompts",
+          "Weekly refresh",
           "All 5 AI platforms",
-          "Unlimited brand queries",
-          "Unlimited topics",
-          "Advanced visibility analytics",
-          "Web search grounding verification",
-          "Multi-brand workspaces",
+          "Advanced analytics & KPIs",
+          "Web search grounding",
           "Priority support"
         ]
       },
       "enterprise": {
-        "name": "Enterprise",
-        "price": "Custom",
-        "description": "For agencies and brands that can't afford a single blind spot.",
-        "cta": "Contact Sales",
+        "name": "Business",
+        "price": "$799",
+        "description": "Full-power real-time monitoring for brands that demand visibility.",
+        "cta": "Go Business",
         "features": [
-          "Everything in Pro",
+          "40 AI prompts",
+          "Daily refresh",
+          "All 5 AI platforms",
+          "Advanced analytics & KPIs",
+          "Web search grounding",
+          "Multi-tenant workspaces",
+          "Dedicated support"
+        ]
+      },
+      "custom": {
+        "name": "Custom",
+        "price": "Let's Talk",
+        "description": "Tailored AI monitoring solutions for agencies and large organizations.",
+        "cta": "Contact Us",
+        "features": [
+          "Unlimited prompts",
+          "Custom refresh rate",
           "Custom AI integrations",
           "SSO & SAML",
-          "Dedicated success manager",
+          "Dedicated account manager",
           "SLA guarantee",
           "On-premise deployment",
           "White-label reporting"

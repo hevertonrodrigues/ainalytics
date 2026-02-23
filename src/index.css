@@ -1602,8 +1602,8 @@ h1, h2, h3, h4, h5, h6 {
 .landing-pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  align-items: start;
+  gap: 1.25rem;
+  align-items: stretch;
 }
 
 @media (max-width: 768px) {

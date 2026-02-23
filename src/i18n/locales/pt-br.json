@@ -216,7 +216,6 @@
       "getStarted": "Verifique sua Visibilidade IA"
     },
     "hero": {
-      "badge": "Sua Marca nos Olhos da IA",
       "title": "A IA Já Está Falando",
       "titleHighlight": "Sobre Você.",
       "titleEnd": "Você Sabe o Que Ela Diz?",
@@ -289,43 +288,58 @@
       "monthly": "/mês",
       "free": {
         "name": "Starter",
-        "price": "Grátis",
-        "description": "Veja o que a IA diz sobre você agora mesmo. Sem desculpas para não começar.",
+        "price": "$99",
+        "description": "Monitoramento essencial de IA para começar. Perfeito para freelancers e pequenas empresas.",
         "cta": "Verificar Minha Visibilidade",
         "features": [
-          "3 plataformas IA monitoradas",
-          "100 consultas de marca/mês",
-          "5 tópicos de monitoramento",
+          "3 prompts de IA",
+          "Atualização mensal",
+          "Até 3 plataformas IA",
           "Score básico de visibilidade",
           "Suporte da comunidade"
         ]
       },
       "pro": {
-        "name": "Pro",
-        "price": "$49",
-        "description": "Visibilidade total em cada IA. Saiba no momento em que algo mudar.",
+        "name": "Growth",
+        "price": "$189",
+        "description": "Escale seu monitoramento em todas as plataformas IA com insights semanais.",
         "cta": "Começar a Monitorar",
         "popular": "Mais Popular",
         "features": [
+          "10 prompts de IA",
+          "Atualização semanal",
           "Todas as 5 plataformas IA",
-          "Consultas de marca ilimitadas",
-          "Tópicos ilimitados",
-          "Análise de visibilidade avançada",
+          "Análise avançada e KPIs",
           "Verificação de busca web",
-          "Espaços multi-marca",
           "Suporte prioritário"
         ]
       },
       "enterprise": {
-        "name": "Enterprise",
-        "price": "Personalizado",
-        "description": "Para agências e marcas que não podem se dar ao luxo de ter um único ponto cego.",
-        "cta": "Falar com Vendas",
+        "name": "Business",
+        "price": "$799",
+        "description": "Monitoramento completo em tempo real para marcas que exigem visibilidade.",
+        "cta": "Ir para Business",
         "features": [
-          "Tudo do Pro",
+          "40 prompts de IA",
+          "Atualização diária",
+          "Todas as 5 plataformas IA",
+          "Análise avançada e KPIs",
+          "Verificação de busca web",
+          "Espaços multi-tenant",
+          "Suporte dedicado"
+        ]
+      },
+      "custom": {
+        "name": "Custom",
+        "price": "Vamos Conversar",
+        "description": "Soluções de monitoramento IA sob medida para agências e grandes organizações.",
+        "cta": "Fale Conosco",
+        "features": [
+          "Prompts ilimitados",
+          "Taxa de atualização personalizada",
           "Integrações IA personalizadas",
           "SSO e SAML",
-          "Gerente de sucesso dedicado",
+          "Gerente de conta dedicado",
           "Garantia SLA",
           "Implantação on-premise",
           "Relatórios white-label"

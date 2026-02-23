@@ -1,15 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Check, CreditCard, Crown, Sparkles, Building2 } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useTenant } from '@/contexts/TenantContext';
+import { PricingPlans } from '@/components/PricingPlans';
+import type { PricingPlan } from '@/components/PricingPlans';
 import type { Plan } from '@/types';
-
-const PLAN_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  Starter: Sparkles,
-  Pro: Crown,
-  Enterprise: Building2,
-};
 
 export function PlansPage() {
   const { t } = useTranslation();
@@ -57,11 +53,8 @@ export function PlansPage() {
   };
 
   const formatPrice = (plan: Plan) => {
-    if (plan.price === 0 && (plan.settings as Record<string, unknown>)?.custom_pricing) {
+    if ((plan.settings as Record<string, unknown>)?.custom_pricing) {
       return t('plans.custom');
-    }
-    if (plan.price === 0) {
-      return t('plans.free');
     }
     return `$${plan.price}`;
   };
@@ -69,6 +62,11 @@ export function PlansPage() {
   const getFeatures = (plan: Plan): string[] => {
     const settings = plan.settings as Record<string, unknown>;
     return (settings?.features as string[]) || [];
+  };
+
+  const getDescription = (plan: Plan): string => {
+    const settings = plan.settings as Record<string, unknown>;
+    return (settings?.description as string) || '';
   };
 
   if (loading) {
@@ -83,6 +81,28 @@ export function PlansPage() {
       </div>
     );
   }
+
+  /* Map API plans → PricingPlan props */
+  const pricingPlans: PricingPlan[] = plans.map((plan, idx) => {
+    const isCurrentPlan = plan.id === currentPlanId;
+    const isPopular = plan.name === 'Growth';
+    const isCustom = !!(plan.settings as Record<string, unknown>)?.custom_pricing;
+
+    return {
+      name: plan.name,
+      price: formatPrice(plan),
+      priceLabel: plan.price > 0 ? t('plans.perMonth') : undefined,
+      description: getDescription(plan),
+      features: getFeatures(plan),
+      popular: isPopular ? t('plans.mostPopular') : undefined,
+      isBlock: idx >= 3,
+      cta: isCustom ? t('plans.contactSales') : t('plans.selectPlan'),
+      onSelect: isCustom || isCurrentPlan ? undefined : () => handleSelectPlan(plan.id),
+      disabled: !!selecting,
+      loading: selecting === plan.id,
+      statusLabel: isCurrentPlan ? t('plans.currentPlan') : undefined,
+    };
+  });
 
   return (
     <div className="stagger-enter max-w-5xl mx-auto space-y-8">
@@ -108,116 +128,14 @@ export function PlansPage() {
         </div>
       )}
 
-      {/* Plans grid */}
+      {/* Plans */}
       {plans.length === 0 ? (
         <div className="glass-card p-12 text-center">
           <CreditCard className="w-10 h-10 text-text-muted mx-auto mb-3" />
           <p className="text-text-muted text-sm">{t('plans.noPlans')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {plans.map((plan) => {
-            const isCurrentPlan = plan.id === currentPlanId;
-            const isPopular = plan.name === 'Pro';
-            const PlanIcon = PLAN_ICONS[plan.name] || CreditCard;
-            const features = getFeatures(plan);
-            const isCustom = !!(plan.settings as Record<string, unknown>)?.custom_pricing;
-
-            return (
-              <div
-                key={plan.id}
-                className={`
-                  relative rounded-xl border transition-all duration-300 overflow-hidden
-                  ${isPopular
-                    ? 'bg-gradient-to-b from-brand-primary/10 to-bg-secondary border-brand-primary/40 shadow-lg shadow-brand-primary/10 scale-[1.02]'
-                    : 'glass-card border-glass-border hover:border-brand-primary/20'
-                  }
-                  ${isCurrentPlan ? 'ring-2 ring-brand-primary/60' : ''}
-                `}
-              >
-                {/* Popular badge */}
-                {isPopular && (
-                  <div className="absolute top-0 left-0 right-0 bg-gradient-to-r from-brand-primary to-brand-accent text-white text-xs font-semibold text-center py-1.5">
-                    {t('plans.mostPopular')}
-                  </div>
-                )}
-
-                <div className={`p-6 ${isPopular ? 'pt-10' : ''}`}>
-                  {/* Plan icon & name */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      isPopular ? 'bg-brand-primary/20' : 'bg-glass-bg'
-                    }`}>
-                      <PlanIcon className={`w-5 h-5 ${isPopular ? 'text-brand-primary' : 'text-text-secondary'}`} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-text-primary">{plan.name}</h3>
-                    </div>
-                  </div>
-
-                  {/* Price */}
-                  <div className="mb-6">
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold text-text-primary">{formatPrice(plan)}</span>
-                      {plan.price > 0 && (
-                        <span className="text-text-muted text-sm">{t('plans.perMonth')}</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Current plan badge */}
-                  {isCurrentPlan && (
-                    <div className="mb-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 border border-success/20 text-success text-xs font-medium">
-                      <Check className="w-3.5 h-3.5" />
-                      {t('plans.currentPlan')}
-                    </div>
-                  )}
-
-                  {/* Features */}
-                  <ul className="space-y-3 mb-6">
-                    {features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-2.5">
-                        <Check className={`w-4 h-4 mt-0.5 shrink-0 ${
-                          isPopular ? 'text-brand-primary' : 'text-success'
-                        }`} />
-                        <span className="text-sm text-text-secondary">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  {/* Select button */}
-                  {isCustom ? (
-                    <button
-                      className="w-full py-2.5 px-4 rounded-lg border border-glass-border text-text-secondary text-sm font-semibold hover:bg-glass-hover transition-colors"
-                      disabled
-                    >
-                      {t('plans.contactSales')}
-                    </button>
-                  ) : isCurrentPlan ? (
-                    <button
-                      className="w-full py-2.5 px-4 rounded-lg bg-success/10 border border-success/20 text-success text-sm font-semibold cursor-default"
-                      disabled
-                    >
-                      {t('plans.currentPlan')}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleSelectPlan(plan.id)}
-                      disabled={!!selecting}
-                      className={`w-full py-2.5 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                        isPopular
-                          ? 'bg-gradient-to-r from-brand-primary to-brand-accent text-white hover:opacity-90 shadow-md shadow-brand-primary/20'
-                          : 'bg-glass-bg border border-glass-border text-text-primary hover:bg-glass-hover hover:border-brand-primary/30'
-                      } ${selecting === plan.id ? 'opacity-60' : ''}`}
-                    >
-                      {selecting === plan.id ? t('common.loading') : t('plans.selectPlan')}
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <PricingPlans plans={pricingPlans} />
       )}
 
       {/* Owner note */}

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS plans (
   name TEXT NOT NULL,
   price NUMERIC(10,2) NOT NULL DEFAULT 0,
   is_active BOOLEAN NOT NULL DEFAULT true,
+  sort_order INT NOT NULL DEFAULT 0,
   settings JSONB NOT NULL DEFAULT '{}',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -30,8 +31,9 @@ CREATE TRIGGER set_plans_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();
 
--- Seed some default plans
-INSERT INTO plans (name, price, is_active, settings) VALUES
-  ('Starter', 0, true, '{"features": ["Up to 3 AI platforms", "100 prompts/month", "5 topics", "Basic analytics", "Community support"]}'),
-  ('Pro', 49, true, '{"features": ["All 5 AI platforms", "Unlimited prompts", "Unlimited topics", "Advanced analytics & KPIs", "Web search grounding", "Multi-tenant workspaces", "Priority support"]}'),
-  ('Enterprise', 0, true, '{"features": ["Everything in Pro", "Custom AI integrations", "SSO & SAML", "Dedicated account manager", "SLA guarantee", "On-premise deployment", "Custom reporting"], "custom_pricing": true}');
+-- Seed default plans
+INSERT INTO plans (name, price, is_active, sort_order, settings) VALUES
+  ('Starter', 99, true, 1, '{"max_prompts": 3, "refresh_rate": "monthly", "description": "Essential AI monitoring to get started. Perfect for freelancers and small businesses.", "features": ["3 AI prompts", "Monthly refresh", "Up to 3 AI platforms", "Basic visibility score", "Community support"]}'),
+  ('Growth', 189, true, 2, '{"max_prompts": 10, "refresh_rate": "weekly", "description": "Scale your monitoring across all AI platforms with weekly insights.", "features": ["10 AI prompts", "Weekly refresh", "All 5 AI platforms", "Advanced analytics & KPIs", "Web search grounding", "Priority support"]}'),
+  ('Business', 799, true, 3, '{"max_prompts": 40, "refresh_rate": "daily", "description": "Full-power real-time monitoring for brands that demand visibility.", "features": ["40 AI prompts", "Daily refresh", "All 5 AI platforms", "Advanced analytics & KPIs", "Web search grounding", "Multi-tenant workspaces", "Dedicated support"]}'),
+  ('Custom', 0, true, 4, '{"custom_pricing": true, "description": "Tailored AI monitoring solutions for agencies and large organizations.", "features": ["Unlimited prompts", "Custom refresh rate", "Custom AI integrations", "SSO & SAML", "Dedicated account manager", "SLA guarantee", "On-premise deployment", "White-label reporting"]}');
