@@ -61,10 +61,10 @@ async function handleSearch(req: Request, tenantId: string) {
 
   const sb = createAdminClient();
 
-  // Load tenant's active models with platform info
+  // Load tenant's active models with platform info (include web_search_active)
   const { data: tpm, error: tpmErr } = await sb
     .from("tenant_platform_models")
-    .select("*, platform:platforms(id, slug, name), model:models(id, slug, name)")
+    .select("*, platform:platforms(id, slug, name), model:models(id, slug, name, web_search_active)")
     .eq("tenant_id", tenantId)
     .eq("is_active", true);
 
@@ -76,16 +76,17 @@ async function handleSearch(req: Request, tenantId: string) {
   const searchedAt = new Date().toISOString();
 
   // Build platform+model pairs for execution
-  const entries = tpm.map((t: { platform: { id: string; slug: string }; model: { id: string; slug: string }; platform_id: string; model_id: string }) => ({
+  const entries = tpm.map((t: { platform: { id: string; slug: string }; model: { id: string; slug: string; web_search_active?: boolean }; platform_id: string; model_id: string }) => ({
     platformSlug: t.platform.slug,
     modelSlug: t.model.slug,
     platform_id: t.platform_id,
     model_id: t.model_id,
+    webSearchEnabled: t.model.web_search_active ?? false,
   }));
 
   // Execute prompt against all models in parallel
   const results = await executePromptMulti(
-    entries.map((e) => ({ slug: e.platformSlug, model: e.modelSlug })),
+    entries.map((e) => ({ slug: e.platformSlug, model: e.modelSlug, webSearchEnabled: e.webSearchEnabled })),
     prompt_text,
   );
 
@@ -95,7 +96,6 @@ async function handleSearch(req: Request, tenantId: string) {
     prompt_id,
     platform_slug: r.slug,
     platform_id: entries[i].platform_id,
-    model: r.model,
     model_id: entries[i].model_id,
     answer_text: r.text,
     tokens_used: r.tokens,
@@ -113,7 +113,7 @@ async function handleSearch(req: Request, tenantId: string) {
   const { data, error } = await sb
     .from("prompt_answers")
     .insert(rows)
-    .select();
+    .select("*, model:models!model_id(id, slug, name)");
 
   if (error) {
     console.error("[prompt-search] DB insert error:", error);
@@ -155,9 +155,16 @@ async function handleRetry(req: Request, tenantId: string) {
 
   if (pErr || !prompt) return badRequest("Prompt not found");
 
-  // Execute the prompt for this single model
+  // Execute the prompt for this single model (look up slug + web_search_active from models table)
+  const { data: modelInfo } = await sb
+    .from("models")
+    .select("slug, web_search_active")
+    .eq("id", oldAnswer.model_id)
+    .single();
+  if (!modelInfo?.slug) return badRequest("Model not found for model_id: " + oldAnswer.model_id);
+
   const results = await executePromptMulti(
-    [{ slug: oldAnswer.platform_slug, model: oldAnswer.model }],
+    [{ slug: oldAnswer.platform_slug, model: modelInfo.slug, webSearchEnabled: modelInfo.web_search_active ?? false }],
     prompt.text,
   );
 
@@ -173,7 +180,6 @@ async function handleRetry(req: Request, tenantId: string) {
       prompt_id: oldAnswer.prompt_id,
       platform_slug: result.slug,
       platform_id: oldAnswer.platform_id,
-      model: result.model,
       model_id: oldAnswer.model_id,
       answer_text: result.text,
       tokens_used: result.tokens,
@@ -187,7 +193,7 @@ async function handleRetry(req: Request, tenantId: string) {
       annotations: result.annotations ?? null,
       sources: result.sources ?? null,
     })
-    .select()
+    .select("*, model:models!model_id(id, slug, name)")
     .single();
 
   if (iErr) {
@@ -219,7 +225,7 @@ async function handleGetAnswers(req: Request, tenantId: string) {
   if (promptId) {
     const { data, error } = await sb
       .from("prompt_answers")
-      .select("*")
+      .select("*, model:models!model_id(id, slug, name)")
       .eq("tenant_id", tenantId)
       .eq("prompt_id", promptId)
       .eq("deleted", false)
@@ -243,7 +249,7 @@ async function handleGetAnswers(req: Request, tenantId: string) {
 
     const { data, error } = await sb
       .from("prompt_answers")
-      .select("*")
+      .select("*, model:models!model_id(id, slug, name)")
       .eq("tenant_id", tenantId)
       .in("prompt_id", promptIds)
       .eq("deleted", false)

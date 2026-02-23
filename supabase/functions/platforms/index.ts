@@ -181,7 +181,7 @@ async function handleGetPreferences(tenantId: string) {
   const sb = createAdminClient();
   const { data, error } = await sb
     .from("tenant_platform_models")
-    .select("*, platform:platforms(id, slug, name), model:models(id, slug, name)")
+    .select("*, platform:platforms(id, slug, name), model:models(id, slug, name, web_search_active)")
     .eq("tenant_id", tenantId)
     .order("created_at");
 

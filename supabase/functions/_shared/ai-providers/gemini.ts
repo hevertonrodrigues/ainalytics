@@ -14,13 +14,16 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
   try {
     const body: Record<string, unknown> = {
       contents: [{ parts: [{ text: req.prompt }] }],
-      tools: [{ google_search: {} }],
     };
     if (req.systemInstruction) {
       body.systemInstruction = { parts: [{ text: req.systemInstruction }] };
     }
 
-    let webSearchEnabled = true;
+    // Only add google_search tool if web search is enabled for this model
+    let webSearchEnabled = req.webSearchEnabled !== false;
+    if (webSearchEnabled) {
+      body.tools = [{ google_search: {} }];
+    }
 
     const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${req.model}:generateContent?key=${apiKey}`;
 
@@ -119,6 +122,14 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
           }
         }
       }
+    }
+
+    // ── Post-response verification ──
+    // If web search was enabled but no grounding metadata was returned,
+    // the model silently ignored the search tool (e.g. preview/thinking models)
+    if (webSearchEnabled && annotations.length === 0 && sourcesMap.size === 0) {
+      console.warn(`[gemini] web search was enabled but no groundingMetadata returned for ${req.model} — marking web_search_enabled as false`);
+      webSearchEnabled = false;
     }
 
     const sources = [...sourcesMap.values()];

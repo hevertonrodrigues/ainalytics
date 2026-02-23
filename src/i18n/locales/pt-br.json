@@ -93,7 +93,8 @@
     "added": "Modelo adicionado",
     "removed": "Modelo removido",
     "activated": "Modelo ativado",
-    "deactivated": "Modelo desativado"
+    "deactivated": "Modelo desativado",
+    "webSearch": "Busca Web"
   },
   "answers": {
     "title": "Respostas dos Prompts",

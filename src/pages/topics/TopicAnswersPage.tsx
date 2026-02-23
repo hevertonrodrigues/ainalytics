@@ -320,7 +320,7 @@ export function TopicAnswersPage() {
                             <span className="text-xs font-semibold text-text-primary uppercase">
                               {answer.platform_slug}
                             </span>
-                            <span className="text-xs text-text-muted">{answer.model}</span>
+                            <span className="text-xs text-text-muted">{answer.model?.slug ?? answer.model_id}</span>
                             {answer.error && (
                               <span className="text-xs text-error">
                                 <AlertCircle className="w-3 h-3 inline" />

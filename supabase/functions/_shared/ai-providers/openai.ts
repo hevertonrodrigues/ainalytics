@@ -15,13 +15,16 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
     const body: Record<string, unknown> = {
       model: req.model,
       input: req.prompt,
-      tools: [{ type: "web_search" }],
-      tool_choice: "required",
-      include: ["web_search_call.action.sources"],
     };
     if (req.systemInstruction) body.instructions = req.systemInstruction;
 
-    let webSearchEnabled = true;
+    // Only add web_search tool if web search is enabled for this model
+    let webSearchEnabled = req.webSearchEnabled !== false;
+    if (webSearchEnabled) {
+      body.tools = [{ type: "web_search" }];
+      body.tool_choice = "required";
+      body.include = ["web_search_call.action.sources"];
+    }
 
     // Retry loop: some models reject certain params (e.g. tools/web_search).
     // On 400 "not supported", remove the offending param and retry (max 3 retries).
@@ -113,6 +116,14 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
           }
         }
       }
+    }
+
+    // ── Post-response verification ──
+    // If web search was enabled but no annotations/sources were returned,
+    // the model silently ignored the search tool
+    if (webSearchEnabled && annotations.length === 0 && sourcesMap.size === 0) {
+      console.warn(`[openai] web search was enabled but no citations returned for ${req.model} — marking web_search_enabled as false`);
+      webSearchEnabled = false;
     }
 
     const sources = [...sourcesMap.values()];

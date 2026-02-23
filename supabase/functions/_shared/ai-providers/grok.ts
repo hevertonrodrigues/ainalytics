@@ -20,12 +20,15 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
     const body: Record<string, unknown> = {
       model: req.model,
       input: [{ role: "user", content: req.prompt }],
-      tools: [{ type: "web_search" }],
-      tool_choice: "required",
     };
     if (req.systemInstruction) body.instructions = req.systemInstruction;
 
-    let webSearchEnabled = true;
+    // Only add web_search tool if web search is enabled for this model
+    let webSearchEnabled = req.webSearchEnabled !== false;
+    if (webSearchEnabled) {
+      body.tools = [{ type: "web_search" }];
+      body.tool_choice = "required";
+    }
 
     // Retry loop: some models may reject web_search tool or include param
     let res: Response | null = null;
@@ -179,6 +182,14 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
           }
         }
       }
+    }
+
+    // ── Post-response verification ──
+    // If web search was enabled but no citations/sources were returned,
+    // the model silently ignored the search tool
+    if (webSearchEnabled && annotations.length === 0 && sourcesMap.size === 0) {
+      console.warn(`[grok] web search was enabled but no citations returned for ${req.model} — marking web_search_enabled as false`);
+      webSearchEnabled = false;
     }
 
     const sources = [...sourcesMap.values()];

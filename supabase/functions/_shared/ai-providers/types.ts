@@ -7,6 +7,8 @@ export interface AiRequest {
   prompt: string;
   model: string;
   systemInstruction?: string;
+  /** Whether web search should be enabled for this request (from models.web_search_active) */
+  webSearchEnabled?: boolean;
 }
 
 export interface AiResponse {

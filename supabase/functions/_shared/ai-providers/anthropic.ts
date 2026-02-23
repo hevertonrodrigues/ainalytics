@@ -16,11 +16,14 @@ export const anthropicAdapter: AiAdapter = async (req: AiRequest): Promise<AiRes
       model: req.model,
       max_tokens: 16384,
       messages: [{ role: "user", content: req.prompt }],
-      tools: [{ type: "web_search_20250305", name: "web_search" }],
     };
     if (req.systemInstruction) body.system = req.systemInstruction;
 
-    let webSearchEnabled = true;
+    // Only add web_search tool if web search is enabled for this model
+    let webSearchEnabled = req.webSearchEnabled !== false;
+    if (webSearchEnabled) {
+      body.tools = [{ type: "web_search_20250305", name: "web_search" }];
+    }
 
     // Retry loop: some models may reject web_search tool
     let res: Response | null = null;
@@ -91,6 +94,14 @@ export const anthropicAdapter: AiAdapter = async (req: AiRequest): Promise<AiRes
           }
         }
       }
+    }
+
+    // ── Post-response verification ──
+    // If web search was enabled but no citations/sources were returned,
+    // the model silently ignored the search tool
+    if (webSearchEnabled && annotations.length === 0 && sourcesMap.size === 0) {
+      console.warn(`[anthropic] web search was enabled but no citations returned for ${req.model} — marking web_search_enabled as false`);
+      webSearchEnabled = false;
     }
 
     const sources = [...sourcesMap.values()];

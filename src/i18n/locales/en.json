@@ -93,7 +93,8 @@
     "added": "Model added",
     "removed": "Model removed",
     "activated": "Model activated",
-    "deactivated": "Model deactivated"
+    "deactivated": "Model deactivated",
+    "webSearch": "Web Search"
   },
   "answers": {
     "title": "Prompt Answers",

@@ -117,6 +117,7 @@ export interface Model {
   slug: string;
   name: string;
   is_active: boolean;
+  web_search_active: boolean;
   created_at: string;
 }
 
@@ -138,7 +139,7 @@ export interface TenantPlatformModel {
   model_id: string;
   is_active: boolean;
   platform?: { id: string; slug: string; name: string };
-  model?: { id: string; slug: string; name: string };
+  model?: { id: string; slug: string; name: string; web_search_active?: boolean };
   created_at: string;
   updated_at: string;
 }
@@ -149,7 +150,7 @@ export interface PromptAnswer {
   prompt_id: string;
   platform_slug: string;
   platform_id: string | null;
-  model: string;
+  model: { id: string; slug: string; name: string } | null;
   model_id: string | null;
   answer_text: string | null;
   tokens_used: { input: number; output: number } | null;

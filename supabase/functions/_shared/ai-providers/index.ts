@@ -58,13 +58,13 @@ export async function executePrompt(slug: string, req: AiRequest): Promise<AiRes
  * Execute a prompt against multiple platforms in parallel.
  */
 export async function executePromptMulti(
-  platforms: Array<{ slug: string; model: string }>,
+  platforms: Array<{ slug: string; model: string; webSearchEnabled?: boolean }>,
   prompt: string,
   systemInstruction?: string,
 ): Promise<Array<{ slug: string } & AiResponse>> {
   const results = await Promise.allSettled(
-    platforms.map(async ({ slug, model }) => {
-      const res = await executePrompt(slug, { prompt, model, systemInstruction });
+    platforms.map(async ({ slug, model, webSearchEnabled }) => {
+      const res = await executePrompt(slug, { prompt, model, systemInstruction, webSearchEnabled });
       return { slug, ...res };
     }),
   );

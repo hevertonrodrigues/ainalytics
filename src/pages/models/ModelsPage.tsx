@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Layers, Plus, Trash2, RefreshCw, X } from 'lucide-react';
+import { Layers, Plus, Trash2, RefreshCw, X, Search } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import type { Platform, Model, TenantPlatformModel } from '@/types';
@@ -242,6 +242,12 @@ export function ModelsPage() {
                     >
                       <span className="font-medium block">{model.name}</span>
                       <span className="text-[10px] text-text-muted">{model.slug}</span>
+                      {model.web_search_active && (
+                        <span className="inline-flex items-center gap-1 mt-1 text-[9px] font-semibold text-brand-secondary bg-brand-secondary/10 px-1.5 py-0.5 rounded-full">
+                          <Search className="w-2.5 h-2.5" />
+                          {t('models.webSearch')}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -321,6 +327,12 @@ export function ModelsPage() {
                         <span className="text-[10px] text-text-muted">
                           {pref.model?.slug}
                         </span>
+                        {pref.model?.web_search_active && (
+                          <span className="inline-flex items-center gap-1 text-[9px] font-semibold text-brand-secondary bg-brand-secondary/10 px-1.5 py-0.5 rounded-full ml-2">
+                            <Search className="w-2.5 h-2.5" />
+                            {t('models.webSearch')}
+                          </span>
+                        )}
                       </div>
 
                       {/* Status badge */}
