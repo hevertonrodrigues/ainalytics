@@ -12,7 +12,6 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
   try {
     const body: Record<string, unknown> = {
       contents: [{ parts: [{ text: req.prompt }] }],
-      generationConfig: { temperature: 0.2 },
     };
     if (req.systemInstruction) {
       body.systemInstruction = { parts: [{ text: req.systemInstruction }] };
@@ -44,6 +43,9 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       latency_ms,
       raw_request: body,
       raw_response: data,
+      web_search_enabled: false,
+      annotations: "TBD",
+      sources: "TBD",
     };
   } catch (err) {
     return { text: null, model: req.model, tokens: null, latency_ms: Date.now() - start, error: String(err) };

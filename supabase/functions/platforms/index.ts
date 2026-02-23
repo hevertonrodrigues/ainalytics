@@ -167,7 +167,6 @@ async function handleSync(req: Request) {
     platform_id: platformId,
     slug: m.slug,
     name: m.name,
-    is_default: false,
     is_active: false,
   }));
 

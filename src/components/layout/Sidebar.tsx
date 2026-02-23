@@ -15,6 +15,7 @@ import {
   User,
   ChevronUp,
   Cpu,
+  Layers,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -36,6 +37,7 @@ const ANALYTICS_NAV: NavItem[] = [
   { key: 'nav.topics', path: '/topics', icon: MessageSquare },
   { key: 'nav.prompts', path: '/prompts', icon: List },
   { key: 'nav.platforms', path: '/platforms', icon: Cpu },
+  { key: 'nav.models', path: '/models', icon: Layers },
   { key: 'nav.anomalies', path: '/anomalies', icon: AlertTriangle },
   { key: 'nav.reports', path: '/reports', icon: BarChart3 },
 ];

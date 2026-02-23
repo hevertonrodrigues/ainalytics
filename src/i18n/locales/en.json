@@ -62,6 +62,7 @@
     "reports": "Custom Analysis",
     "documents": "Document Types",
     "platforms": "Platforms",
+    "models": "Models",
     "support": "Support",
     "sectionMain": "Main",
     "sectionAnalytics": "AI Monitoring"
@@ -79,6 +80,21 @@
     "syncModels": "Sync Models",
     "synced": "{{count}} new models synced"
   },
+  "models": {
+    "title": "My Models",
+    "subtitle": "Select which AI models your organization uses",
+    "addModel": "Add Model",
+    "selectPlatform": "Choose a platform",
+    "selectModel": "Choose a model",
+    "add": "Add",
+    "yourModels": "Your Models",
+    "noModels": "No models selected yet. Add models from the platforms above.",
+    "allModelsAdded": "All available models have been added.",
+    "added": "Model added",
+    "removed": "Model removed",
+    "activated": "Model activated",
+    "deactivated": "Model deactivated"
+  },
   "answers": {
     "title": "Prompt Answers",
     "search": "Search",
@@ -89,6 +105,7 @@
     "platforms": "Platforms",
     "selectPlatforms": "Select platforms for this topic",
     "noPlatformsEnabled": "Enable at least one platform to search",
+    "activeModels": "active models",
     "noPrompts": "No prompts in this topic. Add prompts first.",
     "noResults": "No results yet. Click Search to test this prompt.",
     "results": "results"

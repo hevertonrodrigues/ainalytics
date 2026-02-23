@@ -17,6 +17,12 @@ export interface AiResponse {
   raw_request?: unknown;
   raw_response?: unknown;
   error?: string;
+  /** Whether web search was enabled for this request */
+  web_search_enabled?: boolean;
+  /** Inline url_citation annotations or "TBD" for unsupported platforms */
+  annotations?: unknown;
+  /** Deduplicated source URLs or "TBD" for unsupported platforms */
+  sources?: unknown;
 }
 
 /**

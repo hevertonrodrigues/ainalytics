@@ -1,25 +1,17 @@
-import { useState, useEffect, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME } from '@/lib/constants';
 
 export function SignIn() {
   const { t } = useTranslation();
-  const { signIn, profile } = useAuth();
-  const navigate = useNavigate();
+  const { signIn } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // Redirect to dashboard when profile becomes available (after sign in)
-  useEffect(() => {
-    if (profile) {
-      navigate('/', { replace: true });
-    }
-  }, [profile, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -28,11 +20,11 @@ export function SignIn() {
 
     try {
       await signIn(email, password);
-      // Navigation handled by useEffect above
+      // Hard redirect — guarantees AuthContext restores session from localStorage
+      window.location.href = '/';
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');
       setError(msg);
-    } finally {
       setLoading(false);
     }
   };

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
-import type { Prompt, Platform, PromptAnswer, Topic } from '@/types';
+import type { Prompt, PromptAnswer, Topic, TenantPlatformModel } from '@/types';
 
 export function TopicAnswersPage() {
   const { id: topicId } = useParams<{ id: string }>();
@@ -25,17 +25,14 @@ export function TopicAnswersPage() {
 
   const [topic, setTopic] = useState<Topic | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [platforms, setPlatforms] = useState<Platform[]>([]);
+  const [tenantModels, setTenantModels] = useState<TenantPlatformModel[]>([]);
   const [answers, setAnswers] = useState<PromptAnswer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchingPromptId, setSearchingPromptId] = useState<string | null>(null);
   const [retryingAnswerId, setRetryingAnswerId] = useState<string | null>(null);
   const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(new Set());
-  const [showPlatformConfig, setShowPlatformConfig] = useState(false);
-
-  // Which platforms are selected for searching
-  const [selectedPlatformIds, setSelectedPlatformIds] = useState<Set<string>>(new Set());
+  const [expandedAnswers, setExpandedAnswers] = useState<Set<string>>(new Set());
 
   const loadAll = useCallback(async () => {
     if (!topicId) return;
@@ -50,12 +47,10 @@ export function TopicAnswersPage() {
       );
       setPrompts(promptsRes.data);
 
-      // Load active platforms
-      const platformsRes = await apiClient.get<Platform[]>('/platforms');
-      const activePlatforms = platformsRes.data.filter((p: Platform) => p.is_active);
-      setPlatforms(activePlatforms);
-      // Pre-select all active platforms
-      setSelectedPlatformIds(new Set(activePlatforms.map((p: Platform) => p.id)));
+      // Load tenant's active models
+      const modelsRes = await apiClient.get<TenantPlatformModel[]>('/platforms/preferences');
+      const activeModels = modelsRes.data.filter((m: TenantPlatformModel) => m.is_active);
+      setTenantModels(activeModels);
 
       // Load existing answers
       const answersRes = await apiClient.get<PromptAnswer[]>(
@@ -73,10 +68,8 @@ export function TopicAnswersPage() {
     loadAll();
   }, [loadAll]);
 
-  const selectedPlatforms = platforms.filter((p) => selectedPlatformIds.has(p.id));
-
   const handleSearch = async (prompt: Prompt) => {
-    if (selectedPlatforms.length === 0) {
+    if (tenantModels.length === 0) {
       setError(t('answers.noPlatformsEnabled'));
       return;
     }
@@ -88,11 +81,6 @@ export function TopicAnswersPage() {
       const res = await apiClient.post<PromptAnswer[]>('/prompt-search', {
         prompt_id: prompt.id,
         prompt_text: prompt.text,
-        platforms: selectedPlatforms.map((p) => ({
-          slug: p.slug,
-          model: p.default_model?.slug || p.slug,
-          platform_id: p.id,
-        })),
       });
 
       setAnswers((prev) => [...res.data, ...prev]);
@@ -106,49 +94,34 @@ export function TopicAnswersPage() {
     }
   };
 
-  // Retry a single failed answer
+  // Retry a single failed answer via the new /retry endpoint
   const handleRetrySingle = async (answer: PromptAnswer) => {
-    const prompt = prompts.find((p) => p.id === answer.prompt_id);
-    if (!prompt) return;
-
-    const platform = platforms.find((p) => p.slug === answer.platform_slug);
-    if (!platform) return;
-
     setRetryingAnswerId(answer.id);
     setError('');
 
     try {
-      const res = await apiClient.post<PromptAnswer[]>('/prompt-search', {
-        prompt_id: prompt.id,
-        prompt_text: prompt.text,
-        platforms: [{
-          slug: platform.slug,
-          model: platform.default_model?.slug || platform.slug,
-          platform_id: platform.id,
-        }],
+      const res = await apiClient.post<PromptAnswer>('/prompt-search/retry', {
+        answer_id: answer.id,
       });
 
-      // Replace the failed answer with the new one
+      const newAnswer = res.data;
+
       setAnswers((prev) => {
-        const filtered = prev.filter((a) => a.id !== answer.id);
-        return [...res.data, ...filtered];
+        // If retry succeeded, remove the old answer (it's now deleted server-side)
+        // If retry failed again, keep both
+        if (!newAnswer.error) {
+          const filtered = prev.filter((a) => a.id !== answer.id);
+          return [newAnswer, ...filtered];
+        }
+        return [newAnswer, ...prev];
       });
-      showToast(t('answers.retryComplete'));
+      showToast(newAnswer.error ? t('common.error') : t('answers.retryComplete'));
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');
       showToast(msg, 'error');
     } finally {
       setRetryingAnswerId(null);
     }
-  };
-
-  const togglePlatformSelection = (platformId: string) => {
-    setSelectedPlatformIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(platformId)) next.delete(platformId);
-      else next.add(platformId);
-      return next;
-    });
   };
 
   const togglePromptExpand = (promptId: string) => {
@@ -160,15 +133,19 @@ export function TopicAnswersPage() {
     });
   };
 
+  const toggleAnswerExpand = (answerId: string) => {
+    setExpandedAnswers((prev) => {
+      const next = new Set(prev);
+      if (next.has(answerId)) next.delete(answerId);
+      else next.add(answerId);
+      return next;
+    });
+  };
+
   const getAnswersForPrompt = (promptId: string) =>
     answers.filter((a) => a.prompt_id === promptId);
 
-  const getLatestAnswersForPrompt = (promptId: string) => {
-    const all = getAnswersForPrompt(promptId);
-    if (all.length === 0) return [];
-    const latestDate = all[0]?.searched_at;
-    return all.filter((a) => a.searched_at === latestDate);
-  };
+
 
   const PLATFORM_COLORS: Record<string, string> = {
     openai: 'bg-emerald-500',
@@ -211,13 +188,12 @@ export function TopicAnswersPage() {
             </p>
           )}
         </div>
-        <button
-          onClick={() => setShowPlatformConfig(!showPlatformConfig)}
-          className="btn btn-ghost btn-sm"
-        >
-          <Cpu className="w-4 h-4" />
-          {t('answers.platforms')} ({selectedPlatforms.length})
-        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-text-muted">
+            <Cpu className="w-3.5 h-3.5 inline mr-1" />
+            {tenantModels.length} {t('answers.activeModels')}
+          </span>
+        </div>
       </div>
 
       {/* Error */}
@@ -228,38 +204,13 @@ export function TopicAnswersPage() {
         </div>
       )}
 
-      {/* Platform Config Panel */}
-      {showPlatformConfig && (
-        <div className="dashboard-card p-4">
-          <h3 className="text-sm font-semibold text-text-primary mb-3">
-            {t('answers.selectPlatforms')}
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {platforms.map((platform) => (
-              <button
-                key={platform.id}
-                onClick={() => togglePlatformSelection(platform.id)}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-xs text-sm font-medium transition-colors ${
-                  selectedPlatformIds.has(platform.id)
-                    ? 'bg-brand-primary/10 text-brand-primary border border-brand-primary/30'
-                    : 'bg-bg-tertiary text-text-muted border border-glass-border hover:border-text-muted'
-                }`}
-              >
-                <span
-                  className={`w-2 h-2 rounded-full ${
-                    PLATFORM_COLORS[platform.slug] || 'bg-gray-500'
-                  }`}
-                />
-                {platform.name}
-                {platform.default_model && (
-                  <span className="text-[10px] opacity-60">({platform.default_model.name})</span>
-                )}
-              </button>
-            ))}
-          </div>
-          {selectedPlatforms.length === 0 && (
-            <p className="text-xs text-warning mt-2">{t('answers.noPlatformsEnabled')}</p>
-          )}
+      {/* No active models warning */}
+      {tenantModels.length === 0 && (
+        <div className="dashboard-card p-4 border-warning/20">
+          <p className="text-sm text-warning flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            {t('answers.noPlatformsEnabled')}
+          </p>
         </div>
       )}
 
@@ -272,8 +223,8 @@ export function TopicAnswersPage() {
       ) : (
         <div className="space-y-3">
           {prompts.map((prompt) => {
-            const promptAnswers = getLatestAnswersForPrompt(prompt.id);
-            const allPromptAnswers = getAnswersForPrompt(prompt.id);
+            const promptAnswers = getAnswersForPrompt(prompt.id);
+            const allPromptAnswers = promptAnswers;
             const isExpanded = expandedPrompts.has(prompt.id);
             const isSearching = searchingPromptId === prompt.id;
 
@@ -323,7 +274,7 @@ export function TopicAnswersPage() {
 
                   <button
                     onClick={() => handleSearch(prompt)}
-                    disabled={isSearching || selectedPlatforms.length === 0}
+                    disabled={isSearching || tenantModels.length === 0}
                     className="btn btn-primary btn-sm shrink-0"
                   >
                     {isSearching ? (
@@ -343,53 +294,75 @@ export function TopicAnswersPage() {
                 {/* Expanded results */}
                 {isExpanded && promptAnswers.length > 0 && (
                   <div className="border-t border-glass-border">
-                    {promptAnswers.map((answer) => (
-                      <div
-                        key={answer.id}
-                        className="p-4 border-b border-glass-border/50 last:border-0"
-                      >
-                        <div className="flex items-center gap-2 mb-2">
-                          <span
-                            className={`w-2.5 h-2.5 rounded-full ${
-                              PLATFORM_COLORS[answer.platform_slug] || 'bg-gray-500'
-                            }`}
-                          />
-                          <span className="text-xs font-semibold text-text-primary uppercase">
-                            {answer.platform_slug}
-                          </span>
-                          <span className="text-xs text-text-muted">{answer.model}</span>
-                          {answer.latency_ms && (
-                            <span className="text-xs text-text-muted ml-auto flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {(answer.latency_ms / 1000).toFixed(1)}s
+                    {promptAnswers.map((answer) => {
+                      const isAnswerExpanded = expandedAnswers.has(answer.id);
+                      return (
+                        <div
+                          key={answer.id}
+                          className="border-b border-glass-border/50 last:border-0"
+                        >
+                          <div
+                            className="flex items-center gap-2 p-4 cursor-pointer hover:bg-glass-bg/50 transition-colors select-none"
+                            onClick={() => toggleAnswerExpand(answer.id)}
+                          >
+                            {isAnswerExpanded ? (
+                              <ChevronDown className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                            ) : (
+                              <ChevronRight className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                            )}
+                            <span
+                              className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                                answer.error
+                                  ? 'bg-error'
+                                  : PLATFORM_COLORS[answer.platform_slug] || 'bg-gray-500'
+                              }`}
+                            />
+                            <span className="text-xs font-semibold text-text-primary uppercase">
+                              {answer.platform_slug}
                             </span>
-                          )}
-                          {answer.tokens_used && (
-                            <span className="text-xs text-text-muted">
-                              {answer.tokens_used.input + answer.tokens_used.output} tokens
-                            </span>
+                            <span className="text-xs text-text-muted">{answer.model}</span>
+                            {answer.error && (
+                              <span className="text-xs text-error">
+                                <AlertCircle className="w-3 h-3 inline" />
+                              </span>
+                            )}
+                            {answer.latency_ms && (
+                              <span className="text-xs text-text-muted ml-auto flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {(answer.latency_ms / 1000).toFixed(1)}s
+                              </span>
+                            )}
+                            {answer.tokens_used && (
+                              <span className="text-xs text-text-muted">
+                                {answer.tokens_used.input + answer.tokens_used.output} tokens
+                              </span>
+                            )}
+                          </div>
+
+                          {isAnswerExpanded && (
+                            <div className="px-4 pb-4 pt-0 pl-10">
+                              {answer.error ? (
+                                <div className="p-2 rounded-xs bg-error/10 text-error text-xs flex items-center justify-between gap-2">
+                                  <span className="flex-1 min-w-0">{answer.error}</span>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleRetrySingle(answer); }}
+                                    disabled={retryingAnswerId === answer.id}
+                                    className="btn btn-ghost btn-sm text-error shrink-0 gap-1"
+                                  >
+                                    <RefreshCw className={`w-3.5 h-3.5 ${retryingAnswerId === answer.id ? 'animate-spin' : ''}`} />
+                                    {t('answers.retry')}
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
+                                  {answer.answer_text}
+                                </div>
+                              )}
+                            </div>
                           )}
                         </div>
-
-                        {answer.error ? (
-                          <div className="p-2 rounded-xs bg-error/10 text-error text-xs flex items-center justify-between gap-2">
-                            <span className="flex-1 min-w-0">{answer.error}</span>
-                            <button
-                              onClick={() => handleRetrySingle(answer)}
-                              disabled={retryingAnswerId === answer.id}
-                              className="btn btn-ghost btn-sm text-error shrink-0 gap-1"
-                            >
-                              <RefreshCw className={`w-3.5 h-3.5 ${retryingAnswerId === answer.id ? 'animate-spin' : ''}`} />
-                              {t('answers.retry')}
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">
-                            {answer.answer_text}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 

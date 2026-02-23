@@ -62,6 +62,7 @@
     "reports": "Análisis Personalizado",
     "documents": "Tipos de Documento",
     "platforms": "Plataformas",
+    "models": "Modelos",
     "support": "Soporte",
     "sectionMain": "Principal",
     "sectionAnalytics": "Monitoreo IA"
@@ -79,6 +80,21 @@
     "syncModels": "Sincronizar Modelos",
     "synced": "{{count}} modelos nuevos sincronizados"
   },
+  "models": {
+    "title": "Mis Modelos",
+    "subtitle": "Seleccione qué modelos de IA utiliza su organización",
+    "addModel": "Agregar Modelo",
+    "selectPlatform": "Elija una plataforma",
+    "selectModel": "Elija un modelo",
+    "add": "Agregar",
+    "yourModels": "Sus Modelos",
+    "noModels": "Ningún modelo seleccionado. Agregue modelos de las plataformas arriba.",
+    "allModelsAdded": "Todos los modelos disponibles ya han sido agregados.",
+    "added": "Modelo agregado",
+    "removed": "Modelo eliminado",
+    "activated": "Modelo activado",
+    "deactivated": "Modelo desactivado"
+  },
   "answers": {
     "title": "Respuestas de Prompts",
     "search": "Buscar",
@@ -89,6 +105,7 @@
     "platforms": "Plataformas",
     "selectPlatforms": "Seleccionar plataformas para este tópico",
     "noPlatformsEnabled": "Habilite al menos una plataforma para buscar",
+    "activeModels": "modelos activos",
     "noPrompts": "No hay prompts en este tópico. Agregue prompts primero.",
     "noResults": "Sin resultados. Haga clic en Buscar para probar este prompt.",
     "results": "resultados"

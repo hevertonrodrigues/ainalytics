@@ -116,7 +116,6 @@ export interface Model {
   platform_id: string;
   slug: string;
   name: string;
-  is_default: boolean;
   is_active: boolean;
   created_at: string;
 }
@@ -151,12 +150,14 @@ export interface PromptAnswer {
   platform_slug: string;
   platform_id: string | null;
   model: string;
+  model_id: string | null;
   answer_text: string | null;
   tokens_used: { input: number; output: number } | null;
   latency_ms: number | null;
   raw_request: unknown | null;
   raw_response: unknown | null;
   error: string | null;
+  deleted: boolean;
   searched_at: string;
   created_at: string;
 }
@@ -164,7 +165,6 @@ export interface PromptAnswer {
 export interface SearchPromptInput {
   prompt_id: string;
   prompt_text: string;
-  platforms: Array<{ slug: string; model: string; platform_id: string }>;
 }
 
 // ────────────────────────────────────────────────────────────

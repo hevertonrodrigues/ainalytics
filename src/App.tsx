@@ -22,6 +22,7 @@ import { TopicDetailPage } from '@/pages/topics/TopicDetailPage';
 import { TopicAnswersPage } from '@/pages/topics/TopicAnswersPage';
 import { PromptsPage } from '@/pages/prompts/PromptsPage';
 import { PlatformsPage } from '@/pages/platforms/PlatformsPage';
+import { ModelsPage } from '@/pages/models/ModelsPage';
 
 export function App() {
   return (
@@ -46,6 +47,7 @@ export function App() {
               <Route path="topics/:id/answers" element={<TopicAnswersPage />} />
               <Route path="prompts" element={<PromptsPage />} />
               <Route path="platforms" element={<PlatformsPage />} />
+              <Route path="models" element={<ModelsPage />} />
             </Route>
           </Routes>
         </AuthProvider>

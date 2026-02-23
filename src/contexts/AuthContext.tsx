@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set Supabase session for direct RLS queries (fire-and-forget, don't block)
     supabase.auth.setSession({ access_token, refresh_token }).catch(() => {});
 
-    // This is the critical line — must run even if setSession fails
+    // Tokens are saved — the caller will do window.location.href = '/' for a full reload
     setState({ profile, tenants, loading: false, initialized: true });
   }, []);
 
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set Supabase session for direct RLS queries (fire-and-forget, don't block)
     supabase.auth.setSession({ access_token, refresh_token }).catch(() => {});
 
-    // This is the critical line — must run even if setSession fails
+    // Tokens are saved — the caller will do window.location.href = '/' for a full reload
     setState({ profile, tenants, loading: false, initialized: true });
   }, []);
 

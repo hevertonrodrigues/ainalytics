@@ -41,6 +41,9 @@ export const perplexityAdapter: AiAdapter = async (req: AiRequest): Promise<AiRe
       latency_ms,
       raw_request: body,
       raw_response: data,
+      web_search_enabled: false,
+      annotations: "TBD",
+      sources: "TBD",
     };
   } catch (err) {
     return { text: null, model: req.model, tokens: null, latency_ms: Date.now() - start, error: String(err) };
