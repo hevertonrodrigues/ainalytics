@@ -21,6 +21,7 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
       model: req.model,
       input: [{ role: "user", content: req.prompt }],
       tools: [{ type: "web_search" }],
+      tool_choice: "required",
     };
     if (req.systemInstruction) body.instructions = req.systemInstruction;
 
@@ -51,6 +52,7 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
         console.warn(`[grok] web_search not supported for ${req.model}, retrying without it`);
         webSearchEnabled = false;
         delete body.tools;
+        delete body.tool_choice;
         continue;
       }
 

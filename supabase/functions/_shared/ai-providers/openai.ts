@@ -16,6 +16,7 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       model: req.model,
       input: req.prompt,
       tools: [{ type: "web_search" }],
+      tool_choice: "required",
       include: ["web_search_call.action.sources"],
     };
     if (req.systemInstruction) body.instructions = req.systemInstruction;
@@ -46,6 +47,7 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
           console.warn(`[openai] web_search not supported for ${req.model}, retrying without it`);
           webSearchEnabled = false;
           delete body.tools;
+          delete body.tool_choice;
           delete body.include;
           continue;
         }

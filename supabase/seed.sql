@@ -28,9 +28,9 @@ INSERT INTO models (platform_id, slug, name, is_active) VALUES
   ((SELECT id FROM platforms WHERE slug = 'anthropic'), 'claude-haiku-4-5-20251001',   'Claude Haiku 4.5',   true)
 ON CONFLICT (platform_id, slug) DO NOTHING;
 
--- Gemini
+-- Gemini (google_search grounding tool)
 INSERT INTO models (platform_id, slug, name, is_active) VALUES
-  ((SELECT id FROM platforms WHERE slug = 'gemini'), 'gemini-3.1-pro',         'Gemini 3.1 Pro',         true),
+  ((SELECT id FROM platforms WHERE slug = 'gemini'), 'gemini-3.1-pro-preview',         'Gemini 3.1 Pro Preview',         true),
   ((SELECT id FROM platforms WHERE slug = 'gemini'), 'gemini-2.5-flash-lite',  'Gemini 2.5 Flash-Lite',  true)
 ON CONFLICT (platform_id, slug) DO NOTHING;
 
@@ -51,6 +51,6 @@ ON CONFLICT (platform_id, slug) DO NOTHING;
 
 UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'gpt-5.2-pro') WHERE slug = 'openai';
 UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'claude-sonnet-4-5-20250929') WHERE slug = 'anthropic';
-UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'gemini-3.1-pro') WHERE slug = 'gemini';
+UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'gemini-3.1-pro-preview') WHERE slug = 'gemini';
 UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'grok-4-1-fast') WHERE slug = 'grok';
 -- UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'llama-3.1-sonar-large-online') WHERE slug = 'perplexity';
