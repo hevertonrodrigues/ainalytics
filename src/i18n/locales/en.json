@@ -39,7 +39,7 @@
     "noSettings": "No settings configured yet"
   },
   "dashboard": {
-    "title": "Dashboard",
+    "title": "Category Breakdown",
     "welcome": "Welcome back",
     "welcomeUser": "Welcome back, {{name}}!",
     "subtitle": "Your workspace is ready. Explore your profile, settings, or invite team members."
@@ -52,10 +52,28 @@
     "current": "Current Organization"
   },
   "nav": {
-    "dashboard": "Dashboard",
+    "overview": "Overview",
     "profile": "Profile",
     "settings": "Settings",
-    "members": "Members"
+    "members": "Members",
+    "trends": "Trends Over Time",
+    "anomalies": "Anomaly Detection",
+    "reports": "Custom Analysis",
+    "documents": "Document Types",
+    "support": "Support",
+    "sectionMain": "Main",
+    "sectionAnalytics": "Analytics"
+  },
+  "analytics": {
+    "totalDocuments": "Total Documents",
+    "detectedErrors": "Detected Errors",
+    "anomalies": "Anomalies",
+    "accuracy": "Accuracy",
+    "volumeBySize": "Volume by Size",
+    "volumeUSD": "Volume (USD) by Size",
+    "documentStatus": "Document Status",
+    "riskIndicators": "Risk Indicators",
+    "identifiedAnomalies": "Identified Anomalies"
   },
   "common": {
     "save": "Save",

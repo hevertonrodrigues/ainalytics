@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TenantProvider } from '@/contexts/TenantContext';
 import { ProtectedRoute } from '@/components/guards/ProtectedRoute';
@@ -18,23 +19,25 @@ import { TenantSettings } from '@/pages/settings/TenantSettings';
 
 export function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          {/* Public (guest) routes */}
-          <Route path="/signin" element={<GuestRoute><SignIn /></GuestRoute>} />
-          <Route path="/signup" element={<GuestRoute><SignUp /></GuestRoute>} />
-          <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
-          <Route path="/reset-password" element={<ResetPassword />} />
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            {/* Public (guest) routes */}
+            <Route path="/signin" element={<GuestRoute><SignIn /></GuestRoute>} />
+            <Route path="/signup" element={<GuestRoute><SignUp /></GuestRoute>} />
+            <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Protected routes with app shell */}
-          <Route element={<ProtectedRoute><TenantProvider><AppLayout /></TenantProvider></ProtectedRoute>}>
-            <Route index element={<Dashboard />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="settings" element={<TenantSettings />} />
-          </Route>
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+            {/* Protected routes with app shell */}
+            <Route element={<ProtectedRoute><TenantProvider><AppLayout /></TenantProvider></ProtectedRoute>}>
+              <Route index element={<Dashboard />} />
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="settings" element={<TenantSettings />} />
+            </Route>
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }

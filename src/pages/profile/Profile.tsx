@@ -2,7 +2,14 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
+import { SearchSelect } from '@/components/ui/SearchSelect';
 import type { Profile, UpdateProfileInput } from '@/types';
+
+const LOCALE_OPTIONS = [
+  { value: 'en', label: 'English' },
+  { value: 'es', label: 'Español' },
+  { value: 'pt-br', label: 'Português (BR)' },
+];
 
 export function ProfilePage() {
   const { t } = useTranslation();
@@ -133,16 +140,13 @@ export function ProfilePage() {
             <label htmlFor="profile-locale" className="block text-sm font-medium text-text-secondary mb-1.5">
               {t('profile.locale')}
             </label>
-            <select
+            <SearchSelect
               id="profile-locale"
+              options={LOCALE_OPTIONS}
               value={locale}
-              onChange={(e) => setLocale(e.target.value as 'en' | 'es' | 'pt-br')}
-              className="input-field"
-            >
-              <option value="en">English</option>
-              <option value="es">Español</option>
-              <option value="pt-br">Português (BR)</option>
-            </select>
+              onChange={(val) => setLocale(val as 'en' | 'es' | 'pt-br')}
+              searchThreshold={99}
+            />
           </div>
 
           <div className="pt-2">

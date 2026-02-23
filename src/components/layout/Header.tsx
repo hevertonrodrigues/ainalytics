@@ -1,31 +1,47 @@
 import { useTranslation } from 'react-i18next';
+import { Search, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { LOCALES } from '@/lib/constants';
 
 export function Header() {
   const { t, i18n } = useTranslation();
   const { profile } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLocaleChange = (locale: string) => {
     i18n.changeLanguage(locale);
   };
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-bg-primary/60 backdrop-blur-xl border-b border-glass-border flex items-center justify-between px-6">
-      <div />
+    <header className="sticky top-0 z-30 h-14 bg-bg-primary/60 backdrop-blur-xl border-b border-glass-border flex items-center justify-between px-6 transition-colors duration-300">
+      <h1 className="text-lg font-semibold text-text-primary">
+        {t('dashboard.title')}
+      </h1>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
+        {/* Search */}
+        <div className="relative hidden md:block">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+          <input
+            type="text"
+            placeholder={t('common.search')}
+            className="search-input"
+          />
+        </div>
+
+        {/* Theme toggle */}
+        <button onClick={toggleTheme} className="icon-btn" aria-label="Toggle theme">
+          {theme === 'dark' ? <Sun className="nav-link-icon" /> : <Moon className="nav-link-icon" />}
+        </button>
+
         {/* Language Switcher */}
-        <div className="flex items-center gap-1 bg-glass-bg rounded-lg p-1">
+        <div className="locale-switcher">
           {Object.values(LOCALES).map((locale) => (
             <button
               key={locale}
               onClick={() => handleLocaleChange(locale)}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200 ${
-                i18n.language === locale
-                  ? 'bg-brand-primary/20 text-brand-secondary'
-                  : 'text-text-muted hover:text-text-secondary'
-              }`}
+              className={`locale-btn${i18n.language === locale ? ' active' : ''}`}
             >
               {locale.toUpperCase()}
             </button>
@@ -34,12 +50,12 @@ export function Header() {
 
         {/* User avatar */}
         {profile && (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 ml-1">
             <span className="text-sm text-text-secondary hidden sm:block">
               {profile.full_name}
             </span>
-            <div className="w-8 h-8 rounded-full bg-brand-primary/20 flex items-center justify-center text-sm font-semibold text-brand-secondary">
-              {profile.full_name?.charAt(0)?.toUpperCase() || t('common.loading').charAt(0)}
+            <div className="user-avatar">
+              {profile.full_name?.charAt(0)?.toUpperCase() || '?'}
             </div>
           </div>
         )}

@@ -39,7 +39,7 @@
     "noSettings": "Nenhuma configuração cadastrada"
   },
   "dashboard": {
-    "title": "Painel",
+    "title": "Resumo de Categorias",
     "welcome": "Bem-vindo de volta",
     "welcomeUser": "Bem-vindo de volta, {{name}}!",
     "subtitle": "Seu espaço de trabalho está pronto. Explore seu perfil, configurações ou convide membros."
@@ -52,10 +52,28 @@
     "current": "Organização Atual"
   },
   "nav": {
-    "dashboard": "Painel",
+    "overview": "Visão Geral",
     "profile": "Perfil",
     "settings": "Configurações",
-    "members": "Membros"
+    "members": "Membros",
+    "trends": "Tendências",
+    "anomalies": "Detecção de Anomalias",
+    "reports": "Análise Personalizada",
+    "documents": "Tipos de Documento",
+    "support": "Suporte",
+    "sectionMain": "Principal",
+    "sectionAnalytics": "Analítica"
+  },
+  "analytics": {
+    "totalDocuments": "Total de Documentos",
+    "detectedErrors": "Erros Detectados",
+    "anomalies": "Anomalias",
+    "accuracy": "Precisão",
+    "volumeBySize": "Volume por Tamanho",
+    "volumeUSD": "Volume (USD) por Tamanho",
+    "documentStatus": "Status dos Documentos",
+    "riskIndicators": "Indicadores de Risco",
+    "identifiedAnomalies": "Anomalias Identificadas"
   },
   "common": {
     "save": "Salvar",
