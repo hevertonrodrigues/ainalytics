@@ -1,4 +1,4 @@
-import { EDGE_FUNCTION_BASE, STORAGE_KEYS } from './constants';
+import { EDGE_FUNCTION_BASE, SUPABASE_ANON_KEY, STORAGE_KEYS } from './constants';
 import type { ApiResponse, ApiSuccessResponse } from '@/types';
 
 /**
@@ -14,6 +14,7 @@ import type { ApiResponse, ApiSuccessResponse } from '@/types';
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'apikey': SUPABASE_ANON_KEY,
   };
 
   const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
