@@ -212,6 +212,8 @@ serve(async (req: Request) => {
         - Title: ${tenantData.website_title}
         - Meta: ${tenantData.metatags}
         - Overview: ${tenantData.extracted_content}
+        
+        CRITICAL: Do not output \`\`\`markdown or \`\`\` around your response. Output the raw markdown text directly.
       `;
 
       if (tenantData.sitemap_xml) {
@@ -242,9 +244,12 @@ serve(async (req: Request) => {
       if (!res.ok) return withCors(req, serverError("Failed to generate LLM txt from AI provider."));
       
       const data = await res.json();
-      const llmTxt = data.choices[0]?.message?.content;
+      let llmTxt = data.choices[0]?.message?.content;
 
       if (!llmTxt) return withCors(req, serverError("AI provider returned an empty response."));
+
+      // Strip markdown fences just in case the LLM ignored instructions
+      llmTxt = llmTxt.replace(/^```markdown\n?/gi, '').replace(/^```\n?/g, '').replace(/\n?```$/g, '');
 
       const { error: updateErr } = await sb
         .from("tenants")
