@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Twitter, Linkedin, Github } from 'lucide-react';
+// import { Twitter, Linkedin, Github } from 'lucide-react';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
