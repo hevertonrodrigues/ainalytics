@@ -40,13 +40,10 @@
   },
   "settings": {
     "title": "Settings",
-    "tenantName": "Organization Name",
-    "key": "Key",
-    "value": "Value",
-    "addSetting": "Add Setting",
-    "saved": "Settings saved successfully",
-    "deleted": "Setting deleted",
-    "noSettings": "No settings configured yet"
+    "organization": "Organization",
+    "orgDesc": "Your organization details",
+    "orgName": "Organization Name",
+    "orgSlug": "Organization Slug"
   },
   "dashboard": {
     "title": "Category Breakdown",
@@ -182,7 +179,11 @@
     "mostPopular": "Most Popular",
     "contactSales": "Contact Sales",
     "noPlanTitle": "No Plan Selected",
-    "noPlanDesc": "Select a plan to unlock all features."
+    "noPlanDesc": "Select a plan to unlock all features.",
+    "activationTitle": "Activation Code",
+    "activationDesc": "Enter your 12-character activation code to activate this plan.",
+    "activationPlaceholder": "XXXXXXXXXXXX",
+    "activate": "Activate Plan"
   },
   "analytics": {
     "totalDocuments": "Total Documents",

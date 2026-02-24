@@ -78,17 +78,34 @@ async function handleSignUp(body: SignUpBody): Promise<Response> {
   }
 
   const userId = authData.user.id;
-  const slug = tenant_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const baseSlug = tenant_name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-  // 2. Create tenant (no tenant_id on tenants table)
-  const { data: tenant, error: tenantError } = await db
+  // 2. Create tenant — try clean slug first, add random suffix on collision
+  let tenant: any;
+  let tenantError: any;
+
+  // Try clean slug
+  const { data: t1, error: e1 } = await db
     .from("tenants")
-    .insert({ name: tenant_name, slug: `${slug}-${Date.now()}` })
+    .insert({ name: tenant_name, slug: baseSlug })
     .select()
     .single();
 
-  if (tenantError) {
-    return serverError(tenantError.message);
+  if (!e1) {
+    tenant = t1;
+  } else if (e1.code === "23505") {
+    // Unique violation — slug exists, retry with random 4-digit suffix
+    const suffix = String(Math.floor(1000 + Math.random() * 9000));
+    const { data: t2, error: e2 } = await db
+      .from("tenants")
+      .insert({ name: tenant_name, slug: `${baseSlug}-${suffix}` })
+      .select()
+      .single();
+
+    if (e2) return serverError(e2.message);
+    tenant = t2;
+  } else {
+    return serverError(e1.message);
   }
 
   // 3. Create profile (replaces the old public.users record)

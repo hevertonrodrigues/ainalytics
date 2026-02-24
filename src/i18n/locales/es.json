@@ -40,13 +40,10 @@
   },
   "settings": {
     "title": "Configuración",
-    "tenantName": "Nombre de la Organización",
-    "key": "Clave",
-    "value": "Valor",
-    "addSetting": "Agregar Configuración",
-    "saved": "Configuración guardada con éxito",
-    "deleted": "Configuración eliminada",
-    "noSettings": "Ninguna configuración registrada"
+    "organization": "Organización",
+    "orgDesc": "Detalles de su organización",
+    "orgName": "Nombre de la Organización",
+    "orgSlug": "Slug de la Organización"
   },
   "dashboard": {
     "title": "Resumen de Categorías",
@@ -172,7 +169,11 @@
     "mostPopular": "Más Popular",
     "contactSales": "Contactar Ventas",
     "noPlanTitle": "Sin Plan Seleccionado",
-    "noPlanDesc": "Seleccione un plan para desbloquear todas las funciones."
+    "noPlanDesc": "Seleccione un plan para desbloquear todas las funciones.",
+    "activationTitle": "Código de Activación",
+    "activationDesc": "Ingrese su código de activación de 12 caracteres para activar este plan.",
+    "activationPlaceholder": "XXXXXXXXXXXX",
+    "activate": "Activar Plan"
   },
   "analytics": {
     "totalDocuments": "Total de Documentos",

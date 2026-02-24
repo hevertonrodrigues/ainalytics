@@ -61,11 +61,12 @@ async function handleGet(req: Request): Promise<Response> {
 }
 
 // ────────────────────────────────────────────────────────────
-// PUT /plans — assign a plan to the current tenant (owner-only)
+// PUT /plans — assign a plan using an activation code
 // ────────────────────────────────────────────────────────────
 
 interface SelectPlanBody {
   plan_id: string;
+  activation_code: string;
 }
 
 async function handleSelectPlan(req: Request): Promise<Response> {
@@ -75,10 +76,14 @@ async function handleSelectPlan(req: Request): Promise<Response> {
   if (!body.plan_id) {
     return badRequest("plan_id is required");
   }
+  if (!body.activation_code || body.activation_code.trim().length === 0) {
+    return badRequest("activation_code is required");
+  }
 
+  const code = body.activation_code.trim().toUpperCase();
   const db = createAdminClient();
 
-  // Check if user is owner of the current tenant
+  // 1. Check if user is owner of the current tenant
   const { data: membership } = await db
     .from("tenant_users")
     .select("role")
@@ -91,7 +96,7 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     return forbidden("Only tenant owners can change the plan");
   }
 
-  // Verify plan exists and is active
+  // 2. Verify plan exists and is active
   const { data: plan } = await db
     .from("plans")
     .select("id")
@@ -103,7 +108,44 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     return badRequest("Invalid or inactive plan");
   }
 
-  // Update tenant's plan
+  // 3. Validate activation code
+  const { data: activation, error: activationError } = await db
+    .from("activation_plans")
+    .select("*")
+    .eq("code", code)
+    .single();
+
+  if (activationError || !activation) {
+    return badRequest("Invalid activation code");
+  }
+
+  // Code must be active
+  if (!activation.is_active) {
+    return badRequest("This activation code is no longer active");
+  }
+
+  // Code must not already be used (tenant_id must be null)
+  if (activation.tenant_id !== null) {
+    return badRequest("This activation code has already been used");
+  }
+
+  // Code must match the selected plan
+  if (activation.plan_id !== body.plan_id) {
+    return badRequest("This activation code is not valid for the selected plan");
+  }
+
+  // 4. Claim the activation code — set tenant_id
+  const { error: claimError } = await db
+    .from("activation_plans")
+    .update({ tenant_id: auth.tenantId, updated_at: new Date().toISOString() })
+    .eq("id", activation.id)
+    .is("tenant_id", null); // Double-check to prevent race conditions
+
+  if (claimError) {
+    return serverError("Failed to claim activation code");
+  }
+
+  // 5. Update tenant's plan
   const { data: updated, error: updateError } = await db
     .from("tenants")
     .update({ plan_id: body.plan_id })

@@ -70,13 +70,6 @@ export interface TenantUser extends BaseEntity {
 }
 
 // ────────────────────────────────────────────────────────────
-// Tenant Settings
-// ────────────────────────────────────────────────────────────
-
-export interface TenantSetting extends BaseEntity {
-  key: string;
-  value: string;
-}
 
 // ────────────────────────────────────────────────────────────
 // Topics & Prompts (AI Monitoring)
