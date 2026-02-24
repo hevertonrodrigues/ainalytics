@@ -83,8 +83,9 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       const chunks: any[] = gm.groundingChunks ?? [];
       for (const chunk of chunks) {
         const web = chunk.web;
-        if (web?.uri) {
-          sourcesMap.set(web.uri, { url: web.uri, title: web.title ?? "" });
+        const realUrl = web?.title || web?.uri;
+        if (realUrl) {
+          sourcesMap.set(realUrl, { url: realUrl, title: "" });
         }
       }
 
@@ -96,12 +97,13 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
         for (const idx of chunkIndices) {
           const chunk = chunks[idx];
           const web = chunk?.web;
-          if (web?.uri) {
+          const realUrl = web?.title || web?.uri;
+          if (realUrl) {
             annotations.push({
               start_index: seg?.startIndex ?? null,
               end_index: seg?.endIndex ?? null,
-              url: web.uri,
-              title: web.title ?? "",
+              url: realUrl,
+              title: "",
               cited_text: "",
             });
           }
@@ -112,8 +114,9 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       if (Array.isArray(gm.webResults)) {
         // deno-lint-ignore no-explicit-any
         for (const wr of gm.webResults as any[]) {
-          if (wr.url && !sourcesMap.has(wr.url)) {
-            sourcesMap.set(wr.url, { url: wr.url, title: wr.title ?? "" });
+          const realUrl = wr.title || wr.url;
+          if (realUrl && !sourcesMap.has(realUrl)) {
+            sourcesMap.set(realUrl, { url: realUrl, title: "" });
           }
         }
       }
