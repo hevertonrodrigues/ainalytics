@@ -195,13 +195,13 @@ export function LandingPage() {
             </h2>
             <p>{t('landing.preview.subtitle')}</p>
           </div>
-          <div className="landing-preview-image landing-reveal">
+          {/* <div className="landing-preview-image landing-reveal">
             <img
               src="/landing-dashboard.png"
               alt="Ainalytics Analytics Dashboard"
               loading="lazy"
             />
-          </div>
+          </div> */}
         </div>
       </section>
 

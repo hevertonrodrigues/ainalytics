@@ -27,13 +27,13 @@ export function LandingHero() {
           </a>
         </div>
         <p className="landing-hero-trust">{t('landing.hero.trustedBy')}</p>
-        <div className="landing-hero-image">
+        {/* <div className="landing-hero-image">
           <img
             src="/landing-hero.png"
             alt="Ainalytics Dashboard — AI Prompt Comparison"
             loading="eager"
           />
-        </div>
+        </div> */}
       </div>
     </section>
   );
