@@ -19,6 +19,7 @@ import {
   Layers,
   CreditCard,
   Lock,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -41,6 +42,7 @@ const ANALYTICS_NAV: NavItem[] = [
   { key: 'nav.topics', path: '/dashboard/topics', icon: MessageSquare },
   { key: 'nav.prompts', path: '/dashboard/prompts', icon: List },
   { key: 'nav.sources', path: '/dashboard/sources', icon: BookOpen },
+  { key: 'nav.llmText', path: '/dashboard/llmtext', icon: FileText },
   { key: 'nav.models', path: '/dashboard/models', icon: Layers },
 ];
 

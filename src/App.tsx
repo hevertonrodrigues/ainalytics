@@ -31,6 +31,7 @@ import { PlatformsPage } from '@/pages/platforms/PlatformsPage';
 import { ModelsPage } from '@/pages/models/ModelsPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { PlansPage } from '@/pages/plans/PlansPage';
+import { LlmTextPage } from '@/pages/llmtext/LlmTextPage';
 
 /** Simple layout route that passes through to child routes */
 function AuthOutlet() {
@@ -72,6 +73,7 @@ export function App() {
                 <Route path="prompts/:id" element={<PromptDetailPage />} />
                 <Route path="sources" element={<SourcesPage />} />
                 <Route path="sources/:id" element={<SourceDetailPage />} />
+                <Route path="llmtext" element={<LlmTextPage />} />
                 <Route path="models" element={<ModelsPage />} />
 
                 {/* SuperAdmin-only */}

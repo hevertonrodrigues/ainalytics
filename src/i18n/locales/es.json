@@ -76,6 +76,7 @@
     "prompts": "Prompts",
     "documents": "Tipos de Documento",
     "sources": "Fuentes",
+    "llmText": "LLM.TXT",
     "platforms": "Plataformas",
     "models": "Modelos",
     "plans": "Planes",
@@ -433,5 +434,23 @@
     "annotation": "Anotación de Texto",
     "prompt": "Prompt",
     "close": "Cerrar"
+  },
+  "llmText": {
+    "errorNoDomain": "No hay dominio principal configurado. Por favor, agregue uno en Configuración.",
+    "fetchSuccess": "¡Información del sitio web extraída con éxito!",
+    "fetchError": "Ocurrió un error al extraer información",
+    "description": "Analice su dominio principal para generar contexto automáticamente para los modelos de IA.",
+    "domainStatus": "Análisis de Dominio",
+    "missingDomainPrompt": "Configure su dominio principal en la Configuración de la Organización para usar esta función.",
+    "analyzing": "Analizando sitio web...",
+    "getInformation": "Obtener Información",
+    "upToDate": "Análisis completo",
+    "download": "Descargar llm.txt",
+    "extractedData": "Datos Extraídos",
+    "websiteTitle": "Título del Sitio Web",
+    "metatags": "Meta Etiquetas",
+    "extractedContent": "Detalles del Contenido Extraído",
+    "previewTitle": "Vista Previa de llm.txt",
+    "noPreview": "Ejecute la extracción para generar una vista previa de llm.txt"
   }
 }

@@ -76,6 +76,7 @@
     "prompts": "Prompts",
     "documents": "Document Types",
     "sources": "Sources",
+    "llmText": "LLM.TXT",
     "platforms": "Platforms",
     "models": "Models",
     "plans": "Plans",
@@ -433,5 +434,23 @@
     "annotation": "Text Annotation",
     "prompt": "Prompt",
     "close": "Close"
+  },
+  "llmText": {
+    "errorNoDomain": "No main domain configured. Please add one in Settings.",
+    "fetchSuccess": "Website information extracted successfully!",
+    "fetchError": "An error occurred while fetching information",
+    "description": "Analyze your main domain to automatically generate context for AI models.",
+    "domainStatus": "Domain Analysis",
+    "missingDomainPrompt": "Configure your main domain in Tenant Settings to use this feature.",
+    "analyzing": "Analyzing website...",
+    "getInformation": "Get Information",
+    "upToDate": "Analysis complete",
+    "download": "Download llm.txt",
+    "extractedData": "Extracted Data",
+    "websiteTitle": "Website Title",
+    "metatags": "Meta Tags",
+    "extractedContent": "Extracted Content Details",
+    "previewTitle": "llm.txt Preview",
+    "noPreview": "Run extraction to generate llm.txt preview"
   }
 }

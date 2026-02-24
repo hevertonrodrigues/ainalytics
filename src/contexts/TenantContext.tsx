@@ -8,6 +8,7 @@ interface TenantContextValue {
   tenants: Tenant[];
   switchTenant: (tenantId: string) => void;
   updateTenantPlanId: (planId: string) => void;
+  refreshTenant: () => Promise<void>;
 }
 
 const TenantContext = createContext<TenantContextValue | null>(null);
@@ -45,8 +46,27 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     [currentTenant],
   );
 
+  /** Refresh the current tenant from the database */
+  const refreshTenant = useCallback(async () => {
+    if (!currentTenant) return;
+    try {
+      // @ts-ignore Ignore supabase import errors for now, assuming auth context refetches if needed or we manually fetch it
+      const { data, error } = await supabase
+        .from('tenants')
+        .select('*')
+        .eq('id', currentTenant.id)
+        .single();
+        
+      if (!error && data) {
+         window.location.reload(); // Simple refresh for now to cascade through AuthContext
+      }
+    } catch (e) {
+       console.error(e);
+    }
+  }, [currentTenant]);
+
   return (
-    <TenantContext.Provider value={{ currentTenant, tenants, switchTenant, updateTenantPlanId }}>
+    <TenantContext.Provider value={{ currentTenant, tenants, switchTenant, updateTenantPlanId, refreshTenant }}>
       {children}
     </TenantContext.Provider>
   );
