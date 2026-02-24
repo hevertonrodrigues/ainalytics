@@ -40,6 +40,7 @@ export interface Tenant {
   llm_txt: string | null;
   sitemap_xml: string | null;
   llm_txt_status: 'missing' | 'outdated' | 'updated';
+  prompt_executions_per_hour: number;
   created_at: string;
   updated_at: string;
 }
