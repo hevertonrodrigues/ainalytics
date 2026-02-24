@@ -28,7 +28,10 @@
     "signUpDecor": "Únase a miles de marcas que ya monitorean su visibilidad en IA en todas las plataformas principales.",
     "decorFeature1": "Monitoreo IA en tiempo real en 5+ plataformas",
     "decorFeature2": "Insights accionables con analítica detallada",
-    "decorFeature3": "Configuración en menos de 60 segundos"
+    "decorFeature3": "Configuración en menos de 60 segundos",
+    "checkEmailTitle": "Revise su correo",
+    "checkEmailDesc": "Acabamos de enviar un enlace de confirmación. Por favor, revise su bandeja de entrada (y carpeta de spam) para verificar su cuenta antes de iniciar sesión.",
+    "goToSignIn": "Ir a Iniciar Sesión"
   },
   "profile": {
     "title": "Mi Perfil",

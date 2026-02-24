@@ -28,7 +28,10 @@
     "signUpDecor": "Join thousands of brands already monitoring their AI visibility across all major platforms.",
     "decorFeature1": "Real-time AI monitoring across 5+ platforms",
     "decorFeature2": "Actionable insights with detailed analytics",
-    "decorFeature3": "Set up in under 60 seconds"
+    "decorFeature3": "Set up in under 60 seconds",
+    "checkEmailTitle": "Check your email",
+    "checkEmailDesc": "We just sent a confirmation link. Please check your inbox (and spam folder) to verify your account before signing in.",
+    "goToSignIn": "Go to Sign In"
   },
   "profile": {
     "title": "My Profile",
