@@ -18,9 +18,7 @@ function getHeaders(): Record<string, string> {
   };
 
   const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+  headers['Authorization'] = `Bearer ${token || SUPABASE_ANON_KEY}`;
 
   const tenantId = localStorage.getItem(STORAGE_KEYS.CURRENT_TENANT_ID);
   if (tenantId) {
