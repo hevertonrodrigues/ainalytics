@@ -8,8 +8,8 @@ serve(async (req: Request) => {
 
   try {
     const url = new URL(req.url);
-    const path = url.pathname.split("/").filter(Boolean);
-    const route = path[1] || "";
+    const subPath = url.pathname.split("/auth").pop() || "";
+    const route = subPath.replace(/^\//, "").split("/")[0] || "";
 
     if (req.method !== "POST") {
       return withCors(req, badRequest("Only POST allowed"));

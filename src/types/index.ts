@@ -49,6 +49,7 @@ export interface Profile extends BaseEntity {
   phone: string | null;
   locale: 'en' | 'es' | 'pt-br';
   metadata: Record<string, unknown> | null;
+  is_sa: boolean;
 }
 
 // ────────────────────────────────────────────────────────────

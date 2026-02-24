@@ -49,7 +49,9 @@
     "title": "Category Breakdown",
     "welcome": "Welcome back",
     "welcomeUser": "Welcome back, {{name}}!",
-    "subtitle": "Your workspace is ready. Explore your profile, settings, or invite team members."
+    "subtitle": "Your workspace is ready. Explore your profile, settings, or invite team members.",
+    "comingSoonTitle": "Dashboard Coming Soon",
+    "comingSoonDesc": "We're building powerful analytics and insights for your workspace. Stay tuned!"
   },
   "tenant": {
     "switch": "Switch Organization",
@@ -65,15 +67,14 @@
     "members": "Members",
     "topics": "Topics",
     "prompts": "Prompts",
-    "anomalies": "Anomaly Detection",
-    "reports": "Custom Analysis",
     "documents": "Document Types",
     "platforms": "Platforms",
     "models": "Models",
     "plans": "Plans",
     "support": "Support",
     "sectionMain": "Main",
-    "sectionAnalytics": "AI Monitoring"
+    "sectionAnalytics": "AI Monitoring",
+    "sectionAdmin": "Admin"
   },
   "platforms": {
     "title": "AI Platforms",
@@ -188,13 +189,11 @@
   "analytics": {
     "totalDocuments": "Total Documents",
     "detectedErrors": "Detected Errors",
-    "anomalies": "Anomalies",
     "accuracy": "Accuracy",
     "volumeBySize": "Volume by Size",
     "volumeUSD": "Volume (USD) by Size",
     "documentStatus": "Document Status",
-    "riskIndicators": "Risk Indicators",
-    "identifiedAnomalies": "Identified Anomalies"
+    "riskIndicators": "Risk Indicators"
   },
   "common": {
     "save": "Save",

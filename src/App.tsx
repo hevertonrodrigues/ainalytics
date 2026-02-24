@@ -6,6 +6,7 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import { ProtectedRoute } from '@/components/guards/ProtectedRoute';
 import { GuestRoute } from '@/components/guards/GuestRoute';
 import { PlanGate } from '@/components/guards/PlanGate';
+import { SuperAdminGate } from '@/components/guards/SuperAdminGate';
 import { AppLayout } from '@/components/layout/AppLayout';
 
 // Auth pages
@@ -65,8 +66,12 @@ export function App() {
                 <Route path="topics/:id/answers" element={<TopicAnswersPage />} />
                 <Route path="prompts" element={<PromptsPage />} />
                 <Route path="prompts/:id" element={<PromptDetailPage />} />
-                <Route path="platforms" element={<PlatformsPage />} />
                 <Route path="models" element={<ModelsPage />} />
+
+                {/* SuperAdmin-only */}
+                <Route element={<SuperAdminGate />}>
+                  <Route path="platforms" element={<PlatformsPage />} />
+                </Route>
               </Route>
             </Route>
           </Route>

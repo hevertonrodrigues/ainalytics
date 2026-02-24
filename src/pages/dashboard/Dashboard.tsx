@@ -6,7 +6,6 @@ import {
   FileText,
   AlertTriangle,
   BarChart3,
-  Activity,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -18,7 +17,6 @@ import { useTenant } from '@/contexts/TenantContext';
 const KPI_DATA = [
   { key: 'totalDocuments', value: '12,847', change: '+12%', up: true },
   { key: 'detectedErrors', value: '1,230', change: '-8%', up: false },
-  { key: 'anomalies', value: '276', change: '+3%', up: true },
   { key: 'accuracy', value: '94.7%', change: '+1.2%', up: true },
 ];
 
@@ -53,13 +51,6 @@ const BAR_CHART_DATA = [
   { label: '< 100', credit: 10, debit: 8 },
 ];
 
-const ANOMALY_CHART = [
-  { day: 'Mon', value: 235 },
-  { day: 'Tue', value: 124 },
-  { day: 'Wed', value: 152 },
-  { day: 'Thu', value: 180 },
-  { day: 'Fri', value: 276 },
-];
 
 // ────────────────────────────────────────────────────────────
 // Dashboard
@@ -80,22 +71,40 @@ export function Dashboard() {
     return (
       <div className="space-y-6">
         <div className="skeleton h-7 w-72" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="dashboard-card p-5 space-y-3">
-              <div className="skeleton h-3 w-20" />
-              <div className="skeleton h-8 w-28" />
-            </div>
-          ))}
+        <div className="dashboard-card p-6"><div className="skeleton h-64 w-full" /></div>
+      </div>
+    );
+  }
+
+  // Regular users — welcome + coming soon
+  if (!profile?.is_sa) {
+    return (
+      <div className="stagger-enter space-y-6">
+        <div>
+          <h1 className="text-xl font-bold text-text-primary">
+            {t('dashboard.welcomeUser', { name: profile?.full_name || '' })}
+          </h1>
+          {currentTenant && (
+            <p className="text-sm text-text-muted mt-0.5">{currentTenant.name}</p>
+          )}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="dashboard-card p-6"><div className="skeleton h-64 w-full" /></div>
-          <div className="dashboard-card p-6"><div className="skeleton h-64 w-full" /></div>
+
+        <div className="dashboard-card p-12 text-center space-y-4">
+          <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 flex items-center justify-center mx-auto">
+            <BarChart3 className="w-8 h-8 text-brand-primary" />
+          </div>
+          <h2 className="text-lg font-semibold text-text-primary">
+            {t('dashboard.comingSoonTitle')}
+          </h2>
+          <p className="text-sm text-text-secondary max-w-md mx-auto">
+            {t('dashboard.comingSoonDesc')}
+          </p>
         </div>
       </div>
     );
   }
 
+  // SuperAdmin — full analytics dashboard
   return (
     <div className="stagger-enter space-y-6">
       {/* Welcome */}
@@ -109,7 +118,7 @@ export function Dashboard() {
       </div>
 
       {/* KPI Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {KPI_DATA.map((kpi) => (
           <KPICard key={kpi.key} kpi={kpi} t={t} />
         ))}
@@ -126,9 +135,6 @@ export function Dashboard() {
         <RiskIndicatorsCard t={t} />
         <VolumeTableCard t={t} />
       </div>
-
-      {/* Row 4: Anomaly Chart */}
-      <AnomalyChartCard t={t} />
     </div>
   );
 }
@@ -141,7 +147,6 @@ function KPICard({ kpi, t }: { kpi: typeof KPI_DATA[number]; t: ReturnType<typeo
   const labels: Record<string, string> = {
     totalDocuments: t('analytics.totalDocuments'),
     detectedErrors: t('analytics.detectedErrors'),
-    anomalies: t('analytics.anomalies'),
     accuracy: t('analytics.accuracy'),
   };
 
@@ -297,41 +302,6 @@ function VolumeTableCard({ t }: { t: ReturnType<typeof useTranslation>['t'] }) {
             ))}
           </tbody>
         </table>
-      </div>
-    </div>
-  );
-}
-
-function AnomalyChartCard({ t }: { t: ReturnType<typeof useTranslation>['t'] }) {
-  const maxVal = Math.max(...ANOMALY_CHART.map((d) => d.value));
-  const highlighted = ANOMALY_CHART.reduce((max, d) => d.value > max.value ? d : max, ANOMALY_CHART[0]!);
-
-  return (
-    <div className="dashboard-card p-6">
-      <div className="card-header">
-        <h2 className="card-title">
-          <Activity className="w-4 h-4 text-chart-cyan" />
-          {t('analytics.identifiedAnomalies')}
-        </h2>
-        <div className="text-right">
-          <p className="text-xs text-text-muted">{t('analytics.detectedErrors')}</p>
-          <p className="kpi-value">1,230 <span className="text-sm font-normal text-text-muted">Cases</span></p>
-        </div>
-      </div>
-      <div className="flex items-end gap-3 h-40">
-        {ANOMALY_CHART.map((d) => {
-          const h = (d.value / maxVal) * 100;
-          const isMax = d === highlighted;
-          return (
-            <div key={d.day} className="flex-1 flex flex-col items-center gap-2">
-              <span className="text-xs font-mono text-text-secondary">{d.value}</span>
-              <div className="w-full relative" style={{ height: `${h}%` }}>
-                <div className={`anomaly-bar${isMax ? ' anomaly-bar-highlight' : ''}`} />
-              </div>
-              <span className="text-xs text-text-muted">{d.day}</span>
-            </div>
-          );
-        })}
       </div>
     </div>
   );

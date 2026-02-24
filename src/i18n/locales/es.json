@@ -49,7 +49,9 @@
     "title": "Resumen de Categorías",
     "welcome": "Bienvenido de regreso",
     "welcomeUser": "¡Bienvenido de regreso, {{name}}!",
-    "subtitle": "Su espacio de trabajo está listo."
+    "subtitle": "Su espacio de trabajo está listo.",
+    "comingSoonTitle": "Dashboard Próximamente",
+    "comingSoonDesc": "Estamos construyendo análisis e información poderosos para su espacio de trabajo. ¡Esté atento!"
   },
   "tenant": {
     "switch": "Cambiar Organización",
@@ -65,15 +67,14 @@
     "members": "Miembros",
     "topics": "Tópicos",
     "prompts": "Prompts",
-    "anomalies": "Detección de Anomalías",
-    "reports": "Análisis Personalizado",
     "documents": "Tipos de Documento",
     "platforms": "Plataformas",
     "models": "Modelos",
     "plans": "Planes",
     "support": "Soporte",
     "sectionMain": "Principal",
-    "sectionAnalytics": "Monitoreo IA"
+    "sectionAnalytics": "Monitoreo IA",
+    "sectionAdmin": "Admin"
   },
   "platforms": {
     "title": "Plataformas IA",
@@ -178,13 +179,11 @@
   "analytics": {
     "totalDocuments": "Total de Documentos",
     "detectedErrors": "Errores Detectados",
-    "anomalies": "Anomalías",
     "accuracy": "Precisión",
     "volumeBySize": "Volumen por Tamaño",
     "volumeUSD": "Volumen (USD) por Tamaño",
     "documentStatus": "Status de Documentos",
-    "riskIndicators": "Indicadores de Riesgo",
-    "identifiedAnomalies": "Anomalías Identificadas"
+    "riskIndicators": "Indicadores de Riesgo"
   },
   "common": {
     "save": "Guardar",

@@ -6,8 +6,6 @@ import {
   Settings,
   LogOut,
   MessageSquare,
-  AlertTriangle,
-  BarChart3,
   List,
   HelpCircle,
   Sun,
@@ -38,11 +36,10 @@ const MAIN_NAV: NavItem[] = [
 const ANALYTICS_NAV: NavItem[] = [
   { key: 'nav.topics', path: '/dashboard/topics', icon: MessageSquare },
   { key: 'nav.prompts', path: '/dashboard/prompts', icon: List },
-  { key: 'nav.platforms', path: '/dashboard/platforms', icon: Cpu },
   { key: 'nav.models', path: '/dashboard/models', icon: Layers },
-  { key: 'nav.anomalies', path: '/dashboard/anomalies', icon: AlertTriangle },
-  { key: 'nav.reports', path: '/dashboard/reports', icon: BarChart3 },
 ];
+
+const SA_PLATFORMS_NAV: NavItem = { key: 'nav.platforms', path: '/dashboard/platforms', icon: Cpu };
 
 export function Sidebar() {
   const { t, i18n } = useTranslation();
@@ -132,6 +129,7 @@ export function Sidebar() {
         <div className="section-label mt-4">{t('nav.sectionAnalytics')}</div>
         <div className="space-y-0.5">
           {ANALYTICS_NAV.map(renderNavItem)}
+          {profile?.is_sa && renderNavItem(SA_PLATFORMS_NAV)}
         </div>
       </nav>
 
