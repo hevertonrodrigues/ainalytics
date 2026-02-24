@@ -163,14 +163,17 @@ export interface PromptAnswer {
   model: { id: string; slug: string; name: string } | null;
   model_id: string | null;
   answer_text: string | null;
-  tokens_used: { input: number; output: number } | null;
+  tokens_used: Record<string, any> | null;
   latency_ms: number | null;
   raw_request: unknown | null;
   raw_response: unknown | null;
   error: string | null;
   deleted: boolean;
-  searched_at: string;
   created_at: string;
+  searched_at: string;
+  web_search_enabled: boolean;
+  annotations: any | null;
+  sources: any[] | null;
 }
 
 export interface SearchPromptInput {

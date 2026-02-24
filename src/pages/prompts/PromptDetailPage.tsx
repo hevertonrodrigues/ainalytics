@@ -11,6 +11,7 @@ import {
   RefreshCw,
   Search,
   Loader2,
+  Link2,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
@@ -321,22 +322,26 @@ export function PromptDetailPage() {
               
               let platformTotalAnswers = 0;
               let platformTotalErrors = 0;
+              let platformTotalSources = 0;
               for (const m of group.models) {
                 platformTotalAnswers += m.answers.length;
                 platformTotalErrors += m.answers.filter(a => a.error).length;
+                platformTotalSources += m.answers.reduce((sum, a) => sum + (Array.isArray(a.sources) ? a.sources.length : 0), 0);
               }
 
               return (
                 <div key={group.platform_slug} className="dashboard-card overflow-hidden">
                   {/* Platform Header */}
-                  <button
-                    onClick={() => togglePlatform(group.platform_slug)}
-                    className="w-full p-4 flex items-center gap-3 hover:bg-glass-hover transition-colors text-left"
+                  <div
+                    onClick={() => profile?.is_sa && togglePlatform(group.platform_slug)}
+                    className={`w-full p-4 flex items-center gap-3 text-left ${profile?.is_sa ? 'hover:bg-glass-hover transition-colors cursor-pointer select-none' : ''}`}
                   >
-                    {isPlatformExpanded ? (
-                      <ChevronDown className="w-4 h-4 text-text-muted shrink-0" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
+                    {profile?.is_sa && (
+                      isPlatformExpanded ? (
+                        <ChevronDown className="w-4 h-4 text-text-muted shrink-0" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
+                      )
                     )}
                     <span
                       className={`w-3 h-3 rounded-full shrink-0 ${PLATFORM_COLORS[group.platform_slug] || 'bg-gray-500'}`}
@@ -347,16 +352,22 @@ export function PromptDetailPage() {
                     <span className="text-xs text-text-muted">
                       {platformTotalAnswers} {t('answers.results')}
                     </span>
+                    {platformTotalSources > 0 && (
+                      <span className="text-xs text-text-muted flex items-center gap-1">
+                        <Link2 className="w-3 h-3" />
+                        {platformTotalSources} {t('promptDetail.sources', 'sources')}
+                      </span>
+                    )}
                     {platformTotalErrors > 0 && (
                       <span className="text-xs text-error bg-error/10 px-2 py-0.5 rounded-full flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
                         {platformTotalErrors}
                       </span>
                     )}
-                  </button>
+                  </div>
 
                   {/* Models list */}
-                  {isPlatformExpanded && (
+                  {profile?.is_sa && isPlatformExpanded && (
                     <div className="border-t border-glass-border bg-bg-tertiary/30 p-4 space-y-4">
                       {group.models.map(model => (
                         <div key={model.model_slug} className="space-y-2">
@@ -371,19 +382,23 @@ export function PromptDetailPage() {
                               return (
                                 <div key={answer.id} className="bg-bg-primary rounded-lg border border-glass-border overflow-hidden">
                                   <div
-                                    className="flex items-center gap-3 p-3 cursor-pointer hover:bg-glass-hover transition-colors select-none"
-                                    onClick={() => toggleAnswerExpand(answer.id)}
+                                    className={`flex items-center gap-3 p-3 transition-colors select-none ${profile?.is_sa ? 'cursor-pointer hover:bg-glass-hover' : ''}`}
+                                    onClick={() => profile?.is_sa && toggleAnswerExpand(answer.id)}
                                   >
-                                    {isAnswerExpanded ? (
-                                      <ChevronDown className="w-3.5 h-3.5 text-text-muted shrink-0" />
-                                    ) : (
-                                      <ChevronRight className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                                    {profile?.is_sa && (
+                                      isAnswerExpanded ? (
+                                        <ChevronDown className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                                      ) : (
+                                        <ChevronRight className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                                      )
                                     )}
                                     
                                     <div className="flex-1 min-w-0 flex items-center gap-2">
-                                      <span className="text-xs text-text-secondary">
-                                        {new Date(answer.created_at).toLocaleString()}
-                                      </span>
+                                      {profile?.is_sa && (
+                                        <span className="text-xs text-text-secondary">
+                                          {new Date(answer.created_at).toLocaleString()}
+                                        </span>
+                                      )}
                                       {answer.error && (
                                         <span className="text-xs text-error font-medium px-1.5 py-0.5 rounded bg-error/10">
                                           Error
@@ -391,20 +406,27 @@ export function PromptDetailPage() {
                                       )}
                                     </div>
 
-                                    {answer.latency_ms && (
+                                    {Array.isArray(answer.sources) && answer.sources.length > 0 && (
+                                      <span className="text-xs text-text-muted flex items-center gap-1 shrink-0">
+                                        <Link2 className="w-3 h-3" />
+                                        {answer.sources.length} {t('promptDetail.sources', 'sources')}
+                                      </span>
+                                    )}
+
+                                    {profile?.is_sa && answer.latency_ms && (
                                       <span className="text-xs text-text-muted flex items-center gap-1 shrink-0">
                                         <Clock className="w-3 h-3" />
                                         {(answer.latency_ms / 1000).toFixed(1)}s
                                       </span>
                                     )}
-                                    {answer.tokens_used && (
+                                    {profile?.is_sa && answer.tokens_used && (
                                       <span className="text-xs text-text-muted shrink-0">
                                         {answer.tokens_used.input + answer.tokens_used.output} {t('promptDetail.tokens')}
                                       </span>
                                     )}
                                   </div>
 
-                                  {isAnswerExpanded && (
+                                  {profile?.is_sa && isAnswerExpanded && (
                                     <div className="px-4 pb-4 pt-1 pl-10 border-t border-glass-border/50 bg-bg-secondary/30">
                                       {answer.error ? (
                                         <div className="p-3 rounded-xs bg-error/10 text-error text-xs flex flex-col gap-2 mt-2">

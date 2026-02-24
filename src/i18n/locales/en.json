@@ -164,6 +164,7 @@
     "answersCount": "{{count}} answers",
     "model": "Model",
     "tokens": "tokens",
+    "sources": "sources",
     "webSearch": "Web search"
   },
   "plans": {

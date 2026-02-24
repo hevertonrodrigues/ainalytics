@@ -11,6 +11,7 @@ import {
   AlertCircle,
   Cpu,
   RefreshCw,
+  Link2,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
@@ -295,8 +296,8 @@ export function TopicAnswersPage() {
                   )}
                 </div>
 
-                {/* Expanded results */}
-                {isExpanded && promptAnswers.length > 0 && (
+                {/* Expanded results for SAs */}
+                {profile?.is_sa && isExpanded && promptAnswers.length > 0 && (
                   <div className="border-t border-glass-border">
                     {promptAnswers.map((answer) => {
                       const isAnswerExpanded = expandedAnswers.has(answer.id);
@@ -306,13 +307,15 @@ export function TopicAnswersPage() {
                           className="border-b border-glass-border/50 last:border-0"
                         >
                           <div
-                            className="flex items-center gap-2 p-4 cursor-pointer hover:bg-glass-bg/50 transition-colors select-none"
-                            onClick={() => toggleAnswerExpand(answer.id)}
+                            className={`flex items-center gap-2 p-4 transition-colors select-none ${profile?.is_sa ? 'cursor-pointer hover:bg-glass-bg/50' : ''}`}
+                            onClick={() => profile?.is_sa && toggleAnswerExpand(answer.id)}
                           >
-                            {isAnswerExpanded ? (
-                              <ChevronDown className="w-3.5 h-3.5 text-text-muted shrink-0" />
-                            ) : (
-                              <ChevronRight className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                            {profile?.is_sa && (
+                              isAnswerExpanded ? (
+                                <ChevronDown className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                              ) : (
+                                <ChevronRight className="w-3.5 h-3.5 text-text-muted shrink-0" />
+                              )
                             )}
                             <span
                               className={`w-2.5 h-2.5 rounded-full shrink-0 ${
@@ -330,20 +333,28 @@ export function TopicAnswersPage() {
                                 <AlertCircle className="w-3 h-3 inline" />
                               </span>
                             )}
-                            {answer.latency_ms && (
+
+                            {Array.isArray(answer.sources) && answer.sources.length > 0 && (
                               <span className="text-xs text-text-muted ml-auto flex items-center gap-1">
+                                <Link2 className="w-3 h-3" />
+                                {answer.sources.length} {t('promptDetail.sources', 'sources')}
+                              </span>
+                            )}
+
+                            {profile?.is_sa && answer.latency_ms && (
+                              <span className={`text-xs text-text-muted flex items-center gap-1 ${!(Array.isArray(answer.sources) && answer.sources.length > 0) ? 'ml-auto' : ''}`}>
                                 <Clock className="w-3 h-3" />
                                 {(answer.latency_ms / 1000).toFixed(1)}s
                               </span>
                             )}
-                            {answer.tokens_used && (
+                            {profile?.is_sa && answer.tokens_used && (
                               <span className="text-xs text-text-muted">
                                 {answer.tokens_used.input + answer.tokens_used.output} tokens
                               </span>
                             )}
                           </div>
 
-                          {isAnswerExpanded && (
+                          {profile?.is_sa && isAnswerExpanded && (
                             <div className="px-4 pb-4 pt-0 pl-10">
                               {answer.error ? (
                                 <div className="p-2 rounded-xs bg-error/10 text-error text-xs flex items-center justify-between gap-2">
@@ -369,6 +380,34 @@ export function TopicAnswersPage() {
                         </div>
                       );
                     })}
+                  </div>
+                )}
+
+                {/* Expanded results for non-SAs */}
+                {!profile?.is_sa && isExpanded && promptAnswers.length > 0 && (
+                  <div className="border-t border-glass-border p-4 flex flex-wrap gap-4 bg-bg-tertiary/20">
+                    {Object.values(promptAnswers.reduce((acc, ans) => {
+                      let group = acc[ans.platform_slug];
+                      if (!group) {
+                        group = { slug: ans.platform_slug, count: 0, errors: false };
+                        acc[ans.platform_slug] = group;
+                      }
+                      group.count += Array.isArray(ans.sources) ? ans.sources.length : 0;
+                      if (ans.error) group.errors = true;
+                      return acc;
+                    }, {} as Record<string, { slug: string; count: number; errors: boolean }>)).map(p => (
+                      <div key={p.slug} className="flex items-center gap-2 p-3 bg-bg-secondary rounded-lg border border-glass-border shadow-sm">
+                        <span className={`w-2 h-2 rounded-full ${PLATFORM_COLORS[p.slug] || 'bg-gray-500'}`} />
+                        <span className="text-sm font-semibold text-text-primary uppercase tracking-wide">{p.slug}</span>
+                        {p.count > 0 && (
+                          <span className="text-xs text-text-muted flex items-center gap-1 ml-2 pl-2 border-l border-glass-border">
+                            <Link2 className="w-3 h-3" />
+                            {p.count} {t('promptDetail.sources', 'sources')}
+                          </span>
+                        )}
+                        {p.errors && <AlertCircle className="w-4 h-4 text-error ml-1" />}
+                      </div>
+                    ))}
                   </div>
                 )}
 

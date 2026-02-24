@@ -156,6 +156,17 @@
     "charCount": "{{count}}/{{max}} caracteres",
     "charLimitExceeded": "El texto del prompt no debe exceder {{max}} caracteres"
   },
+  "promptDetail": {
+    "title": "Detalle del Prompt",
+    "backToPrompts": "Volver a Prompts",
+    "answersGrouped": "Respuestas por Plataforma",
+    "noAnswers": "Aún no hay respuestas. Ejecute una búsqueda desde la página de tópicos.",
+    "answersCount": "{{count}} respuestas",
+    "model": "Modelo",
+    "tokens": "tokens",
+    "sources": "fuentes",
+    "webSearch": "Búsqueda web"
+  },
   "plans": {
     "title": "Elija su Plan",
     "subtitle": "Seleccione el plan perfecto para su organización. Cambie o mejore en cualquier momento.",
