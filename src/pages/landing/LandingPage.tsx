@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,23 +11,14 @@ import {
   Search,
   ChevronRight,
   ArrowRight,
-  Menu,
-  X,
-  Twitter,
-  Linkedin,
-  Github,
 } from 'lucide-react';
-import { APP_NAME, LOCALES } from '@/lib/constants';
 import { PricingPlans } from '@/components/PricingPlans';
 import { InterestFormModal } from '@/components/InterestFormModal';
+import { LandingHeader } from './LandingHeader';
+import { LandingHero } from './LandingHero';
+import { LandingFooter } from './LandingFooter';
 
 const AI_PLATFORMS = ['OpenAI', 'Anthropic', 'Google Gemini', 'xAI Grok', 'Perplexity'];
-
-const LOCALE_LABELS: Record<string, string> = {
-  en: 'EN',
-  es: 'ES',
-  'pt-br': 'PT',
-};
 
 /* ────────────────────────────────────────────────────────────
    Scroll-reveal hook
@@ -67,9 +58,8 @@ function useScrollReveal() {
 }
 
 export function LandingPage() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [interestModalOpen, setInterestModalOpen] = useState(false);
   const revealRef = useScrollReveal();
 
@@ -79,113 +69,11 @@ export function LandingPage() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const changeLang = useCallback(
-    (lng: string) => {
-      i18n.changeLanguage(lng);
-      setMobileMenuOpen(false);
-    },
-    [i18n],
-  );
-
   return (
     <div className="landing-page" ref={revealRef}>
-      {/* ─── Navbar ─── */}
-      <nav className={`landing-nav${scrolled ? ' landing-nav-scrolled' : ''}`}>
-        <div className="landing-container landing-nav-inner">
-          <Link to="/" className="landing-logo">
-            <img src="/logo.svg" alt="Ainalytics" className="landing-logo-img" />
-            <span>{APP_NAME}</span>
-          </Link>
+      <LandingHeader scrolled={scrolled} />
 
-          {/* Desktop links */}
-          <div className="landing-nav-links">
-            <a href="#features">{t('landing.nav.features')}</a>
-            <a href="#how-it-works">{t('landing.nav.howItWorks')}</a>
-            <a href="#pricing">{t('landing.nav.pricing')}</a>
-          </div>
-
-          <div className="landing-nav-actions">
-            {/* Lang switcher */}
-            <div className="locale-switcher">
-              {Object.values(LOCALES).map((lng) => (
-                <button
-                  key={lng}
-                  className={`locale-btn${i18n.language === lng ? ' active' : ''}`}
-                  onClick={() => changeLang(lng)}
-                >
-                  {LOCALE_LABELS[lng]}
-                </button>
-              ))}
-            </div>
-            <Link to="/signin" className="btn btn-ghost btn-sm">{t('landing.nav.signIn')}</Link>
-            <Link to="/signup" className="btn btn-primary btn-sm">{t('landing.nav.getStarted')}</Link>
-          </div>
-
-          {/* Mobile toggle */}
-          <button
-            className="landing-mobile-toggle"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="landing-mobile-menu">
-            <a href="#features" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.features')}</a>
-            <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.howItWorks')}</a>
-            <a href="#pricing" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.pricing')}</a>
-            <div className="landing-mobile-menu-divider" />
-            <div className="locale-switcher" style={{ justifyContent: 'center' }}>
-              {Object.values(LOCALES).map((lng) => (
-                <button
-                  key={lng}
-                  className={`locale-btn${i18n.language === lng ? ' active' : ''}`}
-                  onClick={() => changeLang(lng)}
-                >
-                  {LOCALE_LABELS[lng]}
-                </button>
-              ))}
-            </div>
-            <Link to="/signin" className="btn btn-ghost btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.signIn')}</Link>
-            <Link to="/signup" className="btn btn-primary btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.getStarted')}</Link>
-          </div>
-        )}
-      </nav>
-
-      {/* ─── Hero ─── */}
-      <section className="landing-hero">
-        <div className="landing-hero-bg" />
-        <div className="landing-container landing-hero-content">
-          <h1 className="landing-hero-title">
-            {t('landing.hero.title')}
-            <br />
-            <span className="landing-gradient-text">{t('landing.hero.titleHighlight')}</span>
-            <br />
-            {t('landing.hero.titleEnd')}
-          </h1>
-          <p className="landing-hero-subtitle">{t('landing.hero.subtitle')}</p>
-          <div className="landing-hero-cta">
-            <Link to="/signup" className="btn btn-primary btn-lg">
-              {t('landing.hero.cta')}
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <a href="#preview" className="btn btn-secondary btn-lg">
-              {t('landing.hero.ctaSecondary')}
-            </a>
-          </div>
-          <p className="landing-hero-trust">{t('landing.hero.trustedBy')}</p>
-          <div className="landing-hero-image">
-            <img
-              src="/landing-hero.png"
-              alt="Ainalytics Dashboard — AI Prompt Comparison"
-              loading="eager"
-            />
-          </div>
-        </div>
-      </section>
+      <LandingHero />
 
       {/* ─── Logo Bar ─── */}
       <section className="landing-logos landing-reveal">
@@ -381,72 +269,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ─── Footer ─── */}
-      <footer className="landing-footer">
-        <div className="landing-container landing-footer-inner">
-          <div className="landing-footer-brand">
-            <div className="landing-logo">
-              <img src="/logo.svg" alt="Ainalytics" className="landing-logo-img landing-logo-img-sm" />
-              <span>{APP_NAME}</span>
-            </div>
-            <p>{t('landing.footer.description')}</p>
-            <div className="landing-footer-social">
-              <a href="#" aria-label="Twitter / X" target="_blank" rel="noopener noreferrer">
-                <Twitter className="w-4 h-4" />
-              </a>
-              <a href="#" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
-                <Linkedin className="w-4 h-4" />
-              </a>
-              <a href="#" aria-label="GitHub" target="_blank" rel="noopener noreferrer">
-                <Github className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-
-          <div className="landing-footer-links">
-            <h4>{t('landing.footer.product')}</h4>
-            <a href="#features">{t('landing.nav.features')}</a>
-            <a href="#pricing">{t('landing.nav.pricing')}</a>
-            <a href="#how-it-works">{t('landing.nav.howItWorks')}</a>
-          </div>
-
-          <div className="landing-footer-links">
-            <h4>{t('landing.footer.company')}</h4>
-            <a href="#">{t('landing.footer.about')}</a>
-            <a href="#">{t('landing.footer.blog')}</a>
-            <a href="#">{t('landing.footer.careers')}</a>
-          </div>
-
-          <div className="landing-footer-links">
-            <h4>{t('landing.footer.support')}</h4>
-            <a href="#">{t('landing.footer.contact')}</a>
-            <a href="#">{t('landing.footer.documentation')}</a>
-            <a href="#">{t('landing.footer.status')}</a>
-          </div>
-
-          <div className="landing-footer-links">
-            <h4>{t('landing.footer.legal')}</h4>
-            <a href="#">{t('landing.footer.privacy')}</a>
-            <a href="#">{t('landing.footer.terms')}</a>
-          </div>
-
-          <div className="landing-footer-bottom">
-            <span>© {new Date().getFullYear()} {APP_NAME}. {t('landing.footer.rights')}</span>
-            <span className="landing-footer-made">{t('landing.footer.madeWith')}</span>
-            <div className="locale-switcher">
-              {Object.values(LOCALES).map((lng) => (
-                <button
-                  key={lng}
-                  className={`locale-btn${i18n.language === lng ? ' active' : ''}`}
-                  onClick={() => changeLang(lng)}
-                >
-                  {LOCALE_LABELS[lng]}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
 
       {/* Interest Form Modal */}
       <InterestFormModal

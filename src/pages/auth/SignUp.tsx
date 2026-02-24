@@ -87,6 +87,7 @@ export function SignUp() {
         <div className="auth-form-container stagger-enter">
           <div className="auth-top-bar">
             <Link to="/" className="auth-logo">
+              <img src="/logo-purple.png" alt="Ainalytics" className="auth-logo-img" />
               {APP_NAME}
             </Link>
             <div className="locale-switcher">
