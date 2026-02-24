@@ -38,36 +38,111 @@ INSERT INTO plans (name, price, is_active, sort_order, settings, features) VALUE
     'Starter', 99, true, 1,
     '{"max_prompts": 3, "refresh_rate": "monthly", "description": "Essential AI monitoring to get started. Perfect for freelancers and small businesses."}',
     '{
-      "en": ["3 AI prompts", "Monthly refresh", "Up to 3 AI platforms", "Basic visibility score", "Community support"],
-      "es": ["3 prompts de IA", "Actualización mensual", "Hasta 3 plataformas IA", "Score básico de visibilidad", "Soporte comunitario"],
-      "pt-br": ["3 prompts de IA", "Atualização mensal", "Até 3 plataformas IA", "Score básico de visibilidade", "Suporte da comunidade"]
+      "en": [
+        "3 AI prompts",
+        "Monthly refresh",
+        "Basic visibility score",
+        "Community support"
+      ],
+      "es": [
+        "3 prompts de IA",
+        "Actualización mensual",
+        "Score básico de visibilidad",
+        "Soporte comunitario"
+      ],
+      "pt-br": [
+        "3 prompts de IA",
+        "Atualização mensal",
+        "Score básico de visibilidade",
+        "Suporte da comunidade"
+      ]
     }'
   ),
   (
     'Growth', 189, true, 2,
     '{"max_prompts": 10, "refresh_rate": "weekly", "description": "Scale your monitoring across all AI platforms with weekly insights."}',
     '{
-      "en": ["10 AI prompts", "Weekly refresh", "All 5 AI platforms", "Advanced analytics & KPIs", "Web search grounding", "Priority support"],
-      "es": ["10 prompts de IA", "Actualización semanal", "Las 5 plataformas IA", "Análisis avanzado y KPIs", "Verificación de búsqueda web", "Soporte prioritario"],
-      "pt-br": ["10 prompts de IA", "Atualização semanal", "Todas as 5 plataformas IA", "Análise avançada e KPIs", "Verificação de busca web", "Suporte prioritário"]
+      "en": [
+        "10 AI prompts",
+        "Weekly refresh",
+        "Advanced analytics & KPIs",
+        "Priority support"
+      ],
+      "es": [
+        "10 prompts de IA",
+        "Actualización semanal",
+        "Análisis avanzado y KPIs",
+        "Soporte prioritario"
+      ],
+      "pt-br": [
+        "10 prompts de IA",
+        "Atualização semanal",
+        "Análise avançada e KPIs",
+        "Suporte prioritário"
+      ]
     }'
   ),
   (
     'Business', 799, true, 3,
     '{"max_prompts": 40, "refresh_rate": "daily", "description": "Full-power real-time monitoring for brands that demand visibility."}',
     '{
-      "en": ["40 AI prompts", "Daily refresh", "All 5 AI platforms", "Advanced analytics & KPIs", "Web search grounding", "Multi-tenant workspaces", "Dedicated support"],
-      "es": ["40 prompts de IA", "Actualización diaria", "Las 5 plataformas IA", "Análisis avanzado y KPIs", "Verificación de búsqueda web", "Espacios multi-tenant", "Soporte dedicado"],
-      "pt-br": ["40 prompts de IA", "Atualização diária", "Todas as 5 plataformas IA", "Análise avançada e KPIs", "Verificação de busca web", "Espaços multi-tenant", "Suporte dedicado"]
+      "en": [
+        "40 AI prompts",
+        "Daily refresh",
+        "Advanced analytics & KPIs",
+        "Web search grounding",
+        "Dedicated support"
+      ],
+      "es": [
+        "40 prompts de IA",
+        "Actualización diaria",
+        "Análisis avanzado y KPIs",
+        "Verificación de búsqueda web",
+        "Soporte dedicado"
+      ],
+      "pt-br": [
+        "40 prompts de IA",
+        "Atualização diária",
+        "Análise avançada e KPIs",
+        "Verificação de busca web",
+        "Suporte dedicado"
+      ]
     }'
   ),
   (
     'Custom', 0, true, 4,
     '{"custom_pricing": true, "description": "Tailored AI monitoring solutions for agencies and large organizations."}',
     '{
-      "en": ["Unlimited prompts", "Custom refresh rate", "Custom AI integrations", "SSO & SAML", "Dedicated account manager", "SLA guarantee", "On-premise deployment", "White-label reporting"],
-      "es": ["Prompts ilimitados", "Tasa de actualización personalizada", "Integraciones IA personalizadas", "SSO y SAML", "Gerente de cuenta dedicado", "Garantía SLA", "Implementación on-premise", "Reportes white-label"],
-      "pt-br": ["Prompts ilimitados", "Taxa de atualização personalizada", "Integrações IA personalizadas", "SSO e SAML", "Gerente de conta dedicado", "Garantia SLA", "Implantação on-premise", "Relatórios white-label"]
+      "en": [
+        "Unlimited prompts",
+        "Custom refresh rate",
+        "Custom AI integrations",
+        "SSO & SAML",
+        "Dedicated account manager",
+        "SLA guarantee",
+        "On-premise deployment",
+        "White-label reporting"
+      ],
+      "es": [
+        "Prompts ilimitados",
+        "Tasa de actualización personalizada",
+        "Integraciones IA personalizadas",
+        "SSO y SAML",
+        "Gerente de cuenta dedicado",
+        "Garantía SLA",
+        "Implementación on-premise",
+        "Reportes white-label"
+      ],
+      "pt-br": [
+        "Prompts ilimitados",
+        "Taxa de atualização personalizada",
+        "Integrações IA personalizadas",
+        "SSO e SAML",
+        "Gerente de conta dedicado",
+        "Garantia SLA",
+        "Implantação on-premise",
+        "Relatórios white-label"
+      ]
     }'
   );
 
