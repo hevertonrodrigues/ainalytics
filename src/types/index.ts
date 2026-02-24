@@ -38,6 +38,8 @@ export interface Tenant {
   metatags: string | null;
   extracted_content: string | null;
   llm_txt: string | null;
+  sitemap_xml: string | null;
+  llm_txt_status: 'missing' | 'outdated' | 'updated';
   created_at: string;
   updated_at: string;
 }

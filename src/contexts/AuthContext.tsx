@@ -17,6 +17,7 @@ interface AuthContextValue extends AuthState {
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (password: string) => Promise<void>;
+  refreshAuth: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -133,8 +134,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
+  const refreshAuth = useCallback(async () => {
+    try {
+      const res = await apiClient.get<{ profile: Profile; tenants: Tenant[] }>('/users-me');
+      setState((prev) => ({
+        ...prev,
+        profile: res.data.profile,
+        tenants: res.data.tenants,
+      }));
+    } catch (err) {
+      console.error('Failed to refresh auth state:', err);
+    }
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut, forgotPassword, resetPassword }}>
+    <AuthContext.Provider value={{ ...state, signIn, signUp, signOut, forgotPassword, resetPassword, refreshAuth }}>
       {children}
     </AuthContext.Provider>
   );

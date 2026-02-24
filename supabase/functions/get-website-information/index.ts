@@ -7,13 +7,12 @@ import { ok, badRequest, serverError } from "../_shared/response.ts";
 /**
  * Get Website Information Edge Function
  * - POST /
- * Uses the tenant's main_domain to scrape and extract:
- * 1. website_title
- * 2. metatags
- * 3. extracted_content
- * 4. llm_txt
+ * Actions:
+ * - 'extract': Uses the tenant's main_domain to scrape and extract: website_title, metatags, extracted_content, sitemap_xml.
+ * - 'generate': Uses the extracted data to generate the llm_txt document.
+ * - 'verify': Fetches the deployed llm.txt and compares it to the database version.
  * 
- * Uses OpenAI gpt-4o with web search capability.
+ * Uses OpenAI gpt-4o with web search capability for extraction, and standard generations for llm_txt.
  */
 
 serve(async (req: Request) => {
@@ -44,10 +43,16 @@ serve(async (req: Request) => {
       return withCors(req, badRequest("Only owners and admins can perform this action."));
     }
 
-    // 2. Fetch tenant's main_domain
+    const { action } = await req.json().catch(() => ({ action: 'extract' }));
+    
+    if (action !== 'extract' && action !== 'generate' && action !== 'verify') {
+       return withCors(req, badRequest("Invalid action. Must be 'extract', 'generate', or 'verify'."));
+    }
+
+    // 2. Fetch tenant's data
     const { data: tenant, error: tErr } = await sb
       .from("tenants")
-      .select("id, main_domain")
+      .select("id, main_domain, sitemap_xml, llm_txt")
       .eq("id", tenantId)
       .single();
     
@@ -60,107 +65,201 @@ serve(async (req: Request) => {
     }
 
     const domain = tenant.main_domain;
+    let sitemapXml = tenant.sitemap_xml;
 
-    // 3. Build the prompt
-    const prompt = `
-      You are an expert web researcher and data extractor. 
-      I need you to search the internet for the domain "${domain}" and explore its main pages and content.
-      Based on your research, please extract the following:
-      1. website_title: The main title of the website or company name.
-      2. metatags: A summary of the core keywords, description, and meta information you can deduce.
-      3. extracted_content: A detailed summary of what the company does, their products/services, target audience, and any other relevant public information found on their website.
-      4. llm_txt: A well-structured markdown document meant to be an 'llm.txt' file. This file is intended to provide AI models with the best possible context about the company when users upload it. It should include an overview, key links, product descriptions, company mission, and any other relevant structured context.
-      
-      You must respond with ONLY a valid JSON object matching the following structure exactly, with no markdown fences or other text:
-      {
-        "website_title": "string",
-        "metatags": "string",
-        "extracted_content": "string",
-        "llm_txt": "string"
+    // --- ACTION: EXTRACT ---
+    if (action === 'extract') {
+      // Try to fetch sitemap.xml automatically if we don't have one saved
+      if (!sitemapXml) {
+        try {
+          const sitemapUrl = domain.startsWith('http') ? `${domain}/sitemap.xml` : `https://${domain}/sitemap.xml`;
+          const sitemapRes = await fetch(sitemapUrl, { method: 'GET', headers: { 'Accept': 'application/xml, text/xml' } });
+          if (sitemapRes.ok) {
+            sitemapXml = await sitemapRes.text();
+          }
+        } catch (err) {
+          console.warn("[get-website-information] Failed fetching automatic sitemap for domain:", domain, err);
+        }
       }
-    `;
 
-    // 4. Call OpenAI API using the tool we already have logic for (or direct fetch)
-    const apiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!apiKey) {
-      return withCors(req, serverError("OPENAI_API_KEY is not configured"));
-    }
+      const prompt = `
+        You are an expert web researcher and data extractor. 
+        I need you to search the internet for the domain "${domain}" and explore its main pages and content.
+        Based on your research, please extract the following:
+        1. website_title: The main title of the website or company name.
+        2. metatags: A summary of the core keywords, description, and meta information you can deduce.
+        3. extracted_content: A detailed summary of what the company does, their products/services, target audience, and any other relevant public information found on their website.
+        
+        You must respond with ONLY a valid JSON object matching the following structure exactly, with no markdown fences or other text:
+        {
+          "website_title": "string",
+          "metatags": "string",
+          "extracted_content": "string"
+        }
+      `;
 
-    const body = {
-      model: "gpt-4o",
-      input: prompt,
-      tools: [{ type: "web_search" }],
-      tool_choice: "required"
-    };
+      const apiKey = Deno.env.get("OPENAI_API_KEY");
+      if (!apiKey) return withCors(req, serverError("OPENAI_API_KEY is not configured"));
 
-    const res = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
+      const body = {
+        model: "gpt-4o",
+        input: prompt,
+        tools: [{ type: "web_search" }],
+        tool_choice: "required"
+      };
 
-    if (!res.ok) {
-      const errText = await res.text();
-      console.error("[get-website-information] OpenAI error:", errText);
-      return withCors(req, serverError("Failed to fetch information from AI provider."));
-    }
+      const res = await fetch("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
-    const data = await res.json();
-    
-    let answerText: string | null = null;
-
-    // Parse text from completions format
-    for (const item of (data.output ?? [])) {
-      if (item.type === "message" && Array.isArray(item.content)) {
-        for (const block of item.content) {
-          if (block.type === "output_text") {
-            if (!answerText && block.text) answerText = block.text;
+      if (!res.ok) return withCors(req, serverError("Failed to fetch information from AI provider."));
+      
+      const data = await res.json();
+      let answerText: string | null = null;
+      for (const item of (data.output ?? [])) {
+        if (item.type === "message" && Array.isArray(item.content)) {
+          for (const block of item.content) {
+            if (block.type === "output_text") {
+              if (!answerText && block.text) answerText = block.text;
+            }
           }
         }
       }
+
+      if (!answerText) return withCors(req, serverError("AI provider returned an empty response."));
+
+      let parsedResult;
+      try {
+        parsedResult = JSON.parse(answerText.trim());
+      } catch (e) {
+        return withCors(req, serverError("AI produced invalid JSON output."));
+      }
+
+      const { error: updateErr } = await sb
+        .from("tenants")
+        .update({
+          website_title: parsedResult.website_title || null,
+          metatags: parsedResult.metatags || null,
+          extracted_content: parsedResult.extracted_content || null,
+          sitemap_xml: sitemapXml || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", tenantId);
+
+      if (updateErr) return withCors(req, serverError("Failed to save the extracted information to the database."));
+
+      return withCors(req, ok({ success: true, message: "Information extracted and saved successfully.", data: parsedResult }));
     }
 
-    if (!answerText) {
-      return withCors(req, serverError("AI provider returned an empty response."));
+    // --- ACTION: VERIFY ---
+    if (action === 'verify') {
+      let status = 'missing';
+      
+      try {
+        const llmUrl = domain.startsWith('http') ? `${domain}/llm.txt` : `https://${domain}/llm.txt`;
+        const res = await fetch(llmUrl, { method: 'GET' });
+        
+        if (res.ok) {
+          const liveText = await res.text();
+          if (!tenant.llm_txt) {
+             status = 'outdated';
+          } else {
+             // Basic comparison
+             if (liveText.trim() === tenant.llm_txt.trim()) {
+                status = 'updated';
+             } else {
+                status = 'outdated';
+             }
+          }
+        }
+      } catch (err) {
+        console.warn("[get-website-information] verify failed:", err);
+      }
+
+      const { error: updateErr } = await sb
+        .from("tenants")
+        .update({
+          llm_txt_status: status,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", tenantId);
+        
+      if (updateErr) return withCors(req, serverError("Failed to save verification status to database."));
+
+      return withCors(req, ok({ success: true, message: `Status verified as ${status}`, data: { status } }));
     }
 
-    // 5. Parse JSON
-    let parsedResult;
-    try {
-      parsedResult = JSON.parse(answerText.trim());
-    } catch (e) {
-      console.error("[get-website-information] Failed to parse JSON:", answerText);
-      return withCors(req, serverError("AI produced invalid JSON output."));
+    // --- ACTION: GENERATE ---
+    if (action === 'generate') {
+      const { data: tenantData, error: tdErr } = await sb
+        .from("tenants")
+        .select("website_title, metatags, extracted_content, sitemap_xml")
+        .eq("id", tenantId)
+        .single();
+
+      if (tdErr || !tenantData) return withCors(req, badRequest("Failed to load extracted data."));
+      if (!tenantData.extracted_content) return withCors(req, badRequest("Cannot generate LLM.txt without extracting information first."));
+
+      let prompt = `
+        You are an expert technical writer formatting context documents for AI systems.
+        Based on the following extracted details about a website/company, generate a well-structured markdown document meant to be an 'llm.txt' file. 
+        This file is intended to provide AI models with the best possible context about the company when users upload it. 
+        It should include an overview, key links, product descriptions, company mission, and any other relevant structured context.
+        
+        Data:
+        - Title: ${tenantData.website_title}
+        - Meta: ${tenantData.metatags}
+        - Overview: ${tenantData.extracted_content}
+      `;
+
+      if (tenantData.sitemap_xml) {
+        const truncatedSitemap = tenantData.sitemap_xml.slice(0, 15000);
+        prompt += `
+        
+        To assist you, here is the generated sitemap.xml content for the website. Use the structure and paths provided here to understand the website's hierarchy, find key pages, and formulate the best llm_txt file!
+        <sitemap_xml>
+        ${truncatedSitemap}
+        </sitemap_xml>
+        `;
+      }
+
+      const apiKey = Deno.env.get("OPENAI_API_KEY");
+      if (!apiKey) return withCors(req, serverError("OPENAI_API_KEY is not configured"));
+
+      const body = {
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+      };
+
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) return withCors(req, serverError("Failed to generate LLM txt from AI provider."));
+      
+      const data = await res.json();
+      const llmTxt = data.choices[0]?.message?.content;
+
+      if (!llmTxt) return withCors(req, serverError("AI provider returned an empty response."));
+
+      const { error: updateErr } = await sb
+        .from("tenants")
+        .update({
+          llm_txt: llmTxt,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", tenantId);
+
+      if (updateErr) return withCors(req, serverError("Failed to save the generated LLM text to the database."));
+
+      return withCors(req, ok({ success: true, message: "LLM.txt generated successfully.", data: { llm_txt: llmTxt } }));
     }
 
-    const { website_title, metatags, extracted_content, llm_txt } = parsedResult;
 
-    // 6. Update database
-    const { error: updateErr } = await sb
-      .from("tenants")
-      .update({
-        website_title: website_title || null,
-        metatags: metatags || null,
-        extracted_content: extracted_content || null,
-        llm_txt: llm_txt || null,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", tenantId);
-
-    if (updateErr) {
-      console.error("[get-website-information] DB update error:", updateErr);
-      return withCors(req, serverError("Failed to save the extracted information to the database."));
-    }
-
-    // 7. Return success
-    return withCors(req, ok({ 
-      success: true, 
-      message: "Information extracted and saved successfully.",
-      data: parsedResult
-    }));
 
   } catch (err: unknown) {
     console.error("[get-website-information]", err);

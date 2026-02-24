@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Globe, FileText, Search, Download, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Globe, FileText, Search, Download, AlertCircle, CheckCircle2, Upload, HelpCircle, RefreshCw, X, LayoutTemplate, Code } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
@@ -9,28 +10,86 @@ export function LlmTextPage() {
   const { t } = useTranslation();
   const { currentTenant, refreshTenant } = useTenant();
   const { showToast } = useToast();
-  const [fetchingDomainInfo, setFetchingDomainInfo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [uploadingSitemap, setUploadingSitemap] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [previewTab, setPreviewTab] = useState<'preview' | 'raw'>('preview');
 
-  const handleGetInformation = async () => {
+  const handleExtract = async () => {
     if (!currentTenant?.main_domain) {
       showToast(t('llmText.errorNoDomain', 'No main domain configured. Please add one in Settings.'), 'error');
       return;
     }
 
-    setFetchingDomainInfo(true);
+    setExtracting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('get-website-information', {});
+      const { data, error } = await supabase.functions.invoke('get-website-information', {
+        body: { action: 'extract' }
+      });
 
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error?.message || 'Failed to fetch information');
+      if (!data?.success) throw new Error(data?.error?.message || 'Failed to extract information');
 
-      showToast(t('llmText.fetchSuccess', 'Website information extracted successfully!'), 'success');
-      await refreshTenant(); // Reload data to show populated fields
+      showToast(t('llmText.extractSuccess', 'Website information extracted successfully!'), 'success');
+      await refreshTenant();
     } catch (err: any) {
       console.error(err);
-      showToast(err.message || t('llmText.fetchError', 'An error occurred while fetching information'), 'error');
+      showToast(err.message || t('llmText.extractError', 'An error occurred while extracting information'), 'error');
     } finally {
-      setFetchingDomainInfo(false);
+      setExtracting(false);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!currentTenant?.extracted_content) {
+      showToast(t('llmText.errorNoContent', 'Please extract information first.'), 'error');
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-website-information', {
+        body: { action: 'generate' }
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error?.message || 'Failed to generate LLM.txt');
+
+      showToast(t('llmText.generateSuccess', 'LLM.txt generated successfully!'), 'success');
+      await refreshTenant();
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || t('llmText.generateError', 'An error occurred while generating LLM.txt'), 'error');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!currentTenant?.main_domain) {
+      showToast(t('llmText.errorNoDomain', 'No main domain configured.'), 'error');
+      return;
+    }
+
+    setVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-website-information', {
+        body: { action: 'verify' }
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error?.message || 'Failed to verify llm.txt');
+
+      showToast(t('llmText.verifySuccess', 'Status verified successfully!'), 'success');
+      await refreshTenant();
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || t('llmText.verifyError', 'An error occurred while verifying llm.txt'), 'error');
+    } finally {
+      setVerifying(false);
     }
   };
 
@@ -46,6 +105,37 @@ export function LlmTextPage() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !currentTenant) return;
+
+    if (!file.name.endsWith('.xml')) {
+      showToast(t('llmText.invalidFileType', 'Please upload a valid .xml sitemap file.'), 'error');
+      return;
+    }
+
+    setUploadingSitemap(true);
+    try {
+      const text = await file.text();
+
+      const { error } = await supabase
+        .from('tenants')
+        .update({ sitemap_xml: text, updated_at: new Date().toISOString() })
+        .eq('id', currentTenant.id);
+
+      if (error) throw error;
+
+      showToast(t('llmText.sitemapUploadSuccess', 'Sitemap uploaded successfully!'), 'success');
+      await refreshTenant();
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || t('llmText.sitemapUploadError', 'Failed to upload sitemap.'), 'error');
+    } finally {
+      setUploadingSitemap(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   return (
@@ -85,6 +175,90 @@ export function LlmTextPage() {
                 </div>
               </div>
 
+              {currentTenant?.main_domain && (
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-medium text-text-muted uppercase tracking-wider block">
+                      {t('llmText.llmTxtStatus', 'llm.txt Live Status')}
+                    </label>
+                    <button 
+                      onClick={() => setShowInfoModal(true)}
+                      className="text-text-muted hover:text-brand-primary transition-colors flex items-center gap-1 text-xs"
+                    >
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      {t('llmText.deploymentTip', 'Deployment Tip')}
+                    </button>
+                  </div>
+                  <div className="p-3 bg-bg-primary border border-glass-border rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                       {currentTenant?.llm_txt_status === 'updated' && (
+                          <span className="text-success font-medium flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4" />
+                            {t('llmText.statusUpdated', 'Updated & Live')}
+                          </span>
+                       )}
+                       {currentTenant?.llm_txt_status === 'outdated' && (
+                          <span className="text-warning font-medium flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4" />
+                            {t('llmText.statusOutdated', 'Outdated Deployment')}
+                          </span>
+                       )}
+                       {(!currentTenant?.llm_txt_status || currentTenant?.llm_txt_status === 'missing') && (
+                          <span className="text-text-muted italic flex items-center gap-2">
+                            <AlertCircle className="w-4 h-4" />
+                            {t('llmText.statusMissing', 'Missing from Server')}
+                          </span>
+                       )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <label className="text-xs font-medium text-text-muted uppercase tracking-wider block mb-1">
+                  {t('llmText.sitemapStatus', 'Sitemap Status')}
+                </label>
+                <div className="p-3 bg-bg-primary border border-glass-border rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {currentTenant?.sitemap_xml ? (
+                      <span className="text-success font-medium flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" />
+                        {t('llmText.sitemapPresent', 'Sitemap Present')}
+                      </span>
+                    ) : (
+                      <span className="text-text-muted italic flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        {t('llmText.sitemapMissing', 'Sitemap Not Uploaded')}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                      accept=".xml"
+                      className="hidden"
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingSitemap}
+                      className="text-brand-primary hover:text-brand-secondary text-sm font-medium transition-colors flex items-center gap-1"
+                    >
+                      {uploadingSitemap ? (
+                        <Search className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Upload className="w-4 h-4" />
+                      )}
+                      {t('common.upload', 'Upload')}
+                    </button>
+                  </div>
+                </div>
+                {!currentTenant?.sitemap_xml && (
+                   <p className="text-xs text-text-muted mt-1 ml-1">{t('llmText.sitemapHint', 'We will try to fetch it automatically, but you can override it here.')}</p>
+                )}
+              </div>
+
               {!currentTenant?.main_domain && (
                 <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg flex items-start gap-2 text-warning text-sm">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -93,23 +267,63 @@ export function LlmTextPage() {
               )}
 
               {/* Actions Section */}
-              <button
-                onClick={handleGetInformation}
-                disabled={fetchingDomainInfo || !currentTenant?.main_domain}
-                className="btn btn-primary w-full py-2.5 flex items-center justify-center gap-2"
-              >
-                {fetchingDomainInfo ? (
-                  <>
-                    <Search className="w-4 h-4 animate-spin" />
-                    {t('llmText.analyzing', 'Analyzing website...')}
-                  </>
-                ) : (
-                  <>
-                    <Search className="w-4 h-4" />
-                    {t('llmText.getInformation', 'Get Information')}
-                  </>
+              <div className="space-y-3">
+                <button
+                  onClick={handleExtract}
+                  disabled={extracting || generating || !currentTenant?.main_domain}
+                  className="btn btn-primary w-full py-2.5 flex items-center justify-center gap-2"
+                >
+                  {extracting ? (
+                    <>
+                      <Search className="w-4 h-4 animate-spin" />
+                      {t('llmText.extracting', 'Extracting...')}
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4" />
+                      {t('llmText.extractInformation', 'Extract Information')}
+                    </>
+                  )}
+                </button>
+
+                <button
+                  onClick={handleGenerate}
+                  disabled={generating || extracting || !currentTenant?.extracted_content}
+                  className="btn bg-brand-secondary hover:bg-brand-primary text-white w-full py-2.5 flex items-center justify-center gap-2"
+                >
+                  {generating ? (
+                    <>
+                      <FileText className="w-4 h-4 animate-spin" />
+                      {t('llmText.generating', 'Generating...')}
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4" />
+                      {t('llmText.generateLlmTxt', 'Generate LLM.txt')}
+                    </>
+                  )}
+                </button>
+
+                {currentTenant?.llm_txt && (
+                  <button
+                    onClick={handleVerify}
+                    disabled={verifying || extracting || generating || !currentTenant?.main_domain}
+                    className="btn bg-bg-secondary hover:bg-glass-hover text-text-primary border border-glass-border w-full py-2.5 flex items-center justify-center gap-2"
+                  >
+                    {verifying ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        {t('llmText.verifying', 'Verifying...')}
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        {t('llmText.verifyLive', 'Verify Live llm.txt')}
+                      </>
+                    )}
+                  </button>
                 )}
-              </button>
+              </div>
 
               {currentTenant?.llm_txt && (
                 <div className="pt-4 border-t border-glass-border space-y-3">
@@ -176,13 +390,39 @@ export function LlmTextPage() {
               </h2>
             </div>
             
-            <div className="bg-[#1e1e1e] rounded-lg border border-glass-border p-4 overflow-x-auto">
+            <div className="bg-[#1e1e1e] rounded-lg border border-glass-border overflow-hidden">
               {currentTenant?.llm_txt ? (
-                <pre className="text-sm font-mono text-[#d4d4d4] whitespace-pre-wrap">
-                  {currentTenant.llm_txt}
-                </pre>
+                <>
+                  <div className="flex items-center gap-1 p-1.5 border-b border-white/5 bg-black/20">
+                    <button
+                      onClick={() => setPreviewTab('preview')}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${previewTab === 'preview' ? 'bg-white/10 text-brand-secondary shadow-sm' : 'text-text-muted hover:text-text-primary hover:bg-white/5'}`}
+                    >
+                      <LayoutTemplate className="w-4 h-4" />
+                      {t('llmText.renderedPreview', 'Rendered Preview')}
+                    </button>
+                    <button
+                      onClick={() => setPreviewTab('raw')}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors flex items-center gap-2 ${previewTab === 'raw' ? 'bg-white/10 text-brand-secondary shadow-sm' : 'text-text-muted hover:text-text-primary hover:bg-white/5'}`}
+                    >
+                      <Code className="w-4 h-4" />
+                      {t('llmText.rawMarkdown', 'Raw Markdown')}
+                    </button>
+                  </div>
+                  <div className="p-4 overflow-y-auto max-h-[600px] custom-scrollbar">
+                    {previewTab === 'raw' ? (
+                      <pre className="text-sm font-mono text-[#d4d4d4] whitespace-pre-wrap">
+                        {currentTenant.llm_txt}
+                      </pre>
+                    ) : (
+                      <div className="prose prose-invert prose-sm max-w-none prose-a:text-brand-primary prose-a:no-underline hover:prose-a:underline">
+                        <ReactMarkdown>{currentTenant.llm_txt}</ReactMarkdown>
+                      </div>
+                    )}
+                  </div>
+                </>
               ) : (
-                <div className="h-[200px] flex flex-col items-center justify-center text-text-muted">
+                <div className="h-[200px] flex flex-col items-center justify-center text-text-muted p-4">
                   <FileText className="w-8 h-8 opacity-20 mb-2" />
                   <p className="text-sm">{t('llmText.noPreview', 'Run extraction to generate llm.txt preview')}</p>
                 </div>
@@ -192,6 +432,49 @@ export function LlmTextPage() {
         </div>
 
       </div>
+
+      {/* Info Modal */}
+      {showInfoModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowInfoModal(false)} />
+          <div className="relative bg-[#1e1e1e] border border-glass-border rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-5 border-b border-white/10">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <Globe className="w-5 h-5 text-brand-primary" />
+                {t('llmText.howToDeploy', 'How to Deploy llm.txt')}
+              </h3>
+              <button 
+                onClick={() => setShowInfoModal(false)}
+                className="p-2 -mr-2 text-white/60 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="p-6 space-y-4 text-sm text-text-secondary leading-relaxed">
+              <p>
+                {t('llmText.deployInstruction1', 'To make this file available to AI scrapers and search platforms, you must host it at the root of your main domain.')}
+              </p>
+              <div className="bg-bg-primary border border-white/5 rounded-lg p-3 font-mono text-xs text-brand-primary/80">
+                https://{currentTenant?.main_domain}/llm.txt
+              </div>
+              <ul className="list-disc pl-5 space-y-2">
+                <li>{t('llmText.deployStep1', 'Download the generated llm.txt file using the download button.')}</li>
+                <li>{t('llmText.deployStep2', 'Upload the text file to the "public" folder (or root directory) of your hosting provider.')}</li>
+                <li>{t('llmText.deployStep3', 'Ensure it is publicly accessible without authentication.')}</li>
+                <li>{t('llmText.deployStep4', 'Click "Verify Live llm.txt" to check if our servers can detect the correct version.')}</li>
+              </ul>
+            </div>
+            <div className="p-5 border-t border-white/10 flex justify-end">
+              <button 
+                onClick={() => setShowInfoModal(false)}
+                className="btn btn-primary"
+              >
+                {t('common.gotIt', 'Got it')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

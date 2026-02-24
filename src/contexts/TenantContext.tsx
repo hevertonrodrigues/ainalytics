@@ -14,7 +14,7 @@ interface TenantContextValue {
 const TenantContext = createContext<TenantContextValue | null>(null);
 
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const { tenants: authTenants } = useAuth();
+  const { tenants: authTenants, refreshAuth } = useAuth();
 
   // Local overlay so we can patch plan_id without refetching
   const [planOverrides, setPlanOverrides] = useState<Record<string, string>>({});
@@ -48,22 +48,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   /** Refresh the current tenant from the database */
   const refreshTenant = useCallback(async () => {
-    if (!currentTenant) return;
-    try {
-      // @ts-ignore Ignore supabase import errors for now, assuming auth context refetches if needed or we manually fetch it
-      const { data, error } = await supabase
-        .from('tenants')
-        .select('*')
-        .eq('id', currentTenant.id)
-        .single();
-        
-      if (!error && data) {
-         window.location.reload(); // Simple refresh for now to cascade through AuthContext
-      }
-    } catch (e) {
-       console.error(e);
+    if (refreshAuth) {
+      await refreshAuth();
     }
-  }, [currentTenant]);
+  }, [refreshAuth]);
 
   return (
     <TenantContext.Provider value={{ currentTenant, tenants, switchTenant, updateTenantPlanId, refreshTenant }}>
