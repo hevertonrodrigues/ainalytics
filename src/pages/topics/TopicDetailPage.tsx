@@ -6,13 +6,13 @@ import {
   Pencil,
   Trash2,
   ArrowLeft,
-  X,
   MessageSquare,
   Search,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
-import type { Topic, Prompt, CreatePromptInput, UpdatePromptInput } from '@/types';
+import { PromptForm } from '@/components/PromptForm';
+import type { Topic, Prompt } from '@/types';
 
 type FormMode = 'closed' | 'create' | 'edit';
 
@@ -29,15 +29,11 @@ export function TopicDetailPage() {
 
   // Form state
   const [formMode, setFormMode] = useState<FormMode>('closed');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formText, setFormText] = useState('');
-  const [formDesc, setFormDesc] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
 
   const loadData = useCallback(async () => {
     if (!topicId) return;
     try {
-      // Load topic info and prompts in parallel
       const [topicsRes, promptsRes] = await Promise.all([
         apiClient.get<Topic[]>('/topics-prompts'),
         apiClient.get<Prompt[]>(`/topics-prompts/prompts?topicId=${topicId}`),
@@ -62,57 +58,23 @@ export function TopicDetailPage() {
 
   const openCreate = () => {
     setFormMode('create');
-    setEditingId(null);
-    setFormText('');
-    setFormDesc('');
+    setEditingPrompt(null);
   };
 
   const openEdit = (prompt: Prompt) => {
     setFormMode('edit');
-    setEditingId(prompt.id);
-    setFormText(prompt.text);
-    setFormDesc(prompt.description || '');
+    setEditingPrompt(prompt);
   };
 
   const closeForm = () => {
     setFormMode('closed');
-    setEditingId(null);
-    setFormText('');
-    setFormDesc('');
+    setEditingPrompt(null);
     setError('');
   };
 
-  const handleSubmit = async () => {
-    if (!formText.trim()) return;
-    setSaving(true);
-    setError('');
-
-    try {
-      if (formMode === 'create') {
-        const input: CreatePromptInput = {
-          topic_id: topicId!,
-          text: formText.trim(),
-          description: formDesc.trim() || undefined,
-        };
-        await apiClient.post('/topics-prompts/prompts', input);
-        showToast(t('prompts.created'));
-      } else {
-        const input: UpdatePromptInput = {
-          id: editingId!,
-          text: formText.trim(),
-          description: formDesc.trim() || undefined,
-        };
-        await apiClient.put('/topics-prompts/prompts', input);
-        showToast(t('prompts.updated'));
-      }
-      closeForm();
-      await loadData();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : t('common.error');
-      setError(msg);
-    } finally {
-      setSaving(false);
-    }
+  const handleFormSuccess = () => {
+    closeForm();
+    loadData();
   };
 
   const handleDelete = async (id: string) => {
@@ -202,62 +164,13 @@ export function TopicDetailPage() {
 
       {/* Create/Edit Form */}
       {formMode !== 'closed' && (
-        <div className="dashboard-card p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-text-primary">
-              {formMode === 'create' ? t('prompts.newPrompt') : t('prompts.editPrompt')}
-            </h2>
-            <button onClick={closeForm} className="icon-btn">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          {error && (
-            <div className="p-3 rounded-xs bg-error/10 border border-error/20 text-error text-sm">
-              {error}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
-              {t('prompts.text')} *
-            </label>
-            <input
-              type="text"
-              value={formText}
-              onChange={(e) => setFormText(e.target.value)}
-              placeholder={t('prompts.textPlaceholder')}
-              className="input-field"
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">
-              {t('prompts.description')}
-            </label>
-            <input
-              type="text"
-              value={formDesc}
-              onChange={(e) => setFormDesc(e.target.value)}
-              placeholder={t('prompts.descriptionPlaceholder')}
-              className="input-field"
-            />
-          </div>
-
-          <div className="flex items-center gap-2 pt-1">
-            <button
-              onClick={handleSubmit}
-              disabled={saving || !formText.trim()}
-              className="btn btn-primary btn-sm"
-            >
-              {saving ? t('common.loading') : formMode === 'create' ? t('common.create') : t('common.save')}
-            </button>
-            <button onClick={closeForm} className="btn btn-ghost btn-sm">
-              {t('common.cancel')}
-            </button>
-          </div>
-        </div>
+        <PromptForm
+          topicId={topicId!}
+          prompt={editingPrompt}
+          onSuccess={handleFormSuccess}
+          onCancel={closeForm}
+          variant="card"
+        />
       )}
 
       {/* Prompts List */}

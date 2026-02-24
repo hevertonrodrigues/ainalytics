@@ -7,14 +7,13 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
-  X,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
-import type { Topic, Prompt, CreatePromptInput, UpdatePromptInput } from '@/types';
+import { PromptForm } from '@/components/PromptForm';
+import type { Topic, Prompt } from '@/types';
 
 type FormMode = 'closed' | 'create' | 'edit';
-const PROMPT_MAX_LENGTH = 500;
 
 interface TopicWithPrompts extends Topic {
   prompts_list: Prompt[];
@@ -35,10 +34,7 @@ export function PromptsPage() {
   // Form state
   const [formMode, setFormMode] = useState<FormMode>('closed');
   const [formTopicId, setFormTopicId] = useState<string | null>(null);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [formText, setFormText] = useState('');
-  const [formDesc, setFormDesc] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
 
   const loadAll = useCallback(async () => {
     try {
@@ -75,62 +71,29 @@ export function PromptsPage() {
   const openCreate = (topicId: string) => {
     setFormMode('create');
     setFormTopicId(topicId);
-    setEditingId(null);
-    setFormText('');
-    setFormDesc('');
+    setEditingPrompt(null);
     setError('');
   };
 
   const openEdit = (prompt: Prompt) => {
     setFormMode('edit');
     setFormTopicId(prompt.topic_id);
-    setEditingId(prompt.id);
-    setFormText(prompt.text);
-    setFormDesc(prompt.description || '');
+    setEditingPrompt(prompt);
     setError('');
   };
 
   const closeForm = () => {
     setFormMode('closed');
     setFormTopicId(null);
-    setEditingId(null);
-    setFormText('');
-    setFormDesc('');
+    setEditingPrompt(null);
     setError('');
   };
 
-  const handleSubmit = async () => {
-    if (!formText.trim()) return;
-    setSaving(true);
-    setError('');
-
-    try {
-      if (formMode === 'create') {
-        const input: CreatePromptInput = {
-          topic_id: formTopicId!,
-          text: formText.trim(),
-          description: formDesc.trim() || undefined,
-        };
-        await apiClient.post('/topics-prompts/prompts', input);
-        showToast(t('prompts.created'));
-      } else {
-        const input: UpdatePromptInput = {
-          id: editingId!,
-          text: formText.trim(),
-          description: formDesc.trim() || undefined,
-        };
-        await apiClient.put('/topics-prompts/prompts', input);
-        showToast(t('prompts.updated'));
-      }
-      closeForm();
-      await loadAll();
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : t('common.error');
-      setError(msg);
-    } finally {
-      setSaving(false);
-    }
+  const handleFormSuccess = () => {
+    closeForm();
+    loadAll();
   };
+
 
   const handleDelete = async (id: string) => {
     if (!confirm(t('prompts.confirmDelete'))) return;
@@ -324,62 +287,13 @@ export function PromptsPage() {
 
               {/* Inline form for this topic */}
               {formMode !== 'closed' && formTopicId === group.id && (
-                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="border-t border-glass-border p-4 space-y-3 bg-bg-tertiary/30">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold text-text-secondary">
-                      {formMode === 'create' ? t('prompts.newPrompt') : t('prompts.editPrompt')}
-                    </h3>
-                    <button onClick={closeForm} type="button" className="icon-btn">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-
-                  {error && (
-                    <div className="p-2 rounded-xs bg-error/10 border border-error/20 text-error text-xs">
-                      {error}
-                    </div>
-                  )}
-
-                  <div>
-                    <input
-                      type="text"
-                      value={formText}
-                      onChange={(e) => setFormText(e.target.value)}
-                      placeholder={t('prompts.textPlaceholder')}
-                      maxLength={PROMPT_MAX_LENGTH}
-                      className="input-field text-sm"
-                      autoFocus
-                    />
-                    <div className={`flex justify-end mt-1 text-xs ${
-                      formText.length >= PROMPT_MAX_LENGTH
-                        ? 'text-error'
-                        : formText.length >= PROMPT_MAX_LENGTH * 0.9
-                          ? 'text-warning'
-                          : 'text-text-muted'
-                    }`}>
-                      {t('prompts.charCount', { count: formText.length, max: PROMPT_MAX_LENGTH })}
-                    </div>
-                  </div>
-                  <input
-                    type="text"
-                    value={formDesc}
-                    onChange={(e) => setFormDesc(e.target.value)}
-                    placeholder={t('prompts.descriptionPlaceholder')}
-                    className="input-field text-sm"
-                  />
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="submit"
-                      disabled={saving || !formText.trim() || formText.trim().length > PROMPT_MAX_LENGTH}
-                      className="btn btn-primary btn-sm"
-                    >
-                      {saving ? t('common.loading') : formMode === 'create' ? t('common.create') : t('common.save')}
-                    </button>
-                    <button onClick={closeForm} type="button" className="btn btn-ghost btn-sm">
-                      {t('common.cancel')}
-                    </button>
-                  </div>
-                </form>
+                <PromptForm
+                  topicId={group.id}
+                  prompt={editingPrompt}
+                  onSuccess={handleFormSuccess}
+                  onCancel={closeForm}
+                  variant="inline"
+                />
               )}
             </div>
           ))}
