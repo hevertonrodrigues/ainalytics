@@ -80,7 +80,7 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     return badRequest("activation_code is required");
   }
 
-  const code = body.activation_code.trim().toUpperCase();
+  const code = body.activation_code.trim();
   const db = createAdminClient();
 
   // 1. Check if user is owner of the current tenant
@@ -112,7 +112,7 @@ async function handleSelectPlan(req: Request): Promise<Response> {
   const { data: activation, error: activationError } = await db
     .from("activation_plans")
     .select("*")
-    .eq("code", code)
+    .ilike("code", code)
     .single();
 
   if (activationError || !activation) {

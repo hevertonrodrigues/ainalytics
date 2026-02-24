@@ -65,16 +65,60 @@ export function SignUp() {
     return (
       <div className="auth-page">
         <div className="auth-bg" />
-        <div className="w-full max-w-md mx-auto stagger-enter p-4">
-          <div className="glass-card p-10 text-center">
-            <CheckCircle className="w-16 h-16 text-success mx-auto mb-6" />
-            <h1 className="text-3xl font-bold mb-4">{t('auth.checkEmailTitle', 'Check your email')}</h1>
-            <p className="text-text-secondary mb-8">
-              {t('auth.checkEmailDesc', 'We just sent a confirmation link. Please check your inbox (and spam folder) to verify your account before signing in.')}
-            </p>
-            <Link to="/signin" className="btn btn-primary w-full">
-              {t('auth.goToSignIn', 'Go to Sign In')}
-            </Link>
+
+        {/* Decorative side */}
+        <div className="auth-decor">
+          <div className="auth-decor-content">
+            <h2 className="auth-decor-title">{t('auth.startJourney')}</h2>
+            <p className="auth-decor-text">{t('auth.signUpDecor')}</p>
+            <div className="auth-decor-features">
+              <div className="auth-decor-feature">
+                <span className="auth-decor-dot" />
+                {t('auth.decorFeature1')}
+              </div>
+              <div className="auth-decor-feature">
+                <span className="auth-decor-dot" />
+                {t('auth.decorFeature2')}
+              </div>
+              <div className="auth-decor-feature">
+                <span className="auth-decor-dot" />
+                {t('auth.decorFeature3')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Form side */}
+        <div className="auth-form-side">
+          <div className="auth-form-container stagger-enter">
+            <div className="auth-top-bar">
+              <Link to="/" className="auth-logo">
+                <img src="/logo-purple.png" alt="Ainalytics" className="auth-logo-img" />
+                {APP_NAME}
+              </Link>
+              <div className="locale-switcher">
+                {Object.values(LOCALES).map((lng) => (
+                  <button
+                    key={lng}
+                    className={`locale-btn${i18n.language === lng ? ' active' : ''}`}
+                    onClick={() => changeLang(lng)}
+                  >
+                    {LOCALE_LABELS[lng]}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="auth-card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
+              <CheckCircle className="w-16 h-16 text-success mx-auto mb-6" />
+              <h1 className="text-3xl font-bold mb-4">{t('auth.checkEmailTitle', 'Check your email')}</h1>
+              <p className="text-text-secondary mb-8">
+                {t('auth.checkEmailDesc', 'We just sent a confirmation link. Please check your inbox (and spam folder) to verify your account before signing in.')}
+              </p>
+              <Link to="/signin" className="btn btn-primary w-full">
+                {t('auth.goToSignIn', 'Go to Sign In')}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
