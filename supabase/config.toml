@@ -386,3 +386,21 @@ s3_region = "env(S3_REGION)"
 s3_access_key = "env(S3_ACCESS_KEY)"
 # Configures AWS_SECRET_ACCESS_KEY for S3 bucket
 s3_secret_key = "env(S3_SECRET_KEY)"
+
+[functions.interest-leads]
+verify_jwt = false
+
+[functions.plans]
+verify_jwt = false
+
+[functions.platforms]
+verify_jwt = false
+
+[functions.prompt-search]
+verify_jwt = false
+
+[functions.topics-prompts]
+verify_jwt = false
+
+[functions.users-me]
+verify_jwt = false

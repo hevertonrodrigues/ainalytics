@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
-import { Mail, Lock, User, Building2, Phone, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, Building2, Phone, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
 
@@ -26,6 +26,7 @@ export function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -51,10 +52,34 @@ export function SignUp() {
       window.location.href = '/dashboard';
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');
-      setError(msg);
+      if (msg === 'CONFIRM_EMAIL') {
+        setIsSuccess(true);
+      } else {
+        setError(msg);
+      }
       setLoading(false);
     }
   };
+
+  if (isSuccess) {
+    return (
+      <div className="auth-page">
+        <div className="auth-bg" />
+        <div className="w-full max-w-md mx-auto stagger-enter p-4">
+          <div className="glass-card p-10 text-center">
+            <CheckCircle className="w-16 h-16 text-success mx-auto mb-6" />
+            <h1 className="text-3xl font-bold mb-4">{t('auth.checkEmailTitle', 'Check your email')}</h1>
+            <p className="text-text-secondary mb-8">
+              {t('auth.checkEmailDesc', 'We just sent a confirmation link. Please check your inbox (and spam folder) to verify your account before signing in.')}
+            </p>
+            <Link to="/signin" className="btn btn-primary w-full">
+              {t('auth.goToSignIn', 'Go to Sign In')}
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-page">

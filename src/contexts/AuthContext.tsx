@@ -99,7 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (error) throw error;
     if (!data.session) {
-      throw new Error('Account created but auto-login failed. Please sign in manually.');
+      throw new Error('CONFIRM_EMAIL');
     }
 
     const res = await apiClient.get<{ profile: Profile; tenants: Tenant[] }>('/users-me');
