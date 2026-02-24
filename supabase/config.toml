@@ -409,6 +409,9 @@ verify_jwt = false
 [functions.users-me]
 verify_jwt = false
 
+[functions.prompt-search-worker]
+verify_jwt = false
+
 [functions.get-website-information]
 enabled = true
 verify_jwt = true

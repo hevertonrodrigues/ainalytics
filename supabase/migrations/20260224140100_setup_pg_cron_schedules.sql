@@ -18,22 +18,48 @@ SELECT cron.schedule(
   $$SELECT enqueue_hourly_prompts()$$
 );
 
--- ── 2. Every minute: invoke the worker Edge Function ─────────
+-- ── Helper Function to Invoke Worker ─────────────────────────
+-- We use a wrapper function because pg_cron cannot directly read from vault
+-- inside the cron.schedule() string literal effectively for every run.
+CREATE OR REPLACE FUNCTION invoke_prompt_search_worker()
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, vault
+AS $$
+DECLARE
+  v_url TEXT;
+  v_secret TEXT;
+  v_anon_key TEXT;
+BEGIN
+  -- Read from Supabase Vault
+  SELECT decrypted_secret INTO v_url FROM vault.decrypted_secrets WHERE name = 'cron_supabase_url';
+  SELECT decrypted_secret INTO v_secret FROM vault.decrypted_secrets WHERE name = 'cron_secret';
+  SELECT decrypted_secret INTO v_anon_key FROM vault.decrypted_secrets WHERE name = 'cron_anon_key';
+
+  IF v_url IS NOT NULL AND v_secret IS NOT NULL AND v_anon_key IS NOT NULL THEN
+    PERFORM net.http_post(
+      url := v_url || '/functions/v1/prompt-search-worker',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'Authorization', 'Bearer ' || v_anon_key,
+        'x-cron-secret', v_secret
+      ),
+      body := '{}'::jsonb
+    );
+  ELSE
+    RAISE WARNING 'invoke_prompt_search_worker: Missing vault secrets (cron_supabase_url, cron_secret, cron_anon_key)';
+  END IF;
+END;
+$$;
+
+-- ── 2. Every 10 minutes: invoke the worker Edge Function ───────
 -- Uses pg_net to make an HTTP POST to the worker Edge Function.
--- The CRON_SECRET is used for authentication.
+-- The CRON_SECRET is used for authentication via the Vault.
 SELECT cron.schedule(
   'invoke-prompt-search-worker',   -- job name
-  '* * * * *',                     -- every minute
-  $$
-  SELECT net.http_post(
-    url := current_setting('app.settings.supabase_url', true) || '/functions/v1/prompt-search-worker',
-    headers := jsonb_build_object(
-      'Content-Type', 'application/json',
-      'x-cron-secret', current_setting('app.settings.cron_secret', true)
-    ),
-    body := '{}'::jsonb
-  );
-  $$
+  '*/10 * * * *',                  -- every 10 minutes
+  $$SELECT invoke_prompt_search_worker()$$
 );
 
 -- ── 3. Daily cleanup: remove old completed/failed entries ────
