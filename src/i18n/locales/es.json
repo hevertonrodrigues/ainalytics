@@ -170,7 +170,9 @@
     "noPlans": "No hay planes disponibles en este momento.",
     "ownerOnly": "Solo los propietarios de la organización pueden cambiar el plan.",
     "mostPopular": "Más Popular",
-    "contactSales": "Contactar Ventas"
+    "contactSales": "Contactar Ventas",
+    "noPlanTitle": "Sin Plan Seleccionado",
+    "noPlanDesc": "Seleccione un plan para desbloquear todas las funciones."
   },
   "analytics": {
     "totalDocuments": "Total de Documentos",

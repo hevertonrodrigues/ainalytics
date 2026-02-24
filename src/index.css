@@ -207,6 +207,12 @@ h1, h2, h3, h4, h5, h6 {
   flex-shrink: 0;
 }
 
+.nav-link-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ────────────────────────────────────────────────────────────
    Sidebar Action (bottom buttons)
    ──────────────────────────────────────────────────────────── */

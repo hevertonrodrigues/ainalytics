@@ -5,6 +5,7 @@ import { TenantProvider } from '@/contexts/TenantContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ProtectedRoute } from '@/components/guards/ProtectedRoute';
 import { GuestRoute } from '@/components/guards/GuestRoute';
+import { PlanGate } from '@/components/guards/PlanGate';
 import { AppLayout } from '@/components/layout/AppLayout';
 
 // Auth pages
@@ -51,17 +52,22 @@ export function App() {
 
             {/* Protected routes with app shell */}
             <Route path="/dashboard" element={<ProtectedRoute><TenantProvider><AppLayout /></TenantProvider></ProtectedRoute>}>
-              <Route index element={<Dashboard />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="settings" element={<TenantSettings />} />
-              <Route path="topics" element={<TopicsPage />} />
-              <Route path="topics/:id" element={<TopicDetailPage />} />
-              <Route path="topics/:id/answers" element={<TopicAnswersPage />} />
-              <Route path="prompts" element={<PromptsPage />} />
-              <Route path="prompts/:id" element={<PromptDetailPage />} />
-              <Route path="platforms" element={<PlatformsPage />} />
-              <Route path="models" element={<ModelsPage />} />
+              {/* Always accessible — even without a plan */}
               <Route path="plans" element={<PlansPage />} />
+              <Route path="profile" element={<ProfilePage />} />
+
+              {/* Plan-gated — requires tenant to have an active plan */}
+              <Route element={<PlanGate />}>
+                <Route index element={<Dashboard />} />
+                <Route path="settings" element={<TenantSettings />} />
+                <Route path="topics" element={<TopicsPage />} />
+                <Route path="topics/:id" element={<TopicDetailPage />} />
+                <Route path="topics/:id/answers" element={<TopicAnswersPage />} />
+                <Route path="prompts" element={<PromptsPage />} />
+                <Route path="prompts/:id" element={<PromptDetailPage />} />
+                <Route path="platforms" element={<PlatformsPage />} />
+                <Route path="models" element={<ModelsPage />} />
+              </Route>
             </Route>
           </Route>
         </Routes>

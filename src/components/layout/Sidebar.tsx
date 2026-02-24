@@ -17,6 +17,7 @@ import {
   Cpu,
   Layers,
   CreditCard,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -51,9 +52,35 @@ export function Sidebar() {
   const navigate = useNavigate();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
+  const hasPlan = !!currentTenant?.plan_id;
+
   const handleSignOut = async () => {
     await signOut();
     navigate('/', { replace: true });
+  };
+
+  /** Render a nav item — disabled when no plan */
+  const renderNavItem = ({ key, path, icon: Icon }: NavItem) => {
+    if (!hasPlan) {
+      return (
+        <span key={path} className="nav-link nav-link-disabled">
+          <Icon className="nav-link-icon" />
+          <span>{t(key)}</span>
+          <Lock className="w-3 h-3 ml-auto text-text-muted" />
+        </span>
+      );
+    }
+    return (
+      <NavLink
+        key={path}
+        to={path}
+        end={path === '/dashboard'}
+        className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+      >
+        <Icon className="nav-link-icon" />
+        <span>{t(key)}</span>
+      </NavLink>
+    );
   };
 
   return (
@@ -78,37 +105,33 @@ export function Sidebar() {
         </div>
       )}
 
+      {/* No-plan banner */}
+      {!hasPlan && (
+        <div className="mx-3 mt-3 p-3 rounded-lg bg-warning/10 border border-warning/20">
+          <p className="text-xs font-medium text-warning mb-1.5">{t('plans.noPlanTitle')}</p>
+          <p className="text-xs text-text-secondary mb-2">{t('plans.noPlanDesc')}</p>
+          <NavLink
+            to="/dashboard/plans"
+            className="btn btn-primary w-full text-xs py-1.5"
+          >
+            <CreditCard className="w-3.5 h-3.5" />
+            {t('plans.selectPlan')}
+          </NavLink>
+        </div>
+      )}
+
       {/* Navigation */}
       <nav className="flex-1 py-2 px-3 overflow-y-auto">
         {/* Main Section */}
         <div className="section-label">{t('nav.sectionMain')}</div>
         <div className="space-y-0.5">
-          {MAIN_NAV.map(({ key, path, icon: Icon }) => (
-            <NavLink
-              key={path}
-              to={path}
-              end={path === '/dashboard'}
-              className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-            >
-              <Icon className="nav-link-icon" />
-              <span>{t(key)}</span>
-            </NavLink>
-          ))}
+          {MAIN_NAV.map(renderNavItem)}
         </div>
 
         {/* Analytics Section */}
         <div className="section-label mt-4">{t('nav.sectionAnalytics')}</div>
         <div className="space-y-0.5">
-          {ANALYTICS_NAV.map(({ key, path, icon: Icon }) => (
-            <NavLink
-              key={path}
-              to={path}
-              className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-            >
-              <Icon className="nav-link-icon" />
-              <span>{t(key)}</span>
-            </NavLink>
-          ))}
+          {ANALYTICS_NAV.map(renderNavItem)}
         </div>
       </nav>
 
@@ -134,13 +157,21 @@ export function Sidebar() {
 
         {/* Settings */}
         <div className="px-3 pb-1">
-          <NavLink
-            to="/dashboard/settings"
-            className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-          >
-            <Settings className="nav-link-icon" />
-            <span>{t('nav.settings')}</span>
-          </NavLink>
+          {hasPlan ? (
+            <NavLink
+              to="/dashboard/settings"
+              className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+            >
+              <Settings className="nav-link-icon" />
+              <span>{t('nav.settings')}</span>
+            </NavLink>
+          ) : (
+            <span className="nav-link nav-link-disabled">
+              <Settings className="nav-link-icon" />
+              <span>{t('nav.settings')}</span>
+              <Lock className="w-3 h-3 ml-auto text-text-muted" />
+            </span>
+          )}
         </div>
 
         {/* User card with expandable sub-menu */}

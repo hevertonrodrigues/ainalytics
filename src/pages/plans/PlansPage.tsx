@@ -10,7 +10,7 @@ import type { Plan } from '@/types';
 
 export function PlansPage() {
   const { t, i18n } = useTranslation();
-  const { currentTenant } = useTenant();
+  const { currentTenant, updateTenantPlanId } = useTenant();
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
@@ -44,6 +44,7 @@ export function PlansPage() {
     try {
       await apiClient.put('/plans', { plan_id: planId });
       setCurrentPlanId(planId);
+      updateTenantPlanId(planId);
       setSuccess(t('plans.planSelected'));
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {

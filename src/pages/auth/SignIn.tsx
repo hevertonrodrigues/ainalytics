@@ -45,9 +45,6 @@ export function SignIn() {
       {/* Decorative side */}
       <div className="auth-decor">
         <div className="auth-decor-content">
-          <div className="auth-decor-icon">
-            <Sparkles className="w-10 h-10" />
-          </div>
           <h2 className="auth-decor-title">{t('auth.welcomeBack')}</h2>
           <p className="auth-decor-text">{t('auth.signInDecor')}</p>
           <div className="auth-decor-features">
@@ -119,7 +116,7 @@ export function SignIn() {
               <div className="auth-field">
                 <div className="auth-field-header">
                   <label htmlFor="signin-password">{t('auth.password')}</label>
-                  <Link to="/forgot-password" className="auth-forgot">
+                  <Link to="/forgot-password" className="auth-forgot" tabIndex={-1}>
                     {t('auth.forgotPassword')}
                   </Link>
                 </div>

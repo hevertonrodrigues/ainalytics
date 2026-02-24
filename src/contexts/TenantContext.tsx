@@ -7,15 +7,25 @@ interface TenantContextValue {
   currentTenant: Tenant | null;
   tenants: Tenant[];
   switchTenant: (tenantId: string) => void;
+  updateTenantPlanId: (planId: string) => void;
 }
 
 const TenantContext = createContext<TenantContextValue | null>(null);
 
 export function TenantProvider({ children }: { children: ReactNode }) {
-  const { tenants } = useAuth();
+  const { tenants: authTenants } = useAuth();
+
+  // Local overlay so we can patch plan_id without refetching
+  const [planOverrides, setPlanOverrides] = useState<Record<string, string>>({});
 
   const [currentTenantId, setCurrentTenantId] = useState<string>(() => {
     return localStorage.getItem(STORAGE_KEYS.CURRENT_TENANT_ID) || '';
+  });
+
+  // Apply any local plan_id overrides
+  const tenants: Tenant[] = authTenants.map((t) => {
+    const override = planOverrides[t.id];
+    return override !== undefined ? { ...t, plan_id: override } : t;
   });
 
   const currentTenant = tenants.find((t) => t.id === currentTenantId) || tenants[0] || null;
@@ -25,8 +35,18 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     setCurrentTenantId(tenantId);
   }, []);
 
+  /** Update the current tenant's plan_id locally (after API call succeeds) */
+  const updateTenantPlanId = useCallback(
+    (planId: string) => {
+      if (currentTenant) {
+        setPlanOverrides((prev) => ({ ...prev, [currentTenant.id]: planId }));
+      }
+    },
+    [currentTenant],
+  );
+
   return (
-    <TenantContext.Provider value={{ currentTenant, tenants, switchTenant }}>
+    <TenantContext.Provider value={{ currentTenant, tenants, switchTenant, updateTenantPlanId }}>
       {children}
     </TenantContext.Provider>
   );
