@@ -8,6 +8,7 @@ import { GuestRoute } from '@/components/guards/GuestRoute';
 import { PlanGate } from '@/components/guards/PlanGate';
 import { SuperAdminGate } from '@/components/guards/SuperAdminGate';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { LayoutProvider } from '@/contexts/LayoutContext';
 
 // Auth pages
 import { SignIn } from '@/pages/auth/SignIn';
@@ -39,8 +40,9 @@ function AuthOutlet() {
 export function App() {
   return (
     <ThemeProvider>
-      <ToastProvider>
-      <BrowserRouter>
+      <LayoutProvider>
+        <ToastProvider>
+        <BrowserRouter>
         <Routes>
           {/* Public landing page — no auth provider needed */}
           <Route index element={<LandingPage />} />
@@ -82,6 +84,7 @@ export function App() {
         </Routes>
       </BrowserRouter>
       </ToastProvider>
+      </LayoutProvider>
     </ThemeProvider>
   );
 }

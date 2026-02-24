@@ -10,6 +10,8 @@ import {
   HelpCircle,
   Sun,
   Moon,
+  Maximize,
+  Minimize,
   User,
   BookOpen,
   ChevronUp,
@@ -21,6 +23,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useLayout } from '@/contexts/LayoutContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { SearchSelect } from '@/components/ui/SearchSelect';
 
@@ -48,6 +51,7 @@ export function Sidebar() {
   const { signOut, profile } = useAuth();
   const { currentTenant, tenants, switchTenant } = useTenant();
   const { theme, toggleTheme } = useTheme();
+  const { layoutMode, toggleLayoutMode } = useLayout();
   const navigate = useNavigate();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -140,11 +144,16 @@ export function Sidebar() {
 
       {/* Bottom section */}
       <div className="border-t border-glass-border">
-        {/* Theme + Language row */}
+        {/* Theme + Layout + Language row */}
         <div className="px-3 py-2.5 flex items-center justify-between">
-          <button onClick={toggleTheme} className="icon-btn" aria-label="Toggle theme">
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={toggleTheme} className="icon-btn" aria-label="Toggle theme">
+              {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
+            <button onClick={toggleLayoutMode} className="icon-btn" aria-label="Toggle layout">
+              {layoutMode === 'expanded' ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            </button>
+          </div>
           <div className="locale-switcher">
             {Object.values(LOCALES).map((locale) => (
               <button
