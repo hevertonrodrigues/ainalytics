@@ -13,6 +13,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { PricingPlans } from '@/components/PricingPlans';
+import { useCurrency } from '@/hooks/useCurrency';
 import { InterestFormModal } from '@/components/InterestFormModal';
 import { LandingHeader } from './LandingHeader';
 import { LandingHero } from './LandingHero';
@@ -61,6 +62,7 @@ export function LandingPage() {
   const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [interestModalOpen, setInterestModalOpen] = useState(false);
+  const { formatPrice } = useCurrency();
   const revealRef = useScrollReveal();
 
   useEffect(() => {
@@ -219,7 +221,7 @@ export function LandingPage() {
             plans={[
               {
                 name: t('landing.pricing.free.name'),
-                price: t('landing.pricing.free.price'),
+                price: formatPrice(t('landing.pricing.free.price')),
                 priceLabel: t('landing.pricing.monthly'),
                 description: t('landing.pricing.free.description'),
                 cta: t('landing.pricing.free.cta'),
@@ -227,7 +229,7 @@ export function LandingPage() {
               },
               {
                 name: t('landing.pricing.pro.name'),
-                price: t('landing.pricing.pro.price'),
+                price: formatPrice(t('landing.pricing.pro.price')),
                 priceLabel: t('landing.pricing.monthly'),
                 description: t('landing.pricing.pro.description'),
                 cta: t('landing.pricing.pro.cta'),
@@ -236,7 +238,7 @@ export function LandingPage() {
               },
               {
                 name: t('landing.pricing.enterprise.name'),
-                price: t('landing.pricing.enterprise.price'),
+                price: formatPrice(t('landing.pricing.enterprise.price')),
                 priceLabel: t('landing.pricing.monthly'),
                 description: t('landing.pricing.enterprise.description'),
                 cta: t('landing.pricing.enterprise.cta'),

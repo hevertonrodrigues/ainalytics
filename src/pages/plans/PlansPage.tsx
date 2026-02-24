@@ -4,6 +4,7 @@ import { CreditCard, KeyRound, X } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useTenant } from '@/contexts/TenantContext';
 import { PricingPlans } from '@/components/PricingPlans';
+import { useCurrency } from '@/hooks/useCurrency';
 import type { PricingPlan } from '@/components/PricingPlans';
 import { InterestFormModal } from '@/components/InterestFormModal';
 import type { Plan } from '@/types';
@@ -11,6 +12,7 @@ import type { Plan } from '@/types';
 export function PlansPage() {
   const { t, i18n } = useTranslation();
   const { currentTenant, updateTenantPlanId } = useTenant();
+  const { formatPrice: formatCurrency } = useCurrency();
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
@@ -88,7 +90,7 @@ export function PlansPage() {
     if ((plan.settings as Record<string, unknown>)?.custom_pricing) {
       return t('plans.custom');
     }
-    return `$${plan.price}`;
+    return formatCurrency(plan.price);
   };
 
   const getFeatures = (plan: Plan): string[] => {
