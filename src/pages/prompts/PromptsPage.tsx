@@ -324,12 +324,12 @@ export function PromptsPage() {
 
               {/* Inline form for this topic */}
               {formMode !== 'closed' && formTopicId === group.id && (
-                <div className="border-t border-glass-border p-4 space-y-3 bg-bg-tertiary/30">
+                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="border-t border-glass-border p-4 space-y-3 bg-bg-tertiary/30">
                   <div className="flex items-center justify-between">
                     <h3 className="text-xs font-semibold text-text-secondary">
                       {formMode === 'create' ? t('prompts.newPrompt') : t('prompts.editPrompt')}
                     </h3>
-                    <button onClick={closeForm} className="icon-btn">
+                    <button onClick={closeForm} type="button" className="icon-btn">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -369,17 +369,17 @@ export function PromptsPage() {
                   />
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={handleSubmit}
+                      type="submit"
                       disabled={saving || !formText.trim() || formText.trim().length > PROMPT_MAX_LENGTH}
                       className="btn btn-primary btn-sm"
                     >
                       {saving ? t('common.loading') : formMode === 'create' ? t('common.create') : t('common.save')}
                     </button>
-                    <button onClick={closeForm} className="btn btn-ghost btn-sm">
+                    <button onClick={closeForm} type="button" className="btn btn-ghost btn-sm">
                       {t('common.cancel')}
                     </button>
                   </div>
-                </div>
+                </form>
               )}
             </div>
           ))}

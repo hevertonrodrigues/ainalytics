@@ -163,12 +163,12 @@ export function TopicsPage() {
 
       {/* Create/Edit Form */}
       {formMode !== 'closed' && (
-        <div className="dashboard-card p-6 space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="dashboard-card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold text-text-primary">
               {formMode === 'create' ? t('topics.newTopic') : t('topics.editTopic')}
             </h2>
-            <button onClick={closeForm} className="icon-btn">
+            <button onClick={closeForm} type="button" className="icon-btn">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -208,17 +208,17 @@ export function TopicsPage() {
 
           <div className="flex items-center gap-2 pt-1">
             <button
-              onClick={handleSubmit}
+              type="submit"
               disabled={saving || !formName.trim()}
               className="btn btn-primary btn-sm"
             >
               {saving ? t('common.loading') : formMode === 'create' ? t('common.create') : t('common.save')}
             </button>
-            <button onClick={closeForm} className="btn btn-ghost btn-sm">
+            <button onClick={closeForm} type="button" className="btn btn-ghost btn-sm">
               {t('common.cancel')}
             </button>
           </div>
-        </div>
+        </form>
       )}
 
       {/* Topics List */}
