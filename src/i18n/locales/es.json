@@ -112,7 +112,10 @@
     "removed": "Modelo eliminado",
     "activated": "Modelo activado",
     "deactivated": "Modelo desactivado",
-    "webSearch": "Búsqueda Web"
+    "webSearch": "Búsqueda Web",
+    "guardTitle": "No hay modelos activos",
+    "guardMessage": "Para generar indicaciones o temas, debe seleccionar y activar al menos un modelo de IA para esta organización. Configure sus modelos para continuar.",
+    "guardAction": "Configurar Modelos"
   },
   "answers": {
     "title": "Respuestas de Prompts",

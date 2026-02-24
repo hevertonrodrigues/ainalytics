@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
+import { ActiveModelsGuard } from '@/components/guards/ActiveModelsGuard';
 import type { Topic, CreateTopicInput, UpdateTopicInput } from '@/types';
 
 type FormMode = 'closed' | 'create' | 'edit';
@@ -140,8 +141,9 @@ export function TopicsPage() {
   }
 
   return (
-    <div className="stagger-enter space-y-6 max-w-4xl">
-      {/* Header */}
+    <ActiveModelsGuard>
+      <div className="stagger-enter space-y-6 max-w-4xl">
+        {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold text-text-primary">
           {t('topics.title')}
@@ -297,6 +299,7 @@ export function TopicsPage() {
         </div>
       )}
 
-    </div>
+      </div>
+    </ActiveModelsGuard>
   );
 }

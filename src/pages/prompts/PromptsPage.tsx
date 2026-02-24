@@ -11,6 +11,7 @@ import {
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { PromptForm } from '@/components/PromptForm';
+import { ActiveModelsGuard } from '@/components/guards/ActiveModelsGuard';
 import type { Topic, Prompt } from '@/types';
 
 type FormMode = 'closed' | 'create' | 'edit';
@@ -138,8 +139,9 @@ export function PromptsPage() {
   const totalPrompts = groups.reduce((sum, g) => sum + g.prompts_list.length, 0);
 
   return (
-    <div className="stagger-enter space-y-6 max-w-4xl">
-      {/* Header */}
+    <ActiveModelsGuard>
+      <div className="stagger-enter space-y-6 max-w-4xl">
+        {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-text-primary">
@@ -300,6 +302,7 @@ export function PromptsPage() {
         </div>
       )}
 
-    </div>
+      </div>
+    </ActiveModelsGuard>
   );
 }

@@ -16,6 +16,7 @@ import {
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { ActiveModelsGuard } from '@/components/guards/ActiveModelsGuard';
 import type { Prompt, PromptAnswer, Topic, TenantPlatformModel } from '@/types';
 
 export function TopicAnswersPage() {
@@ -175,8 +176,9 @@ export function TopicAnswersPage() {
   }
 
   return (
-    <div className="stagger-enter space-y-6 max-w-5xl">
-      {/* Header */}
+    <ActiveModelsGuard>
+      <div className="stagger-enter space-y-6 max-w-5xl">
+        {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => navigate(`/dashboard/topics/${topicId}`)} className="icon-btn">
           <ArrowLeft className="w-4 h-4" />
@@ -423,6 +425,7 @@ export function TopicAnswersPage() {
         </div>
       )}
 
-    </div>
+      </div>
+    </ActiveModelsGuard>
   );
 }

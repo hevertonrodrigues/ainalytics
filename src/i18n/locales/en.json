@@ -112,7 +112,10 @@
     "removed": "Model removed",
     "activated": "Model activated",
     "deactivated": "Model deactivated",
-    "webSearch": "Web Search"
+    "webSearch": "Web Search",
+    "guardTitle": "No Active Models",
+    "guardMessage": "In order to generate prompts or topics, you must select and activate at least one AI Model for this tenant. Please configure your models to continue.",
+    "guardAction": "Configure Models"
   },
   "answers": {
     "title": "Prompt Answers",

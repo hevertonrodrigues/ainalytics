@@ -12,6 +12,7 @@ import {
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { PromptForm } from '@/components/PromptForm';
+import { ActiveModelsGuard } from '@/components/guards/ActiveModelsGuard';
 import type { Topic, Prompt } from '@/types';
 
 type FormMode = 'closed' | 'create' | 'edit';
@@ -120,126 +121,127 @@ export function TopicDetailPage() {
   if (!topic) return null;
 
   return (
-    <div className="stagger-enter space-y-6 max-w-4xl">
-      {/* Back + Header */}
-      <div>
-        <button
-          onClick={() => navigate('/dashboard/topics')}
-          className="flex items-center gap-1 text-sm text-text-muted hover:text-text-secondary transition-colors mb-3"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t('prompts.backToTopics')}
-        </button>
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-text-primary">{topic.name}</h1>
-            {topic.description && (
-              <p className="text-sm text-text-muted mt-0.5">{topic.description}</p>
+    <ActiveModelsGuard>
+      <div className="stagger-enter space-y-6 max-w-4xl">
+        {/* Back + Header */}
+        <div>
+          <button
+            onClick={() => navigate('/dashboard/topics')}
+            className="flex items-center gap-1 text-sm text-text-muted hover:text-text-secondary transition-colors mb-3"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t('prompts.backToTopics')}
+          </button>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-bold text-text-primary">{topic.name}</h1>
+              {topic.description && (
+                <p className="text-sm text-text-muted mt-0.5">{topic.description}</p>
+              )}
+            </div>
+            {formMode === 'closed' && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate(`/dashboard/topics/${topicId}/answers`)}
+                  className="btn btn-ghost btn-sm"
+                >
+                  <Search className="w-4 h-4" />
+                  {t('answers.title')}
+                </button>
+                <button onClick={openCreate} className="btn btn-primary btn-sm">
+                  <Plus className="w-4 h-4" />
+                  {t('prompts.newPrompt')}
+                </button>
+              </div>
             )}
           </div>
-          {formMode === 'closed' && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => navigate(`/dashboard/topics/${topicId}/answers`)}
-                className="btn btn-ghost btn-sm"
-              >
-                <Search className="w-4 h-4" />
-                {t('answers.title')}
-              </button>
-              <button onClick={openCreate} className="btn btn-primary btn-sm">
-                <Plus className="w-4 h-4" />
-                {t('prompts.newPrompt')}
-              </button>
-            </div>
-          )}
         </div>
-      </div>
 
-      {/* Error */}
-      {error && formMode === 'closed' && (
-        <div className="p-3 rounded-xs bg-error/10 border border-error/20 text-error text-sm">
-          {error}
-        </div>
-      )}
+        {/* Error */}
+        {error && formMode === 'closed' && (
+          <div className="p-3 rounded-xs bg-error/10 border border-error/20 text-error text-sm">
+            {error}
+          </div>
+        )}
 
-      {/* Create/Edit Form */}
-      {formMode !== 'closed' && (
-        <PromptForm
-          topicId={topicId!}
-          prompt={editingPrompt}
-          onSuccess={handleFormSuccess}
-          onCancel={closeForm}
-          variant="card"
-        />
-      )}
+        {/* Create/Edit Form */}
+        {formMode !== 'closed' && (
+          <PromptForm
+            topicId={topicId!}
+            prompt={editingPrompt}
+            onSuccess={handleFormSuccess}
+            onCancel={closeForm}
+            variant="card"
+          />
+        )}
 
-      {/* Prompts List */}
-      {prompts.length === 0 && formMode === 'closed' ? (
-        <div className="dashboard-card p-12 text-center">
-          <MessageSquare className="w-10 h-10 text-text-muted mx-auto mb-3" />
-          <p className="text-text-muted text-sm">{t('prompts.noPrompts')}</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {prompts.map((prompt) => (
-            <div
-              key={prompt.id}
-              className="dashboard-card p-4 flex items-center gap-4 group"
-            >
-              {/* Status dot */}
+        {/* Prompts List */}
+        {prompts.length === 0 && formMode === 'closed' ? (
+          <div className="dashboard-card p-12 text-center">
+            <MessageSquare className="w-10 h-10 text-text-muted mx-auto mb-3" />
+            <p className="text-text-muted text-sm">{t('prompts.noPrompts')}</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {prompts.map((prompt) => (
               <div
-                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                  prompt.is_active ? 'bg-success' : 'bg-text-muted'
-                }`}
-              />
-
-              {/* Content */}
-              <div
-                className="flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => navigate(`/dashboard/prompts/${prompt.id}`)}
+                key={prompt.id}
+                className="dashboard-card p-4 flex items-center gap-4 group"
               >
-                <span className="text-sm font-medium text-text-primary block truncate hover:underline">
-                  {prompt.text}
-                </span>
-                {prompt.description && (
-                  <p className="text-xs text-text-muted truncate mt-0.5">
-                    {prompt.description}
-                  </p>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => handleToggleActive(prompt)}
-                  className={`text-xs px-2 py-1 rounded-xs font-medium transition-colors ${
-                    prompt.is_active
-                      ? 'text-success bg-success/10 hover:bg-success/20'
-                      : 'text-text-muted bg-bg-tertiary hover:bg-glass-hover'
+                {/* Status dot */}
+                <div
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                    prompt.is_active ? 'bg-success' : 'bg-text-muted'
                   }`}
-                >
-                  {prompt.is_active ? t('prompts.active') : t('prompts.inactive')}
-                </button>
-                <button
-                  onClick={() => openEdit(prompt)}
-                  className="icon-btn"
-                  title={t('common.edit')}
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => handleDelete(prompt.id)}
-                  className="icon-btn hover:!text-error"
-                  title={t('common.delete')}
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+                />
 
-    </div>
+                {/* Content */}
+                <div
+                  className="flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+                  onClick={() => navigate(`/dashboard/prompts/${prompt.id}`)}
+                >
+                  <span className="text-sm font-medium text-text-primary block truncate hover:underline">
+                    {prompt.text}
+                  </span>
+                  {prompt.description && (
+                    <p className="text-xs text-text-muted truncate mt-0.5">
+                      {prompt.description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => handleToggleActive(prompt)}
+                    className={`text-xs px-2 py-1 rounded-xs font-medium transition-colors ${
+                      prompt.is_active
+                        ? 'text-success bg-success/10 hover:bg-success/20'
+                        : 'text-text-muted bg-bg-tertiary hover:bg-glass-hover'
+                    }`}
+                  >
+                    {prompt.is_active ? t('prompts.active') : t('prompts.inactive')}
+                  </button>
+                  <button
+                    onClick={() => openEdit(prompt)}
+                    className="icon-btn"
+                    title={t('common.edit')}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(prompt.id)}
+                    className="icon-btn hover:!text-error"
+                    title={t('common.delete')}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </ActiveModelsGuard>
   );
 }
