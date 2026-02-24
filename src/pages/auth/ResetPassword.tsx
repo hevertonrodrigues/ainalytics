@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME } from '@/lib/constants';
@@ -7,10 +7,7 @@ import { APP_NAME } from '@/lib/constants';
 export function ResetPassword() {
   const { t } = useTranslation();
   const { resetPassword } = useAuth();
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-
-  const token = searchParams.get('token') || '';
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -31,7 +28,7 @@ export function ResetPassword() {
 
     setLoading(true);
     try {
-      await resetPassword(token, password);
+      await resetPassword(password);
       navigate('/signin', { replace: true });
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');
@@ -97,7 +94,7 @@ export function ResetPassword() {
 
             <button
               type="submit"
-              disabled={loading || !token}
+              disabled={loading}
               className="btn btn-primary w-full"
             >
               {loading ? t('common.loading') : t('auth.resetPassword')}

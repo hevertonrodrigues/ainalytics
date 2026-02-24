@@ -1,5 +1,6 @@
 import { EDGE_FUNCTION_BASE, SUPABASE_ANON_KEY, STORAGE_KEYS } from './constants';
 import type { ApiResponse, ApiSuccessResponse } from '@/types';
+import { supabase } from './supabase';
 
 /**
  * API client for calling Supabase Edge Functions.
@@ -11,13 +12,27 @@ import type { ApiResponse, ApiSuccessResponse } from '@/types';
  * - Throws on error responses.
  */
 
-function getHeaders(): Record<string, string> {
+async function getHeaders(): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'apikey': SUPABASE_ANON_KEY,
   };
 
-  const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+  // 1. Try to get a fresh token from the Supabase session (handles auto-refresh)
+  // This is safe to call before every request because the GoTrue client caches
+  // the session in memory and only does a network request if the token is expired.
+  const { data: sessionData } = await supabase.auth.getSession();
+  
+  let token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+
+  if (sessionData.session?.access_token) {
+    token = sessionData.session.access_token;
+    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, token);
+    if (sessionData.session.refresh_token) {
+      localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, sessionData.session.refresh_token);
+    }
+  }
+
   headers['Authorization'] = `Bearer ${token || SUPABASE_ANON_KEY}`;
 
   const tenantId = localStorage.getItem(STORAGE_KEYS.CURRENT_TENANT_ID);
@@ -28,22 +43,51 @@ function getHeaders(): Record<string, string> {
   return headers;
 }
 
+async function handleUnauthorized(): Promise<string | null> {
+  // If we got a 401, force a session refresh
+  const { data, error } = await supabase.auth.refreshSession();
+  
+  if (error || !data.session) {
+    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.CURRENT_TENANT_ID);
+    window.location.href = '/signin';
+    return null;
+  }
+  
+  const newToken = data.session.access_token;
+  localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, newToken);
+  if (data.session.refresh_token) {
+    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, data.session.refresh_token);
+  }
+  return newToken;
+}
+
 async function request<T>(
   method: string,
   path: string,
   body?: unknown,
+  isRetry = false
 ): Promise<ApiSuccessResponse<T>> {
   const url = `${EDGE_FUNCTION_BASE}${path}`;
 
   const res = await fetch(url, {
     method,
-    headers: getHeaders(),
+    headers: await getHeaders(),
     body: body ? JSON.stringify(body) : undefined,
   });
 
   const json = (await res.json()) as ApiResponse<T>;
 
   if (!json.success) {
+    // Retry once on 401 with refreshed token
+    if (res.status === 401 && !isRetry) {
+      const newToken = await handleUnauthorized();
+      if (newToken) {
+        return request<T>(method, path, body, true);
+      }
+    }
+    
     const msg = json.error?.message || 'Unknown error';
     const err = new Error(msg) as Error & { code?: string; status?: number };
     err.code = json.error?.code;

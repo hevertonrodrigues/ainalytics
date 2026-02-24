@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import { supabase } from '@/lib/supabase';
 import { apiClient } from '@/lib/api';
 import { STORAGE_KEYS } from '@/lib/constants';
-import type { Profile, Tenant, AuthSession } from '@/types';
+import type { Profile, Tenant } from '@/types';
 
 interface AuthState {
   profile: Profile | null;
@@ -16,7 +16,7 @@ interface AuthContextValue extends AuthState {
   signUp: (email: string, password: string, fullName: string, tenantName: string, phone: string) => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (token: string, password: string) => Promise<void>;
+  resetPassword: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -71,55 +71,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const res = await apiClient.post<AuthSession>('/auth/signin', { email, password });
-    const { access_token, refresh_token, profile, tenants, current_tenant_id } = res.data;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
 
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token);
-    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token);
-    localStorage.setItem(STORAGE_KEYS.CURRENT_TENANT_ID, current_tenant_id);
+    const res = await apiClient.get<{ profile: Profile; tenants: Tenant[] }>('/users-me');
 
-    // Set Supabase session for direct RLS queries (fire-and-forget, don't block)
-    supabase.auth.setSession({ access_token, refresh_token }).catch(() => {});
+    const firstTenant = res.data?.tenants?.[0];
+    if (firstTenant) {
+      localStorage.setItem(STORAGE_KEYS.CURRENT_TENANT_ID, firstTenant.id);
+    }
 
-    // Tokens are saved — the caller will do window.location.href = '/' for a full reload
-    setState({ profile, tenants, loading: false, initialized: true });
+    setState({ profile: res.data?.profile || null, tenants: res.data?.tenants || [], loading: false, initialized: true });
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, fullName: string, tenantName: string, phone: string) => {
-    const res = await apiClient.post<AuthSession>('/auth/signup', {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      full_name: fullName,
-      tenant_name: tenantName,
-      phone,
+      options: {
+        data: {
+          full_name: fullName,
+          tenant_name: tenantName,
+          phone,
+        },
+      },
     });
-    const { access_token, refresh_token, profile, tenants, current_tenant_id } = res.data;
 
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, access_token);
-    localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refresh_token);
-    localStorage.setItem(STORAGE_KEYS.CURRENT_TENANT_ID, current_tenant_id);
+    if (error) throw error;
+    if (!data.session) {
+      throw new Error('Account created but auto-login failed. Please sign in manually.');
+    }
 
-    // Set Supabase session for direct RLS queries (fire-and-forget, don't block)
-    supabase.auth.setSession({ access_token, refresh_token }).catch(() => {});
+    const res = await apiClient.get<{ profile: Profile; tenants: Tenant[] }>('/users-me');
 
-    // Tokens are saved — the caller will do window.location.href = '/' for a full reload
-    setState({ profile, tenants, loading: false, initialized: true });
+    const firstTenant = res.data?.tenants?.[0];
+    if (firstTenant) {
+      localStorage.setItem(STORAGE_KEYS.CURRENT_TENANT_ID, firstTenant.id);
+    }
+
+    setState({ profile: res.data?.profile || null, tenants: res.data?.tenants || [], loading: false, initialized: true });
   }, []);
 
   const signOut = useCallback(async () => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.CURRENT_TENANT_ID);
-    supabase.auth.signOut().catch(() => {});
+    await supabase.auth.signOut();
     setState({ profile: null, tenants: [], loading: false, initialized: true });
   }, []);
 
   const forgotPassword = useCallback(async (email: string) => {
-    await apiClient.post('/auth/forgot-password', { email });
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
   }, []);
 
-  const resetPassword = useCallback(async (token: string, password: string) => {
-    await apiClient.post('/auth/reset-password', { token, password });
+  const resetPassword = useCallback(async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
   }, []);
 
   return (

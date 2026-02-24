@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Send, CheckCircle, AlertCircle } from 'lucide-react';
-import { EDGE_FUNCTION_BASE } from '@/lib/constants';
+import { EDGE_FUNCTION_BASE, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
 
 interface InterestFormModalProps {
@@ -72,7 +72,10 @@ export function InterestFormModal({ open, onClose }: InterestFormModalProps) {
     try {
       const res = await fetch(`${EDGE_FUNCTION_BASE}/interest-leads`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+        },
         body: JSON.stringify({
           name: name.trim(),
           email: email.trim(),
