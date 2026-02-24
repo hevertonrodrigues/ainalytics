@@ -31,7 +31,7 @@ export function SourceDetailModal({ isOpen, onClose, sourceId, sourceDomain }: S
           .select(`
             *,
             prompt:prompts(text),
-            answer:prompt_answers(platform_slug, model)
+            answer:prompt_answers(platform_slug, model_id)
           `)
           .eq('source_id', sourceId)
           .order('created_at', { ascending: false });
@@ -115,7 +115,7 @@ export function SourceDetailModal({ isOpen, onClose, sourceId, sourceDomain }: S
                         <span className="px-1.5 py-0.5 rounded-sm bg-bg-tertiary">
                           {ref.answer?.platform_slug || 'AI'} 
                         </span>
-                        {ref.answer?.model && <span>• {ref.answer.model}</span>}
+                        {ref.answer?.model_id && <span>• {ref.answer.model_id}</span>}
                         <span>• {new Date(ref.created_at).toLocaleDateString()}</span>
                       </div>
                     </div>

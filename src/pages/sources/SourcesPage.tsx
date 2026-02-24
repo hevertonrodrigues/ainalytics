@@ -1,19 +1,33 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, ChevronRight, Globe } from 'lucide-react';
+import { Search, Globe, ChevronDown, ChevronUp, MessageSquare, ExternalLink, Quote } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import type { Source } from '@/types';
 import { SourceDetailModal } from './SourceDetailModal';
 
+type SourceWithReferences = Source & {
+  prompt_answer_sources: any[];
+};
+
 export function SourcesPage() {
   const { t } = useTranslation();
 
-  const [sources, setSources] = useState<Source[]>([]);
+  const [sources, setSources] = useState<SourceWithReferences[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+  const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedSources(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   const loadSources = useCallback(async () => {
     try {
@@ -21,7 +35,14 @@ export function SourcesPage() {
       
       const { data, error: fetchErr } = await supabase
         .from('sources')
-        .select('*')
+        .select(`
+          *,
+          prompt_answer_sources(
+            id, url, title, annotation, created_at,
+            prompt:prompts(text),
+            answer:prompt_answers(platform_slug, model_id)
+          )
+        `)
         .order('domain', { ascending: true });
         
       if (fetchErr) throw fetchErr;
@@ -95,31 +116,109 @@ export function SourcesPage() {
           <p className="text-text-muted text-sm">{searchTerm ? t('common.noResults') : t('common.noResults')}</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredSources.map((source) => (
-            <button
-              key={source.id}
-              onClick={() => setSelectedSourceId(source.id)}
-              className="dashboard-card p-5 flex flex-col items-start text-left hover:border-brand-primary/50 transition-colors group"
-            >
-              <div className="flex w-full items-start justify-between mb-3">
-                <div className="p-2 rounded-full bg-brand-primary/10 text-brand-primary">
-                  <Globe className="w-4 h-4" />
+        <div className="flex flex-col space-y-3">
+          {filteredSources.map((source) => {
+            const isExpanded = expandedSources.has(source.id);
+            const references = source.prompt_answer_sources || [];
+            // sort references by newest first inside JS
+            const sortedRefs = [...references].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            
+            return (
+              <div key={source.id} className="dashboard-card overflow-hidden">
+                {/* Main line */}
+                <div 
+                  className="p-4 flex items-center justify-between cursor-pointer hover:bg-glass-hover transition-colors"
+                  onClick={() => toggleExpand(source.id)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-full bg-brand-primary/10 text-brand-primary shrink-0">
+                      <Globe className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-text-primary" title={source.domain}>
+                        {source.domain}
+                      </h3>
+                      {source.name && (
+                        <p className="text-xs text-text-muted mt-0.5 line-clamp-1" title={source.name}>
+                          {source.name}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-text-muted">
+                    <span>{references.length} {t('sources.detailTitle', { defaultValue: 'References' })}</span>
+                    {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                  </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                
+                {/* Expanded content */}
+                {isExpanded && references.length > 0 && (
+                  <div className="border-t border-glass-border bg-bg-secondary/30 p-4">
+                    <div className="space-y-3">
+                      {sortedRefs.slice(0, 3).map((ref) => (
+                        <div key={ref.id} className="p-3 rounded-md bg-bg-primary border border-glass-border shadow-sm">
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-2">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <MessageSquare className="w-3.5 h-3.5 text-brand-primary" />
+                                <span className="text-sm font-medium text-text-primary truncate">
+                                  {ref.prompt?.text || t('sources.prompt')}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2 text-xs text-text-muted">
+                                <span className="px-1.5 py-0.5 rounded-sm bg-bg-tertiary">
+                                  {ref.answer?.platform_slug || 'AI'} 
+                                </span>
+                                {ref.answer?.model_id && <span>• {ref.answer.model_id}</span>}
+                                <span>• {new Date(ref.created_at).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                            <a 
+                              href={ref.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-xs text-brand-primary hover:underline whitespace-nowrap bg-brand-primary/10 px-2 py-1.5 rounded-sm"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              {t('sources.openUrl', { defaultValue: 'Open URL' })}
+                            </a>
+                          </div>
+                          {ref.title && (
+                            <div className="text-xs font-medium text-text-secondary line-clamp-1 mb-1.5">
+                              {ref.title}
+                            </div>
+                          )}
+                          {ref.annotation && (
+                            <div className="mt-2 p-2 rounded-sm bg-bg-tertiary/50 border-l-2 border-brand-accent flex gap-2 text-xs">
+                              <Quote className="w-3 h-3 text-brand-accent/60 shrink-0 mt-0.5" />
+                              <p className="text-text-primary font-serif italic line-clamp-2">
+                                "{ref.annotation}"...
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {references.length > 0 && (
+                      <div className="mt-3 flex justify-end">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedSourceId(source.id);
+                          }}
+                          className="text-sm font-medium text-brand-primary hover:text-brand-secondary transition-colors"
+                        >
+                          {t('common.viewAll', { defaultValue: 'View all' })} ({references.length}) →
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              
-              <h3 className="text-base font-semibold text-text-primary truncate w-full" title={source.domain}>
-                {source.domain}
-              </h3>
-              
-              {source.name && (
-                <p className="text-xs text-text-muted truncate w-full mt-1 line-clamp-2" title={source.name}>
-                  {source.name}
-                </p>
-              )}
-            </button>
-          ))}
+            );
+          })}
         </div>
       )}
 
