@@ -174,7 +174,8 @@
     "model": "Model",
     "tokens": "tokens",
     "sources": "sources",
-    "webSearch": "Web search"
+    "webSearch": "Web search",
+    "backgroundFetchNotice": "AI results for this prompt are fetched in the background. New responses will appear here after the next scheduled update batch."
   },
   "plans": {
     "title": "Choose Your Plan",

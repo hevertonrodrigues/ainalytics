@@ -174,7 +174,8 @@
     "model": "Modelo",
     "tokens": "tokens",
     "sources": "fuentes",
-    "webSearch": "Búsqueda web"
+    "webSearch": "Búsqueda web",
+    "backgroundFetchNotice": "Los resultados de IA para este prompt se obtienen en segundo plano. Las nuevas respuestas aparecerán aquí después del próximo lote de actualización programado."
   },
   "plans": {
     "title": "Elija su Plan",

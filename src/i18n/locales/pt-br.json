@@ -174,7 +174,8 @@
     "model": "Modelo",
     "tokens": "tokens",
     "sources": "fontes",
-    "webSearch": "Busca na web"
+    "webSearch": "Busca na web",
+    "backgroundFetchNotice": "Os resultados de IA para este prompt são buscados em segundo plano. Novas respostas aparecerão aqui após o próximo lote de atualização agendado."
   },
   "plans": {
     "title": "Escolha seu Plano",
