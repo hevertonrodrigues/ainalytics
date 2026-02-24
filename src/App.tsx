@@ -24,6 +24,7 @@ import { TopicDetailPage } from '@/pages/topics/TopicDetailPage';
 import { TopicAnswersPage } from '@/pages/topics/TopicAnswersPage';
 import { PromptsPage } from '@/pages/prompts/PromptsPage';
 import { PromptDetailPage } from '@/pages/prompts/PromptDetailPage';
+import { SourcesPage } from '@/pages/sources/SourcesPage';
 import { PlatformsPage } from '@/pages/platforms/PlatformsPage';
 import { ModelsPage } from '@/pages/models/ModelsPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
@@ -66,6 +67,7 @@ export function App() {
                 <Route path="topics/:id/answers" element={<TopicAnswersPage />} />
                 <Route path="prompts" element={<PromptsPage />} />
                 <Route path="prompts/:id" element={<PromptDetailPage />} />
+                <Route path="sources" element={<SourcesPage />} />
                 <Route path="models" element={<ModelsPage />} />
 
                 {/* SuperAdmin-only */}

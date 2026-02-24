@@ -54,3 +54,9 @@ UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id
 UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'gemini-2.5-pro') WHERE slug = 'gemini';
 UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'grok-4-1-fast') WHERE slug = 'grok';
 -- UPDATE platforms SET default_model_id = (SELECT id FROM models WHERE platform_id = platforms.id AND slug = 'llama-3.1-sonar-large-online') WHERE slug = 'perplexity';
+
+-- ── Activation Plans ────────────────────────────────────────
+
+INSERT INTO activation_plans (code, is_active) VALUES
+  ('012345678910', true)
+ON CONFLICT (code) DO NOTHING;

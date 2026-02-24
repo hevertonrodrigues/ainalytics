@@ -31,7 +31,8 @@
     "decorFeature3": "Configuración en menos de 60 segundos",
     "checkEmailTitle": "Revise su correo",
     "checkEmailDesc": "Acabamos de enviar un enlace de confirmación. Por favor, revise su bandeja de entrada (y carpeta de spam) para verificar su cuenta antes de iniciar sesión.",
-    "goToSignIn": "Ir a Iniciar Sesión"
+    "goToSignIn": "Ir a Iniciar Sesión",
+    "mainDomain": "Dominio Principal (Se permiten URLs de sitios web)"
   },
   "profile": {
     "title": "Mi Perfil",
@@ -46,7 +47,10 @@
     "organization": "Organización",
     "orgDesc": "Detalles de su organización",
     "orgName": "Nombre de la Organización",
-    "orgSlug": "Slug de la Organización"
+    "orgSlug": "Slug de la Organización",
+    "mainDomain": "Dominio Principal",
+    "mainDomainHint": "La URL del sitio web principal para asociar con su cuenta.",
+    "saved": "Configuración guardada exitosamente"
   },
   "dashboard": {
     "title": "Resumen de Categorías",
@@ -71,6 +75,7 @@
     "topics": "Tópicos",
     "prompts": "Prompts",
     "documents": "Tipos de Documento",
+    "sources": "Fuentes",
     "platforms": "Plataformas",
     "models": "Modelos",
     "plans": "Planes",
@@ -221,7 +226,8 @@
     "passwordMin": "La contraseña debe tener al menos {{min}} caracteres",
     "passwordMatch": "Las contraseñas no coinciden",
     "nameMin": "El nombre debe tener al menos {{min}} caracteres",
-    "phoneMin": "El teléfono debe tener al menos {{min}} dígitos"
+    "phoneMin": "El teléfono debe tener al menos {{min}} dígitos",
+    "invalidDomain": "Por favor ingrese una URL de dominio principal válida"
   },
   "errors": {
     "UNAUTHORIZED": "Inicie sesión para continuar",
@@ -412,6 +418,20 @@
     "sending": "Enviando...",
     "successTitle": "¡Recibimos su Solicitud!",
     "successMessage": "Nuestro equipo revisará sus necesidades y le contactará dentro de 24 horas.",
+    "close": "Cerrar"
+  },
+  "sources": {
+    "title": "Fuentes",
+    "description": "Explore las fuentes de respuesta de IA para su organización.",
+    "domain": "Dominio",
+    "name": "Nombre",
+    "url": "URL",
+    "openUrl": "Abrir Enlace",
+    "mentions": "Menciones",
+    "lastReferenced": "Última Referencia",
+    "detailTitle": "Referencias de la Fuente",
+    "annotation": "Anotación de Texto",
+    "prompt": "Prompt",
     "close": "Cerrar"
   }
 }

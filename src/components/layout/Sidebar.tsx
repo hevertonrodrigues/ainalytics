@@ -11,6 +11,7 @@ import {
   Sun,
   Moon,
   User,
+  BookOpen,
   ChevronUp,
   Cpu,
   Layers,
@@ -36,6 +37,7 @@ const MAIN_NAV: NavItem[] = [
 const ANALYTICS_NAV: NavItem[] = [
   { key: 'nav.topics', path: '/dashboard/topics', icon: MessageSquare },
   { key: 'nav.prompts', path: '/dashboard/prompts', icon: List },
+  { key: 'nav.sources', path: '/dashboard/sources', icon: BookOpen },
   { key: 'nav.models', path: '/dashboard/models', icon: Layers },
 ];
 

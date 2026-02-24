@@ -1,12 +1,50 @@
+import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Building2 } from 'lucide-react';
+import { Building2, Save, Globe } from 'lucide-react';
 import { useTenant } from '@/contexts/TenantContext';
+import { useToast } from '@/contexts/ToastContext';
+import { supabase } from '@/lib/supabase';
+import { extractRootDomain } from '@/lib/domain';
 
 export function TenantSettings() {
   const { t } = useTranslation();
   const { currentTenant } = useTenant();
+  const { showToast } = useToast();
+
+  const [mainDomain, setMainDomain] = useState(currentTenant?.main_domain || '');
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!currentTenant) return null;
+
+  const handleSaveDomain = async (e: FormEvent) => {
+    e.preventDefault();
+    
+    // TLD and Subdomain Validation/Extraction
+    const cleanedDomain = extractRootDomain(mainDomain);
+    if (!cleanedDomain) {
+      showToast(t('validation.invalidDomain', 'Please enter a valid main domain URL'), 'error');
+      return;
+    }
+    
+    // Opt-in UI update so they see the cleaned version
+    setMainDomain(cleanedDomain);
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase.rpc('update_tenant_domain', {
+        p_tenant_id: currentTenant.id,
+        p_main_domain: cleanedDomain,
+      });
+
+      if (error) throw error;
+      
+      showToast(t('settings.saved', 'Settings saved successfully'), 'success');
+    } catch (err: any) {
+      showToast(err.message || t('common.error'), 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <div className="stagger-enter max-w-2xl space-y-6">
@@ -40,6 +78,46 @@ export function TenantSettings() {
             {currentTenant.slug}
           </div>
         </div>
+        
+        <form onSubmit={handleSaveDomain} className="pt-4 border-t border-border-color space-y-4">
+          <div>
+            <label htmlFor="mainDomain" className="block text-sm font-medium text-text-secondary mb-1.5">
+              {t('settings.mainDomain', 'Main Domain')}
+            </label>
+            <div className="auth-input-wrap relative flex items-center">
+              <Globe className="absolute left-3 w-5 h-5 text-text-muted" />
+              <input
+                id="mainDomain"
+                type="text"
+                value={mainDomain}
+                onChange={(e) => setMainDomain(e.target.value)}
+                placeholder="example.com"
+                required
+                className="input-field w-full pl-10"
+              />
+            </div>
+            <p className="text-xs text-text-muted mt-2">
+              {t('settings.mainDomainHint', 'The core website URL to associate with your tenant account.')}
+            </p>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="btn btn-primary min-w-[120px]"
+            >
+              {isSaving ? (
+                <span className="auth-spinner mx-auto" style={{ width: 16, height: 16 }} />
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  {t('common.save', 'Save Changes')}
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -33,6 +33,11 @@ export interface Tenant {
   name: string;
   slug: string;
   plan_id: string | null;
+  main_domain: string | null;
+  website_title: string | null;
+  metatags: string | null;
+  extracted_content: string | null;
+  llm_txt: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -176,6 +181,25 @@ export interface PromptAnswer {
   sources: any[] | null;
 }
 
+export interface Source extends BaseEntity {
+  name: string | null;
+  domain: string;
+  mentions_count?: number; // Virtual, from join or aggregation
+  last_referenced_at?: string; // Virtual, from join or aggregation
+}
+
+export interface PromptAnswerSource extends BaseEntity {
+  prompt_id: string;
+  answer_id: string;
+  source_id: string;
+  url: string;
+  title: string | null;
+  annotation: string | null;
+  prompt?: Prompt;
+  answer?: PromptAnswer;
+  source?: Source;
+}
+
 export interface SearchPromptInput {
   prompt_id: string;
   prompt_text: string;
@@ -211,6 +235,7 @@ export interface SignUpInput {
   password: string;
   full_name: string;
   tenant_name: string;
+  main_domain: string;
 }
 
 export interface SignInInput {

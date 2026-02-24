@@ -31,7 +31,8 @@
     "decorFeature3": "Configure em menos de 60 segundos",
     "checkEmailTitle": "Verifique seu e-mail",
     "checkEmailDesc": "Acabamos de enviar um link de confirmação. Por favor, verifique sua caixa de entrada (e pasta de spam) para confirmar sua conta antes de entrar.",
-    "goToSignIn": "Ir para Login"
+    "goToSignIn": "Ir para Login",
+    "mainDomain": "Domínio Principal (Permitido URLs de sites)"
   },
   "profile": {
     "title": "Meu Perfil",
@@ -46,7 +47,10 @@
     "organization": "Organização",
     "orgDesc": "Detalhes da sua organização",
     "orgName": "Nome da Organização",
-    "orgSlug": "Slug da Organização"
+    "orgSlug": "Slug da Organização",
+    "mainDomain": "Domínio Principal",
+    "mainDomainHint": "A URL do site principal para associar à sua conta.",
+    "saved": "Configurações salvas com sucesso"
   },
   "dashboard": {
     "title": "Resumo de Categorias",
@@ -71,6 +75,7 @@
     "topics": "Tópicos",
     "prompts": "Prompts",
     "documents": "Tipos de Documento",
+    "sources": "Fontes",
     "platforms": "Plataformas",
     "models": "Modelos",
     "plans": "Planos",
@@ -221,7 +226,8 @@
     "passwordMin": "A senha deve ter pelo menos {{min}} caracteres",
     "passwordMatch": "As senhas não coincidem",
     "nameMin": "O nome deve ter pelo menos {{min}} caracteres",
-    "phoneMin": "O telefone deve ter pelo menos {{min}} dígitos"
+    "phoneMin": "O telefone deve ter pelo menos {{min}} dígitos",
+    "invalidDomain": "Por favor, insira uma URL de domínio principal válida"
   },
   "errors": {
     "UNAUTHORIZED": "Faça login para continuar",
@@ -412,6 +418,20 @@
     "sending": "Enviando...",
     "successTitle": "Recebemos sua Solicitação!",
     "successMessage": "Nossa equipe analisará suas necessidades e entrará em contato em até 24 horas.",
+    "close": "Fechar"
+  },
+  "sources": {
+    "title": "Fontes",
+    "description": "Explore as fontes de resposta da IA para a sua organização.",
+    "domain": "Domínio",
+    "name": "Nome",
+    "url": "URL",
+    "openUrl": "Abrir Link",
+    "mentions": "Menções",
+    "lastReferenced": "Última Referência",
+    "detailTitle": "Referências da Fonte",
+    "annotation": "Anotação de Texto",
+    "prompt": "Prompt",
     "close": "Fechar"
   }
 }

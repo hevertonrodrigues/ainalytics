@@ -31,7 +31,8 @@
     "decorFeature3": "Set up in under 60 seconds",
     "checkEmailTitle": "Check your email",
     "checkEmailDesc": "We just sent a confirmation link. Please check your inbox (and spam folder) to verify your account before signing in.",
-    "goToSignIn": "Go to Sign In"
+    "goToSignIn": "Go to Sign In",
+    "mainDomain": "Main Domain (Website URLs allowed)"
   },
   "profile": {
     "title": "My Profile",
@@ -46,7 +47,10 @@
     "organization": "Organization",
     "orgDesc": "Your organization details",
     "orgName": "Organization Name",
-    "orgSlug": "Organization Slug"
+    "orgSlug": "Organization Slug",
+    "mainDomain": "Main Domain",
+    "mainDomainHint": "The core website URL to associate with your tenant account.",
+    "saved": "Settings saved successfully"
   },
   "dashboard": {
     "title": "Category Breakdown",
@@ -71,6 +75,7 @@
     "topics": "Topics",
     "prompts": "Prompts",
     "documents": "Document Types",
+    "sources": "Sources",
     "platforms": "Platforms",
     "models": "Models",
     "plans": "Plans",
@@ -221,7 +226,8 @@
     "passwordMin": "Password must be at least {{min}} characters",
     "passwordMatch": "Passwords do not match",
     "nameMin": "Name must be at least {{min}} characters",
-    "phoneMin": "Phone must have at least {{min}} digits"
+    "phoneMin": "Phone must have at least {{min}} digits",
+    "invalidDomain": "Please enter a valid main domain URL"
   },
   "errors": {
     "UNAUTHORIZED": "Please sign in to continue",
@@ -412,6 +418,20 @@
     "sending": "Sending...",
     "successTitle": "We Got Your Request!",
     "successMessage": "Our team will review your needs and get back to you within 24 hours.",
+    "close": "Close"
+  },
+  "sources": {
+    "title": "Sources",
+    "description": "Explore AI answer sources for your organization.",
+    "domain": "Domain",
+    "name": "Name",
+    "url": "URL",
+    "openUrl": "Open Link",
+    "mentions": "Mentions",
+    "lastReferenced": "Last Referenced",
+    "detailTitle": "Source References",
+    "annotation": "Text Annotation",
+    "prompt": "Prompt",
     "close": "Close"
   }
 }

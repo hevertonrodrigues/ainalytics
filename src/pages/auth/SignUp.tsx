@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
 import { Mail, Lock, User, Building2, Phone, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { extractRootDomain } from '@/lib/domain';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
 
@@ -21,6 +22,7 @@ export function SignUp() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [tenantName, setTenantName] = useState('');
+  const [mainDomain, setMainDomain] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -45,9 +47,16 @@ export function SignUp() {
       return;
     }
 
+    // TLD and Subdomain Validation/Extraction
+    const cleanedDomain = extractRootDomain(mainDomain);
+    if (!cleanedDomain) {
+      setError(t('validation.invalidDomain', 'Please enter a valid main domain URL'));
+      return;
+    }
+
     setLoading(true);
     try {
-      await signUp(email, password, fullName, tenantName, phone);
+      await signUp(email, password, fullName, tenantName, phone, cleanedDomain);
       // Hard redirect — guarantees AuthContext restores session from localStorage
       window.location.href = '/dashboard';
     } catch (err) {
@@ -256,6 +265,26 @@ export function SignUp() {
                       value={tenantName}
                       onChange={(e) => setTenantName(e.target.value)}
                       placeholder="Acme Inc."
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* One-column: Main Domain */}
+              <div className="auth-row">
+                <div className="auth-field" style={{ gridColumn: '1 / -1' }}>
+                  <label htmlFor="signup-domain">
+                    {t('auth.mainDomain', 'Main Domain (Website URLs allowed)')} <span className="text-error">*</span>
+                  </label>
+                  <div className="auth-input-wrap">
+                    <Building2 className="auth-input-icon" />
+                    <input
+                      id="signup-domain"
+                      type="text"
+                      value={mainDomain}
+                      onChange={(e) => setMainDomain(e.target.value)}
+                      placeholder="example.com"
                       required
                     />
                   </div>
