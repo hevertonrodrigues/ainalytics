@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Globe, ChevronDown, ChevronUp, MessageSquare, ExternalLink, Quote } from 'lucide-react';
+import { Search, Globe, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import type { Source } from '@/types';
-import { SourceDetailModal } from './SourceDetailModal';
 
 type SourceWithReferences = Source & {
   prompt_answer_sources: any[];
@@ -17,7 +17,6 @@ export function SourcesPage() {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   
-  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
 
   const toggleExpand = (id: string) => {
@@ -38,9 +37,8 @@ export function SourcesPage() {
         .select(`
           *,
           prompt_answer_sources(
-            id, url, title, annotation, created_at,
-            prompt:prompts(text),
-            answer:prompt_answers(platform_slug, model_id)
+            prompt_id,
+            prompt:prompts(id, text)
           )
         `)
         .order('domain', { ascending: true });
@@ -120,8 +118,15 @@ export function SourcesPage() {
           {filteredSources.map((source) => {
             const isExpanded = expandedSources.has(source.id);
             const references = source.prompt_answer_sources || [];
-            // sort references by newest first inside JS
-            const sortedRefs = [...references].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            
+            // Get unique prompts from references
+            const uniquePromptsMap = new Map<string, any>();
+            references.forEach(ref => {
+              if (ref.prompt_id && ref.prompt && !uniquePromptsMap.has(ref.prompt_id)) {
+                uniquePromptsMap.set(ref.prompt_id, ref.prompt);
+              }
+            });
+            const uniquePrompts = Array.from(uniquePromptsMap.values());
             
             return (
               <div key={source.id} className="dashboard-card overflow-hidden">
@@ -152,66 +157,31 @@ export function SourcesPage() {
                 </div>
                 
                 {/* Expanded content */}
-                {isExpanded && references.length > 0 && (
+                {isExpanded && uniquePrompts.length > 0 && (
                   <div className="border-t border-glass-border bg-bg-secondary/30 p-4">
-                    <div className="space-y-3">
-                      {sortedRefs.slice(0, 3).map((ref) => (
-                        <div key={ref.id} className="p-3 rounded-md bg-bg-primary border border-glass-border shadow-sm">
-                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-2">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <MessageSquare className="w-3.5 h-3.5 text-brand-primary" />
-                                <span className="text-sm font-medium text-text-primary truncate">
-                                  {ref.prompt?.text || t('sources.prompt')}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2 text-xs text-text-muted">
-                                <span className="px-1.5 py-0.5 rounded-sm bg-bg-tertiary">
-                                  {ref.answer?.platform_slug || 'AI'} 
-                                </span>
-                                {ref.answer?.model_id && <span>• {ref.answer.model_id}</span>}
-                                <span>• {new Date(ref.created_at).toLocaleDateString()}</span>
-                              </div>
-                            </div>
-                            <a 
-                              href={ref.url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs text-brand-primary hover:underline whitespace-nowrap bg-brand-primary/10 px-2 py-1.5 rounded-sm"
-                              onClick={e => e.stopPropagation()}
-                            >
-                              <ExternalLink className="w-3 h-3" />
-                              {t('sources.openUrl', { defaultValue: 'Open URL' })}
-                            </a>
-                          </div>
-                          {ref.title && (
-                            <div className="text-xs font-medium text-text-secondary line-clamp-1 mb-1.5">
-                              {ref.title}
-                            </div>
-                          )}
-                          {ref.annotation && (
-                            <div className="mt-2 p-2 rounded-sm bg-bg-tertiary/50 border-l-2 border-brand-accent flex gap-2 text-xs">
-                              <Quote className="w-3 h-3 text-brand-accent/60 shrink-0 mt-0.5" />
-                              <p className="text-text-primary font-serif italic line-clamp-2">
-                                "{ref.annotation}"...
-                              </p>
-                            </div>
-                          )}
+                    <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
+                      {t('sources.promptsReferencing', { defaultValue: 'Prompts Referencing this Source' })}
+                    </h4>
+                    <div className="space-y-2">
+                      {uniquePrompts.map((prompt: any, idx: number) => (
+                        <div key={prompt.id || idx} className="p-3 rounded-md bg-bg-primary border border-glass-border shadow-sm flex items-center gap-3">
+                          <MessageSquare className="w-4 h-4 text-brand-primary shrink-0" />
+                          <span className="text-sm font-medium text-text-primary line-clamp-2">
+                            {prompt.text || t('sources.prompt')}
+                          </span>
                         </div>
                       ))}
                     </div>
                     
                     {references.length > 0 && (
-                      <div className="mt-3 flex justify-end">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedSourceId(source.id);
-                          }}
+                      <div className="mt-4 flex justify-end">
+                        <Link
+                          to={`/dashboard/sources/${source.id}`}
                           className="text-sm font-medium text-brand-primary hover:text-brand-secondary transition-colors"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          {t('common.viewAll', { defaultValue: 'View all' })} ({references.length}) →
-                        </button>
+                          {t('common.viewAll', { defaultValue: 'View all references' })} ({references.length}) →
+                        </Link>
                       </div>
                     )}
                   </div>
@@ -220,16 +190,6 @@ export function SourcesPage() {
             );
           })}
         </div>
-      )}
-
-      {/* Detail Modal */}
-      {selectedSourceId && (
-        <SourceDetailModal
-          isOpen={true}
-          onClose={() => setSelectedSourceId(null)}
-          sourceId={selectedSourceId}
-          sourceDomain={sources.find(s => s.id === selectedSourceId)?.domain || ''}
-        />
       )}
     </div>
   );

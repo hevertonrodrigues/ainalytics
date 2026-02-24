@@ -172,9 +172,9 @@ export function PromptsPage() {
           {groups.map((group) => (
             <div key={group.id} className="dashboard-card overflow-hidden">
               {/* Topic header */}
-              <button
+              <div
                 onClick={() => toggleCollapsed(group.id)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-glass-hover transition-colors text-left"
+                className="w-full flex items-center gap-3 p-4 hover:bg-glass-hover transition-colors text-left cursor-pointer"
               >
                 {collapsed[group.id] ? (
                   <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
@@ -202,7 +202,7 @@ export function PromptsPage() {
                 >
                   <Plus className="w-4 h-4" />
                 </button>
-              </button>
+              </div>
 
               {/* Prompts list */}
               {!collapsed[group.id] && (
