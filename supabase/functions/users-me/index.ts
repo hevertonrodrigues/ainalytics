@@ -50,7 +50,7 @@ async function handleGet(req: Request): Promise<Response> {
   // Get all tenants
   const { data: memberships } = await db
     .from("tenant_users")
-    .select("tenant_id, role, tenants(id, name, slug, created_at, updated_at)")
+    .select("tenant_id, role, tenants(id, name, slug, plan_id, created_at, updated_at)")
     .eq("user_id", auth.user.id)
     .eq("is_active", true);
 
