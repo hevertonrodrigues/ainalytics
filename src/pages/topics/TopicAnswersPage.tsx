@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Prompt, PromptAnswer, Topic, TenantPlatformModel } from '@/types';
 
 export function TopicAnswersPage() {
@@ -22,6 +23,7 @@ export function TopicAnswersPage() {
   const navigate = useNavigate();
 
   const { showToast } = useToast();
+  const { profile } = useAuth();
 
   const [topic, setTopic] = useState<Topic | null>(null);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
@@ -272,23 +274,25 @@ export function TopicAnswersPage() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleSearch(prompt)}
-                    disabled={isSearching || tenantModels.length === 0}
-                    className="btn btn-primary btn-sm shrink-0"
-                  >
-                    {isSearching ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        {t('answers.searching')}
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-4 h-4" />
-                        {t('answers.search')}
-                      </>
-                    )}
-                  </button>
+                  {profile?.is_sa && (
+                    <button
+                      onClick={() => handleSearch(prompt)}
+                      disabled={isSearching || tenantModels.length === 0}
+                      className="btn btn-primary btn-sm shrink-0"
+                    >
+                      {isSearching ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          {t('answers.searching')}
+                        </>
+                      ) : (
+                        <>
+                          <Search className="w-4 h-4" />
+                          {t('answers.search')}
+                        </>
+                      )}
+                    </button>
+                  )}
                 </div>
 
                 {/* Expanded results */}
@@ -344,14 +348,16 @@ export function TopicAnswersPage() {
                               {answer.error ? (
                                 <div className="p-2 rounded-xs bg-error/10 text-error text-xs flex items-center justify-between gap-2">
                                   <span className="flex-1 min-w-0">{answer.error}</span>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleRetrySingle(answer); }}
-                                    disabled={retryingAnswerId === answer.id}
-                                    className="btn btn-ghost btn-sm text-error shrink-0 gap-1"
-                                  >
-                                    <RefreshCw className={`w-3.5 h-3.5 ${retryingAnswerId === answer.id ? 'animate-spin' : ''}`} />
-                                    {t('answers.retry')}
-                                  </button>
+                                  {profile?.is_sa && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleRetrySingle(answer); }}
+                                      disabled={retryingAnswerId === answer.id}
+                                      className="btn btn-ghost btn-sm text-error shrink-0 gap-1"
+                                    >
+                                      <RefreshCw className={`w-3.5 h-3.5 ${retryingAnswerId === answer.id ? 'animate-spin' : ''}`} />
+                                      {t('answers.retry')}
+                                    </button>
+                                  )}
                                 </div>
                               ) : (
                                 <div className="text-sm text-text-secondary whitespace-pre-wrap leading-relaxed max-h-64 overflow-y-auto">

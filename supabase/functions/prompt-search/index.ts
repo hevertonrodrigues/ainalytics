@@ -19,9 +19,23 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
-    const { tenantId } = await verifyAuth(req);
+    const { tenantId, user } = await verifyAuth(req);
     const url = new URL(req.url);
     const subPath = url.pathname.split("/prompt-search").pop() || "";
+
+    if (req.method === "POST") {
+      const sb = createAdminClient();
+      const { data: profile } = await sb
+        .from("profiles")
+        .select("is_sa")
+        .eq("user_id", user.id)
+        .eq("tenant_id", tenantId)
+        .single();
+
+      if (!profile?.is_sa) {
+        return withCors(req, badRequest("Only superadmins can execute searches"));
+      }
+    }
 
     if (req.method === "POST" && subPath.startsWith("/retry")) {
       return withCors(req, await handleRetry(req, tenantId));

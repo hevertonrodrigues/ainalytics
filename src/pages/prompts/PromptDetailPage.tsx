@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Prompt, PromptAnswer, Topic, TenantPlatformModel } from '@/types';
 
 type PlatformGroup = {
@@ -38,6 +39,7 @@ export function PromptDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { profile } = useAuth();
 
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -263,23 +265,25 @@ export function PromptDetailPage() {
                 </span>
               )}
               <div className="ml-auto">
-                <button
-                  onClick={handleSearch}
-                  disabled={searching || tenantModels.length === 0}
-                  className="btn btn-primary btn-sm"
-                >
-                  {searching ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      {t('answers.searching')}
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4" />
-                      {t('answers.search')}
-                    </>
-                  )}
-                </button>
+                {profile?.is_sa && (
+                  <button
+                    onClick={handleSearch}
+                    disabled={searching || tenantModels.length === 0}
+                    className="btn btn-primary btn-sm"
+                  >
+                    {searching ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {t('answers.searching')}
+                      </>
+                    ) : (
+                      <>
+                        <Search className="w-4 h-4" />
+                        {t('answers.search')}
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
             <h1 className="text-lg font-medium text-text-primary mb-2">
@@ -405,14 +409,16 @@ export function PromptDetailPage() {
                                       {answer.error ? (
                                         <div className="p-3 rounded-xs bg-error/10 text-error text-xs flex flex-col gap-2 mt-2">
                                           <div className="font-mono whitespace-pre-wrap">{answer.error}</div>
-                                          <button
-                                            onClick={(e) => { e.stopPropagation(); handleRetrySingle(answer); }}
-                                            disabled={retryingAnswerId === answer.id}
-                                            className="btn btn-primary btn-sm mt-1 self-start"
-                                          >
-                                            <RefreshCw className={`w-3.5 h-3.5 ${retryingAnswerId === answer.id ? 'animate-spin' : ''}`} />
-                                            {t('answers.retry')}
-                                          </button>
+                                          {profile?.is_sa && (
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); handleRetrySingle(answer); }}
+                                              disabled={retryingAnswerId === answer.id}
+                                              className="btn btn-primary btn-sm mt-1 self-start"
+                                            >
+                                              <RefreshCw className={`w-3.5 h-3.5 ${retryingAnswerId === answer.id ? 'animate-spin' : ''}`} />
+                                              {t('answers.retry')}
+                                            </button>
+                                          )}
                                         </div>
                                       ) : (
                                         <div className="text-sm text-text-primary whitespace-pre-wrap leading-relaxed mt-2 p-3 bg-bg-primary rounded-md border border-glass-border max-h-[500px] overflow-y-auto">
