@@ -4,6 +4,96 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 
+const TENANT_FETCH_TIMEOUT_MS = 10_000;
+
+function isBlockedTenantHost(host: string): boolean {
+  const h = host.toLowerCase();
+
+  // Disallow localhost / local-only names / IP literals / private ranges.
+  if (
+    h === "localhost" ||
+    h.endsWith(".local") ||
+    h.endsWith(".internal") ||
+    h.endsWith(".localhost") ||
+    /^[0-9.]+$/.test(h) ||
+    /^127\./.test(h) ||
+    /^10\./.test(h) ||
+    /^192\.168\./.test(h) ||
+    /^169\.254\./.test(h) ||
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(h)
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+function normalizeTenantHost(raw: string): string {
+  const input = raw.trim().toLowerCase();
+  if (!input) throw new Error("Missing tenant domain");
+
+  // Accept legacy values that may have been stored with a scheme, but reject
+  // credentials, ports, paths, queries, and fragments.
+  let host = input;
+  if (input.startsWith("http://") || input.startsWith("https://")) {
+    const parsed = new URL(input);
+    if (parsed.username || parsed.password) throw new Error("Invalid domain");
+    if (parsed.port) throw new Error("Ports are not allowed");
+    if (parsed.pathname && parsed.pathname !== "/") throw new Error("Paths are not allowed");
+    if (parsed.search || parsed.hash) throw new Error("Query strings/fragments are not allowed");
+    host = parsed.hostname.toLowerCase();
+  }
+
+  if (host.endsWith(".")) host = host.slice(0, -1);
+
+  if (
+    host.length === 0 ||
+    host.length > 253 ||
+    !host.includes(".") ||
+    host.includes("..") ||
+    /[^a-z0-9.-]/.test(host) ||
+    host.startsWith("-") ||
+    host.endsWith("-") ||
+    host.startsWith(".") ||
+    host.endsWith(".")
+  ) {
+    throw new Error("Invalid domain");
+  }
+
+  // Validate each label (1..63 chars, no leading/trailing hyphen)
+  for (const label of host.split(".")) {
+    if (
+      label.length === 0 ||
+      label.length > 63 ||
+      label.startsWith("-") ||
+      label.endsWith("-")
+    ) {
+      throw new Error("Invalid domain");
+    }
+  }
+
+  if (isBlockedTenantHost(host)) {
+    throw new Error("Private/internal domains are not allowed");
+  }
+
+  return host;
+}
+
+function buildTenantHttpsUrl(host: string, path: string): string {
+  return new URL(path, `https://${host}`).toString();
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs = TENANT_FETCH_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 /**
  * Get Website Information Edge Function
  * - POST /
@@ -65,7 +155,14 @@ serve(async (req: Request) => {
       return withCors(req, badRequest("The tenant does not have a main domain configured."));
     }
 
-    const domain = tenant.main_domain;
+    let domain: string;
+    try {
+      domain = normalizeTenantHost(tenant.main_domain);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Invalid tenant domain";
+      return withCors(req, badRequest(msg));
+    }
+
     let sitemapXml = tenant.sitemap_xml;
 
     // --- ACTION: EXTRACT ---
@@ -73,8 +170,11 @@ serve(async (req: Request) => {
       // Try to fetch sitemap.xml automatically if we don't have one saved
       if (!sitemapXml) {
         try {
-          const sitemapUrl = domain.startsWith('http') ? `${domain}/sitemap.xml` : `https://${domain}/sitemap.xml`;
-          const sitemapRes = await fetch(sitemapUrl, { method: 'GET', headers: { 'Accept': 'application/xml, text/xml' } });
+          const sitemapUrl = buildTenantHttpsUrl(domain, "/sitemap.xml");
+          const sitemapRes = await fetchWithTimeout(
+            sitemapUrl,
+            { method: "GET", headers: { Accept: "application/xml, text/xml" } },
+          );
           if (sitemapRes.ok) {
             sitemapXml = await sitemapRes.text();
           }
@@ -159,8 +259,8 @@ serve(async (req: Request) => {
       let status = 'missing';
       
       try {
-        const llmUrl = domain.startsWith('http') ? `${domain}/llm.txt` : `https://${domain}/llm.txt`;
-        const res = await fetch(llmUrl, { method: 'GET' });
+        const llmUrl = buildTenantHttpsUrl(domain, "/llm.txt");
+        const res = await fetchWithTimeout(llmUrl, { method: "GET" });
         
         if (res.ok) {
           const liveText = await res.text();

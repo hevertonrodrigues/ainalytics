@@ -22,7 +22,7 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
-    const { tenantId } = await verifyAuth(req);
+    const { tenantId, user } = await verifyAuth(req);
     const url = new URL(req.url);
     const subPath = url.pathname.split("/platforms").pop() || "";
 
@@ -46,13 +46,16 @@ serve(async (req: Request) => {
 
     // ── Sync route ──
     if (subPath.startsWith("/sync") && req.method === "POST") {
+      await requireSuperAdmin(user.id, tenantId);
       return withCors(req, await handleSync(req));
     }
 
     // ── Base platform routes ──
     switch (req.method) {
       case "GET":  return withCors(req, await handleList());
-      case "PUT":  return withCors(req, await handleUpdate(req));
+      case "PUT":
+        await requireSuperAdmin(user.id, tenantId);
+        return withCors(req, await handleUpdate(req));
       default:     return withCors(req, badRequest(`Method ${req.method} not allowed`));
     }
   } catch (err: unknown) {
@@ -71,6 +74,25 @@ serve(async (req: Request) => {
   }
 });
 
+async function requireSuperAdmin(userId: string, tenantId: string): Promise<void> {
+  const sb = createAdminClient();
+  const { data, error } = await sb
+    .from("profiles")
+    .select("is_sa")
+    .eq("user_id", userId)
+    .eq("tenant_id", tenantId)
+    .eq("is_sa", true)
+    .limit(1);
+
+  if (error) {
+    throw { status: 500, message: "Failed to verify superadmin access" };
+  }
+
+  if (!data || data.length === 0) {
+    throw { status: 403, message: "Superadmin access required" };
+  }
+}
+
 // ── List all platforms with their default model (global) ──
 async function handleList() {
   const sb = createAdminClient();
@@ -86,14 +108,50 @@ async function handleList() {
 // ── Update platform (global) ──
 async function handleUpdate(req: Request) {
   const body = await req.json();
-  const { id, ...updates } = body;
-  if (!id) return badRequest("id is required");
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return badRequest("Invalid request body");
+  }
+
+  const payload = body as Record<string, unknown>;
+  const allowedKeys = new Set(["id", "is_active", "default_model_id"]);
+  const unknownKeys = Object.keys(payload).filter((k) => !allowedKeys.has(k));
+  if (unknownKeys.length > 0) {
+    return badRequest(`Unsupported fields: ${unknownKeys.join(", ")}`);
+  }
+
+  const id = payload.id;
+  if (typeof id !== "string" || id.trim().length === 0) {
+    return badRequest("id is required");
+  }
+
+  const updates: Record<string, unknown> = {};
+  if ("is_active" in payload) {
+    if (typeof payload.is_active !== "boolean") {
+      return badRequest("is_active must be a boolean");
+    }
+    updates.is_active = payload.is_active;
+  }
+
+  if ("default_model_id" in payload) {
+    const value = payload.default_model_id;
+    if (!(typeof value === "string" || value === null)) {
+      return badRequest("default_model_id must be a string or null");
+    }
+    if (typeof value === "string" && value.trim().length === 0) {
+      return badRequest("default_model_id must not be empty");
+    }
+    updates.default_model_id = value;
+  }
+
+  if (Object.keys(updates).length === 0) {
+    return badRequest("No allowed fields to update");
+  }
 
   const sb = createAdminClient();
   const { data, error } = await sb
     .from("platforms")
     .update(updates)
-    .eq("id", id)
+    .eq("id", id.trim())
     .select("*, default_model:models!default_model_id(id, slug, name)")
     .single();
 
@@ -226,4 +284,3 @@ async function handleDeletePreference(req: Request, tenantId: string) {
   if (error) return serverError(error.message);
   return ok({ deleted: true });
 }
-
