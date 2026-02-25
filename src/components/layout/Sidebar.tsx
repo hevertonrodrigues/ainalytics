@@ -7,6 +7,7 @@ import {
   LogOut,
   MessageSquare,
   List,
+  BarChart3,
   HelpCircle,
   Sun,
   Moon,
@@ -41,6 +42,8 @@ const MAIN_NAV: NavItem[] = [
 const ANALYTICS_NAV: NavItem[] = [
   { key: 'nav.topics', path: '/dashboard/topics', icon: MessageSquare },
   { key: 'nav.prompts', path: '/dashboard/prompts', icon: List },
+  { key: 'nav.insights', path: '/dashboard/insights', icon: Sun },
+  { key: 'nav.analyses', path: '/dashboard/analyses', icon: BarChart3 },
   { key: 'nav.sources', path: '/dashboard/sources', icon: BookOpen },
   { key: 'nav.llmText', path: '/dashboard/llmtext', icon: FileText },
   { key: 'nav.models', path: '/dashboard/models', icon: Layers },

@@ -58,7 +58,9 @@
     "welcomeUser": "¡Bienvenido de regreso, {{name}}!",
     "subtitle": "Su espacio de trabajo está listo.",
     "comingSoonTitle": "Dashboard Próximamente",
-    "comingSoonDesc": "Estamos construyendo análisis e información poderosos para su espacio de trabajo. ¡Esté atento!"
+    "comingSoonDesc": "Estamos construyendo análisis e información poderosos para su espacio de trabajo. ¡Esté atento!",
+    "processingResultsTitle": "Los resultados se están procesando",
+    "processingResultsDesc": "Se tarda aproximadamente 1 semana después de la creación de su primer aviso para mostrar los primeros resultados."
   },
   "tenant": {
     "switch": "Cambiar Organización",
@@ -80,6 +82,8 @@
     "platforms": "Plataformas",
     "models": "Modelos",
     "plans": "Planes",
+    "insights": "Insights",
+    "analyses": "Análisis",
     "support": "Soporte",
     "sectionMain": "Principal",
     "sectionAnalytics": "Monitoreo IA",

@@ -58,7 +58,9 @@
     "welcomeUser": "Welcome back, {{name}}!",
     "subtitle": "Your workspace is ready. Explore your profile, settings, or invite team members.",
     "comingSoonTitle": "Dashboard Coming Soon",
-    "comingSoonDesc": "We're building powerful analytics and insights for your workspace. Stay tuned!"
+    "comingSoonDesc": "We're building powerful analytics and insights for your workspace. Stay tuned!",
+    "processingResultsTitle": "Results are processing",
+    "processingResultsDesc": "It takes about 1 week after the creation of your first prompt to show the first results."
   },
   "tenant": {
     "switch": "Switch Organization",
@@ -80,6 +82,8 @@
     "platforms": "Platforms",
     "models": "Models",
     "plans": "Plans",
+    "insights": "Insights",
+    "analyses": "Analyses",
     "support": "Support",
     "sectionMain": "Main",
     "sectionAnalytics": "AI Monitoring",

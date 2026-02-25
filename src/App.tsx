@@ -25,6 +25,8 @@ import { TopicDetailPage } from '@/pages/topics/TopicDetailPage';
 import { TopicAnswersPage } from '@/pages/topics/TopicAnswersPage';
 import { PromptsPage } from '@/pages/prompts/PromptsPage';
 import { PromptDetailPage } from '@/pages/prompts/PromptDetailPage';
+import { InsightsPage } from '@/pages/dashboard/InsightsPage';
+import { AnalysesPage } from '@/pages/dashboard/AnalysesPage';
 import { SourcesPage } from '@/pages/sources/SourcesPage';
 import { SourceDetailPage } from '@/pages/sources/SourceDetailPage';
 import { PlatformsPage } from '@/pages/platforms/PlatformsPage';
@@ -72,6 +74,8 @@ export function App() {
                 <Route path="topics/:id/answers" element={<TopicAnswersPage />} />
                 <Route path="prompts" element={<PromptsPage />} />
                 <Route path="prompts/:id" element={<PromptDetailPage />} />
+                <Route path="insights" element={<InsightsPage />} />
+                <Route path="analyses" element={<AnalysesPage />} />
                 <Route path="sources" element={<SourcesPage />} />
                 <Route path="sources/:id" element={<SourceDetailPage />} />
                 <Route path="llmtext" element={<LlmTextPage />} />
