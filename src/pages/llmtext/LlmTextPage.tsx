@@ -1,10 +1,11 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Globe, FileText, Search, Download, AlertCircle, CheckCircle2, Upload, HelpCircle, RefreshCw, X, LayoutTemplate, Code } from 'lucide-react';
+import { Globe, FileText, Search, Download, AlertCircle, CheckCircle2, Upload, HelpCircle, RefreshCw, X, LayoutTemplate, Code, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
+import { SuggestionsModal } from '@/components/suggestions/SuggestionsModal';
 
 export function LlmTextPage() {
   const { t } = useTranslation();
@@ -17,6 +18,10 @@ export function LlmTextPage() {
   const [uploadingSitemap, setUploadingSitemap] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [previewTab, setPreviewTab] = useState<'preview' | 'raw'>('preview');
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionLanguage, setSuggestionLanguage] = useState(t('i18n.language', 'en'));
 
   const handleExtract = async () => {
     if (!currentTenant?.main_domain) {
@@ -65,6 +70,35 @@ export function LlmTextPage() {
       showToast(err.message || t('llmText.generateError', 'An error occurred while generating LLM.txt'), 'error');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleSuggest = async () => {
+    if (!currentTenant?.extracted_content) {
+      showToast(t('llmText.errorNoContent', 'Please extract information first.'), 'error');
+      return;
+    }
+
+    setSuggesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-website-information', {
+        body: { 
+          action: 'suggest_topics',
+          language: suggestionLanguage
+        }
+      });
+
+      if (error) throw error;
+      if (!data?.success) throw new Error(data?.error?.message || 'Failed to generate suggestions');
+
+      setSuggestions(data.data.topics || []);
+      setShowSuggestions(true);
+      showToast(t('llmText.suggestionsSuccess', 'Suggestions generated successfully!'), 'success');
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || t('llmText.suggestionsError', 'An error occurred while generating suggestions'), 'error');
+    } finally {
+      setSuggesting(false);
     }
   };
 
@@ -270,7 +304,7 @@ export function LlmTextPage() {
               <div className="space-y-3">
                 <button
                   onClick={handleExtract}
-                  disabled={extracting || generating || !currentTenant?.main_domain}
+                  disabled={extracting || generating || suggesting || !currentTenant?.main_domain}
                   className="btn btn-primary w-full py-2.5 flex items-center justify-center gap-2"
                 >
                   {extracting ? (
@@ -288,7 +322,7 @@ export function LlmTextPage() {
 
                 <button
                   onClick={handleGenerate}
-                  disabled={generating || extracting || !currentTenant?.extracted_content}
+                  disabled={generating || extracting || suggesting || !currentTenant?.extracted_content}
                   className="btn bg-brand-secondary hover:bg-brand-primary text-white w-full py-2.5 flex items-center justify-center gap-2"
                 >
                   {generating ? (
@@ -304,10 +338,49 @@ export function LlmTextPage() {
                   )}
                 </button>
 
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-text-muted uppercase tracking-wider block">
+                    {t('llmText.suggestionLanguage', 'Suggestion Language')}
+                  </label>
+                  <div className="flex gap-2">
+                    {['en', 'es', 'pt'].map((lang) => (
+                      <button
+                        key={lang}
+                        onClick={() => setSuggestionLanguage(lang)}
+                        className={`flex-1 py-1 px-2 rounded-lg border text-xs font-medium transition-all ${
+                          suggestionLanguage === lang
+                            ? 'bg-brand-primary/10 border-brand-primary/40 text-brand-primary'
+                            : 'bg-white/5 border-white/5 text-text-muted hover:bg-white/10'
+                        }`}
+                      >
+                        {lang.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleSuggest}
+                  disabled={suggesting || generating || extracting || !currentTenant?.extracted_content}
+                  className="btn bg-bg-secondary hover:bg-glass-hover text-text-primary border border-glass-border w-full py-2.5 flex items-center justify-center gap-2 group"
+                >
+                  {suggesting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin text-brand-primary" />
+                      {t('llmText.generating', 'Generating...')}
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 text-brand-primary group-hover:animate-pulse" />
+                      {t('llmText.generateSuggestions', 'Generate Topics & Prompts')}
+                    </>
+                  )}
+                </button>
+
                 {currentTenant?.llm_txt && (
                   <button
                     onClick={handleVerify}
-                    disabled={verifying || extracting || generating || !currentTenant?.main_domain}
+                    disabled={verifying || extracting || generating || suggesting || !currentTenant?.main_domain}
                     className="btn bg-bg-secondary hover:bg-glass-hover text-text-primary border border-glass-border w-full py-2.5 flex items-center justify-center gap-2"
                   >
                     {verifying ? (
@@ -433,48 +506,65 @@ export function LlmTextPage() {
 
       </div>
 
-      {/* Info Modal */}
+      {/* Modals */}
       {showInfoModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowInfoModal(false)} />
-          <div className="relative bg-[#1e1e1e] border border-glass-border rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between p-5 border-b border-white/10">
-              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <Globe className="w-5 h-5 text-brand-primary" />
-                {t('llmText.howToDeploy', 'How to Deploy llm.txt')}
-              </h3>
-              <button 
-                onClick={() => setShowInfoModal(false)}
-                className="p-2 -mr-2 text-white/60 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-6 space-y-4 text-sm text-text-secondary leading-relaxed">
-              <p>
-                {t('llmText.deployInstruction1', 'To make this file available to AI scrapers and search platforms, you must host it at the root of your main domain.')}
-              </p>
-              <div className="bg-bg-primary border border-white/5 rounded-lg p-3 font-mono text-xs text-brand-primary/80">
-                https://{currentTenant?.main_domain}/llm.txt
-              </div>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>{t('llmText.deployStep1', 'Download the generated llm.txt file using the download button.')}</li>
-                <li>{t('llmText.deployStep2', 'Upload the text file to the "public" folder (or root directory) of your hosting provider.')}</li>
-                <li>{t('llmText.deployStep3', 'Ensure it is publicly accessible without authentication.')}</li>
-                <li>{t('llmText.deployStep4', 'Click "Verify Live llm.txt" to check if our servers can detect the correct version.')}</li>
-              </ul>
-            </div>
-            <div className="p-5 border-t border-white/10 flex justify-end">
-              <button 
-                onClick={() => setShowInfoModal(false)}
-                className="btn btn-primary"
-              >
-                {t('common.gotIt', 'Got it')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeploymentHelpModal onClose={() => setShowInfoModal(false)} />
       )}
+
+      {showSuggestions && (
+        <SuggestionsModal 
+          isOpen={showSuggestions} 
+          onClose={() => setShowSuggestions(false)} 
+          suggestions={suggestions} 
+        />
+      )}
+    </div>
+  );
+}
+
+function DeploymentHelpModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
+  const { currentTenant } = useTenant();
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-[#1e1e1e] border border-glass-border rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="flex items-center justify-between p-5 border-b border-white/10">
+          <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <Globe className="w-5 h-5 text-brand-primary" />
+            {t('llmText.howToDeploy', 'How to Deploy llm.txt')}
+          </h3>
+          <button 
+            onClick={onClose}
+            className="p-2 -mr-2 text-white/60 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 space-y-4 text-sm text-text-secondary leading-relaxed">
+          <p>
+            {t('llmText.deployInstruction1', 'To make this file available to AI scrapers and search platforms, you must host it at the root of your main domain.')}
+          </p>
+          <div className="bg-bg-primary border border-white/5 rounded-lg p-3 font-mono text-xs text-brand-primary/80">
+            https://{currentTenant?.main_domain}/llm.txt
+          </div>
+          <ul className="list-disc pl-5 space-y-2">
+            <li>{t('llmText.deployStep1', 'Download the generated llm.txt file using the download button.')}</li>
+            <li>{t('llmText.deployStep2', 'Upload the text file to the "public" folder (or root directory) of your hosting provider.')}</li>
+            <li>{t('llmText.deployStep3', 'Ensure it is publicly accessible without authentication.')}</li>
+            <li>{t('llmText.deployStep4', 'Click "Verify Live llm.txt" to check if our servers can detect the correct version.')}</li>
+          </ul>
+        </div>
+        <div className="p-5 border-t border-white/10 flex justify-end">
+          <button 
+            onClick={onClose}
+            className="btn btn-primary"
+          >
+            {t('common.gotIt', 'Got it')}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,13 @@
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { useAuth } from '@/contexts/AuthContext';
+import { WelcomeModal } from '@/components/ui/WelcomeModal';
 
 export function AppLayout() {
+  const { profile } = useAuth();
+  const [dismissedInSession, setDismissedInSession] = useState(false);
+
   return (
     <div className="min-h-screen bg-bg-primary">
       <Sidebar />
@@ -11,6 +17,10 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      {profile && profile.has_seen_welcome_modal === false && !dismissedInSession && (
+        <WelcomeModal onClose={() => setDismissedInSession(true)} />
+      )}
     </div>
   );
 }

@@ -43,10 +43,11 @@ serve(async (req: Request) => {
       return withCors(req, badRequest("Only owners and admins can perform this action."));
     }
 
-    const { action } = await req.json().catch(() => ({ action: 'extract' }));
+    const body = await req.json().catch(() => ({ action: 'extract' }));
+    const { action, language = 'en' } = body;
     
-    if (action !== 'extract' && action !== 'generate' && action !== 'verify') {
-       return withCors(req, badRequest("Invalid action. Must be 'extract', 'generate', or 'verify'."));
+    if (action !== 'extract' && action !== 'generate' && action !== 'verify' && action !== 'suggest_topics') {
+       return withCors(req, badRequest("Invalid action. Must be 'extract', 'generate', 'verify', or 'suggest_topics'."));
     }
 
     // 2. Fetch tenant's data
@@ -189,6 +190,90 @@ serve(async (req: Request) => {
       if (updateErr) return withCors(req, serverError("Failed to save verification status to database."));
 
       return withCors(req, ok({ success: true, message: `Status verified as ${status}`, data: { status } }));
+    }
+
+    // --- ACTION: SUGGEST TOPICS ---
+    if (action === 'suggest_topics') {
+      const { data: tenantData, error: tdErr } = await sb
+        .from("tenants")
+        .select("website_title, metatags, extracted_content, sitemap_xml")
+        .eq("id", tenantId)
+        .single();
+
+      if (tdErr || !tenantData) return withCors(req, badRequest("Failed to load extracted data."));
+      if (!tenantData.extracted_content) return withCors(req, badRequest("Cannot generate suggestions without extracting information first."));
+
+      let prompt = `
+        You are an expert AI prompt engineer and SEO analyst.
+        Based on the following extracted details about a website/company, generate a list of topics and prompts that users might ask AI platforms (like ChatGPT or Perplexity) about this brand or its industry.
+        You should suggest 3-5 high-value topics. For each topic, suggest 3-5 relevant prompts.
+        
+        **IMPORTANT: You MUST respond in the following language: ${language}**
+        All fields in the JSON (name, description, text) must be in ${language}.
+        
+        Data:
+        - Title: ${tenantData.website_title}
+        - Meta: ${tenantData.metatags}
+        - Overview: ${tenantData.extracted_content}
+        
+        You must respond with ONLY a valid JSON object matching the following structure exactly, with no markdown fences or other text:
+        {
+          "topics": [
+            {
+              "name": "string (Topic Name in ${language})",
+              "description": "string (Short description in ${language})",
+              "prompts": [
+                {
+                  "text": "string (The actual prompt to ask the AI in ${language})",
+                  "description": "string (Why this prompt is useful in ${language})"
+                }
+              ]
+            }
+          ]
+        }
+      `;
+
+      if (tenantData.sitemap_xml) {
+        const truncatedSitemap = tenantData.sitemap_xml.slice(0, 15000);
+        prompt += `
+        
+        To assist you, here is the generated sitemap.xml content for the website:
+        <sitemap_xml>
+        ${truncatedSitemap}
+        </sitemap_xml>
+        `;
+      }
+
+      const apiKey = Deno.env.get("OPENAI_API_KEY");
+      if (!apiKey) return withCors(req, serverError("OPENAI_API_KEY is not configured"));
+
+      const chatBody = {
+        model: "gpt-4o",
+        messages: [{ role: "user", content: prompt }],
+        response_format: { type: "json_object" }
+      };
+
+      const res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify(chatBody),
+      });
+
+      if (!res.ok) return withCors(req, serverError("Failed to generate suggestions from AI provider."));
+      
+      const data = await res.json();
+      let suggestionsJson = data.choices[0]?.message?.content;
+
+      if (!suggestionsJson) return withCors(req, serverError("AI provider returned an empty response."));
+
+      let parsedResult;
+      try {
+        parsedResult = JSON.parse(suggestionsJson.trim());
+      } catch (e) {
+        return withCors(req, serverError("AI produced invalid JSON output."));
+      }
+
+      return withCors(req, ok(parsedResult));
     }
 
     // --- ACTION: GENERATE ---

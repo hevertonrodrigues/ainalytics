@@ -223,7 +223,10 @@
     "noResults": "No se encontraron resultados",
     "actions": "Acciones",
     "create": "Crear",
-    "status": "Estado"
+    "status": "Estado",
+    "close": "Cerrar",
+    "empty": "Vacio",
+    "gotIt": "Entendido"
   },
   "validation": {
     "required": "Este campo es obligatorio",
@@ -488,6 +491,28 @@
     "deployStep1": "Descarga el archivo llm.txt generado con el botón de descarga.",
     "deployStep2": "Sube el archivo de texto a la carpeta \"public\" (o directorio raíz) de tu proveedor de alojamiento.",
     "deployStep3": "Asegúrate de que sea públicamente accesible sin autenticación.",
-    "deployStep4": "Haz clic en \"Verificar llm.txt en Vivo\" para comprobar si nuestros servidores pueden detectar la versión correcta."
+    "deployStep4": "Haz clic en \"Verificar llm.txt en Vivo\" para comprobar si nuestros servidores pueden detectar la versión correcta.",
+    "generateSuggestions": "Generar Tópicos y Prompts",
+    "suggestionLanguage": "Idioma de la sugerencia",
+    "suggestionsTitle": "Sugerencias de IA",
+    "suggestionsSubtitle": "Basado en el contenido extraído de su sitio web.",
+    "suggestionsSuccess": "¡Sugerencias de generadas con éxito!",
+    "suggestionsError": "Error al generar sugerencias.",
+    "acceptAll": "Aceptar Todo",
+    "accept": "Aceptar",
+    "accepted": "Aceptado"
+  },
+  "welcomeModal": {
+    "title": "Bienvenido a Ainalytics",
+    "description": "Exploremos las características principales del sistema.",
+    "topicsTitle": "Temas y Categorías",
+    "topicsDesc": "Agrupe sus prompts lógicamente en distintas categorías para una mejor organización.",
+    "promptsTitle": "Prompts",
+    "promptsDesc": "Gestione sus entradas e instrucciones de IA para probar frente a múltiples plataformas y modelos.",
+    "sourcesTitle": "Fuentes",
+    "sourcesDesc": "Organice materiales de referencia y bases de conocimiento que fundamenten las respuestas de su IA.",
+    "llmTextTitle": "Generación LLM.txt",
+    "llmTextDesc": "Genere automáticamente un archivo llm.txt basado en sus prompts, listo para que lo consuman LLMs externos.",
+    "skipButton": "Omitir / No volver a mostrar"
   }
 }

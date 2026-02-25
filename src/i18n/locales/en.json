@@ -223,7 +223,10 @@
     "noResults": "No results found",
     "actions": "Actions",
     "create": "Create",
-    "status": "Status"
+    "status": "Status",
+    "close": "Close",
+    "empty": "Empty",
+    "gotIt": "Got it"
   },
   "validation": {
     "required": "This field is required",
@@ -488,6 +491,28 @@
     "deployStep1": "Download the generated llm.txt file using the download button.",
     "deployStep2": "Upload the text file to the \"public\" folder (or root directory) of your hosting provider.",
     "deployStep3": "Ensure it is publicly accessible without authentication.",
-    "deployStep4": "Click \"Verify Live llm.txt\" to check if our servers can detect the correct version."
+    "deployStep4": "Click \"Verify Live llm.txt\" to check if our servers can detect the correct version.",
+    "generateSuggestions": "Generate Topics & Prompts",
+    "suggestionLanguage": "Suggestion Language",
+    "suggestionsTitle": "AI Suggestions",
+    "suggestionsSubtitle": "Based on your extracted website content.",
+    "suggestionsSuccess": "Suggestions generated successfully!",
+    "suggestionsError": "Failed to generate suggestions.",
+    "acceptAll": "Accept All",
+    "accept": "Accept",
+    "accepted": "Accepted"
+  },
+  "welcomeModal": {
+    "title": "Welcome to Ainalytics",
+    "description": "Let's explore the core features of the system.",
+    "topicsTitle": "Topics & Categories",
+    "topicsDesc": "Group your prompts logically into distinct categories for better organization.",
+    "promptsTitle": "Prompts",
+    "promptsDesc": "Manage your AI inputs and instructions to test against multiple platforms and models.",
+    "sourcesTitle": "Sources",
+    "sourcesDesc": "Organize reference materials and knowledge bases that ground your AI responses.",
+    "llmTextTitle": "LLM.txt Generation",
+    "llmTextDesc": "Automatically generate an llm.txt file based on your prompts, ready for external LLMs to consume.",
+    "skipButton": "Skip / Do not show again"
   }
 }
