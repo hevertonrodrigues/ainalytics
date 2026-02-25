@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
-import { PromptSource, PLATFORM_COLORS } from '@/types/dashboard';
+import { PromptSource, PLATFORM_METADATA } from '@/types/dashboard';
 
 interface SourcesSummaryTableProps {
   sources: PromptSource[];
+  onSourceClick: (source: PromptSource) => void;
 }
 
-export function SourcesSummaryTable({ sources }: SourcesSummaryTableProps) {
+export function SourcesSummaryTable({ sources, onSourceClick }: SourcesSummaryTableProps) {
   const { t } = useTranslation();
 
   if (sources.length === 0) return null;
@@ -40,18 +41,22 @@ export function SourcesSummaryTable({ sources }: SourcesSummaryTableProps) {
             </thead>
             <tbody className="divide-y divide-glass-border">
               {sources.map((source, idx) => (
-                <tr key={source.domain + idx} className="hover:bg-glass-hover transition-colors group">
+                <tr 
+                  key={source.domain + idx} 
+                  className="hover:bg-glass-hover transition-colors group cursor-pointer"
+                  onClick={() => onSourceClick(source)}
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="p-1.5 rounded bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary/20 transition-colors">
                         <Globe className="w-4 h-4" />
                       </div>
-                      <div>
-                        <div className="text-sm font-medium text-text-primary">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-text-primary truncate" title={source.domain}>
                           {source.domain}
                         </div>
                         {source.name && (
-                          <div className="text-xs text-text-muted line-clamp-1">
+                          <div className="text-xs text-text-muted line-clamp-1" title={source.name}>
                             {source.name}
                           </div>
                         )}
@@ -65,23 +70,27 @@ export function SourcesSummaryTable({ sources }: SourcesSummaryTableProps) {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-2">
-                      {Object.entries(source.platforms).map(([slug, count]) => (
-                        <div
-                          key={slug}
-                          className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-glass-card border border-glass-border"
-                          title={`${slug}: ${count} mentions`}
-                        >
-                          <span
-                            className={`w-2 h-2 rounded-full ${PLATFORM_COLORS[slug] || 'bg-gray-500'}`}
-                          />
-                          <span className="text-[10px] font-medium text-text-secondary uppercase">
-                            {slug}
-                          </span>
-                          <span className="text-[10px] font-bold text-text-muted bg-text-muted/10 px-1 rounded">
-                            {count}
-                          </span>
-                        </div>
-                      ))}
+                      
+                      {Object.entries(source.platforms).map(([slug, count]) => {
+                        const meta = PLATFORM_METADATA[slug];
+                        return (
+                          <div
+                            key={slug}
+                            className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-glass-card border border-glass-border shadow-sm group/tag hover:border-glass-border-hover transition-colors"
+                            title={`${meta?.label || slug}: ${count} mentions`}
+                          >
+                            <span
+                              className={`w-2 h-2 rounded-full ${meta?.colorClass || 'bg-gray-500'} shadow-[0_0_5px_rgba(0,0,0,0.2)]`}
+                            />
+                            <span className="text-[10px] font-semibold text-text-secondary uppercase">
+                              {meta?.label || slug}
+                            </span>
+                            <span className="text-[10px] font-bold text-text-muted bg-text-muted/10 px-1 rounded-xs">
+                              {count}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </td>
                 </tr>

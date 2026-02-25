@@ -12,6 +12,7 @@ import type { Prompt, PromptAnswer, Topic, TenantPlatformModel } from '@/types';
 import { PromptHeader } from './components/PromptHeader';
 import { BackgroundFetchNotice } from './components/BackgroundFetchNotice';
 import { SourcesSummaryTable } from './components/SourcesSummaryTable';
+import { SourceDetailsModal } from './components/SourceDetailsModal';
 import { PlatformAnswerGroup } from './components/PlatformAnswerGroup';
 import type { PlatformGroup, PromptSource } from '@/types/dashboard';
 
@@ -34,6 +35,7 @@ export function PromptDetailPage() {
   const [retryingAnswerId, setRetryingAnswerId] = useState<string | null>(null);
   const [expandedPlatforms, setExpandedPlatforms] = useState<Set<string>>(new Set());
   const [expandedAnswers, setExpandedAnswers] = useState<Set<string>>(new Set());
+  const [selectedSource, setSelectedSource] = useState<PromptSource | null>(null);
 
   const loadAll = useCallback(async () => {
     if (!promptId) return;
@@ -81,7 +83,12 @@ export function PromptDetailPage() {
           url,
           title,
           source:sources(domain, name),
-          answer:prompt_answers(platform_slug)
+          answer:prompt_answers!prompt_answer_sources_answer_id_fkey(
+            platform_slug,
+            model:models!prompt_answers_model_id_fkey(
+              platform:platforms!models_platform_id_fkey(slug)
+            )
+          )
         `)
         .eq('prompt_id', promptId);
 
@@ -94,19 +101,34 @@ export function PromptDetailPage() {
         for (const item of (sourcesData as any[])) {
           const domain = item.source?.domain || 'Unknown';
           const name = item.source?.name || null;
-          const platform = item.answer?.platform_slug || 'AI';
+          
+          // Handle potential array or object return for joined resources
+          const answer = Array.isArray(item.answer) ? item.answer[0] : item.answer;
+          const model = Array.isArray(answer?.model) ? answer.model[0] : answer?.model;
+          const platformObj = Array.isArray(model?.platform) ? model.platform[0] : model?.platform;
+          
+          const platform = platformObj?.slug || answer?.platform_slug || 'AI';
 
           if (!aggregated.has(domain)) {
             aggregated.set(domain, {
               domain,
               name,
               total_count: 0,
-              platforms: {}
+              platforms: {},
+              references: []
             });
           }
           const entry = aggregated.get(domain)!;
           entry.total_count++;
           entry.platforms[platform] = (entry.platforms[platform] || 0) + 1;
+          
+          // Add reference if not already present (based on URL)
+          if (item.url && !entry.references.some(r => r.url === item.url)) {
+            entry.references.push({
+              url: item.url,
+              title: item.title || null
+            });
+          }
         }
         setPromptSources(
           Array.from(aggregated.values()).sort((a, b) => b.total_count - a.total_count)
@@ -272,7 +294,10 @@ export function PromptDetailPage() {
       <BackgroundFetchNotice profile={profile} answersCount={answers.length} />
 
       {!error && (
-        <SourcesSummaryTable sources={promptSources} />
+        <SourcesSummaryTable 
+          sources={promptSources} 
+          onSourceClick={(source) => setSelectedSource(source)}
+        />
       )}
 
       {/* Answers Grouped by Platform */}
@@ -303,6 +328,13 @@ export function PromptDetailPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {selectedSource && (
+        <SourceDetailsModal
+          source={selectedSource}
+          onClose={() => setSelectedSource(null)}
+        />
       )}
     </div>
   );

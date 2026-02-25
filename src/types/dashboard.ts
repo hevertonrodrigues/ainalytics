@@ -20,6 +20,7 @@ export type PromptSource = {
   name: string | null;
   total_count: number;
   platforms: Record<string, number>;
+  references: { url: string; title: string | null }[];
 };
 
 export type SourceWithReferences = Source & {
