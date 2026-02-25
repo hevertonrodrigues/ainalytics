@@ -1,28 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  ChevronDown,
-  ChevronRight,
-} from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
-import { PromptForm } from '@/components/PromptForm';
 import { ActiveModelsGuard } from '@/components/guards/ActiveModelsGuard';
-import type { Topic, Prompt } from '@/types';
+import type { Prompt } from '@/types';
 
-type FormMode = 'closed' | 'create' | 'edit';
-
-interface TopicWithPrompts extends Topic {
-  prompts_list: Prompt[];
-}
+// Components
+import { PromptsHeader } from './components/PromptsHeader';
+import { EmptyPromptsState } from './components/EmptyPromptsState';
+import { TopicPromptGroup } from './components/TopicPromptGroup';
+import type { TopicWithPrompts, FormMode } from './components/prompts-types';
 
 export function PromptsPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { showToast } = useToast();
 
   const [groups, setGroups] = useState<TopicWithPrompts[]>([]);
@@ -40,7 +30,7 @@ export function PromptsPage() {
   const loadAll = useCallback(async () => {
     try {
       // Get all topics
-      const topicsRes = await apiClient.get<Topic[]>('/topics-prompts');
+      const topicsRes = await apiClient.get<TopicWithPrompts[]>('/topics-prompts');
       const topics = topicsRes.data;
 
       // Get prompts for each topic in parallel
@@ -95,7 +85,6 @@ export function PromptsPage() {
     loadAll();
   };
 
-
   const handleDelete = async (id: string) => {
     if (!confirm(t('prompts.confirmDelete'))) return;
     try {
@@ -141,167 +130,39 @@ export function PromptsPage() {
   return (
     <ActiveModelsGuard>
       <div className="stagger-enter space-y-6 max-w-4xl">
-        {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-text-primary">
-            {t('prompts.title')}
-          </h1>
-          <span className="badge">{totalPrompts}</span>
-        </div>
-      </div>
+        <PromptsHeader totalPrompts={totalPrompts} />
 
-      {/* Error */}
-      {error && formMode === 'closed' && (
-        <div className="p-3 rounded-xs bg-error/10 border border-error/20 text-error text-sm">
-          {error}
-        </div>
-      )}
+        {/* Error */}
+        {error && formMode === 'closed' && (
+          <div className="p-3 rounded-xs bg-error/10 border border-error/20 text-error text-sm">
+            {error}
+          </div>
+        )}
 
-      {/* Empty state */}
-      {groups.length === 0 ? (
-        <div className="dashboard-card p-12 text-center">
-          <p className="text-text-muted text-sm">{t('prompts.noPrompts')}</p>
-          <button
-            onClick={() => navigate('/dashboard/topics')}
-            className="btn btn-primary btn-sm mt-4"
-          >
-            {t('topics.newTopic')}
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {groups.map((group) => (
-            <div key={group.id} className="dashboard-card overflow-hidden">
-              {/* Topic header */}
-              <div
-                onClick={() => toggleCollapsed(group.id)}
-                className="w-full flex items-center gap-3 p-4 hover:bg-glass-hover transition-colors text-left cursor-pointer"
-              >
-                {collapsed[group.id] ? (
-                  <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-text-muted shrink-0" />
-                )}
-                <div
-                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${
-                    group.is_active ? 'bg-success' : 'bg-text-muted'
-                  }`}
-                />
-                <span className="text-sm font-semibold text-text-primary flex-1">
-                  {group.name}
-                </span>
-                <span className="badge">
-                  {group.prompts_list.length} {t('topics.promptCount').toLowerCase()}
-                </span>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openCreate(group.id);
-                  }}
-                  className="icon-btn"
-                  title={t('prompts.newPrompt')}
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Prompts list */}
-              {!collapsed[group.id] && (
-                <div className="border-t border-glass-border">
-                  {group.prompts_list.length === 0 ? (
-                    <div className="px-4 py-6 text-center">
-                      <p className="text-xs text-text-muted mb-2">
-                        {t('prompts.noPrompts')}
-                      </p>
-                      <button
-                        onClick={() => openCreate(group.id)}
-                        className="text-xs text-brand-primary hover:underline"
-                      >
-                        + {t('prompts.newPrompt')}
-                      </button>
-                    </div>
-                  ) : (
-                    group.prompts_list.map((prompt, idx) => (
-                      <div
-                        key={prompt.id}
-                        className={`flex items-center gap-3 px-4 py-3 group ${
-                          idx < group.prompts_list.length - 1
-                            ? 'border-b border-glass-border/50'
-                            : ''
-                        }`}
-                      >
-                        {/* Indent + dot */}
-                        <div className="w-4" />
-                        <div
-                          className={`w-2 h-2 rounded-full shrink-0 ${
-                            prompt.is_active ? 'bg-success' : 'bg-text-muted'
-                          }`}
-                        />
-
-                        {/* Content */}
-                        <div 
-                          className="flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
-                          onClick={() => navigate(`/dashboard/prompts/${prompt.id}`)}
-                        >
-                          <span className="text-sm text-text-primary block truncate hover:underline">
-                            {prompt.text}
-                          </span>
-                          {prompt.description && (
-                            <p className="text-xs text-text-muted truncate mt-0.5">
-                              {prompt.description}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={() => handleToggleActive(prompt)}
-                            className={`text-xs px-2 py-1 rounded-xs font-medium transition-colors ${
-                              prompt.is_active
-                                ? 'text-success bg-success/10 hover:bg-success/20'
-                                : 'text-text-muted bg-bg-tertiary hover:bg-glass-hover'
-                            }`}
-                          >
-                            {prompt.is_active ? t('prompts.active') : t('prompts.inactive')}
-                          </button>
-                          <button
-                            onClick={() => openEdit(prompt)}
-                            className="icon-btn"
-                            title={t('common.edit')}
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(prompt.id)}
-                            className="icon-btn hover:!text-error"
-                            title={t('common.delete')}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-
-              {/* Inline form for this topic */}
-              {formMode !== 'closed' && formTopicId === group.id && (
-                <PromptForm
-                  topicId={group.id}
-                  prompt={editingPrompt}
-                  onSuccess={handleFormSuccess}
-                  onCancel={closeForm}
-                  variant="inline"
-                />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-
+        {/* List of Topic Groups */}
+        {groups.length === 0 ? (
+          <EmptyPromptsState />
+        ) : (
+          <div className="space-y-3">
+            {groups.map((group) => (
+              <TopicPromptGroup
+                key={group.id}
+                group={group}
+                isCollapsed={!!collapsed[group.id]}
+                onToggleCollapse={toggleCollapsed}
+                onOpenCreate={openCreate}
+                onOpenEdit={openEdit}
+                onDeletePrompt={handleDelete}
+                onTogglePromptActive={handleToggleActive}
+                formMode={formMode}
+                formTopicId={formTopicId}
+                editingPrompt={editingPrompt}
+                onFormSuccess={handleFormSuccess}
+                onFormCancel={closeForm}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </ActiveModelsGuard>
   );
