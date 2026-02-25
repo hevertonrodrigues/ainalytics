@@ -9,6 +9,7 @@ import type { Prompt } from '@/types';
 import { PromptsHeader } from './components/PromptsHeader';
 import { EmptyPromptsState } from './components/EmptyPromptsState';
 import { TopicPromptGroup } from './components/TopicPromptGroup';
+import { PageExplanation } from '@/components/PageExplanation';
 import type { TopicWithPrompts, FormMode } from '@/types/dashboard';
 
 export function PromptsPage() {
@@ -131,6 +132,10 @@ export function PromptsPage() {
     <ActiveModelsGuard>
       <div className="stagger-enter space-y-6 max-w-4xl">
         <PromptsHeader totalPrompts={totalPrompts} />
+
+        {formMode === 'closed' && (
+          <PageExplanation message={t('prompts.banner')} />
+        )}
 
         {/* Error */}
         {error && formMode === 'closed' && (

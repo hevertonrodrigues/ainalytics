@@ -151,7 +151,8 @@
     "deleted": "Tópico eliminado",
     "confirmDelete": "¿Eliminar este tópico y todos sus prompts?",
     "namePlaceholder": "ej. Alquiler de Barcos",
-    "descriptionPlaceholder": "Describa lo que cubre este tópico"
+    "descriptionPlaceholder": "Describa lo que cubre este tópico",
+    "banner": "Los Tópicos le permiten organizar su estrategia de monitoreo agrupando áreas de interés relacionadas en categorías distintas. Esta estructura lógica ayuda a rastrear la visibilidad en diferentes segmentos de su marca o industria. Por ejemplo, una agencia de viajes podría crear tópicos separados para 'Cruceros de Verano', 'Viajes de Esquí de Invierno' y 'Safaris de Lujo'. Al categorizar sus prompts, puede analizar mejor cómo las plataformas de IA perciben diferentes aspectos de su negocio e identificar qué líneas de productos específicas necesitan mejorar su visibilidad."
   },
   "prompts": {
     "title": "Prompts",
@@ -170,7 +171,8 @@
     "descriptionPlaceholder": "Notas opcionales sobre este prompt",
     "backToTopics": "Volver a Tópicos",
     "charCount": "{{count}}/{{max}} caracteres",
-    "charLimitExceeded": "El texto del prompt no debe exceder {{max}} caracteres"
+    "charLimitExceeded": "El texto del prompt no debe exceder {{max}} caracteres",
+    "banner": "Los Prompts son las preguntas o instrucciones específicas que envía a los modelos de IA para probar qué dicen sobre su marca. Los prompts bien diseñados simulan consultas reales de clientes, lo que le permite monitorear la frecuencia de mención y la calidad del resultado en múltiples plataformas simultáneamente. Por ejemplo, en lugar de solo 'Alquiler de barcos', intente con '¿Cuáles son los mejores servicios de alquiler de barcos en Brasil?' o 'Comparar charters de yates de lujo para 2026'. Use esta sección para gestionar su biblioteca de casos de prueba y rastrear cómo evolucionan las respuestas de la IA con el tiempo."
   },
   "promptDetail": {
     "title": "Detalle del Prompt",
@@ -444,7 +446,8 @@
     "detailTitle": "Referencias de la Fuente",
     "annotation": "Anotación de Texto",
     "prompt": "Prompt",
-    "close": "Cerrar"
+    "close": "Cerrar",
+    "banner": "Las Fuentes representan los cimientos de conocimiento que los modelos de IA utilizan para fundamentar sus respuestas sobre su organización. Esta sección rastrea los dominios, URLs y anotaciones de texto específicas que los rastreadores de IA referencian al generar respuestas. Por ejemplo, puede ver si una IA está extrayendo datos de su documentación oficial, un artículo de noticias o el blog de un competidor. Comprender estas fuentes le permite identificar qué partes de su presencia en línea están alimentando eficazmente el 'cerebro' de la IA y dónde la información de su marca podría faltar o ser malinterpretada."
   },
   "llmText": {
     "errorNoDomain": "No hay dominio principal configurado. Por favor, agregue uno en Configuración.",

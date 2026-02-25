@@ -10,6 +10,7 @@ import { TopicsHeader } from './components/TopicsHeader';
 import { TopicForm } from './components/TopicForm';
 import { TopicListItem } from './components/TopicListItem';
 import { EmptyTopicsState } from './components/EmptyTopicsState';
+import { PageExplanation } from '@/components/PageExplanation';
 import type { FormMode } from '@/types/dashboard';
 
 export function TopicsPage() {
@@ -139,6 +140,10 @@ export function TopicsPage() {
     <ActiveModelsGuard>
       <div className="stagger-enter space-y-6 max-w-4xl">
         <TopicsHeader formMode={formMode} onOpenCreate={openCreate} />
+        
+        {formMode === 'closed' && (
+          <PageExplanation message={t('topics.banner')} />
+        )}
 
         {/* Error */}
         {error && formMode === 'closed' && (

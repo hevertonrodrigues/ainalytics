@@ -151,7 +151,8 @@
     "deleted": "Topic deleted",
     "confirmDelete": "Delete this topic and all its prompts?",
     "namePlaceholder": "e.g. Boat Rental",
-    "descriptionPlaceholder": "Describe what this topic covers"
+    "descriptionPlaceholder": "Describe what this topic covers",
+    "banner": "Topics allow you to organize your monitoring strategy by grouping related interest areas into distinct categories. This logical structure helps you track visibility across different segments of your brand or industry. For example, a travel agency might create separate topics for 'Summer Cruises', 'Winter Ski Trips', and 'Luxury Safaris'. By categorizing your prompts, you can better analyze how AI platforms perceive different aspects of your business and identify which specific product lines need improved visibility."
   },
   "prompts": {
     "title": "Prompts",
@@ -170,7 +171,8 @@
     "descriptionPlaceholder": "Optional notes about this prompt",
     "backToTopics": "Back to Topics",
     "charCount": "{{count}}/{{max}} characters",
-    "charLimitExceeded": "Prompt text must not exceed {{max}} characters"
+    "charLimitExceeded": "Prompt text must not exceed {{max}} characters",
+    "banner": "Prompts are the specific questions or instructions you send to AI models to test what they say about your brand. Well-crafted prompts simulate real customer queries, allowing you to monitor mention frequency and response quality across multiple platforms simultaneously. For example, instead of just 'Boat rental', try 'What are the best boat rental services in Brazil?' or 'Compare luxury yacht charters for 2026'. Use this section to manage your library of test cases and track how AI answers evolve over time for each specific inquiry."
   },
   "promptDetail": {
     "title": "Prompt Detail",
@@ -444,7 +446,8 @@
     "detailTitle": "Source References",
     "annotation": "Text Annotation",
     "prompt": "Prompt",
-    "close": "Close"
+    "close": "Close",
+    "banner": "Sources represent the foundations of knowledge that AI models use to ground their answers about your organization. This section tracks the domains, URLs, and specific text annotations that AI scrapers reference when generating responses. For example, you can see if an AI is pulling data from your official documentation, a news article, or a competitor's blog. Understanding these sources allows you to identify which parts of your online presence are effectively feeding the AI 'brain' and where your brand’s information might be missing or misinterpreted."
   },
   "llmText": {
     "errorNoDomain": "No main domain configured. Please add one in Settings.",

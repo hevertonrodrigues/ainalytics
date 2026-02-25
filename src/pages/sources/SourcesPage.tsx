@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, Globe, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { PageExplanation } from '@/components/PageExplanation';
 
 import type { SourceWithReferences } from '@/types/dashboard';
 
@@ -74,6 +75,8 @@ export function SourcesPage() {
           </p>
         </div>
       </div>
+
+      <PageExplanation message={t('sources.banner')} />
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row items-center gap-4">
