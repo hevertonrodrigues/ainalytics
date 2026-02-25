@@ -1,39 +1,19 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  ArrowLeft,
-  Clock,
-  AlertCircle,
-  ChevronDown,
-  ChevronRight,
-  Database,
-  RefreshCw,
-  Search,
-  Loader2,
-  Link2,
-} from 'lucide-react';
+import { Database } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Prompt, PromptAnswer, Topic, TenantPlatformModel } from '@/types';
 
-type PlatformGroup = {
-  platform_slug: string;
-  models: {
-    model_id: string;
-    model_slug: string;
-    answers: PromptAnswer[];
-  }[];
-};
-
-const PLATFORM_COLORS: Record<string, string> = {
-  openai: 'bg-emerald-500',
-  anthropic: 'bg-orange-500',
-  gemini: 'bg-blue-500',
-  grok: 'bg-slate-600',
-  perplexity: 'bg-cyan-500',
-};
+// Components
+import { PromptHeader } from './components/PromptHeader';
+import { BackgroundFetchNotice } from './components/BackgroundFetchNotice';
+import { SourcesSummaryTable } from './components/SourcesSummaryTable';
+import { PlatformAnswerGroup } from './components/PlatformAnswerGroup';
+import type { PlatformGroup, PromptSource } from './components/types';
 
 export function PromptDetailPage() {
   const { id: promptId } = useParams<{ id: string }>();
@@ -46,6 +26,7 @@ export function PromptDetailPage() {
   const [topic, setTopic] = useState<Topic | null>(null);
   const [answers, setAnswers] = useState<PromptAnswer[]>([]);
   const [tenantModels, setTenantModels] = useState<TenantPlatformModel[]>([]);
+  const [promptSources, setPromptSources] = useState<PromptSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searching, setSearching] = useState(false);
@@ -91,6 +72,45 @@ export function PromptDetailPage() {
         setTopic(foundTopic);
       } else {
         setError(t('errors.NOT_FOUND'));
+      }
+
+      // 3. Fetch and aggregate sources
+      const { data: sourcesData, error: sourcesErr } = await supabase
+        .from('prompt_answer_sources')
+        .select(`
+          url,
+          title,
+          source:sources(domain, name),
+          answer:prompt_answers(platform_slug)
+        `)
+        .eq('prompt_id', promptId);
+
+      if (sourcesErr) {
+        console.error('Error fetching sources:', sourcesErr);
+      }
+
+      if (sourcesData) {
+        const aggregated = new Map<string, PromptSource>();
+        for (const item of (sourcesData as any[])) {
+          const domain = item.source?.domain || 'Unknown';
+          const name = item.source?.name || null;
+          const platform = item.answer?.platform_slug || 'AI';
+
+          if (!aggregated.has(domain)) {
+            aggregated.set(domain, {
+              domain,
+              name,
+              total_count: 0,
+              platforms: {}
+            });
+          }
+          const entry = aggregated.get(domain)!;
+          entry.total_count++;
+          entry.platforms[platform] = (entry.platforms[platform] || 0) + 1;
+        }
+        setPromptSources(
+          Array.from(aggregated.values()).sort((a, b) => b.total_count - a.total_count)
+        );
       }
     } catch {
       setError(t('common.error'));
@@ -237,80 +257,22 @@ export function PromptDetailPage() {
 
   return (
     <div className="stagger-enter space-y-6 max-w-5xl">
-      {/* Header & Prompt Info */}
-      <div>
-        <button
-          onClick={() => navigate('/dashboard/prompts')}
-          className="flex items-center gap-1 text-sm text-text-muted hover:text-text-secondary transition-colors mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          {t('promptDetail.backToPrompts')}
-        </button>
+      <PromptHeader
+        prompt={prompt}
+        topic={topic}
+        profile={profile}
+        searching={searching}
+        tenantModels={tenantModels}
+        answers={answers}
+        error={error}
+        onBack={() => navigate('/dashboard/prompts')}
+        onSearch={handleSearch}
+      />
 
-        {error ? (
-          <div className="p-4 rounded-xs bg-error/10 border border-error/20 text-error flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            {error}
-          </div>
-        ) : prompt && (
-          <div className="dashboard-card p-6 border-l-4" style={{ borderLeftColor: 'var(--brand-primary)' }}>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="badge">{topic?.name || t('topics.title')}</span>
-              {prompt.is_active ? (
-                <span className="text-xs px-2 py-0.5 rounded bg-success/10 text-success font-medium">
-                  {t('prompts.active')}
-                </span>
-              ) : (
-                <span className="text-xs px-2 py-0.5 rounded bg-text-muted/10 text-text-muted font-medium">
-                  {t('prompts.inactive')}
-                </span>
-              )}
-              <div className="ml-auto">
-                {profile?.is_sa && (
-                  <button
-                    onClick={handleSearch}
-                    disabled={searching || tenantModels.length === 0}
-                    className="btn btn-primary btn-sm"
-                  >
-                    {searching ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        {t('answers.searching')}
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-4 h-4" />
-                        {t('answers.search')}
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </div>
-            <h1 className="text-lg font-medium text-text-primary mb-2">
-              {prompt.text}
-            </h1>
-            {prompt.description && (
-              <p className="text-sm text-text-muted">{prompt.description}</p>
-            )}
-            
-            <div className="mt-4 pt-4 border-t border-glass-border flex items-center gap-4 text-xs text-text-muted">
-              <span className="flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5" />
-                {t('promptDetail.answersCount', { count: answers.length })}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
+      <BackgroundFetchNotice profile={profile} answersCount={answers.length} />
 
-      {!profile?.is_sa && (
-        <div className="dashboard-card p-4 flex items-start gap-3 border-l-4" style={{ borderLeftColor: 'var(--brand-primary)' }}>
-          <Clock className="w-5 h-5 shrink-0 mt-0.5" style={{ color: 'var(--brand-primary)' }} />
-          <p className="text-sm text-text-secondary">
-            {t('promptDetail.backgroundFetchNotice', 'AI results for this prompt are fetched in the background. New responses will appear here after the next scheduled update batch.')}
-          </p>
-        </div>
+      {!error && (
+        <SourcesSummaryTable sources={promptSources} />
       )}
 
       {/* Answers Grouped by Platform */}
@@ -326,149 +288,19 @@ export function PromptDetailPage() {
           </h2>
 
           <div className="space-y-4">
-            {groupedAnswers.map(group => {
-              const isPlatformExpanded = expandedPlatforms.has(group.platform_slug);
-              
-              let platformTotalAnswers = 0;
-              let platformTotalErrors = 0;
-              let platformTotalSources = 0;
-              for (const m of group.models) {
-                platformTotalAnswers += m.answers.length;
-                platformTotalErrors += m.answers.filter(a => a.error).length;
-                platformTotalSources += m.answers.reduce((sum, a) => sum + (Array.isArray(a.sources) ? a.sources.length : 0), 0);
-              }
-
-              return (
-                <div key={group.platform_slug} className="dashboard-card overflow-hidden">
-                  {/* Platform Header */}
-                  <div
-                    onClick={() => profile?.is_sa && togglePlatform(group.platform_slug)}
-                    className={`w-full p-4 flex items-center gap-3 text-left ${profile?.is_sa ? 'hover:bg-glass-hover transition-colors cursor-pointer select-none' : ''}`}
-                  >
-                    {profile?.is_sa && (
-                      isPlatformExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-text-muted shrink-0" />
-                      ) : (
-                        <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
-                      )
-                    )}
-                    <span
-                      className={`w-3 h-3 rounded-full shrink-0 ${PLATFORM_COLORS[group.platform_slug] || 'bg-gray-500'}`}
-                    />
-                    <span className="font-semibold text-text-primary uppercase tracking-wide flex-1">
-                      {group.platform_slug}
-                    </span>
-                    <span className="text-xs text-text-muted">
-                      {platformTotalAnswers} {t('answers.results')}
-                    </span>
-                    {platformTotalSources > 0 && (
-                      <span className="text-xs text-text-muted flex items-center gap-1">
-                        <Link2 className="w-3 h-3" />
-                        {platformTotalSources} {t('promptDetail.sources', 'sources')}
-                      </span>
-                    )}
-                    {platformTotalErrors > 0 && (
-                      <span className="text-xs text-error bg-error/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3" />
-                        {platformTotalErrors}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Models list */}
-                  {profile?.is_sa && isPlatformExpanded && (
-                    <div className="border-t border-glass-border bg-bg-tertiary/30 p-4 space-y-4">
-                      {group.models.map(model => (
-                        <div key={model.model_slug} className="space-y-2">
-                          <h3 className="text-sm font-medium text-text-secondary pl-2 flex items-center gap-2">
-                            <span className="text-text-muted">{t('promptDetail.model')}:</span> 
-                            {model.model_slug}
-                          </h3>
-                          
-                          <div className="space-y-1.5 pl-2 border-l border-glass-border ml-2">
-                            {model.answers.map(answer => {
-                              const isAnswerExpanded = expandedAnswers.has(answer.id);
-                              return (
-                                <div key={answer.id} className="bg-bg-primary rounded-lg border border-glass-border overflow-hidden">
-                                  <div
-                                    className={`flex items-center gap-3 p-3 transition-colors select-none ${profile?.is_sa ? 'cursor-pointer hover:bg-glass-hover' : ''}`}
-                                    onClick={() => profile?.is_sa && toggleAnswerExpand(answer.id)}
-                                  >
-                                    {profile?.is_sa && (
-                                      isAnswerExpanded ? (
-                                        <ChevronDown className="w-3.5 h-3.5 text-text-muted shrink-0" />
-                                      ) : (
-                                        <ChevronRight className="w-3.5 h-3.5 text-text-muted shrink-0" />
-                                      )
-                                    )}
-                                    
-                                    <div className="flex-1 min-w-0 flex items-center gap-2">
-                                      {profile?.is_sa && (
-                                        <span className="text-xs text-text-secondary">
-                                          {new Date(answer.created_at).toLocaleString()}
-                                        </span>
-                                      )}
-                                      {answer.error && (
-                                        <span className="text-xs text-error font-medium px-1.5 py-0.5 rounded bg-error/10">
-                                          Error
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    {Array.isArray(answer.sources) && answer.sources.length > 0 && (
-                                      <span className="text-xs text-text-muted flex items-center gap-1 shrink-0">
-                                        <Link2 className="w-3 h-3" />
-                                        {answer.sources.length} {t('promptDetail.sources', 'sources')}
-                                      </span>
-                                    )}
-
-                                    {profile?.is_sa && answer.latency_ms && (
-                                      <span className="text-xs text-text-muted flex items-center gap-1 shrink-0">
-                                        <Clock className="w-3 h-3" />
-                                        {(answer.latency_ms / 1000).toFixed(1)}s
-                                      </span>
-                                    )}
-                                    {profile?.is_sa && answer.tokens_used && (
-                                      <span className="text-xs text-text-muted shrink-0">
-                                        {answer.tokens_used.input + answer.tokens_used.output} {t('promptDetail.tokens')}
-                                      </span>
-                                    )}
-                                  </div>
-
-                                  {profile?.is_sa && isAnswerExpanded && (
-                                    <div className="px-4 pb-4 pt-1 pl-10 border-t border-glass-border/50 bg-bg-secondary/30">
-                                      {answer.error ? (
-                                        <div className="p-3 rounded-xs bg-error/10 text-error text-xs flex flex-col gap-2 mt-2">
-                                          <div className="font-mono whitespace-pre-wrap">{answer.error}</div>
-                                          {profile?.is_sa && (
-                                            <button
-                                              onClick={(e) => { e.stopPropagation(); handleRetrySingle(answer); }}
-                                              disabled={retryingAnswerId === answer.id}
-                                              className="btn btn-primary btn-sm mt-1 self-start"
-                                            >
-                                              <RefreshCw className={`w-3.5 h-3.5 ${retryingAnswerId === answer.id ? 'animate-spin' : ''}`} />
-                                              {t('answers.retry')}
-                                            </button>
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <div className="text-sm text-text-primary whitespace-pre-wrap leading-relaxed mt-2 p-3 bg-bg-primary rounded-md border border-glass-border max-h-[500px] overflow-y-auto">
-                                          {answer.answer_text}
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {groupedAnswers.map((group) => (
+              <PlatformAnswerGroup
+                key={group.platform_slug}
+                group={group}
+                profile={profile}
+                isExpanded={expandedPlatforms.has(group.platform_slug)}
+                onToggle={() => togglePlatform(group.platform_slug)}
+                expandedAnswers={expandedAnswers}
+                onToggleAnswer={toggleAnswerExpand}
+                onRetryAnswer={handleRetrySingle}
+                retryingAnswerId={retryingAnswerId}
+              />
+            ))}
           </div>
         </div>
       )}
