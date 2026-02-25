@@ -46,12 +46,12 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
     setLoading(prev => ({ ...prev, [key]: true }));
     try {
       // 1. Ensure topic exists or create it
-      const topicRes = await apiClient.post<{ id: string }>('topics-prompts', {
+      const topicRes = await apiClient.post<{ id: string }>('/topics-prompts', {
         name: topic.name,
         description: topic.description
       }).catch(async (err) => {
         if (err.status === 409) {
-          const topics = await apiClient.get<any[]>('topics-prompts');
+          const topics = await apiClient.get<any[]>('/topics-prompts');
           const found = topics.data.find(t => t.name === topic.name);
           if (found) return { data: found };
         }
@@ -69,7 +69,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
           const prompt = topic.prompts[i];
           if (!prompt) continue;
 
-          await apiClient.post('topics-prompts/prompts', {
+          await apiClient.post('/topics-prompts/prompts', {
             topic_id: topicId,
             text: prompt.text,
             description: prompt.description,
@@ -85,7 +85,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
         const prompt = topic.prompts[promptIndex!];
         if (!prompt) return;
 
-        await apiClient.post('topics-prompts/prompts', {
+        await apiClient.post('/topics-prompts/prompts', {
           topic_id: topicId,
           text: prompt.text,
           description: prompt.description,

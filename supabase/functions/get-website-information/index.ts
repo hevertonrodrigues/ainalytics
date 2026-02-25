@@ -205,11 +205,17 @@ serve(async (req: Request) => {
 
       let prompt = `
         You are an expert AI prompt engineer and SEO analyst.
-        Based on the following extracted details about a website/company, generate a list of topics and prompts that users might ask AI platforms (like ChatGPT or Perplexity) about this brand or its industry.
-        You should suggest 3-5 high-value topics. For each topic, suggest 3-5 relevant prompts.
+        Based on the following extracted details about a website/company, generate a list of topics and prompts that users might ask AI platforms (like ChatGPT or Perplexity) about the services, products, or industry this company operates in.
         
-        **IMPORTANT: You MUST respond in the following language: ${language}**
-        All fields in the JSON (name, description, text) must be in ${language}.
+        **CRITICAL INSTRUCTIONS:**
+        1. The prompts and topics must be **GENERIC** and focused on customer **NECESSITIES** or **SERVICES**.
+        2. **DO NOT MENTION THE COMPANY NAME** or specific brand names in the prompts or topics.
+        3. Imagine a client who needs a solution this company provides, but doesn't necessarily know the company yet.
+        4. You should suggest 3-5 high-value topics. For each topic, suggest 3-5 relevant prompts.
+        
+        **LANGUAGE REQUIREMENT:**
+        - You MUST respond in the following language: ${language}
+        - All fields in the JSON (name, description, text) must be in ${language}.
         
         Data:
         - Title: ${tenantData.website_title}
@@ -220,11 +226,11 @@ serve(async (req: Request) => {
         {
           "topics": [
             {
-              "name": "string (Topic Name in ${language})",
+              "name": "string (Generic Topic Name in ${language})",
               "description": "string (Short description in ${language})",
               "prompts": [
                 {
-                  "text": "string (The actual prompt to ask the AI in ${language})",
+                  "text": "string (Generic prompt focused on service/need in ${language})",
                   "description": "string (Why this prompt is useful in ${language})"
                 }
               ]

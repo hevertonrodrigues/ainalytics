@@ -69,7 +69,11 @@ async function request<T>(
   body?: unknown,
   isRetry = false
 ): Promise<ApiSuccessResponse<T>> {
-  const url = `${EDGE_FUNCTION_BASE}${path}`;
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const cleanBase = EDGE_FUNCTION_BASE.endsWith('/') 
+    ? EDGE_FUNCTION_BASE.slice(0, -1) 
+    : EDGE_FUNCTION_BASE;
+  const url = `${cleanBase}${cleanPath}`;
 
   const res = await fetch(url, {
     method,
