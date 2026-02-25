@@ -5,6 +5,7 @@ import { SearchSelect, type SelectOption } from '@/components/ui/SearchSelect';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import type { Platform, Model } from '@/types';
+import { PLATFORM_GRADIENTS, SYNCABLE_PLATFORMS } from '@/types/dashboard';
 
 export function PlatformsPage() {
   const { t } = useTranslation();
@@ -82,7 +83,6 @@ export function PlatformsPage() {
     }
   };
 
-  const SYNCABLE_PLATFORMS = new Set(['openai', 'anthropic', 'gemini', 'grok']);
 
   const handleSync = async (platform: Platform) => {
     setSyncing(platform.id);
@@ -101,13 +101,6 @@ export function PlatformsPage() {
     }
   };
 
-  const PLATFORM_COLORS: Record<string, string> = {
-    openai: 'from-emerald-500 to-green-600',
-    anthropic: 'from-orange-400 to-amber-600',
-    gemini: 'from-blue-500 to-indigo-600',
-    grok: 'from-slate-600 to-slate-800',
-    perplexity: 'from-cyan-500 to-teal-600',
-  };
 
   if (loading) {
     return (
@@ -170,7 +163,7 @@ export function PlatformsPage() {
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-9 h-9 rounded-xs bg-gradient-to-br ${
-                        PLATFORM_COLORS[platform.slug] || 'from-gray-500 to-gray-700'
+                        PLATFORM_GRADIENTS[platform.slug] || 'from-gray-500 to-gray-700'
                       } flex items-center justify-center text-white text-xs font-bold`}
                     >
                       {platform.name.charAt(0)}

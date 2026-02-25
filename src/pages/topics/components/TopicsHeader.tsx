@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
-import { FormMode } from './topics-types';
+import type { FormMode } from '@/types/dashboard';
 
 interface TopicsHeaderProps {
   formMode: FormMode;

@@ -18,6 +18,7 @@ import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { ActiveModelsGuard } from '@/components/guards/ActiveModelsGuard';
 import type { Prompt, PromptAnswer, Topic, TenantPlatformModel } from '@/types';
+import { PLATFORM_COLORS } from '@/types/dashboard';
 
 export function TopicAnswersPage() {
   const { id: topicId } = useParams<{ id: string }>();
@@ -151,13 +152,6 @@ export function TopicAnswersPage() {
 
 
 
-  const PLATFORM_COLORS: Record<string, string> = {
-    openai: 'bg-emerald-500',
-    anthropic: 'bg-orange-500',
-    gemini: 'bg-blue-500',
-    grok: 'bg-slate-600',
-    perplexity: 'bg-cyan-500',
-  };
 
   if (loading) {
     return (

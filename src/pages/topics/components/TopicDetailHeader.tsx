@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Search, Plus } from 'lucide-react';
 import type { Topic } from '@/types';
-import { FormMode } from '../prompts-types';
+import type { FormMode } from '@/types/dashboard';
 
 interface TopicDetailHeaderProps {
   topic: Topic;

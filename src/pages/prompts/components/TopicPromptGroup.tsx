@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import type { Prompt } from '@/types';
-import type { TopicWithPrompts, FormMode } from './prompts-types';
+import type { TopicWithPrompts, FormMode } from '@/types/dashboard';
 import { PromptListItem } from './PromptListItem';
 import { PromptForm } from '@/components/PromptForm';
 

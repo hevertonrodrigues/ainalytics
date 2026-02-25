@@ -26,3 +26,4 @@ supabase/.temp/
 supabase/.env.local
 supabase/snippets/*
 supabase/functions/*/.npmrc
+dump.sql

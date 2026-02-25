@@ -3,11 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Search, Globe, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
-import type { Source } from '@/types';
 
-type SourceWithReferences = Source & {
-  prompt_answer_sources: any[];
-};
+import type { SourceWithReferences } from '@/types/dashboard';
 
 export function SourcesPage() {
   const { t } = useTranslation();

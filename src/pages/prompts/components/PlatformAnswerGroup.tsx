@@ -6,7 +6,8 @@ import {
   AlertCircle 
 } from 'lucide-react';
 import type { PromptAnswer, Profile } from '@/types';
-import { PlatformGroup, PLATFORM_COLORS } from './types';
+import type { PlatformGroup } from '@/types/dashboard';
+import { PLATFORM_COLORS } from '@/types/dashboard';
 import { AnswerItem } from './AnswerItem';
 
 interface PlatformAnswerGroupProps {

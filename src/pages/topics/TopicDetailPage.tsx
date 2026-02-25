@@ -10,8 +10,8 @@ import type { Topic, Prompt } from '@/types';
 // Components
 import { TopicDetailHeader } from './components/TopicDetailHeader';
 import { TopicPromptListItem } from './components/TopicPromptListItem';
-import { EmptyPromptsState } from './components/EmptyTopicsState'; // Reuse for empty prompts as well if appropriate or use a generic one
-import type { FormMode } from './components/detail-types';
+import { EmptyTopicsState as EmptyPromptsState } from './components/EmptyTopicsState';
+import type { FormMode } from '@/types/dashboard';
 
 export function TopicDetailPage() {
   const { t } = useTranslation();
@@ -146,7 +146,7 @@ export function TopicDetailPage() {
 
         {/* Prompts List */}
         {prompts.length === 0 && formMode === 'closed' ? (
-          <EmptyPromptsState />
+          <EmptyPromptsState message={t('prompts.noPrompts')} />
         ) : (
           <div className="space-y-2">
             {prompts.map((prompt) => (

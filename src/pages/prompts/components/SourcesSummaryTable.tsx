@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
-import { PromptSource, PLATFORM_COLORS } from './types';
+import { PromptSource, PLATFORM_COLORS } from '@/types/dashboard';
 
 interface SourcesSummaryTableProps {
   sources: PromptSource[];

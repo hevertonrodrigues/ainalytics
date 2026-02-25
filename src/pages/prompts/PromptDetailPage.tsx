@@ -13,7 +13,7 @@ import { PromptHeader } from './components/PromptHeader';
 import { BackgroundFetchNotice } from './components/BackgroundFetchNotice';
 import { SourcesSummaryTable } from './components/SourcesSummaryTable';
 import { PlatformAnswerGroup } from './components/PlatformAnswerGroup';
-import type { PlatformGroup, PromptSource } from './components/types';
+import type { PlatformGroup, PromptSource } from '@/types/dashboard';
 
 export function PromptDetailPage() {
   const { id: promptId } = useParams<{ id: string }>();

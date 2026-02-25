@@ -9,7 +9,7 @@ import type { Prompt } from '@/types';
 import { PromptsHeader } from './components/PromptsHeader';
 import { EmptyPromptsState } from './components/EmptyPromptsState';
 import { TopicPromptGroup } from './components/TopicPromptGroup';
-import type { TopicWithPrompts, FormMode } from './components/prompts-types';
+import type { TopicWithPrompts, FormMode } from '@/types/dashboard';
 
 export function PromptsPage() {
   const { t } = useTranslation();

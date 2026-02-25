@@ -10,7 +10,7 @@ import { TopicsHeader } from './components/TopicsHeader';
 import { TopicForm } from './components/TopicForm';
 import { TopicListItem } from './components/TopicListItem';
 import { EmptyTopicsState } from './components/EmptyTopicsState';
-import type { FormMode } from './components/topics-types';
+import type { FormMode } from '@/types/dashboard';
 
 export function TopicsPage() {
   const { t } = useTranslation();
