@@ -32,6 +32,7 @@ import { ModelsPage } from '@/pages/models/ModelsPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { PlansPage } from '@/pages/plans/PlansPage';
 import { LlmTextPage } from '@/pages/llmtext/LlmTextPage';
+import { NotFoundPage } from '@/pages/error/NotFoundPage';
 
 /** Simple layout route that passes through to child routes */
 function AuthOutlet() {
@@ -83,6 +84,9 @@ export function App() {
               </Route>
             </Route>
           </Route>
+
+          {/* Catch-all 404 Route */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
       </ToastProvider>
