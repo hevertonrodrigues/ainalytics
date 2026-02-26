@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { X, ExternalLink, Globe } from 'lucide-react';
 import { PromptSource } from '@/types/dashboard';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface SourceDetailsModalProps {
   source: PromptSource;
@@ -9,6 +10,7 @@ interface SourceDetailsModalProps {
 
 export function SourceDetailsModal({ source, onClose }: SourceDetailsModalProps) {
   const { t } = useTranslation();
+  useScrollLock();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">

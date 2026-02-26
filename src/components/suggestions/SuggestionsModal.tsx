@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Check, Loader2, Sparkles, PlusCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface SuggestedPrompt {
   text: string;
@@ -28,6 +29,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
+  useScrollLock();
   const [acceptedItems, setAcceptedItems] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [isAcceptingAll, setIsAcceptingAll] = useState(false);

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { MessageSquare, List, BookOpen, FileText, Check, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface WelcomeModalProps {
   onClose: () => void;
@@ -12,6 +13,7 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
   const { t } = useTranslation();
   const { refreshAuth } = useAuth();
   const [closing, setClosing] = useState(false);
+  useScrollLock();
 
   const handleSkip = async () => {
     setClosing(true);

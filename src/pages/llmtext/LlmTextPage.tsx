@@ -6,6 +6,7 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
 import { SuggestionsModal } from '@/components/suggestions/SuggestionsModal';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 export function LlmTextPage() {
   const { t } = useTranslation();
@@ -525,6 +526,7 @@ export function LlmTextPage() {
 function DeploymentHelpModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const { currentTenant } = useTenant();
+  useScrollLock();
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">

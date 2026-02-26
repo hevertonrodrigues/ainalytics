@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { EDGE_FUNCTION_BASE, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface InterestFormModalProps {
   open: boolean;
@@ -16,6 +17,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function InterestFormModal({ open, onClose }: InterestFormModalProps) {
   const { t } = useTranslation();
   const overlayRef = useRef<HTMLDivElement>(null);
+  useScrollLock();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -48,15 +50,6 @@ export function InterestFormModal({ open, onClose }: InterestFormModalProps) {
     return () => window.removeEventListener('keydown', onKey);
   }, [open, onClose]);
 
-  // Lock body scroll
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => { document.body.style.overflow = ''; };
-  }, [open]);
 
   if (!open) return null;
 

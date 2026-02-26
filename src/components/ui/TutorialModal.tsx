@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Check, HelpCircle } from 'lucide-react';
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface TutorialModalProps {
   title: string;
@@ -12,6 +13,7 @@ interface TutorialModalProps {
 export function TutorialModal({ title, paragraphs, onClose }: TutorialModalProps) {
   const { t } = useTranslation();
   const [closing, setClosing] = useState(false);
+  useScrollLock();
 
   const handleClose = () => {
     setClosing(true);

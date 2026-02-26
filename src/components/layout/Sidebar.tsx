@@ -30,6 +30,7 @@ import { useLayout } from '@/contexts/LayoutContext';
 import { APP_NAME } from '@/lib/constants';
 import { SearchSelect } from '@/components/ui/SearchSelect';
 import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
+import { useScrollLock } from '@/hooks/useScrollLock';
 
 interface NavItem {
   key: string;
@@ -102,12 +103,7 @@ export function Sidebar() {
   return (
     <>
       {/* Backdrop for mobile */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-bg-primary/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {isSidebarOpen && <MobileBackdrop onClose={() => setSidebarOpen(false)} />}
 
       <aside className={`fixed left-0 top-0 bottom-0 w-64 bg-bg-secondary/80 backdrop-blur-xl border-r border-glass-border flex flex-col z-50 transition-all duration-300 transform lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Brand */}
@@ -264,5 +260,15 @@ export function Sidebar() {
       </div>
       </aside>
     </>
+  );
+}
+
+function MobileBackdrop({ onClose }: { onClose: () => void }) {
+  useScrollLock();
+  return (
+    <div 
+      className="fixed inset-0 bg-bg-primary/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+      onClick={onClose}
+    />
   );
 }
