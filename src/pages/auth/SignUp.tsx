@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
+import type { Iso2 } from 'intl-tel-input/data';
 import { Mail, Lock, User, Building2, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { extractRootDomain } from '@/lib/domain';
 import { isProfessionalEmail, extractDomainFromEmail, suggestCompanyNameFromDomain } from '@/lib/email';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
-const LANGUAGE_COUNTRY_MAP: Record<string, string> = {
+const LANGUAGE_COUNTRY_MAP: Record<string, Iso2> = {
   'pt-br': 'br',
   'es': 'es',
   'en': 'us'

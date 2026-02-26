@@ -2761,7 +2761,7 @@ html[data-layout='expanded'] main > div {
 }
 
 .iti input.phone-input-field {
-  padding-left: 90px !important; /* Increased to accommodate flag + separate dial code */
+  padding-left: 105px !important; /* Increased to accommodate flag + separate dial code (especially 3-digit ones) */
   width: 100% !important;
 }
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Ainalytics is a comprehensive, multi-tenant platform designed to evaluate, compare, and manage AI prompts and their corresponding responses across various leading AI platforms (OpenAI, Anthropic, Google Gemini, xAI Grok, and Perplexity). The system allows organizations to track model performance, organize prompts by topics, and analyze AI outputs, including native web-search grounding capabilities.
+Ainalytics is a comprehensive, multi-tenant platform designed to evaluate, compare, and manage AI prompts and their corresponding responses across various leading AI platforms (OpenAI, Anthropic, Google Gemini, xAI Grok, etc). The system allows organizations to track model performance, organize prompts by topics, and analyze AI outputs, including native web-search grounding capabilities.
 
 ## Key Features
 

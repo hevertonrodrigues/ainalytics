@@ -2,6 +2,7 @@ import { useCallback, useRef, useEffect } from 'react';
 import IntlTelInput from "intl-tel-input/reactWithUtils";
 import "intl-tel-input/styles";
 import type { IntlTelInputRef } from "intl-tel-input/react";
+import type { Iso2 } from "intl-tel-input/data";
 
 interface PhoneInputProps {
   id: string;
@@ -12,7 +13,7 @@ interface PhoneInputProps {
   className?: string;
   autoComplete?: string;
   onBlur?: () => void;
-  defaultCountry?: string;
+  defaultCountry?: Iso2 | 'auto' | '';
 }
 
 /**
