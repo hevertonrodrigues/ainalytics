@@ -521,5 +521,43 @@
     "llmTextTitle": "Generación LLM.txt",
     "llmTextDesc": "Genere automáticamente un archivo llm.txt basado en sus prompts, listo para que lo consuman LLMs externos.",
     "skipButton": "Omitir / No volver a mostrar"
+  },
+  "tutorials": {
+    "models": {
+      "title": "Configuración de Modelos y Plataformas de IA",
+      "p1": "Aquí es donde controla qué plataformas de IA monitorea Ainalytics para su marca. Puede activar el soporte para ChatGPT (OpenAI), Gemini (Google), Claude (Anthropic) y otros LLM principales.",
+      "p2": "Para cada plataforma, puede seleccionar modelos específicos y decidir si desea habilitar la búsqueda web. Los modelos con búsqueda web simulan cómo interactúan los usuarios con la IA en vivo especializada en eventos actuales.",
+      "p3": "Recomendamos activar al menos un modelo por plataforma principal para obtener una visión representativa del ecosistema de IA. Su facturación se basa generalmente en el número de modelos activos."
+    },
+    "topics": {
+      "title": "Organizando su Estrategia",
+      "p1": "Los temas son los pilares de su estrategia de monitoreo. Le permiten agrupar avisos relacionados en distintas áreas de negocio, como líneas de productos específicas, segmentos de mercado o grupos de competidores.",
+      "p2": "Al categorizar su monitoreo de visibilidad, puede identificar qué áreas de su negocio están bien representadas en las respuestas de la IA y cuáles requieren más optimización de contenido. Por ejemplo, podría tener un tema para 'Excelencia en el Servicio' y otro para 'Documentación Técnica'.",
+      "p3": "Recomendamos comenzar con 3-5 temas centrales que representen sus propuestas de valor principales. A medida que crezca, podrá agregar segmentos más especializados para obtener una visión granular de su huella global de IA."
+    },
+    "prompts": {
+      "title": "Dominando la Visibilidad de IA con Avisos",
+      "p1": "Los avisos (prompts) son las preguntas exactas que los clientes hacen a las herramientas de IA cuando buscan servicios como el suyo. Crear avisos efectivos es clave para comprender si las plataformas de IA lo recomiendan con precisión o si envían tráfico a su competencia.",
+      "p2": "En lugar de usar palabras clave genéricas, intente formular avisos como preguntas naturales: '¿Cuál es el mejor alquiler de barcos en Brasil?' o 'Comparar alquileres de yates de lujo para 2026'. Esto simula el uso en el mundo real y proporciona los datos más útiles.",
+      "p3": "Ainalytics ejecuta automáticamente estos avisos en múltiples plataformas en segundo plano. No necesita verificar cada uno manualmente; nuestro sistema recopila las respuestas y analiza la frecuencia de mención y el sentimiento por usted."
+    },
+    "sources": {
+      "title": "Descubriendo los Cimientos del Conocimiento de la IA",
+      "p1": "¿Alguna vez se ha preguntado de dónde saca ChatGPT su información sobre usted? La página de Fuentes revela los sitios web, documentos y artículos de noticias específicos que las plataformas de IA utilizan para fundamentar sus respuestas.",
+      "p2": "Al rastrear estas citas, puede ver si la IA está extrayendo datos de su sitio oficial o de reseñas de terceros. Si descubre que se cita el blog de un competidor en lugar de su propia documentación, sabrá exactamente dónde necesita fortalecer su estrategia de contenido.",
+      "p3": "Haga clic en cualquier fuente para ver cuál de sus avisos la cita. Este vínculo directo entre avisos y fuentes le ayuda a comprender el 'por qué' detrás de las respuestas generadas por la IA."
+    },
+    "llmText": {
+      "title": "Haciéndose Legible para la IA con LLM.txt",
+      "p1": "Los rastreadores de IA 'leen' la web de forma distinta a los humanos. La herramienta LLM.txt le ayuda a generar un archivo especializado que proporciona un resumen claro y conciso de su negocio en un formato optimizado para Modelos de Lenguaje Grandes.",
+      "p2": "Al alojar un archivo llm.txt en su dominio, facilita el trabajo de los rastreadores de IA, asegurando que capturen la información más precisa y actualizada sobre su marca, en lugar de depender de datos de terceros obsoletos o incompletos.",
+      "p3": "Simplemente ingrese su dominio y extraeremos la información clave, verificaremos su mapa del sitio e incluso sugeriremos nuevos temas y avisos basados en lo que encontremos. Es la herramienta definitiva de 'SEO para IA'."
+    },
+    "insights": {
+      "title": "Perspectivas Estratégicas Impulsadas por IA",
+      "p1": "Más allá de mostrarle los datos, Ainalytics utiliza lógica avanzada para generar perspectivas procesables. Analizamos tendencias en todos sus avisos y modelos para identificar riesgos emergentes o nuevas oportunidades de visibilidad.",
+      "p2": "Estas perspectivas se generan periódicamente a medida que nuestro sistema acumula suficientes puntos de datos para garantizar la significancia estadística. Si esta página está vacía, no se preocupe: significa que nuestros motores todavía están 'aprendiendo' los patrones de visibilidad únicos de su marca.",
+      "p3": "Vuelva semanalmente para ver recomendaciones sobre cómo ajustar su contenido o avisos para maximizar su participación de voz en el panorama de la IA."
+    }
   }
 }

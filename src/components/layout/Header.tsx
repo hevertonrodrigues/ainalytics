@@ -2,16 +2,12 @@ import { useTranslation } from 'react-i18next';
 import { Search, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
-import { LOCALES } from '@/lib/constants';
+import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
 
 export function Header() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const { theme, toggleTheme } = useTheme();
-
-  const handleLocaleChange = (locale: string) => {
-    i18n.changeLanguage(locale);
-  };
 
   return (
     <header className="sticky top-0 z-30 h-14 bg-bg-primary/60 backdrop-blur-xl border-b border-glass-border flex items-center justify-between px-6 transition-colors duration-300">
@@ -36,17 +32,7 @@ export function Header() {
         </button>
 
         {/* Language Switcher */}
-        <div className="locale-switcher">
-          {Object.values(LOCALES).map((locale) => (
-            <button
-              key={locale}
-              onClick={() => handleLocaleChange(locale)}
-              className={`locale-btn${i18n.language === locale ? ' active' : ''}`}
-            >
-              {locale.toUpperCase()}
-            </button>
-          ))}
-        </div>
+        <LocaleSwitcher />
 
         {/* User avatar */}
         {profile && (

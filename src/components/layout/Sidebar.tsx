@@ -26,8 +26,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useLayout } from '@/contexts/LayoutContext';
-import { APP_NAME, LOCALES } from '@/lib/constants';
+import { APP_NAME } from '@/lib/constants';
 import { SearchSelect } from '@/components/ui/SearchSelect';
+import { LocaleSwitcher } from '@/components/ui/LocaleSwitcher';
 
 interface NavItem {
   key: string;
@@ -52,7 +53,7 @@ const ANALYTICS_NAV: NavItem[] = [
 const SA_PLATFORMS_NAV: NavItem = { key: 'nav.platforms', path: '/dashboard/platforms', icon: Cpu };
 
 export function Sidebar() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { signOut, profile } = useAuth();
   const { currentTenant, tenants, switchTenant } = useTenant();
   const { theme, toggleTheme } = useTheme();
@@ -159,17 +160,7 @@ export function Sidebar() {
               {layoutMode === 'expanded' ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
             </button>
           </div>
-          <div className="locale-switcher">
-            {Object.values(LOCALES).map((locale) => (
-              <button
-                key={locale}
-                onClick={() => i18n.changeLanguage(locale)}
-                className={`locale-btn${i18n.language === locale ? ' active' : ''}`}
-              >
-                {locale.toUpperCase()}
-              </button>
-            ))}
-          </div>
+          <LocaleSwitcher />
         </div>
 
         {/* Settings */}

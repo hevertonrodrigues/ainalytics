@@ -521,5 +521,43 @@
     "llmTextTitle": "LLM.txt Generation",
     "llmTextDesc": "Automatically generate an llm.txt file based on your prompts, ready for external LLMs to consume.",
     "skipButton": "Skip / Do not show again"
+  },
+  "tutorials": {
+    "models": {
+      "title": "Configuring AI Models & Platforms",
+      "p1": "This is where you control which AI platforms Ainalytics monitors for your brand. You can toggle support for ChatGPT (OpenAI), Gemini (Google), Claude (Anthropic), and other major LLMs.",
+      "p2": "For each platform, you can select specific models and decide whether to enable web search. Web-enabled models simulate how users interact with live AI specialized in current events, while standard models show baseline training data perception.",
+      "p3": "We recommend activating at least one model per major platform to get a representative view of the AI ecosystem. Your billing is typically based on the number of active models and the frequency of prompt executions."
+    },
+    "topics": {
+      "title": "Organizing Your Strategy",
+      "p1": "Topics are the pillars of your monitoring strategy. They allow you to group related prompts into distinct business areas, such as specific product lines, market segments, or competitor groups.",
+      "p2": "By categorizing your visibility monitoring, you can identify which areas of your business are well-represented in AI answers and which ones require more content optimization. For example, you might have one topic for 'Service Excellence' and another for 'Technical Documentation'.",
+      "p3": "We recommend starting with 3-5 core topics that represent your primary value propositions. As you grow, you can add more specialized segments to get a granular view of your global AI footprint."
+    },
+    "prompts": {
+      "title": "Mastering AI Visibility with Prompts",
+      "p1": "Prompts are the exact questions customers ask AI tools when looking for services like yours. Creating effective prompts is key to understanding whether AI platforms are recommending you accurately or sending traffic to your competition.",
+      "p2": "Instead of using generic keywords, try phrasing prompts as natural questions: 'What is the best boat rental in Brazil?' or 'Compare luxury yacht charters for 2026'. This simulates real-world usage and provides the most actionable data.",
+      "p3": "Ainalytics automatically runs these prompts across multiple platforms in the background. You don't need to manually check each one; our system gathers the answers and analyzes mention frequency and sentiment for you."
+    },
+    "sources": {
+      "title": "Uncovering the Foundations of AI Knowledge",
+      "p1": "Ever wondered where ChatGPT gets its information about you? The Sources page reveals the specific websites, documents, and news articles that AI platforms use to ground their answers.",
+      "p2": "By tracking these citations, you can see if AI is pulling from your official site or from third-party reviews. If you find that a competitor's blog is being cited instead of your own documentation, you know exactly where you need to strengthen your content strategy.",
+      "p3": "Click on any source to see which of your prompts are referencing it. This direct link between prompts and sources helps you understand the 'why' behind AI-generated responses."
+    },
+    "llmText": {
+      "title": "Becoming AI-Readable with LLM.txt",
+      "p1": "AI scrapers 'read' the web differently than humans. The LLM.txt tool helps you generate a specialized file that provides a clear, concise summary of your business in a format optimized for Large Language Models.",
+      "p2": "By hosting an llm.txt file on your domain, you facilitate the work of AI scrapers, ensuring they capture the most accurate and up-to-date information about your brand, rather than relying on outdated or incomplete third-party data.",
+      "p3": "Simply enter your domain, and we'll extract the key information, verify your sitemap, and even suggest new topics and prompts based on what we find on your site. It's the ultimate 'SEO for AI' tool."
+    },
+    "insights": {
+      "title": "AI-Powered Strategy Insights",
+      "p1": "Beyond just showing you the data, Ainalytics uses advanced logic to generate actionable insights. We analyze trends across all your prompts and models to identify emerging risks or new opportunities for visibility.",
+      "p2": "These insights are generated periodically as our system accumulates enough data points to ensure statistical significance. If this page is empty, don't worry—it means our engines are still 'learning' your brand's unique visibility patterns.",
+      "p3": "Check back weekly to see recommendations on how to adjust your content or prompts to maximize your share-of-voice in the AI landscape."
+    }
   }
 }
