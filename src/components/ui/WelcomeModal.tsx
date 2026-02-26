@@ -13,7 +13,7 @@ export function WelcomeModal({ onClose }: WelcomeModalProps) {
   const { t } = useTranslation();
   const { refreshAuth } = useAuth();
   const [closing, setClosing] = useState(false);
-  useScrollLock();
+  useScrollLock(true);
 
   const handleSkip = async () => {
     setClosing(true);

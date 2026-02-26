@@ -37,9 +37,24 @@ export function SignUp() {
   const [error, setError] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [phoneTouched, setPhoneTouched] = useState(false);
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
+  
+  const handleEmailSync = useCallback((emailValue: string) => {
+    const domain = extractDomainFromEmail(emailValue);
+    if (domain && isProfessionalEmail(emailValue)) {
+      const rootDomain = extractRootDomain(domain) || domain;
+      setMainDomain(rootDomain);
+      setTenantName(suggestCompanyNameFromDomain(rootDomain));
+    } else if (!emailValue) {
+      setMainDomain('');
+    }
+  }, []);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setSubmitAttempted(true);
     setError('');
 
     if (password !== confirmPassword) {
@@ -57,7 +72,7 @@ export function SignUp() {
 
     // Professional Email Validation
     if (!isProfessionalEmail(email)) {
-      setError(t('validation.professionalEmailOnly', 'Please use a professional email address (e.g., your-name@company.com). Free providers like Gmail or Yahoo are not allowed.'));
+      setError(t('validation.professionalEmailOnly'));
       return;
     }
 
@@ -78,11 +93,45 @@ export function SignUp() {
       if (msg === 'CONFIRM_EMAIL') {
         setIsSuccess(true);
       } else {
+        // Handle specific Supabase auth errors if possible, or just set generic error
         setError(msg);
       }
       setLoading(false);
     }
   };
+
+  const getErrors = () => {
+    const errors: string[] = [];
+    
+    // Form-level error (from submission)
+    if (error) errors.push(error);
+
+    // Dynamic validation errors
+    if ((submitAttempted || (password && confirmPassword)) && password !== confirmPassword) {
+      errors.push(t('validation.passwordMatch'));
+    }
+    if ((submitAttempted || passwordTouched) && password && password.length < 8) {
+      errors.push(t('validation.passwordMin', { min: 8 }));
+    }
+    if ((submitAttempted || phoneTouched) && phone && getPhoneDigitCount(phone) < MIN_PHONE_DIGITS) {
+      errors.push(t('validation.phoneMin', { min: MIN_PHONE_DIGITS }));
+    }
+    if ((submitAttempted || emailTouched) && email && !isProfessionalEmail(email)) {
+      errors.push(t('validation.professionalEmailOnly'));
+    }
+    if (submitAttempted && !extractRootDomain(mainDomain)) {
+      errors.push(t('validation.invalidDomain'));
+    }
+
+    return [...new Set(errors)]; // Deduplicate
+  };
+
+  const allErrors = getErrors();
+  const isEmailInvalid = (submitAttempted || emailTouched) && email && !isProfessionalEmail(email);
+  const isPhoneInvalid = (submitAttempted || phoneTouched) && phone && getPhoneDigitCount(phone) < MIN_PHONE_DIGITS;
+  const isPasswordInvalid = (submitAttempted || passwordTouched) && password && password.length < 8;
+  const isConfirmInvalid = (submitAttempted || (password && confirmPassword)) && password !== confirmPassword;
+  const isDomainInvalid = submitAttempted && !extractRootDomain(mainDomain);
 
   if (isSuccess) {
     return (
@@ -200,11 +249,6 @@ export function SignUp() {
           {/* Card */}
           <div className="auth-card">
             <form onSubmit={handleSubmit} className="auth-form">
-              {error && (
-                <div className="auth-error">
-                  {error}
-                </div>
-              )}
 
               {/* Two-column: Name + Email */}
               <div className="auth-row">
@@ -239,23 +283,17 @@ export function SignUp() {
                       onChange={(e) => {
                         const newEmail = e.target.value;
                         setEmail(newEmail);
-                        
-                        const domain = extractDomainFromEmail(newEmail);
-                        if (domain && isProfessionalEmail(newEmail)) {
-                          const rootDomain = extractRootDomain(domain) || domain;
-                          setMainDomain(rootDomain);
-                          
-                          // Auto-fill company name if it's currently empty
-                          if (!tenantName) {
-                            setTenantName(suggestCompanyNameFromDomain(rootDomain));
-                          }
-                        } else if (!newEmail) {
-                          setMainDomain('');
-                        }
+                        setEmailTouched(false);
+                        handleEmailSync(newEmail);
+                      }}
+                      onBlur={() => {
+                        setEmailTouched(true);
+                        handleEmailSync(email);
                       }}
                       placeholder="you@company.com"
                       required
                       autoComplete="email"
+                      className={isEmailInvalid ? 'border-error' : ''}
                     />
                   </div>
                 </div>
@@ -278,13 +316,9 @@ export function SignUp() {
                       onBlur={() => setPhoneTouched(true)}
                       defaultCountry={LANGUAGE_COUNTRY_MAP[i18n.language] || 'auto'}
                       required
+                      className={isPhoneInvalid ? 'border-error' : ''}
                     />
                   </div>
-                  {phoneTouched && phone && getPhoneDigitCount(phone) < MIN_PHONE_DIGITS && (
-                    <span className="auth-field-hint text-error">
-                      {t('validation.phoneMin', { min: MIN_PHONE_DIGITS })}
-                    </span>
-                  )}
                 </div>
 
                 <div className="auth-field">
@@ -321,7 +355,7 @@ export function SignUp() {
                       placeholder="example.com"
                       required
                       readOnly
-                      className="bg-muted/50 cursor-not-allowed"
+                      className={`bg-muted/50 cursor-not-allowed ${isDomainInvalid ? 'border-error' : ''}`}
                     />
                   </div>
                 </div>
@@ -344,6 +378,8 @@ export function SignUp() {
                       required
                       minLength={8}
                       autoComplete="new-password"
+                      onBlur={() => setPasswordTouched(true)}
+                      className={isPasswordInvalid ? 'border-error' : ''}
                     />
                     <button
                       type="button"
@@ -371,11 +407,20 @@ export function SignUp() {
                       required
                       minLength={8}
                       autoComplete="new-password"
+                      className={isConfirmInvalid ? 'border-error' : ''}
                     />
                   </div>
                 </div>
               </div>
-
+              
+              {allErrors.length > 0 && (
+                <div className="auth-error mb-6">
+                  {allErrors.map((err, idx) => (
+                    <div key={idx}>{err}</div>
+                  ))}
+                </div>
+              )}
+              
               <button
                 type="submit"
                 disabled={loading}

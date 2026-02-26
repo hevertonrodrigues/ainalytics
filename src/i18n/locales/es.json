@@ -246,7 +246,8 @@
     "phoneInvalidCountry": "Código de país inválido",
     "phoneTooShort": "El número de teléfono es demasiado corto",
     "phoneTooLong": "El número de teléfono es demasiado largo",
-    "invalidDomain": "Por favor ingrese una URL de dominio principal válida"
+    "invalidDomain": "Por favor ingrese una URL de dominio principal válida",
+    "professionalEmailOnly": "Por favor, use una dirección de correo electrónico profesional (por ejemplo, su-nombre@empresa.com). No se permiten proveedores gratuitos como Gmail o Yahoo."
   },
   "errors": {
     "UNAUTHORIZED": "Inicie sesión para continuar",

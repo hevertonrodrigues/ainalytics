@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Menu, X } from 'lucide-react';
 import { APP_NAME, LOCALES } from '@/lib/constants';
@@ -12,7 +12,15 @@ interface LandingHeaderProps {
 
 export function LandingHeader({ scrolled }: LandingHeaderProps) {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleLogoClick = (e: React.MouseEvent) => {
+    if (location.pathname === '/') {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   const changeLang = useCallback(
     (lng: string) => {
@@ -25,7 +33,7 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
   return (
     <nav className={`landing-nav${scrolled ? ' landing-nav-scrolled' : ''}`}>
       <div className="landing-container landing-nav-inner">
-        <Link to="/" className="landing-logo">
+        <Link to="/" className="landing-logo" onClick={handleLogoClick}>
           <img src="/logo-purple.png" alt="Ainalytics" className="landing-logo-img" />
           <span>{APP_NAME}</span>
         </Link>

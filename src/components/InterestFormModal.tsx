@@ -17,7 +17,7 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export function InterestFormModal({ open, onClose }: InterestFormModalProps) {
   const { t } = useTranslation();
   const overlayRef = useRef<HTMLDivElement>(null);
-  useScrollLock();
+  useScrollLock(open);
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

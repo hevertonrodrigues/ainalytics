@@ -29,7 +29,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
-  useScrollLock();
+  useScrollLock(isOpen);
   const [acceptedItems, setAcceptedItems] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [isAcceptingAll, setIsAcceptingAll] = useState(false);

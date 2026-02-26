@@ -4,8 +4,10 @@ import { useEffect } from 'react';
  * Hook to lock body scroll when a component is mounted.
  * Useful for modals, overlays, or any component that should block interaction with the background.
  */
-export function useScrollLock() {
+export function useScrollLock(lock: boolean = true) {
   useEffect(() => {
+    if (!lock) return;
+
     // Get original body overflow
     const originalStyle = window.getComputedStyle(document.body).overflow;
     
@@ -16,5 +18,5 @@ export function useScrollLock() {
     return () => {
       document.body.style.overflow = originalStyle;
     };
-  }, []);
+  }, [lock]);
 }

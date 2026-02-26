@@ -108,7 +108,13 @@ export function Sidebar() {
       <aside className={`fixed left-0 top-0 bottom-0 w-64 bg-bg-secondary/80 backdrop-blur-xl border-r border-glass-border flex flex-col z-50 transition-all duration-300 transform lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Brand */}
         <div className="p-6 border-b border-glass-border flex items-center justify-between">
-          <div className="sidebar-brand">
+          <div 
+            className="sidebar-brand cursor-pointer" 
+            onClick={() => navigate('/')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && navigate('/')}
+          >
             <img src="/logo-purple.png" alt="Ainalytics" className="sidebar-brand-logo" />
             <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
               {APP_NAME}

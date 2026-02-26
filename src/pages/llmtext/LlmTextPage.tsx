@@ -526,7 +526,7 @@ export function LlmTextPage() {
 function DeploymentHelpModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const { currentTenant } = useTenant();
-  useScrollLock();
+  useScrollLock(true);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">

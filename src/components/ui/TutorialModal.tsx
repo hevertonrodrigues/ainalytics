@@ -13,7 +13,7 @@ interface TutorialModalProps {
 export function TutorialModal({ title, paragraphs, onClose }: TutorialModalProps) {
   const { t } = useTranslation();
   const [closing, setClosing] = useState(false);
-  useScrollLock();
+  useScrollLock(true);
 
   const handleClose = () => {
     setClosing(true);

@@ -79,7 +79,7 @@ export function ActiveModelsGuard({ children }: ActiveModelsGuardProps) {
 
 function GuardModal({ onDismiss, isSa, onConfigure }: { onDismiss: () => void, isSa: boolean, onConfigure: () => void }) {
   const { t } = useTranslation();
-  useScrollLock();
+  useScrollLock(true);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg-primary/80 backdrop-blur-sm p-4 animate-fade-in">

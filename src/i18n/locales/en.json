@@ -246,7 +246,8 @@
     "phoneInvalidCountry": "Invalid country code",
     "phoneTooShort": "Phone number is too short",
     "phoneTooLong": "Phone number is too long",
-    "invalidDomain": "Please enter a valid main domain URL"
+    "invalidDomain": "Please enter a valid main domain URL",
+    "professionalEmailOnly": "Please use a professional email address (e.g., your-name@company.com). Free providers like Gmail or Yahoo are not allowed."
   },
   "errors": {
     "UNAUTHORIZED": "Please sign in to continue",

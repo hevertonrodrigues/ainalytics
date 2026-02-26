@@ -218,7 +218,7 @@ function ActivationCodeModal({
 }: ActivationCodeModalProps) {
   const { t } = useTranslation();
   const codeInputRef = useRef<HTMLInputElement>(null);
-  useScrollLock();
+  useScrollLock(true);
 
   useEffect(() => {
     setTimeout(() => codeInputRef.current?.focus(), 100);
