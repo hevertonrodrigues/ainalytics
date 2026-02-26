@@ -262,11 +262,12 @@
       "getStarted": "Verifique sua Visibilidade IA"
     },
     "hero": {
-      "title": "A IA Já Está Falando",
-      "titleHighlight": "Sobre Você.",
-      "titleEnd": "Você Sabe o Que Ela Diz?",
+      "title": "A IA já está falando",
+      "titleHighlight": "Sobre",
+      "rotatingWords": ["VOCÊ.", "SUA EMPRESA.", "SEU NEGÓCIO.", "SUA MARCA.", "SEUS PRODUTOS.", "SEUS CONCORRENTES.", "SEU MERCADO."],
+      "titleEnd": "Você sabe o que ela diz?",
       "subtitle": "Neste momento, milhões de pessoas estão perguntando ao ChatGPT, Gemini, Grok e Perplexity sobre o seu mercado. Se sua marca não aparece nas respostas da IA — seus concorrentes estão ocupando o seu lugar.",
-      "cta": "Descubra o Que a IA Diz Sobre Você",
+      "cta": "Descubra o que a IA diz sobre você",
       "ctaSecondary": "Veja uma Demo ao Vivo",
       "trustedBy": "Marcas que perdem visibilidade na IA não conseguem recuperá-la. Aja agora."
     },

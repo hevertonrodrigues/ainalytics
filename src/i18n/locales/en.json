@@ -262,11 +262,12 @@
       "getStarted": "Check Your AI Visibility"
     },
     "hero": {
-      "title": "AI Is Already Talking",
-      "titleHighlight": "About You.",
-      "titleEnd": "Do You Know What It's Saying?",
+      "title": "AI Is already talking",
+      "titleHighlight": "About",
+      "rotatingWords": ["YOU.", "YOUR COMPANY.", "YOUR BUSINESS.", "YOUR BRAND.", "YOUR PRODUCTS.", "YOUR COMPETITORS.", "YOUR MARKET."],
+      "titleEnd": "Do you know what it's saying?",
       "subtitle": "Right now, millions of people are asking ChatGPT, Gemini, Grok, and Perplexity about your industry. If your brand isn't showing up in AI-generated answers — your competitors are taking your place.",
-      "cta": "Discover What AI Says About You",
+      "cta": "Discover what AI says about you",
       "ctaSecondary": "See a Live Demo",
       "trustedBy": "Brands losing AI visibility can't get it back. Act now."
     },
