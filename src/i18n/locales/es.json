@@ -267,7 +267,7 @@
       "titleHighlight": "Sobre",
       "rotatingWords": ["USTED.", "SU EMPRESA.", "SU NEGOCIO.", "SU MARCA.", "SUS PRODUCTOS.", "SUS COMPETIDORES.", "SU MERCADO."],
       "titleEnd": "¿Sabe qué está diciendo?",
-      "subtitle": "Ahora mismo, millones de personas le preguntan a ChatGPT, Gemini, Grok y Perplexity sobre su industria. Si su marca no aparece en las respuestas de IA — su competencia está ocupando su lugar.",
+      "subtitle": "Ahora mismo, millones de personas le preguntan a ChatGPT, Gemini, Grok, etc sobre su industria. Si su marca no aparece en las respuestas de IA — su competencia está ocupando su lugar.",
       "cta": "Descubra qué dice la IA sobre usted",
       "ctaSecondary": "Ver Demo en Vivo",
       "trustedBy": "Las marcas que pierden visibilidad en IA no la recuperan. Actúe ahora."
@@ -281,7 +281,7 @@
       "subtitle": "Sus clientes están reemplazando Google por IA. Si la IA no sabe que usted existe, ellos tampoco.",
       "multiModel": {
         "title": "Vea Qué Dice Cada IA Sobre Usted",
-        "description": "Haga la misma pregunta en ChatGPT, Claude, Gemini, Grok y Perplexity. Descubra cuáles mencionan su marca — y cuáles envían clientes a su competencia."
+        "description": "Haga la misma pregunta en ChatGPT, Claude, Gemini, Grok, etc. Descubra cuáles mencionan su marca — y cuáles envían clientes a su competencia."
       },
       "webSearch": {
         "title": "¿Las IAs Realmente lo Encuentran?",
@@ -316,7 +316,7 @@
       "step2": {
         "label": "Paso 2",
         "title": "Consultamos Cada IA Principal",
-        "description": "Ainalytics pregunta simultáneamente a ChatGPT, Claude, Gemini, Grok y Perplexity. En segundos, verá exactamente qué le dice cada IA a la gente sobre usted."
+        "description": "Ainalytics pregunta simultáneamente a ChatGPT, Claude, Gemini, Grok, etc. En segundos, verá exactamente qué le dice cada IA a la gente sobre usted."
       },
       "step3": {
         "label": "Paso 3",

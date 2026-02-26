@@ -267,7 +267,7 @@
       "titleHighlight": "Sobre",
       "rotatingWords": ["VOCÊ.", "SUA EMPRESA.", "SEU NEGÓCIO.", "SUA MARCA.", "SEUS PRODUTOS.", "SEUS CONCORRENTES.", "SEU MERCADO."],
       "titleEnd": "Você sabe o que ela diz?",
-      "subtitle": "Neste momento, milhões de pessoas estão perguntando ao ChatGPT, Gemini, Grok e Perplexity sobre o seu mercado. Se sua marca não aparece nas respostas da IA — seus concorrentes estão ocupando o seu lugar.",
+      "subtitle": "Neste momento, milhões de pessoas estão perguntando ao ChatGPT, Gemini, Grok, etc sobre o seu mercado. Se sua marca não aparece nas respostas da IA — seus concorrentes estão ocupando o seu lugar.",
       "cta": "Descubra o que a IA diz sobre você",
       "ctaSecondary": "Veja uma Demo ao Vivo",
       "trustedBy": "Marcas que perdem visibilidade na IA não conseguem recuperá-la. Aja agora."
@@ -281,7 +281,7 @@
       "subtitle": "Seus clientes estão trocando o Google pela IA. Se a IA não sabe que você existe, eles também não.",
       "multiModel": {
         "title": "Veja o Que Cada IA Diz Sobre Você",
-        "description": "Faça a mesma pergunta no ChatGPT, Claude, Gemini, Grok e Perplexity. Descubra quais mencionam sua marca — e quais estão enviando clientes para a concorrência."
+        "description": "Faça a mesma pergunta no ChatGPT, Claude, Gemini, Grok, etc. Descubra quais mencionam sua marca — e quais estão enviando clientes para a concorrência."
       },
       "webSearch": {
         "title": "As IAs Realmente Te Encontram?",
@@ -316,7 +316,7 @@
       "step2": {
         "label": "Passo 2",
         "title": "Consultamos Cada IA Principal",
-        "description": "O Ainalytics pergunta simultaneamente ao ChatGPT, Claude, Gemini, Grok e Perplexity. Em segundos, você verá exatamente o que cada IA diz sobre você."
+        "description": "O Ainalytics pergunta simultaneamente ao ChatGPT, Claude, Gemini, Grok, etc. Em segundos, você verá exatamente o que cada IA diz sobre você."
       },
       "step3": {
         "label": "Passo 3",

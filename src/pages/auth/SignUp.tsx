@@ -6,6 +6,7 @@ import { APP_NAME, LOCALES } from '@/lib/constants';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
 import { Mail, Lock, User, Building2, Phone, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { extractRootDomain } from '@/lib/domain';
+import { isProfessionalEmail, extractDomainFromEmail, suggestCompanyNameFromDomain } from '@/lib/email';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
 
@@ -44,6 +45,12 @@ export function SignUp() {
     }
     if (getPhoneDigitCount(phone) < MIN_PHONE_DIGITS) {
       setError(t('validation.phoneMin', { min: MIN_PHONE_DIGITS }));
+      return;
+    }
+
+    // Professional Email Validation
+    if (!isProfessionalEmail(email)) {
+      setError(t('validation.professionalEmailOnly', 'Please use a professional email address (e.g., your-name@company.com). Free providers like Gmail or Yahoo are not allowed.'));
       return;
     }
 
@@ -222,8 +229,24 @@ export function SignUp() {
                       id="signup-email"
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
+                      onChange={(e) => {
+                        const newEmail = e.target.value;
+                        setEmail(newEmail);
+                        
+                        const domain = extractDomainFromEmail(newEmail);
+                        if (domain && isProfessionalEmail(newEmail)) {
+                          const rootDomain = extractRootDomain(domain) || domain;
+                          setMainDomain(rootDomain);
+                          
+                          // Auto-fill company name if it's currently empty
+                          if (!tenantName) {
+                            setTenantName(suggestCompanyNameFromDomain(rootDomain));
+                          }
+                        } else if (!newEmail) {
+                          setMainDomain('');
+                        }
+                      }}
+                      placeholder="you@company.com"
                       required
                       autoComplete="email"
                     />
@@ -286,6 +309,8 @@ export function SignUp() {
                       onChange={(e) => setMainDomain(e.target.value)}
                       placeholder="example.com"
                       required
+                      readOnly
+                      className="bg-muted/50 cursor-not-allowed"
                     />
                   </div>
                 </div>
