@@ -24,7 +24,7 @@ export function SourcesSummaryTable({ sources, onSourceClick }: SourcesSummaryTa
       </div>
 
       <div className="dashboard-card overflow-hidden">
-        <div className="overflow-x-auto">
+        <div className="table-container !mb-0">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-bg-tertiary/50 border-b border-glass-border">

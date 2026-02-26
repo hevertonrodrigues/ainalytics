@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
+import { MobileHeader } from './MobileHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { WelcomeModal } from '@/components/ui/WelcomeModal';
 import { TutorialModal } from '@/components/ui/TutorialModal';
 import { useTutorial } from '@/hooks/useTutorial';
+import { useLayout } from '@/contexts/LayoutContext';
 import { useTranslation } from 'react-i18next';
 
 export function AppLayout() {
@@ -12,13 +14,17 @@ export function AppLayout() {
   const { profile } = useAuth();
   const [dismissedInSession, setDismissedInSession] = useState(false);
   const { activeTutorial, dismissTutorial } = useTutorial();
+  const { setSidebarOpen } = useLayout();
 
   return (
-    <div className="min-h-screen bg-bg-primary">
+    <div className="min-h-screen bg-bg-primary flex flex-col lg:flex-row">
+      <MobileHeader onOpenSidebar={() => setSidebarOpen(true)} />
+      
       <Sidebar />
-      {/* Main content — offset by sidebar width (w-64 = 16rem) */}
-      <div style={{ marginLeft: '16rem' }}>
-        <main className="p-6">
+      
+      {/* Main content — offset by sidebar width on lg screens */}
+      <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
+        <main className="p-4 sm:p-6 flex-1">
           <Outlet />
         </main>
       </div>

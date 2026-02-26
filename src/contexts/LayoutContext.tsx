@@ -5,12 +5,16 @@ type LayoutMode = 'centered' | 'expanded';
 interface LayoutContextType {
   layoutMode: LayoutMode;
   toggleLayoutMode: () => void;
+  isSidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
+  toggleSidebar: () => void;
 }
 
 const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
 
 export function LayoutProvider({ children }: { children: React.ReactNode }) {
   const [layoutMode, setLayoutMode] = useState<LayoutMode>('centered');
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -41,8 +45,18 @@ export function LayoutProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.setAttribute('data-layout', layoutMode);
   }, [layoutMode]);
 
+  const toggleSidebar = () => setSidebarOpen((prev) => !prev);
+
   return (
-    <LayoutContext.Provider value={{ layoutMode, toggleLayoutMode }}>
+    <LayoutContext.Provider 
+      value={{ 
+        layoutMode, 
+        toggleLayoutMode, 
+        isSidebarOpen, 
+        setSidebarOpen, 
+        toggleSidebar 
+      }}
+    >
       {children}
     </LayoutContext.Provider>
   );

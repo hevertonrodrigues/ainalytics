@@ -76,7 +76,10 @@ export function SourcesPage() {
         </div>
       </div>
 
-      <PageExplanation message={t('sources.banner')} />
+      <PageExplanation 
+        message={t('sources.banner')} 
+        pageName={t('nav.sources')}
+      />
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row items-center gap-4">

@@ -443,7 +443,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .kpi-value {
-  font-size: 1.5rem;
+  font-size: 1.125rem;
+  @media (min-width: 640px) {
+    font-size: 1.5rem;
+  }
   font-weight: 700;
   color: var(--color-text-primary);
   font-family: var(--font-mono);
@@ -609,6 +612,17 @@ h1, h2, h3, h4, h5, h6 {
 
 .data-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+/* ────────────────────────────────────────────────────────────
+   Responsive Table Wrapper
+   ──────────────────────────────────────────────────────────── */
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
 }
 
 /* ────────────────────────────────────────────────────────────

@@ -50,7 +50,7 @@ export function TopicListItem({
 
       {/* Actions */}
       <div
-        className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex-wrap justify-end"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -80,7 +80,7 @@ export function TopicListItem({
       </div>
 
       {/* Chevron */}
-      <ChevronRight className="w-4 h-4 text-text-muted shrink-0" />
+      <ChevronRight className="w-4 h-4 text-text-muted shrink-0 hidden sm:block" />
     </div>
   );
 }

@@ -279,7 +279,7 @@ function VolumeTableCard({ t }: { t: ReturnType<typeof useTranslation>['t'] }) {
         <BarChart3 className="w-4 h-4 text-brand-secondary" />
         {t('analytics.volumeUSD')}
       </h2>
-      <div className="overflow-x-auto">
+      <div className="table-container">
         <table className="data-table">
           <thead>
             <tr>

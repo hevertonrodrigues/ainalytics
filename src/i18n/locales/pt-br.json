@@ -232,7 +232,8 @@
     "status": "Status",
     "close": "Fechar",
     "empty": "Vazio",
-    "gotIt": "Entendido"
+    "gotIt": "Entendido",
+    "learnMoreAbout": "Saiba mais sobre {{page}}"
   },
   "validation": {
     "required": "Este campo é obrigatório",

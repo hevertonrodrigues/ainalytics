@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   LayoutDashboard,
@@ -21,6 +21,7 @@ import {
   CreditCard,
   Lock,
   FileText,
+  X,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -57,9 +58,15 @@ export function Sidebar() {
   const { signOut, profile } = useAuth();
   const { currentTenant, tenants, switchTenant } = useTenant();
   const { theme, toggleTheme } = useTheme();
-  const { layoutMode, toggleLayoutMode } = useLayout();
+  const { layoutMode, toggleLayoutMode, isSidebarOpen, setSidebarOpen } = useLayout();
   const navigate = useNavigate();
+  const location = useLocation();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  // Close sidebar drawer when route changes on mobile
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname, setSidebarOpen]);
 
   const hasPlan = !!currentTenant?.plan_id;
 
@@ -93,16 +100,31 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-64 bg-bg-secondary/80 backdrop-blur-xl border-r border-glass-border flex flex-col z-40 transition-colors duration-300">
-      {/* Brand */}
-      <div className="p-6 border-b border-glass-border">
-        <div className="sidebar-brand">
-          <img src="/logo-purple.png" alt="Ainalytics" className="sidebar-brand-logo" />
-          <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
-            {APP_NAME}
-          </h2>
+    <>
+      {/* Backdrop for mobile */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-bg-primary/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`fixed left-0 top-0 bottom-0 w-64 bg-bg-secondary/80 backdrop-blur-xl border-r border-glass-border flex flex-col z-50 transition-all duration-300 transform lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        {/* Brand */}
+        <div className="p-6 border-b border-glass-border flex items-center justify-between">
+          <div className="sidebar-brand">
+            <img src="/logo-purple.png" alt="Ainalytics" className="sidebar-brand-logo" />
+            <h2 className="text-xl font-bold tracking-tight bg-gradient-to-r from-brand-primary to-brand-accent bg-clip-text text-transparent">
+              {APP_NAME}
+            </h2>
+          </div>
+          <button 
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-2 -mr-2 text-text-muted hover:text-text-primary transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-      </div>
 
       {/* Tenant Switcher */}
       {tenants.length > 1 && (
@@ -240,6 +262,7 @@ export function Sidebar() {
           </div>
         )}
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

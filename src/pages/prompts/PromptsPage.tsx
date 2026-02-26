@@ -134,7 +134,10 @@ export function PromptsPage() {
         <PromptsHeader totalPrompts={totalPrompts} />
 
         {formMode === 'closed' && (
-          <PageExplanation message={t('prompts.banner')} />
+          <PageExplanation 
+            message={t('prompts.banner')} 
+            pageName={t('nav.prompts')}
+          />
         )}
 
         {/* Error */}

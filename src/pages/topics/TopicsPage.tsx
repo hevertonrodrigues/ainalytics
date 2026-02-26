@@ -142,7 +142,10 @@ export function TopicsPage() {
         <TopicsHeader formMode={formMode} onOpenCreate={openCreate} />
         
         {formMode === 'closed' && (
-          <PageExplanation message={t('topics.banner')} />
+          <PageExplanation 
+            message={t('topics.banner')} 
+            pageName={t('nav.topics')}
+          />
         )}
 
         {/* Error */}

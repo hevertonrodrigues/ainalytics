@@ -232,7 +232,8 @@
     "status": "Status",
     "close": "Close",
     "empty": "Empty",
-    "gotIt": "Got it"
+    "gotIt": "Got it",
+    "learnMoreAbout": "Learn more about {{page}}"
   },
   "validation": {
     "required": "This field is required",
