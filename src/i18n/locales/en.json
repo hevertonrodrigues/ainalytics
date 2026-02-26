@@ -242,6 +242,10 @@
     "passwordMatch": "Passwords do not match",
     "nameMin": "Name must be at least {{min}} characters",
     "phoneMin": "Phone must have at least {{min}} digits",
+    "phoneInvalid": "Invalid phone number",
+    "phoneInvalidCountry": "Invalid country code",
+    "phoneTooShort": "Phone number is too short",
+    "phoneTooLong": "Phone number is too long",
     "invalidDomain": "Please enter a valid main domain URL"
   },
   "errors": {

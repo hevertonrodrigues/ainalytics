@@ -242,6 +242,10 @@
     "passwordMatch": "As senhas não coincidem",
     "nameMin": "O nome deve ter pelo menos {{min}} caracteres",
     "phoneMin": "O telefone deve ter pelo menos {{min}} dígitos",
+    "phoneInvalid": "Número de telefone inválido",
+    "phoneInvalidCountry": "Código de país inválido",
+    "phoneTooShort": "Número de telefone muito curto",
+    "phoneTooLong": "Número de telefone muito longo",
     "invalidDomain": "Por favor, insira uma URL de domínio principal válida"
   },
   "errors": {

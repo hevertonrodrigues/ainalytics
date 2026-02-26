@@ -4,11 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
-import { Mail, Lock, User, Building2, Phone, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, Building2, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { extractRootDomain } from '@/lib/domain';
 import { isProfessionalEmail, extractDomainFromEmail, suggestCompanyNameFromDomain } from '@/lib/email';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
+const LANGUAGE_COUNTRY_MAP: Record<string, string> = {
+  'pt-br': 'br',
+  'es': 'es',
+  'en': 'us'
+};
 
 export function SignUp() {
   const { t, i18n } = useTranslation();
@@ -30,6 +35,7 @@ export function SignUp() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -43,7 +49,7 @@ export function SignUp() {
       setError(t('validation.passwordMin', { min: 8 }));
       return;
     }
-    if (getPhoneDigitCount(phone) < MIN_PHONE_DIGITS) {
+    if (phone && getPhoneDigitCount(phone) < MIN_PHONE_DIGITS) {
       setError(t('validation.phoneMin', { min: MIN_PHONE_DIGITS }));
       return;
     }
@@ -261,15 +267,19 @@ export function SignUp() {
                     {t('auth.phone')} <span className="text-error">*</span>
                   </label>
                   <div className="auth-input-wrap">
-                    <Phone className="auth-input-icon" />
                     <PhoneInput
                       id="signup-phone"
                       value={phone}
-                      onChange={setPhone}
+                      onChange={(val) => {
+                        setPhone(val);
+                        setPhoneTouched(false);
+                      }}
+                      onBlur={() => setPhoneTouched(true)}
+                      defaultCountry={LANGUAGE_COUNTRY_MAP[i18n.language] || 'auto'}
                       required
                     />
                   </div>
-                  {phone && getPhoneDigitCount(phone) < MIN_PHONE_DIGITS && (
+                  {phoneTouched && phone && getPhoneDigitCount(phone) < MIN_PHONE_DIGITS && (
                     <span className="auth-field-hint text-error">
                       {t('validation.phoneMin', { min: MIN_PHONE_DIGITS })}
                     </span>
