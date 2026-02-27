@@ -15,6 +15,9 @@ import {
 import { PricingPlans } from '@/components/PricingPlans';
 import { useCurrency } from '@/hooks/useCurrency';
 import { InterestFormModal } from '@/components/InterestFormModal';
+import { supabase } from '@/lib/supabase';
+import type { Plan } from '@/types';
+import type { PricingPlan } from '@/components/PricingPlans';
 import { LandingHeader } from './LandingHeader';
 import { LandingHero } from './LandingHero';
 import { LandingFooter } from './LandingFooter';
@@ -59,11 +62,68 @@ function useScrollReveal() {
 }
 
 export function LandingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [interestModalOpen, setInterestModalOpen] = useState(false);
-  const { formatPrice } = useCurrency();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plansLoading, setPlansLoading] = useState(true);
+  const { formatPrice: formatCurrency } = useCurrency();
   const revealRef = useScrollReveal();
+
+  // Fetch plans from database
+  useEffect(() => {
+    async function loadPlans() {
+      try {
+        const { data, error } = await supabase
+          .from('plans')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order', { ascending: true });
+
+        if (error) throw error;
+        setPlans(data || []);
+      } catch (err) {
+        console.error('Failed to load plans:', err);
+      } finally {
+        setPlansLoading(false);
+      }
+    }
+    loadPlans();
+  }, []);
+
+  const formatPlanPrice = (plan: Plan) => {
+    if ((plan.settings as Record<string, unknown>)?.custom_pricing) {
+      return t('plans.custom');
+    }
+    return formatCurrency(plan.price);
+  };
+
+  const getFeatures = (plan: Plan): string[] => {
+    const lang = i18n.language || 'en';
+    return plan.features?.[lang] || plan.features?.['en'] || [];
+  };
+
+  const getDescription = (plan: Plan): string => {
+    const settings = plan.settings as Record<string, unknown>;
+    return (settings?.description as string) || '';
+  };
+
+  const pricingPlans: PricingPlan[] = plans.map((plan, idx) => {
+    const isPopular = plan.name === 'Growth';
+    const isCustom = !!(plan.settings as Record<string, unknown>)?.custom_pricing;
+
+    return {
+      name: plan.name,
+      price: formatPlanPrice(plan),
+      priceLabel: plan.price > 0 ? t('landing.pricing.monthly') : undefined,
+      description: getDescription(plan),
+      features: getFeatures(plan),
+      popular: isPopular ? t('plans.mostPopular') : undefined,
+      isBlock: idx >= 3,
+      cta: isCustom ? t('landing.pricing.custom.cta') : t('landing.pricing.free.cta'),
+      onSelect: isCustom ? () => setInterestModalOpen(true) : undefined,
+    };
+  });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -217,44 +277,15 @@ export function LandingPage() {
             </h2>
             <p>{t('landing.pricing.subtitle')}</p>
           </div>
-          <PricingPlans
-            plans={[
-              {
-                name: t('landing.pricing.free.name'),
-                price: formatPrice(t('landing.pricing.free.price')),
-                priceLabel: t('landing.pricing.monthly'),
-                description: t('landing.pricing.free.description'),
-                cta: t('landing.pricing.free.cta'),
-                features: t('landing.pricing.free.features', { returnObjects: true }) as string[],
-              },
-              {
-                name: t('landing.pricing.pro.name'),
-                price: formatPrice(t('landing.pricing.pro.price')),
-                priceLabel: t('landing.pricing.monthly'),
-                description: t('landing.pricing.pro.description'),
-                cta: t('landing.pricing.pro.cta'),
-                features: t('landing.pricing.pro.features', { returnObjects: true }) as string[],
-                popular: t('landing.pricing.pro.popular'),
-              },
-              {
-                name: t('landing.pricing.enterprise.name'),
-                price: formatPrice(t('landing.pricing.enterprise.price')),
-                priceLabel: t('landing.pricing.monthly'),
-                description: t('landing.pricing.enterprise.description'),
-                cta: t('landing.pricing.enterprise.cta'),
-                features: t('landing.pricing.enterprise.features', { returnObjects: true }) as string[],
-              },
-              {
-                name: t('landing.pricing.custom.name'),
-                price: t('landing.pricing.custom.price'),
-                description: t('landing.pricing.custom.description'),
-                cta: t('landing.pricing.custom.cta'),
-                features: t('landing.pricing.custom.features', { returnObjects: true }) as string[],
-                isBlock: true,
-                onSelect: () => setInterestModalOpen(true),
-              },
-            ]}
-          />
+          {plansLoading ? (
+            <div className="landing-pricing-grid">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="skeleton h-96 w-full rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <PricingPlans plans={pricingPlans} />
+          )}
         </div>
       </section>
 
