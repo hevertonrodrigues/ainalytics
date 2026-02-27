@@ -27,3 +27,7 @@ supabase/.env.local
 supabase/snippets/*
 supabase/functions/*/.npmrc
 dump.sql
+
+
+
+_mkt/*
