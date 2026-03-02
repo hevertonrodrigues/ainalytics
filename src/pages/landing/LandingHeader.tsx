@@ -1,10 +1,11 @@
 import { useState, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Menu, X } from 'lucide-react';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
+const SUPPORTED_LANG_CODES: Set<string> = new Set(Object.values(LOCALES));
 
 interface LandingHeaderProps {
   scrolled: boolean;
@@ -13,6 +14,7 @@ interface LandingHeaderProps {
 export function LandingHeader({ scrolled }: LandingHeaderProps) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogoClick = (e: React.MouseEvent) => {
@@ -25,9 +27,18 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
   const changeLang = useCallback(
     (lng: string) => {
       i18n.changeLanguage(lng);
+      // Update URL to reflect the chosen language
+      const pathSegment = location.pathname.split('/')[1]?.toLowerCase();
+      if (pathSegment && SUPPORTED_LANG_CODES.has(pathSegment as typeof lng)) {
+        // Already on a /:lang route — replace it
+        navigate(`/${lng}`, { replace: true });
+      } else if (location.pathname === '/') {
+        // On root landing — navigate to /:lang
+        navigate(`/${lng}`, { replace: true });
+      }
       setMobileMenuOpen(false);
     },
-    [i18n],
+    [i18n, location.pathname, navigate],
   );
 
   return (

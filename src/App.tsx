@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, useParams, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TenantProvider } from '@/contexts/TenantContext';
@@ -9,6 +9,8 @@ import { PlanGate } from '@/components/guards/PlanGate';
 import { SuperAdminGate } from '@/components/guards/SuperAdminGate';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LayoutProvider } from '@/contexts/LayoutContext';
+import i18n from '@/i18n';
+import { useEffect } from 'react';
 
 // Auth pages
 import { SignIn } from '@/pages/auth/SignIn';
@@ -36,6 +38,30 @@ import { PlansPage } from '@/pages/plans/PlansPage';
 import { LlmTextPage } from '@/pages/llmtext/LlmTextPage';
 import { NotFoundPage } from '@/pages/error/NotFoundPage';
 
+const SUPPORTED_LANGS = new Set(
+  (Array.isArray(i18n.options.supportedLngs) ? i18n.options.supportedLngs : ['en', 'es', 'pt-br']).filter(
+    (l: string) => l !== 'cimode',
+  ),
+);
+
+/** Route wrapper: reads /:lang param and switches language */
+function LandingWithLang() {
+  const { lang } = useParams<{ lang: string }>();
+  const normalizedLang = lang?.toLowerCase();
+
+  useEffect(() => {
+    if (normalizedLang && SUPPORTED_LANGS.has(normalizedLang)) {
+      i18n.changeLanguage(normalizedLang);
+    }
+  }, [normalizedLang]);
+
+  if (!normalizedLang || !SUPPORTED_LANGS.has(normalizedLang)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <LandingPage />;
+}
+
 /** Simple layout route that passes through to child routes */
 function AuthOutlet() {
   return <Outlet />;
@@ -50,6 +76,7 @@ export function App() {
         <Routes>
           {/* Public landing page — no auth provider needed */}
           <Route index element={<LandingPage />} />
+          <Route path="/:lang" element={<LandingWithLang />} />
 
           {/* All other routes require AuthProvider */}
           <Route element={<AuthProvider><AuthOutlet /></AuthProvider>}>
