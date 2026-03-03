@@ -1,0 +1,219 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { handleCors, withCors } from "../_shared/cors.ts";
+import { verifyAuth } from "../_shared/auth.ts";
+import { ok, created, badRequest, serverError, conflict } from "../_shared/response.ts";
+import { createAdminClient } from "../_shared/supabase.ts";
+
+/**
+ * Company Edge Function
+ * - GET  → Returns the current tenant's linked company (or null)
+ * - POST → Creates a new company + tenant_companies link
+ */
+
+serve(async (req: Request) => {
+  if (req.method === "OPTIONS") return handleCors(req);
+
+  try {
+    const { tenantId, user } = await verifyAuth(req);
+    const db = createAdminClient();
+
+    // Verify tenant membership
+    const { data: tenantUser, error: tuErr } = await db
+      .from("tenant_users")
+      .select("role")
+      .eq("tenant_id", tenantId)
+      .eq("user_id", user.id)
+      .single();
+
+    if (tuErr || !tenantUser) {
+      return withCors(req, badRequest("User not found in tenant."));
+    }
+
+    switch (req.method) {
+      case "GET": {
+        // Fetch company linked to this tenant
+        const { data: link } = await db
+          .from("tenant_companies")
+          .select("company_id")
+          .eq("tenant_id", tenantId)
+          .single();
+
+        if (!link) {
+          return withCors(req, ok(null));
+        }
+
+        const { data: company, error: cErr } = await db
+          .from("companies")
+          .select("*")
+          .eq("id", link.company_id)
+          .single();
+
+        if (cErr || !company) {
+          return withCors(req, ok(null));
+        }
+
+        // Fetch latest analysis for this company
+        const { data: latestAnalysis } = await db
+          .from("geo_analyses")
+          .select("*")
+          .eq("company_id", company.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        return withCors(req, ok({
+          ...company,
+          latest_analysis: latestAnalysis || null,
+        }));
+      }
+
+      case "POST": {
+        // Only owners and admins can create a company
+        if (tenantUser.role !== "owner" && tenantUser.role !== "admin") {
+          return withCors(req, badRequest("Only owners and admins can create a company."));
+        }
+
+        // Check if tenant already has a company
+        const { data: existingLink } = await db
+          .from("tenant_companies")
+          .select("id")
+          .eq("tenant_id", tenantId)
+          .single();
+
+        if (existingLink) {
+          return withCors(req, conflict("This tenant already has a company linked."));
+        }
+
+        const body = await req.json();
+        const { domain, description, target_language } = body;
+
+        if (!domain || typeof domain !== "string" || domain.trim().length === 0) {
+          return withCors(req, badRequest("Domain is required."));
+        }
+
+        // Normalize domain
+        let normalizedDomain = domain.trim().toLowerCase();
+        if (normalizedDomain.startsWith("http://") || normalizedDomain.startsWith("https://")) {
+          try {
+            const parsed = new URL(normalizedDomain);
+            normalizedDomain = parsed.hostname.toLowerCase();
+          } catch {
+            return withCors(req, badRequest("Invalid domain URL."));
+          }
+        }
+
+        // Remove www. prefix
+        if (normalizedDomain.startsWith("www.")) {
+          normalizedDomain = normalizedDomain.slice(4);
+        }
+
+        // Basic domain validation
+        if (
+          !normalizedDomain.includes(".") ||
+          normalizedDomain.length > 253 ||
+          /[^a-z0-9.-]/.test(normalizedDomain)
+        ) {
+          return withCors(req, badRequest("Invalid domain format."));
+        }
+
+        // Create company
+        const { data: company, error: createErr } = await db
+          .from("companies")
+          .insert({
+            domain: normalizedDomain,
+            description: description?.trim() || null,
+            target_language: target_language || "en",
+            tenant_id: tenantId,
+          })
+          .select("*")
+          .single();
+
+        if (createErr || !company) {
+          console.error("[company] Failed to create company:", createErr);
+          return withCors(req, serverError("Failed to create company."));
+        }
+
+        // Create tenant_companies link
+        const { error: linkErr } = await db
+          .from("tenant_companies")
+          .insert({
+            tenant_id: tenantId,
+            company_id: company.id,
+          });
+
+        if (linkErr) {
+          // Cleanup: delete the orphaned company
+          await db.from("companies").delete().eq("id", company.id);
+          console.error("[company] Failed to link company to tenant:", linkErr);
+          return withCors(req, serverError("Failed to link company to tenant."));
+        }
+
+        return withCors(req, created(company));
+      }
+
+      case "PATCH": {
+        // Only owners and admins can edit a company
+        if (tenantUser.role !== "owner" && tenantUser.role !== "admin") {
+          return withCors(req, badRequest("Only owners and admins can edit a company."));
+        }
+
+        // Find company linked to tenant
+        const { data: patchLink } = await db
+          .from("tenant_companies")
+          .select("company_id")
+          .eq("tenant_id", tenantId)
+          .single();
+
+        if (!patchLink) {
+          return withCors(req, badRequest("No company linked to this tenant."));
+        }
+
+        const patchBody = await req.json();
+        const updates: Record<string, unknown> = {};
+
+        if (patchBody.description !== undefined) {
+          updates.description = patchBody.description?.trim() || null;
+        }
+        if (patchBody.target_language !== undefined) {
+          updates.target_language = patchBody.target_language;
+        }
+
+        if (Object.keys(updates).length === 0) {
+          return withCors(req, badRequest("No valid fields to update."));
+        }
+
+        updates.updated_at = new Date().toISOString();
+
+        const { data: updatedCompany, error: updateErr } = await db
+          .from("companies")
+          .update(updates)
+          .eq("id", patchLink.company_id)
+          .select("*")
+          .single();
+
+        if (updateErr || !updatedCompany) {
+          console.error("[company] Failed to update company:", updateErr);
+          return withCors(req, serverError("Failed to update company."));
+        }
+
+        return withCors(req, ok(updatedCompany));
+      }
+
+      default:
+        return withCors(req, badRequest(`Method ${req.method} not allowed`));
+    }
+  } catch (err: unknown) {
+    console.error("[company]", err);
+    const e = err as { status?: number; message?: string };
+    if (e.status) {
+      return withCors(
+        req,
+        new Response(
+          JSON.stringify({ success: false, error: { message: e.message, code: e.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN" } }),
+          { status: e.status, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+    }
+    return withCors(req, serverError(e.message || "Internal server error"));
+  }
+});

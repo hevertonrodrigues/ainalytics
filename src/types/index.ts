@@ -211,6 +211,256 @@ export interface SearchPromptInput {
 }
 
 // ────────────────────────────────────────────────────────────
+// Companies & Tenant Companies
+// ────────────────────────────────────────────────────────────
+
+export type CompanyStatus = 'pending' | 'scraping' | 'scraping_done' | 'analyzing' | 'completed' | 'error';
+
+export interface CompanyPage {
+  url: string;
+  title: string | null;
+  meta_description: string | null;
+  h1: string | null;
+  content_summary: string | null;
+  word_count: number;
+  has_structured_data: boolean;
+  is_client_rendered: boolean;
+  has_captcha: boolean;
+  status_code: number;
+  load_time_ms: number;
+  ttfb_ms?: number;
+  error?: string;
+
+  // Enhanced extraction fields (GEO Analyzer)
+  headings?: {
+    h1: string[];
+    h2: string[];
+    h3: string[];
+    h1_count: number;
+    hierarchy_valid: boolean;
+    question_headings_count: number;
+    headings_with_ids: number;
+    headings_total: number;
+  };
+  schema?: {
+    detected_types: string[];
+    total_schemas: number;
+    has_faq: boolean;
+    has_organization: boolean;
+    has_article: boolean;
+    has_product: boolean;
+    has_breadcrumb: boolean;
+    valid_blocks: number;
+    invalid_blocks: number;
+  };
+  semantic?: {
+    article: number;
+    section: number;
+    main: number;
+    nav: number;
+    aside: number;
+    header: number;
+    footer: number;
+    figure: number;
+    time: number;
+    details: number;
+    div_count: number;
+    semantic_ratio: number;
+  };
+  links?: {
+    internal_count: number;
+    external_count: number;
+    contextual_internal: number;
+    navigation_internal: number;
+    generic_anchor_count: number;
+    descriptive_anchor_pct: number;
+  };
+  images?: {
+    total: number;
+    with_alt: number;
+    with_empty_alt: number;
+    without_alt: number;
+    generic_alt: number;
+    in_figure_with_caption: number;
+  };
+  open_graph?: {
+    has_og_title: boolean;
+    has_og_description: boolean;
+    has_og_image: boolean;
+    has_og_type: boolean;
+    has_og_url: boolean;
+    has_og_site_name: boolean;
+  };
+  tables?: {
+    total: number;
+    with_thead: number;
+    with_th: number;
+    with_caption: number;
+  };
+  lists?: {
+    ordered_count: number;
+    unordered_count: number;
+    total_list_items: number;
+    fake_list_patterns: number;
+  };
+  paragraphs?: {
+    total: number;
+    avg_word_count: number;
+    pct_under_100: number;
+    pct_over_150: number;
+    cross_reference_count: number;
+  };
+  canonical_url?: string | null;
+  canonical_matches_url?: boolean;
+  viewport_tag?: string | null;
+  is_https?: boolean;
+  redirect_chain?: string[];
+  hsts_header?: boolean;
+}
+
+// ────────────────────────────────────────────────────────────
+// GEO Analysis (stored in geo_analyses table)
+// ────────────────────────────────────────────────────────────
+
+export type AnalysisStatus = 'pending' | 'scraping' | 'scraping_done' | 'analyzing' | 'completed' | 'error';
+
+export interface GeoAnalysis {
+  id: string;
+  company_id: string;
+  status: AnalysisStatus;
+  progress: number;
+  error_message: string | null;
+  status_message: string | null;
+  robots_txt: string | null;
+  sitemap_xml: string | null;
+  llms_txt: string | null;
+  crawled_pages: CompanyPage[];
+  ai_report: Record<string, AiReport> | Record<string, never>;
+  geo_score: number | null;
+  readiness_level: number | null;
+  pages_crawled: number;
+  total_pages: number;
+  created_at: string;
+  completed_at: string | null;
+}
+
+
+// ────────────────────────────────────────────────────────────
+// GEO Factor Scoring (25 Factors)
+// ────────────────────────────────────────────────────────────
+
+export type GeoFactorStatus = 'excellent' | 'good' | 'warning' | 'critical';
+
+export type GeoFactorCategory = 'Technical' | 'Content' | 'Authority' | 'Semantic';
+
+export interface GeoFactorScore {
+  factor_id: string;
+  name: string;
+  category: GeoFactorCategory;
+  score: number;        // 0–100
+  weight: number;       // decimal, e.g. 0.08
+  weighted_score: number;
+  status: GeoFactorStatus;
+  details: string;
+  recommendations: string[];
+}
+
+export interface GeoCategoryScores {
+  technical: number;
+  content: number;
+  authority: number;
+  semantic: number;
+}
+
+export type GeoReadinessLevel = 0 | 1 | 2 | 3 | 4 | 5;
+
+export interface GeoNextLevel {
+  level: GeoReadinessLevel;
+  label: string;
+  threshold: number;
+}
+
+export interface GeoTopRecommendation {
+  priority: number;
+  factor_id: string;
+  factor_name: string;
+  current_score: number;
+  estimated_score_after_fix: number;
+  potential_composite_gain: number;
+  recommendation: string;
+}
+
+
+export interface AiReportProductService {
+  name: string;
+  description: string;
+  type: 'product' | 'service';
+}
+
+export interface AiReport {
+  summary: string;
+  company_name: string;
+  industry: string;
+  country: string;
+  market: string;
+  tags: string[];
+  categories: string[];
+  products_services: AiReportProductService[];
+  competitors: string[];
+  strengths: string[];
+  weaknesses: string[];
+  geo_score: number;
+  content_quality: 'excellent' | 'good' | 'fair' | 'poor';
+  structured_data_coverage: 'comprehensive' | 'partial' | 'none';
+  ai_bot_access: Record<string, boolean>;
+  schema_markup_types: string[];
+  // GEO Factor Scoring
+  factor_scores?: GeoFactorScore[];
+  composite_score?: number;
+  readiness_level?: GeoReadinessLevel;
+  readiness_label?: string;
+  category_scores?: GeoCategoryScores;
+  points_to_next_level?: number;
+  next_level?: GeoNextLevel;
+  top_recommendations?: GeoTopRecommendation[];
+}
+
+export interface Company {
+  id: string;
+  domain: string;
+  description: string | null;
+  website_title: string | null;
+  meta_description: string | null;
+  meta_keywords: string | null;
+  og_image: string | null;
+  favicon_url: string | null;
+  language: string | null;
+  company_name: string | null;
+  industry: string | null;
+  country: string | null;
+  tags: string[];
+  target_language: string;
+  created_at: string;
+  updated_at: string;
+  // Latest analysis joined from geo_analyses table
+  latest_analysis: GeoAnalysis | null;
+}
+
+export interface TenantCompany {
+  id: string;
+  tenant_id: string;
+  company_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCompanyInput {
+  domain: string;
+  description?: string;
+  target_language?: string;
+}
+
+// ────────────────────────────────────────────────────────────
 // API Response Envelope
 // ────────────────────────────────────────────────────────────
 

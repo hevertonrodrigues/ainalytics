@@ -35,7 +35,7 @@ CREATE TRIGGER set_plans_updated_at
 -- Seed default plans
 INSERT INTO plans (name, price, is_active, sort_order, settings, features) VALUES
   (
-    'Starter', 99, true, 1,
+    'Starter', 199, true, 1,
     '{"max_prompts": 3, "refresh_rate": "monthly", "description": "Essential AI monitoring to get started. Perfect for freelancers and small businesses."}',
     '{
       "en": [
@@ -59,7 +59,7 @@ INSERT INTO plans (name, price, is_active, sort_order, settings, features) VALUE
     }'
   ),
   (
-    'Growth', 189, true, 2,
+    'Growth', 399, true, 2,
     '{"max_prompts": 10, "refresh_rate": "weekly", "description": "Scale your monitoring across all AI platforms with weekly insights."}',
     '{
       "en": [
@@ -83,7 +83,7 @@ INSERT INTO plans (name, price, is_active, sort_order, settings, features) VALUE
     }'
   ),
   (
-    'Business', 799, true, 3,
+    'Business', 1799, true, 3,
     '{"max_prompts": 40, "refresh_rate": "daily", "description": "Full-power real-time monitoring for brands that demand visibility."}',
     '{
       "en": [

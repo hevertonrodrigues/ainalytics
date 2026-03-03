@@ -1,0 +1,16 @@
+{
+  "readinessLevels": [
+    { "level": 0, "label": "AI Invisible", "threshold": 0, "color": "#DC3545", "description": "Fundamentally invisible to AI crawlers. Critical infrastructure failures." },
+    { "level": 1, "label": "AI Hostile", "threshold": 20, "color": "#E67C00", "description": "Severe deficiencies that actively prevent AI citation." },
+    { "level": 2, "label": "AI Unaware", "threshold": 40, "color": "#FFC107", "description": "Built without AI findability in mind. Rarely cited." },
+    { "level": 3, "label": "AI Emerging", "threshold": 60, "color": "#8BC34A", "description": "Foundational GEO elements in place but gaps remain." },
+    { "level": 4, "label": "AI Optimized", "threshold": 75, "color": "#28A745", "description": "Well-optimized for AI findability. Likely appearing in citations." },
+    { "level": 5, "label": "AI Authority", "threshold": 90, "color": "#1B5E20", "description": "Best-in-class GEO implementation. Dominates AI citations." }
+  ],
+  "factorStatuses": {
+    "excellent": { "min": 90, "max": 100, "color": "#00cec9" },
+    "good":      { "min": 70, "max": 89,  "color": "#28A745" },
+    "warning":   { "min": 40, "max": 69,  "color": "#FFC107" },
+    "critical":  { "min": 0,  "max": 39,  "color": "#DC3545" }
+  }
+}

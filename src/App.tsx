@@ -36,6 +36,7 @@ import { ModelsPage } from '@/pages/models/ModelsPage';
 import { LandingPage } from '@/pages/landing/LandingPage';
 import { PlansPage } from '@/pages/plans/PlansPage';
 import { LlmTextPage } from '@/pages/llmtext/LlmTextPage';
+import { MyCompanyPage } from '@/pages/company/MyCompanyPage';
 import { NotFoundPage } from '@/pages/error/NotFoundPage';
 
 const SUPPORTED_LANGS = new Set(
@@ -107,6 +108,7 @@ export function App() {
                 <Route path="sources/:id" element={<SourceDetailPage />} />
                 <Route path="llmtext" element={<LlmTextPage />} />
                 <Route path="models" element={<ModelsPage />} />
+                <Route path="company" element={<MyCompanyPage />} />
 
                 {/* SuperAdmin-only */}
                 <Route element={<SuperAdminGate />}>

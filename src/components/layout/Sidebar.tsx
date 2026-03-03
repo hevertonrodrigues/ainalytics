@@ -21,6 +21,7 @@ import {
   CreditCard,
   Lock,
   FileText,
+  Building2,
   X,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,6 +41,7 @@ interface NavItem {
 
 const MAIN_NAV: NavItem[] = [
   { key: 'nav.overview', path: '/dashboard', icon: LayoutDashboard },
+  { key: 'nav.myCompany', path: '/dashboard/company', icon: Building2 },
 ];
 
 const ANALYTICS_NAV: NavItem[] = [
