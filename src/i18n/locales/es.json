@@ -32,7 +32,11 @@
     "checkEmailTitle": "Revise su correo",
     "checkEmailDesc": "Acabamos de enviar un enlace de confirmación. Por favor, revise su bandeja de entrada (y carpeta de spam) para verificar su cuenta antes de iniciar sesión.",
     "goToSignIn": "Ir a Iniciar Sesión",
-    "mainDomain": "Dominio Principal (Se permiten URLs de sitios web)"
+    "mainDomain": "Dominio Principal (Se permiten URLs de sitios web)",
+    "placeholderName": "Juan Pérez",
+    "placeholderEmail": "usuario@empresa.com",
+    "placeholderPassword": "••••••••",
+    "placeholderPhone": "Ingrese su número de teléfono"
   },
   "profile": {
     "title": "Mi Perfil",
@@ -242,7 +246,9 @@
     "close": "Cerrar",
     "empty": "Vacio",
     "gotIt": "Entendido",
-    "learnMoreAbout": "Más información sobre {{page}}"
+    "learnMoreAbout": "Más información sobre {{page}}",
+    "found": "Encontrado",
+    "missing": "Ausente"
   },
   "validation": {
     "required": "Este campo es obligatorio",
@@ -665,5 +671,89 @@
     "phaseComputingScores": "Calculando puntajes GEO...",
     "phaseSavingReport": "Guardando reporte final...",
     "phaseFinishing": "Finalizando..."
+  },
+  "onboarding": {
+    "stepOf": "Paso {{current}} de {{total}}",
+    "skip": "Omitir Onboarding",
+    "skipToPlans": "Ir a Planes →",
+    "next": "Siguiente",
+    "tryItNow": "Pruébalo Ahora",
+    "steps": {
+      "company": {
+        "title": "Analice su Empresa",
+        "description": "Nuestro analizador GEO rastrea su sitio web, verifica factores técnicos como robots.txt, sitemap y datos estructurados, luego genera un informe impulsado por IA con recomendaciones accionables.",
+        "detail": "Comprenda exactamente cómo las plataformas de IA ven su sitio web — desde la calidad del contenido hasta la preparación técnica. Este es su punto de partida para la optimización GEO.",
+        "features": {
+          "0": { "title": "Rastreo Web", "desc": "Escaneamos sus páginas, meta tags, marcado schema y todos los recursos técnicos." },
+          "1": { "title": "25 Factores GEO", "desc": "Cada página se evalúa en 25 factores de optimización en 4 categorías." },
+          "2": { "title": "Informe IA", "desc": "Obtenga un análisis detallado de IA con fortalezas, debilidades y recomendaciones." }
+        }
+      },
+      "models": {
+        "title": "Seleccione Modelos de IA",
+        "description": "Elija qué plataformas de IA monitorear — ChatGPT, Claude, Gemini, Grok y más. Cada plataforma ve su marca de manera diferente, y necesita visibilidad en todas.",
+        "detail": "Diferentes modelos de IA tienen diferentes datos de entrenamiento y comportamientos. Al monitorear múltiples plataformas, obtiene una imagen completa de su visibilidad IA.",
+        "features": {
+          "0": { "title": "Multi-Plataforma", "desc": "Monitoree 5+ plataformas de IA principales simultáneamente en un solo dashboard." },
+          "1": { "title": "Selección de Modelos", "desc": "Elija modelos específicos por plataforma para un seguimiento granular." },
+          "2": { "title": "Modo Búsqueda Web", "desc": "Pruebe cómo responde la IA con y sin búsqueda web en tiempo real." }
+        }
+      },
+      "categories_prompts": {
+        "title": "Cree Tópicos y Prompts",
+        "description": "Organice su monitoreo en Tópicos — categorías que representan sus productos, servicios o segmentos de mercado. Luego cree Prompts — las preguntas reales que sus clientes hacen a las plataformas de IA — para ver si lo están recomendando.",
+        "detail": "Los Tópicos estructuran su estrategia, y los Prompts simulan búsquedas reales. Juntos, le permiten medir la visibilidad IA en cada área de negocio con consultas naturales.",
+        "features": {
+          "0": { "title": "Segmentos de Negocio", "desc": "Mapee tópicos a líneas de productos, servicios o segmentos competitivos que desea monitorear." },
+          "1": { "title": "Preguntas Reales", "desc": "Formule prompts naturales como '¿Cuál es el mejor [servicio] en [ubicación]?' para datos realistas." },
+          "2": { "title": "Ejecución Automática", "desc": "Los prompts se ejecutan automáticamente en todas las plataformas seleccionadas." }
+        }
+      },
+      "results": {
+        "title": "Analice Resultados",
+        "description": "Su dashboard muestra puntuaciones de visibilidad, frecuencia de mención, citas de fuentes y comparaciones competitivas — todo en un solo lugar. Vea exactamente dónde se encuentra en el panorama de IA.",
+        "detail": "Desde scorecards de alto nivel hasta análisis de respuestas individuales, cada dato le ayuda a comprender y mejorar su visibilidad IA.",
+        "features": {
+          "0": { "title": "Puntuaciones de Visibilidad", "desc": "Rastree su tasa de mención y sentimiento en todas las plataformas IA monitoreadas." },
+          "1": { "title": "Análisis de Fuentes", "desc": "Vea qué sitios web cita la IA al hablar de usted o sus competidores." },
+          "2": { "title": "Tendencias e Insights", "desc": "Insights semanales muestran riesgos emergentes y oportunidades en su visibilidad IA." }
+        }
+      }
+    },
+    "analyze": {
+      "title": "Vea su Puntuación GEO",
+      "subtitle": "Obtenga una vista previa gratuita de la preparación IA de su sitio web",
+      "description": "Ingrese su dominio y realizaremos un análisis rápido de su página principal — verificando robots.txt, sitemap, llms.txt y 25 factores de optimización GEO para darle una puntuación instantánea.",
+      "cta": "Analizar Mi Sitio Web",
+      "analyzing": "Analizando...",
+      "wait": "Rastreando su página principal y calculando factores GEO — esto tarda unos 10 segundos...",
+      "pointsToNext": "{{points}} puntos para alcanzar {{level}}",
+      "topIssues": "Principales Áreas de Mejora",
+      "unlockFull": "Suscríbase para ver el informe completo",
+      "subscribe": "Suscribirse para Continuar",
+      "improvementsFound": "métricas analizadas y oportunidades de mejora identificadas",
+      "checks": {
+        "robots": "robots.txt",
+        "sitemap": "sitemap.xml",
+        "llms": "llms.txt",
+        "homepage": "Análisis de Página Principal"
+      },
+      "categories": {
+        "technical": "Técnico",
+        "content": "Contenido",
+        "authority": "Autoridad",
+        "semantic": "Semántico"
+      },
+      "categoriesTitle": "Puntuaciones por Categoría",
+      "categoriesInfoTitle": "Entendiendo las Categorías",
+      "categoriesInfoSubtitle": "Cada categoría mide un aspecto diferente de su preparación para IA",
+      "categoryExplain": {
+        "technical": "Infraestructura Técnica evalúa si los rastreadores de IA pueden acceder e interpretar su sitio. Incluye SSR para que el rastreador vea HTML real, permisos de robots.txt, HTTPS para confianza, velocidad de página para evitar timeout, códigos de estado correctos y sitemaps para saber qué páginas existen. Si esto falla, nada más importa porque la IA nunca llega a su contenido. Es la categoría más grande (~56% del peso total) por ser la capa prerrequisito.",
+        "content": "Estructura de Contenido evalúa cómo está organizada su información. Los sistemas de IA extraen fragmentos cortos de 100–300 tokens y cada uno necesita funcionar por sí solo. Mide si sus encabezados crean divisiones limpias, si la primera oración responde directamente la pregunta (patrón respuesta-primero), si los párrafos son cortos y autocontenidos, y si usa tablas, listas y secciones FAQ con schema que la IA puede interpretar con alta precisión.",
+        "authority": "Autoridad y Confianza mide si los sistemas de IA confían en su contenido lo suficiente para citarlo. La actualización es una de las señales de citación más fuertes — Perplexity le atribuye aproximadamente el 40% de su ranking, y el 76% de las páginas más citadas por ChatGPT se actualizaron en los últimos 30 días. Otras señales como calidad de investigación original y credenciales de expertos requieren juicio subjetivo que no puede automatizarse completamente.",
+        "semantic": "Semántico/NLP mide si la IA entiende correctamente el significado de su contenido a nivel lingüístico. La puntuación de legibilidad asegura que el texto coincida con los patrones en que los modelos de IA fueron entrenados — textos excesivamente académicos o llenos de jerga reciben menor confianza de extracción. La consistencia de entidades verifica si usa el mismo nombre para lo mismo en todo su sitio, ya que la IA construye grafos de conocimiento y la nomenclatura inconsistente genera confusión.",
+        "summary": "En resumen: Técnico = ¿puede la IA acceder?, Contenido = ¿puede extraer limpiamente?, Autoridad = ¿confía en lo que encuentra?, Semántico = ¿entiende el significado correctamente? Forman un embudo natural — cada capa depende de la anterior."
+      }
+    }
   }
 }

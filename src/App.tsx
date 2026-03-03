@@ -35,6 +35,7 @@ const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => (
 const PlansPage = lazy(() => import('@/pages/plans/PlansPage').then(m => ({ default: m.PlansPage })));
 const LlmTextPage = lazy(() => import('@/pages/llmtext/LlmTextPage').then(m => ({ default: m.LlmTextPage })));
 const MyCompanyPage = lazy(() => import('@/pages/company/MyCompanyPage').then(m => ({ default: m.MyCompanyPage })));
+const OnboardingPage = lazy(() => import('@/pages/onboarding/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
 const NotFoundPage = lazy(() => import('@/pages/error/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
 const SUPPORTED_LANGS = new Set(
@@ -89,6 +90,7 @@ export function App() {
             {/* Protected routes with app shell */}
             <Route path="/dashboard" element={<ProtectedRoute><TenantProvider><AppLayout /></TenantProvider></ProtectedRoute>}>
               {/* Always accessible — even without a plan */}
+              <Route path="onboarding" element={<OnboardingPage />} />
               <Route path="plans" element={<PlansPage />} />
               <Route path="profile" element={<ProfilePage />} />
 

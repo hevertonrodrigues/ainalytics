@@ -32,7 +32,11 @@
     "checkEmailTitle": "Check your email",
     "checkEmailDesc": "We just sent a confirmation link. Please check your inbox (and spam folder) to verify your account before signing in.",
     "goToSignIn": "Go to Sign In",
-    "mainDomain": "Main Domain (Website URLs allowed)"
+    "mainDomain": "Main Domain (Website URLs allowed)",
+    "placeholderName": "John Doe",
+    "placeholderEmail": "you@company.com",
+    "placeholderPassword": "••••••••",
+    "placeholderPhone": "Enter phone number"
   },
   "profile": {
     "title": "My Profile",
@@ -242,7 +246,9 @@
     "close": "Close",
     "empty": "Empty",
     "gotIt": "Got it",
-    "learnMoreAbout": "Learn more about {{page}}"
+    "learnMoreAbout": "Learn more about {{page}}",
+    "found": "Found",
+    "missing": "Missing"
   },
   "validation": {
     "required": "This field is required",
@@ -671,5 +677,89 @@
     "phaseComputingScores": "Computing GEO scores...",
     "phaseSavingReport": "Saving final report...",
     "phaseFinishing": "Finishing up..."
+  },
+  "onboarding": {
+    "stepOf": "Step {{current}} of {{total}}",
+    "skip": "Skip Onboarding",
+    "skipToPlans": "Skip to Plans →",
+    "next": "Next",
+    "tryItNow": "Try It Now",
+    "steps": {
+      "company": {
+        "title": "Analyze Your Company",
+        "description": "Our GEO analyzer crawls your website, checks technical factors like robots.txt, sitemap, and structured data, then generates an AI-powered report with actionable insights.",
+        "detail": "Understand exactly how AI platforms see your website — from content quality to technical readiness. This is your starting point for GEO optimization.",
+        "features": {
+          "0": { "title": "Website Crawling", "desc": "We scan your pages, meta tags, schema markup, and all technical assets." },
+          "1": { "title": "25 GEO Factors", "desc": "Each page is scored across 25 optimization factors in 4 categories." },
+          "2": { "title": "AI Report", "desc": "Get a detailed AI analysis with strengths, weaknesses, and recommendations." }
+        }
+      },
+      "models": {
+        "title": "Select AI Models",
+        "description": "Choose which AI platforms to monitor — ChatGPT, Claude, Gemini, Grok, and more. Each platform sees your brand differently, and you need visibility across all of them.",
+        "detail": "Different AI models have different training data and behaviors. By monitoring multiple platforms, you get a complete picture of your AI visibility landscape.",
+        "features": {
+          "0": { "title": "Multi-Platform", "desc": "Monitor 5+ major AI platforms simultaneously in one dashboard." },
+          "1": { "title": "Model Selection", "desc": "Choose specific models per platform for granular visibility tracking." },
+          "2": { "title": "Web Search Mode", "desc": "Test how AI responds with and without real-time web search enabled." }
+        }
+      },
+      "categories_prompts": {
+        "title": "Create Topics & Prompts",
+        "description": "Organize your monitoring into Topics — categories that represent your products, services, or market segments. Then create Prompts — the real questions your customers ask AI platforms — to see if you're being recommended.",
+        "detail": "Topics structure your strategy, and Prompts simulate real searches. Together, they let you measure AI visibility across every business area with natural, customer-like queries.",
+        "features": {
+          "0": { "title": "Business Segments", "desc": "Map topics to product lines, services, or competitive segments you want to monitor." },
+          "1": { "title": "Real Questions", "desc": "Craft natural prompts like 'What's the best [service] in [location]?' for realistic data." },
+          "2": { "title": "Auto-Execution", "desc": "Prompts run automatically across all selected platforms on your schedule." }
+        }
+      },
+      "results": {
+        "title": "Analyze Results",
+        "description": "Your dashboard shows visibility scores, mention frequency, source citations, and competitive comparisons — all in one place. See exactly where you stand in the AI landscape.",
+        "detail": "From high-level scorecards to individual answer analysis, every data point helps you understand and improve your AI visibility.",
+        "features": {
+          "0": { "title": "Visibility Scores", "desc": "Track your mention rate and sentiment across all monitored AI platforms." },
+          "1": { "title": "Source Analysis", "desc": "See which websites AI cites when talking about you or your competitors." },
+          "2": { "title": "Trend Insights", "desc": "Weekly insights show emerging risks and opportunities in your AI visibility." }
+        }
+      }
+    },
+    "analyze": {
+      "title": "See Your GEO Score",
+      "subtitle": "Get a free preview of your website's AI readiness",
+      "description": "Enter your domain and we'll perform a quick homepage analysis — checking robots.txt, sitemap, llms.txt, and 25 GEO optimization factors to give you an instant AI readiness score.",
+      "cta": "Analyze My Website",
+      "analyzing": "Analyzing...",
+      "wait": "Crawling your homepage and computing GEO factors — this takes about 10 seconds...",
+      "pointsToNext": "{{points}} points to reach {{level}}",
+      "topIssues": "Top Improvement Areas",
+      "unlockFull": "Subscribe to see the full report",
+      "subscribe": "Subscribe to Continue",
+      "improvementsFound": "metrics analyzed and improvement opportunities identified",
+      "checks": {
+        "robots": "robots.txt",
+        "sitemap": "sitemap.xml",
+        "llms": "llms.txt",
+        "homepage": "Homepage Analysis"
+      },
+      "categories": {
+        "technical": "Technical",
+        "content": "Content",
+        "authority": "Authority",
+        "semantic": "Semantic"
+      },
+      "categoriesTitle": "Category Scores",
+      "categoriesInfoTitle": "Understanding Categories",
+      "categoriesInfoSubtitle": "Each category measures a different aspect of your AI readiness",
+      "categoryExplain": {
+        "technical": "Technical Infrastructure covers whether AI crawlers can physically reach and parse your site. This includes SSR so the crawler sees actual HTML, robots.txt permissions, HTTPS for trust, page speed so it doesn't timeout, proper status codes, and sitemaps so it knows what pages exist. If these fail, nothing else matters because the AI never gets to your content. This is the largest category (~56% of total weight) because it's the prerequisite layer.",
+        "content": "Content Structure is about how your information is organized once the crawler gets to it. AI systems extract short chunks of 100–300 tokens and need each chunk to stand alone. This measures whether your headings create clean chunk boundaries, whether your first sentence directly answers the question (answer-first pattern), whether paragraphs are short and self-contained, and whether you use tables, lists, and FAQ sections with schema that AI can parse with high accuracy.",
+        "authority": "Authority & Trust measures whether AI systems believe your content enough to cite it. Freshness is one of the strongest citation signals — Perplexity weights it at roughly 40% of its ranking, and 76% of ChatGPT's most-cited pages were updated within 30 days. Other authority signals like original research quality and expert credentials require subjective judgment that can't be fully automated by crawling alone.",
+        "semantic": "Semantic/NLP measures whether AI correctly understands the meaning of your content at the language level. Readability scoring ensures the text matches patterns AI models were trained on — overly academic or jargon-heavy writing gets lower extraction confidence. Entity consistency checks whether you call the same thing by the same name across your entire site, because AI builds knowledge graphs and inconsistent naming creates confusion.",
+        "summary": "In short: Technical = can the AI get in, Content = can it extract cleanly, Authority = does it trust what it finds, Semantic = does it understand the meaning correctly. They form a natural funnel — each layer depends on the one before it."
+      }
+    }
   }
 }

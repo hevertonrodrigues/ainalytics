@@ -53,6 +53,7 @@ export interface Profile extends BaseEntity {
   metadata: Record<string, unknown> | null;
   is_sa: boolean;
   has_seen_welcome_modal: boolean;
+  has_seen_onboarding: boolean;
   tutorial_views: Record<string, boolean> | null;
 }
 

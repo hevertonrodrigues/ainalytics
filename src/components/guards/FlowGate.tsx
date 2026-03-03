@@ -1,9 +1,11 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useTenant } from '@/contexts/TenantContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Unified onboarding gate that guides users through a sequential setup:
- *   1. Plan  → redirect to /dashboard/plans
+ *   0. Onboarding → redirect to /dashboard/onboarding
+ *   1. Plan    → redirect to /dashboard/plans
  *   2. Company → redirect to /dashboard/company
  *   3. Models  → redirect to /dashboard/models
  *
@@ -12,13 +14,18 @@ import { useTenant } from '@/contexts/TenantContext';
  */
 export function FlowGate() {
   const { currentTenant, hasCompany, hasModels } = useTenant();
+  const { profile } = useAuth();
   const { pathname } = useLocation();
 
   const hasPlan = !!currentTenant?.plan_id;
+  const hasSeenOnboarding = !!profile?.has_seen_onboarding;
 
   // Paths always reachable regardless of gate state
-  const alwaysAllowed = ['/dashboard/plans', '/dashboard/profile'];
+  const alwaysAllowed = ['/dashboard/plans', '/dashboard/profile', '/dashboard/onboarding'];
   if (alwaysAllowed.some((p) => pathname.startsWith(p))) return <Outlet />;
+
+  // Gate 0: Onboarding
+  if (!hasSeenOnboarding) return <Navigate to="/dashboard/onboarding" replace />;
 
   // Gate 1: Plan
   if (!hasPlan) return <Navigate to="/dashboard/plans" replace />;

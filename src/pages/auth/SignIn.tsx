@@ -106,7 +106,7 @@ export function SignIn() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
+                    placeholder={t('auth.placeholderEmail')}
                     required
                     autoComplete="email"
                   />
@@ -128,7 +128,7 @@ export function SignIn() {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={t('auth.placeholderPassword')}
                     required
                     autoComplete="current-password"
                   />

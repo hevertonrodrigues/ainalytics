@@ -171,6 +171,17 @@ serve(async (req: Request) => {
         const patchBody = await req.json();
         const updates: Record<string, unknown> = {};
 
+        if (patchBody.domain !== undefined) {
+          let normalizedDomain = patchBody.domain.trim().toLowerCase();
+          if (normalizedDomain.startsWith("http://") || normalizedDomain.startsWith("https://")) {
+            try { normalizedDomain = new URL(normalizedDomain).hostname.toLowerCase(); } catch { /* keep as-is */ }
+          }
+          if (normalizedDomain.startsWith("www.")) normalizedDomain = normalizedDomain.slice(4);
+          updates.domain = normalizedDomain;
+        }
+        if (patchBody.company_name !== undefined) {
+          updates.company_name = patchBody.company_name?.trim() || null;
+        }
         if (patchBody.description !== undefined) {
           updates.description = patchBody.description?.trim() || null;
         }

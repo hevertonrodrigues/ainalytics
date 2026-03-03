@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { MobileHeader } from './MobileHeader';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,15 +15,18 @@ export function AppLayout() {
   const [dismissedInSession, setDismissedInSession] = useState(false);
   const { activeTutorial, dismissTutorial } = useTutorial();
   const { setSidebarOpen } = useLayout();
+  const { pathname } = useLocation();
+
+  const isOnboarding = pathname.startsWith('/dashboard/onboarding');
 
   return (
     <div className="min-h-screen bg-bg-primary flex flex-col lg:flex-row">
-      <MobileHeader onOpenSidebar={() => setSidebarOpen(true)} />
+      {!isOnboarding && <MobileHeader onOpenSidebar={() => setSidebarOpen(true)} />}
       
-      <Sidebar />
+      {!isOnboarding && <Sidebar />}
       
-      {/* Main content — offset by sidebar width on lg screens */}
-      <div className="flex-1 lg:ml-64 flex flex-col min-w-0">
+      {/* Main content — offset by sidebar width on lg screens (unless onboarding) */}
+      <div className={`flex-1 flex flex-col min-w-0 ${isOnboarding ? '' : 'lg:ml-64'}`}>
         <main className="p-4 sm:p-6 flex-1">
           <Outlet />
         </main>
