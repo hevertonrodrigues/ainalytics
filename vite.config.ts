@@ -14,4 +14,20 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-jspdf': ['jspdf'],
+          'vendor-html2canvas': ['html2canvas'],
+          'vendor-supabase': ['@supabase/supabase-js'],
+          'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
+          'vendor-markdown': ['react-markdown'],
+          'vendor-ui': ['lucide-react', 'intl-tel-input'],
+        },
+      },
+    },
+  },
 });
+

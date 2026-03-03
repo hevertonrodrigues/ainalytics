@@ -21,8 +21,10 @@ import {
   ShieldCheck,
   ShieldX,
   ExternalLink,
-
+  Download,
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { apiClient } from '@/lib/api';
@@ -113,6 +115,8 @@ export function MyCompanyPage() {
   const [editLanguage, setEditLanguage] = useState('en');
   const [saving, setSaving] = useState(false);
   const [startingAnalysis, setStartingAnalysis] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoTriggeredRef = useRef(false);
 
@@ -269,6 +273,71 @@ export function MyCompanyPage() {
       showToast(err.message || 'Re-analysis failed', 'error');
     } finally {
       setReAnalyzing(false);
+    }
+  };
+
+  // ─── Export AI Report to PDF ─────────────────────────────
+  const handleExportPdf = async () => {
+    if (!reportRef.current || !company) return;
+    setIsExporting(true);
+
+    // Short delay to allow UI to settle
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    try {
+      // 🚨 WORKAROUND for html2canvas oklab parse error (Tailwind 4 native issue)
+      // Some transparent/color-mixed colors use `oklab` which html2canvas 1.4.1 doesn't understand:
+      // Search and replace style strings in the ref just for the export.
+      
+      const elements = reportRef.current.querySelectorAll('*');
+      const originalStyles: { el: HTMLElement; style: string }[] = [];
+      
+      elements.forEach(el => {
+        if (el instanceof HTMLElement) {
+          const compStyle = window.getComputedStyle(el);
+          if (compStyle.color.includes('oklab') || compStyle.backgroundColor.includes('oklab') || compStyle.borderColor.includes('oklab')) {
+            originalStyles.push({ el, style: el.style.cssText });
+            // Very simple fallback for elements that might have inherited an oklab transparent color-mix 
+            // Often this is the placeholder color or standard hr border color
+            el.style.color = compStyle.color.includes('oklab') ? 'inherit' : compStyle.color;
+            el.style.backgroundColor = compStyle.backgroundColor.includes('oklab') ? 'transparent' : compStyle.backgroundColor;
+            el.style.borderColor = compStyle.borderColor.includes('oklab') ? 'transparent' : compStyle.borderColor;
+          }
+        }
+      });
+
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#0a0a0b', // Match dark theme bg
+      });
+
+      // Restore original styles
+      originalStyles.forEach(({ el, style }) => {
+        el.style.cssText = style;
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`${company.company_name || company.domain.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report.pdf`);
+
+      showToast(t('company.exportSuccess', 'PDF exported successfully'), 'success');
+    } catch (err: any) {
+      console.error('PDF export error:', err);
+      const msg = err?.message || err?.toString() || 'Unknown error';
+      showToast(`${t('company.exportError', 'Failed to export PDF')}: ${msg}`, 'error');
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -585,7 +654,7 @@ export function MyCompanyPage() {
 
 
   return (
-    <div className="stagger-enter space-y-6">
+    <div className="stagger-enter space-y-6" ref={reportRef}>
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -620,7 +689,7 @@ export function MyCompanyPage() {
         <div className="flex items-center gap-3">
           {/* SA-only Re-analyze button */}
           {profile?.is_sa && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5" data-html2canvas-ignore="true">
               {confirmReAnalyze ? (
                 <>
                   <span className="text-[10px] text-error font-medium">Delete all data?</span>
@@ -660,7 +729,7 @@ export function MyCompanyPage() {
           
           {/* User conditionally rendered Re-analyze button */}
           {!profile?.is_sa && company.latest_analysis && company.latest_analysis.status === 'completed' && (
-            <div className="flex items-center gap-1.5 ml-2">
+            <div className="flex items-center gap-1.5 ml-2" data-html2canvas-ignore="true">
               {(() => {
                 const completedAt = company.latest_analysis.completed_at;
                 if (!completedAt) return null;
@@ -701,6 +770,20 @@ export function MyCompanyPage() {
             <CheckCircle2 className="w-4 h-4 text-success" />
             <span className="text-xs font-medium text-success">{t('company.statusCompleted')}</span>
           </div>
+
+          {/* Export PDF Button */}
+          {hasReport(company) && (
+            <button
+              onClick={handleExportPdf}
+              disabled={isExporting}
+              className="flex items-center gap-1.5 px-3 py-1.5 ml-2 text-xs font-medium rounded-lg text-white bg-brand-primary/90 hover:bg-brand-primary transition-all shadow-sm"
+              id="export-pdf-btn"
+              data-html2canvas-ignore="true"
+            >
+              {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
+              {isExporting ? t('company.exporting', 'Exporting...') : t('company.exportPdf', 'Export PDF')}
+            </button>
+          )}
         </div>
       </div>
 

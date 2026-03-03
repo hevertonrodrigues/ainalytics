@@ -10,34 +10,32 @@ import { SuperAdminGate } from '@/components/guards/SuperAdminGate';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LayoutProvider } from '@/contexts/LayoutContext';
 import i18n from '@/i18n';
-import { useEffect } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 
-// Auth pages
-import { SignIn } from '@/pages/auth/SignIn';
-import { SignUp } from '@/pages/auth/SignUp';
-import { ForgotPassword } from '@/pages/auth/ForgotPassword';
-import { ResetPassword } from '@/pages/auth/ResetPassword';
-
-// App pages
-import { Dashboard } from '@/pages/dashboard/Dashboard';
-import { ProfilePage } from '@/pages/profile/Profile';
-import { TenantSettings } from '@/pages/settings/TenantSettings';
-import { TopicsPage } from '@/pages/topics/TopicsPage';
-import { TopicDetailPage } from '@/pages/topics/TopicDetailPage';
-import { TopicAnswersPage } from '@/pages/topics/TopicAnswersPage';
-import { PromptsPage } from '@/pages/prompts/PromptsPage';
-import { PromptDetailPage } from '@/pages/prompts/PromptDetailPage';
-import { InsightsPage } from '@/pages/dashboard/InsightsPage';
-import { AnalysesPage } from '@/pages/dashboard/AnalysesPage';
-import { SourcesPage } from '@/pages/sources/SourcesPage';
-import { SourceDetailPage } from '@/pages/sources/SourceDetailPage';
-import { PlatformsPage } from '@/pages/platforms/PlatformsPage';
-import { ModelsPage } from '@/pages/models/ModelsPage';
-import { LandingPage } from '@/pages/landing/LandingPage';
-import { PlansPage } from '@/pages/plans/PlansPage';
-import { LlmTextPage } from '@/pages/llmtext/LlmTextPage';
-import { MyCompanyPage } from '@/pages/company/MyCompanyPage';
-import { NotFoundPage } from '@/pages/error/NotFoundPage';
+// Lazy-loaded page components (route-level code splitting)
+const SignIn = lazy(() => import('@/pages/auth/SignIn').then(m => ({ default: m.SignIn })));
+const SignUp = lazy(() => import('@/pages/auth/SignUp').then(m => ({ default: m.SignUp })));
+const ForgotPassword = lazy(() => import('@/pages/auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import('@/pages/auth/ResetPassword').then(m => ({ default: m.ResetPassword })));
+const Dashboard = lazy(() => import('@/pages/dashboard/Dashboard').then(m => ({ default: m.Dashboard })));
+const ProfilePage = lazy(() => import('@/pages/profile/Profile').then(m => ({ default: m.ProfilePage })));
+const TenantSettings = lazy(() => import('@/pages/settings/TenantSettings').then(m => ({ default: m.TenantSettings })));
+const TopicsPage = lazy(() => import('@/pages/topics/TopicsPage').then(m => ({ default: m.TopicsPage })));
+const TopicDetailPage = lazy(() => import('@/pages/topics/TopicDetailPage').then(m => ({ default: m.TopicDetailPage })));
+const TopicAnswersPage = lazy(() => import('@/pages/topics/TopicAnswersPage').then(m => ({ default: m.TopicAnswersPage })));
+const PromptsPage = lazy(() => import('@/pages/prompts/PromptsPage').then(m => ({ default: m.PromptsPage })));
+const PromptDetailPage = lazy(() => import('@/pages/prompts/PromptDetailPage').then(m => ({ default: m.PromptDetailPage })));
+const InsightsPage = lazy(() => import('@/pages/dashboard/InsightsPage').then(m => ({ default: m.InsightsPage })));
+const AnalysesPage = lazy(() => import('@/pages/dashboard/AnalysesPage').then(m => ({ default: m.AnalysesPage })));
+const SourcesPage = lazy(() => import('@/pages/sources/SourcesPage').then(m => ({ default: m.SourcesPage })));
+const SourceDetailPage = lazy(() => import('@/pages/sources/SourceDetailPage').then(m => ({ default: m.SourceDetailPage })));
+const PlatformsPage = lazy(() => import('@/pages/platforms/PlatformsPage').then(m => ({ default: m.PlatformsPage })));
+const ModelsPage = lazy(() => import('@/pages/models/ModelsPage').then(m => ({ default: m.ModelsPage })));
+const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
+const PlansPage = lazy(() => import('@/pages/plans/PlansPage').then(m => ({ default: m.PlansPage })));
+const LlmTextPage = lazy(() => import('@/pages/llmtext/LlmTextPage').then(m => ({ default: m.LlmTextPage })));
+const MyCompanyPage = lazy(() => import('@/pages/company/MyCompanyPage').then(m => ({ default: m.MyCompanyPage })));
+const NotFoundPage = lazy(() => import('@/pages/error/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
 const SUPPORTED_LANGS = new Set(
   (Array.isArray(i18n.options.supportedLngs) ? i18n.options.supportedLngs : ['en', 'es', 'pt-br']).filter(
@@ -74,6 +72,7 @@ export function App() {
       <LayoutProvider>
         <ToastProvider>
         <BrowserRouter>
+        <Suspense fallback={null}>
         <Routes>
           {/* Public landing page — no auth provider needed */}
           <Route index element={<LandingPage />} />
@@ -121,6 +120,7 @@ export function App() {
           {/* Catch-all 404 Route */}
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
+        </Suspense>
       </BrowserRouter>
       </ToastProvider>
       </LayoutProvider>

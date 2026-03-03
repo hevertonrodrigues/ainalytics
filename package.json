@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.1",
+    "html2canvas": "^1.4.1",
     "i18next": "^24.2.2",
     "i18next-browser-languagedetector": "^8.0.4",
     "intl-tel-input": "^26.7.6",
+    "jspdf": "^4.2.0",
     "lucide-react": "^0.575.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

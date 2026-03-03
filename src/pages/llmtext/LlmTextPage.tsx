@@ -1,16 +1,16 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Globe, FileText, Search, Download, AlertCircle, CheckCircle2, Upload, HelpCircle, RefreshCw, X, LayoutTemplate, Code, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/contexts/ToastContext';
 import { supabase } from '@/lib/supabase';
+import { apiClient } from '@/lib/api';
 import { SuggestionsModal } from '@/components/suggestions/SuggestionsModal';
 import { useScrollLock } from '@/hooks/useScrollLock';
+import type { Company } from '@/types';
 
 export function LlmTextPage() {
   const { t } = useTranslation();
-  const { currentTenant, refreshTenant } = useTenant();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [extracting, setExtracting] = useState(false);
@@ -23,9 +23,28 @@ export function LlmTextPage() {
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestionLanguage, setSuggestionLanguage] = useState(t('i18n.language', 'en'));
+  const [company, setCompany] = useState<Company | null>(null);
+  const [loadingCompany, setLoadingCompany] = useState(true);
+
+  const fetchCompany = useCallback(async () => {
+    try {
+      setLoadingCompany(true);
+      const res = await apiClient.get<Company | null>('/company');
+      setCompany(res.data ?? null);
+    } catch (err) {
+      console.error('[LlmTextPage] Failed to fetch company:', err);
+      setCompany(null);
+    } finally {
+      setLoadingCompany(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchCompany();
+  }, [fetchCompany]);
 
   const handleExtract = async () => {
-    if (!currentTenant?.main_domain) {
+    if (!company?.domain) {
       showToast(t('llmText.errorNoDomain', 'No main domain configured. Please add one in Settings.'), 'error');
       return;
     }
@@ -40,7 +59,7 @@ export function LlmTextPage() {
       if (!data?.success) throw new Error(data?.error?.message || 'Failed to extract information');
 
       showToast(t('llmText.extractSuccess', 'Website information extracted successfully!'), 'success');
-      await refreshTenant();
+      await fetchCompany();
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.extractError', 'An error occurred while extracting information'), 'error');
@@ -50,7 +69,7 @@ export function LlmTextPage() {
   };
 
   const handleGenerate = async () => {
-    if (!currentTenant?.extracted_content) {
+    if (!company?.extracted_content) {
       showToast(t('llmText.errorNoContent', 'Please extract information first.'), 'error');
       return;
     }
@@ -65,7 +84,7 @@ export function LlmTextPage() {
       if (!data?.success) throw new Error(data?.error?.message || 'Failed to generate LLM.txt');
 
       showToast(t('llmText.generateSuccess', 'LLM.txt generated successfully!'), 'success');
-      await refreshTenant();
+      await fetchCompany();
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.generateError', 'An error occurred while generating LLM.txt'), 'error');
@@ -75,7 +94,7 @@ export function LlmTextPage() {
   };
 
   const handleSuggest = async () => {
-    if (!currentTenant?.extracted_content) {
+    if (!company?.extracted_content) {
       showToast(t('llmText.errorNoContent', 'Please extract information first.'), 'error');
       return;
     }
@@ -104,7 +123,7 @@ export function LlmTextPage() {
   };
 
   const handleVerify = async () => {
-    if (!currentTenant?.main_domain) {
+    if (!company?.domain) {
       showToast(t('llmText.errorNoDomain', 'No main domain configured.'), 'error');
       return;
     }
@@ -119,7 +138,7 @@ export function LlmTextPage() {
       if (!data?.success) throw new Error(data?.error?.message || 'Failed to verify llm.txt');
 
       showToast(t('llmText.verifySuccess', 'Status verified successfully!'), 'success');
-      await refreshTenant();
+      await fetchCompany();
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.verifyError', 'An error occurred while verifying llm.txt'), 'error');
@@ -129,9 +148,9 @@ export function LlmTextPage() {
   };
 
   const handleDownload = () => {
-    if (!currentTenant?.llm_txt) return;
+    if (!company?.llm_txt) return;
 
-    const blob = new Blob([currentTenant.llm_txt], { type: 'text/markdown' });
+    const blob = new Blob([company.llm_txt], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -144,7 +163,7 @@ export function LlmTextPage() {
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !currentTenant) return;
+    if (!file || !company) return;
 
     if (!file.name.endsWith('.xml')) {
       showToast(t('llmText.invalidFileType', 'Please upload a valid .xml sitemap file.'), 'error');
@@ -156,14 +175,14 @@ export function LlmTextPage() {
       const text = await file.text();
 
       const { error } = await supabase
-        .from('tenants')
+        .from('companies')
         .update({ sitemap_xml: text, updated_at: new Date().toISOString() })
-        .eq('id', currentTenant.id);
+        .eq('id', company.id);
 
       if (error) throw error;
 
       showToast(t('llmText.sitemapUploadSuccess', 'Sitemap uploaded successfully!'), 'success');
-      await refreshTenant();
+      await fetchCompany();
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.sitemapUploadError', 'Failed to upload sitemap.'), 'error');
@@ -172,6 +191,14 @@ export function LlmTextPage() {
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
+
+  if (loadingCompany) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto flex items-center justify-center min-h-[300px]">
+        <RefreshCw className="w-6 h-6 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -204,13 +231,13 @@ export function LlmTextPage() {
                   {t('tenant.mainDomain', 'Main Domain')}
                 </label>
                 <div className="p-3 bg-bg-primary border border-glass-border rounded-lg text-text-primary font-medium">
-                  {currentTenant?.main_domain || (
+                  {company?.domain || (
                     <span className="text-text-muted italic">{t('common.notSet', 'Not configured')}</span>
                   )}
                 </div>
               </div>
 
-              {currentTenant?.main_domain && (
+              {company?.domain && (
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-xs font-medium text-text-muted uppercase tracking-wider block">
@@ -226,19 +253,19 @@ export function LlmTextPage() {
                   </div>
                   <div className="p-3 bg-bg-primary border border-glass-border rounded-lg flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                       {currentTenant?.llm_txt_status === 'updated' && (
+                       {company?.llm_txt_status === 'updated' && (
                           <span className="text-success font-medium flex items-center gap-2">
                             <CheckCircle2 className="w-4 h-4" />
                             {t('llmText.statusUpdated', 'Updated & Live')}
                           </span>
                        )}
-                       {currentTenant?.llm_txt_status === 'outdated' && (
+                       {company?.llm_txt_status === 'outdated' && (
                           <span className="text-warning font-medium flex items-center gap-2">
                             <AlertCircle className="w-4 h-4" />
                             {t('llmText.statusOutdated', 'Outdated Deployment')}
                           </span>
                        )}
-                       {(!currentTenant?.llm_txt_status || currentTenant?.llm_txt_status === 'missing') && (
+                       {(!company?.llm_txt_status || company?.llm_txt_status === 'missing') && (
                           <span className="text-text-muted italic flex items-center gap-2">
                             <AlertCircle className="w-4 h-4" />
                             {t('llmText.statusMissing', 'Missing from Server')}
@@ -255,7 +282,7 @@ export function LlmTextPage() {
                 </label>
                 <div className="p-3 bg-bg-primary border border-glass-border rounded-lg flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {currentTenant?.sitemap_xml ? (
+                    {company?.sitemap_xml ? (
                       <span className="text-success font-medium flex items-center gap-2">
                         <CheckCircle2 className="w-4 h-4" />
                         {t('llmText.sitemapPresent', 'Sitemap Present')}
@@ -289,12 +316,12 @@ export function LlmTextPage() {
                     </button>
                   </div>
                 </div>
-                {!currentTenant?.sitemap_xml && (
+                {!company?.sitemap_xml && (
                    <p className="text-xs text-text-muted mt-1 ml-1">{t('llmText.sitemapHint', 'We will try to fetch it automatically, but you can override it here.')}</p>
                 )}
               </div>
 
-              {!currentTenant?.main_domain && (
+              {!company?.domain && (
                 <div className="p-3 bg-warning/10 border border-warning/20 rounded-lg flex items-start gap-2 text-warning text-sm">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <p>{t('llmText.missingDomainPrompt', 'Configure your main domain in Tenant Settings to use this feature.')}</p>
@@ -305,7 +332,7 @@ export function LlmTextPage() {
               <div className="space-y-3">
                 <button
                   onClick={handleExtract}
-                  disabled={extracting || generating || suggesting || !currentTenant?.main_domain}
+                  disabled={extracting || generating || suggesting || !company?.domain}
                   className="btn btn-primary w-full py-2.5 flex items-center justify-center gap-2"
                 >
                   {extracting ? (
@@ -323,7 +350,7 @@ export function LlmTextPage() {
 
                 <button
                   onClick={handleGenerate}
-                  disabled={generating || extracting || suggesting || !currentTenant?.extracted_content}
+                  disabled={generating || extracting || suggesting || !company?.extracted_content}
                   className="btn bg-brand-secondary hover:bg-brand-primary text-white w-full py-2.5 flex items-center justify-center gap-2"
                 >
                   {generating ? (
@@ -362,7 +389,7 @@ export function LlmTextPage() {
 
                 <button
                   onClick={handleSuggest}
-                  disabled={suggesting || generating || extracting || !currentTenant?.extracted_content}
+                  disabled={suggesting || generating || extracting || !company?.extracted_content}
                   className="btn bg-bg-secondary hover:bg-glass-hover text-text-primary border border-glass-border w-full py-2.5 flex items-center justify-center gap-2 group"
                 >
                   {suggesting ? (
@@ -378,10 +405,10 @@ export function LlmTextPage() {
                   )}
                 </button>
 
-                {currentTenant?.llm_txt && (
+                {company?.llm_txt && (
                   <button
                     onClick={handleVerify}
-                    disabled={verifying || extracting || generating || suggesting || !currentTenant?.main_domain}
+                    disabled={verifying || extracting || generating || suggesting || !company?.domain}
                     className="btn bg-bg-secondary hover:bg-glass-hover text-text-primary border border-glass-border w-full py-2.5 flex items-center justify-center gap-2"
                   >
                     {verifying ? (
@@ -399,7 +426,7 @@ export function LlmTextPage() {
                 )}
               </div>
 
-              {currentTenant?.llm_txt && (
+              {company?.llm_txt && (
                 <div className="pt-4 border-t border-glass-border space-y-3">
                   <div className="flex items-center gap-2 text-success text-sm">
                     <CheckCircle2 className="w-4 h-4" />
@@ -432,7 +459,7 @@ export function LlmTextPage() {
                     {t('llmText.websiteTitle', 'Website Title')}
                   </label>
                   <div className="p-3 bg-bg-primary border border-glass-border rounded-lg min-h-[46px] text-sm text-text-primary">
-                    {currentTenant?.website_title || <span className="text-text-muted italic">{t('common.empty', 'No data')}</span>}
+                    {company?.website_title || <span className="text-text-muted italic">{t('common.empty', 'No data')}</span>}
                   </div>
                 </div>
 
@@ -441,7 +468,7 @@ export function LlmTextPage() {
                     {t('llmText.metatags', 'Meta Tags')}
                   </label>
                   <div className="p-3 bg-bg-primary border border-glass-border rounded-lg min-h-[46px] text-sm text-text-primary overflow-x-auto whitespace-pre-wrap">
-                    {currentTenant?.metatags || <span className="text-text-muted italic">{t('common.empty', 'No data')}</span>}
+                    {company?.metatags || <span className="text-text-muted italic">{t('common.empty', 'No data')}</span>}
                   </div>
                 </div>
               </div>
@@ -451,7 +478,7 @@ export function LlmTextPage() {
                   {t('llmText.extractedContent', 'Extracted Content Details')}
                 </label>
                 <div className="p-3 bg-bg-primary border border-glass-border rounded-lg min-h-[100px] text-sm text-text-primary whitespace-pre-wrap">
-                  {currentTenant?.extracted_content || <span className="text-text-muted italic">{t('common.empty', 'No data')}</span>}
+                  {company?.extracted_content || <span className="text-text-muted italic">{t('common.empty', 'No data')}</span>}
                 </div>
               </div>
             </div>
@@ -465,7 +492,7 @@ export function LlmTextPage() {
             </div>
             
             <div className="bg-[#1e1e1e] rounded-lg border border-glass-border overflow-hidden">
-              {currentTenant?.llm_txt ? (
+              {company?.llm_txt ? (
                 <>
                   <div className="flex items-center gap-1 p-1.5 border-b border-white/5 bg-black/20">
                     <button
@@ -486,11 +513,11 @@ export function LlmTextPage() {
                   <div className="p-4 overflow-y-auto max-h-[600px] custom-scrollbar">
                     {previewTab === 'raw' ? (
                       <pre className="text-sm font-mono text-[#d4d4d4] whitespace-pre-wrap">
-                        {currentTenant.llm_txt}
+                        {company.llm_txt}
                       </pre>
                     ) : (
                       <div className="prose prose-invert prose-sm max-w-none prose-a:text-brand-primary prose-a:no-underline hover:prose-a:underline">
-                        <ReactMarkdown>{currentTenant.llm_txt}</ReactMarkdown>
+                        <ReactMarkdown>{company.llm_txt}</ReactMarkdown>
                       </div>
                     )}
                   </div>
@@ -509,7 +536,7 @@ export function LlmTextPage() {
 
       {/* Modals */}
       {showInfoModal && (
-        <DeploymentHelpModal onClose={() => setShowInfoModal(false)} />
+        <DeploymentHelpModal onClose={() => setShowInfoModal(false)} domain={company?.domain} />
       )}
 
       {showSuggestions && (
@@ -523,9 +550,8 @@ export function LlmTextPage() {
   );
 }
 
-function DeploymentHelpModal({ onClose }: { onClose: () => void }) {
+function DeploymentHelpModal({ onClose, domain }: { onClose: () => void; domain?: string | null }) {
   const { t } = useTranslation();
-  const { currentTenant } = useTenant();
   useScrollLock(true);
 
   return (
@@ -549,7 +575,7 @@ function DeploymentHelpModal({ onClose }: { onClose: () => void }) {
             {t('llmText.deployInstruction1', 'To make this file available to AI scrapers and search platforms, you must host it at the root of your main domain.')}
           </p>
           <div className="bg-bg-primary border border-white/5 rounded-lg p-3 font-mono text-xs text-brand-primary/80">
-            https://{currentTenant?.main_domain}/llm.txt
+            https://{domain}/llm.txt
           </div>
           <ul className="list-disc pl-5 space-y-2">
             <li>{t('llmText.deployStep1', 'Download the generated llm.txt file using the download button.')}</li>

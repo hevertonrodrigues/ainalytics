@@ -34,12 +34,6 @@ export interface Tenant {
   slug: string;
   plan_id: string | null;
   main_domain: string | null;
-  website_title: string | null;
-  metatags: string | null;
-  extracted_content: string | null;
-  llm_txt: string | null;
-  sitemap_xml: string | null;
-  llm_txt_status: 'missing' | 'outdated' | 'updated';
   prompt_executions_per_hour: number;
   created_at: string;
   updated_at: string;
@@ -435,6 +429,11 @@ export interface Company {
   og_image: string | null;
   favicon_url: string | null;
   language: string | null;
+  sitemap_xml: string | null;
+  metatags: string | null;
+  extracted_content: string | null;
+  llm_txt: string | null;
+  llm_txt_status: 'missing' | 'outdated' | 'updated';
   company_name: string | null;
   industry: string | null;
   country: string | null;

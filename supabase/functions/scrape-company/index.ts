@@ -799,6 +799,113 @@ Respond with ONLY the JSON object, no markdown fences.`;
         });
         console.log(`[analyze] ✓ Analysis complete. GEO Score: ${compositeResult.composite}/100`);
 
+        // Auto-fill LLM columns from analyzed data (no extra API calls)
+        if (company.domain && !company.llm_txt) {
+          try {
+            console.log(`[analyze] Building LLM data from analysis results for ${company.domain}...`);
+
+            // Build metatags from company metadata
+            const metaParts: string[] = [];
+            if (company.meta_description) metaParts.push(`Description: ${company.meta_description}`);
+            if (company.meta_keywords) metaParts.push(`Keywords: ${company.meta_keywords}`);
+            if (enReport.tags?.length) metaParts.push(`Tags: ${enReport.tags.join(', ')}`);
+            if (enReport.categories?.length) metaParts.push(`Categories: ${enReport.categories.join(', ')}`);
+            const metatags = metaParts.join('\n') || null;
+
+            // Build extracted_content from AI report + page summaries
+            const contentParts: string[] = [];
+            if (enReport.summary) contentParts.push(enReport.summary);
+            if (enReport.products_services?.length) {
+              const psList = enReport.products_services
+                .map((ps: any) => `- ${ps.name}: ${ps.description} (${ps.type})`)
+                .join('\n');
+              contentParts.push(`\nProducts & Services:\n${psList}`);
+            }
+            if (enReport.strengths?.length) {
+              contentParts.push(`\nStrengths: ${enReport.strengths.join(', ')}`);
+            }
+            // Add top page content summaries
+            const pageSummaries = pagesData
+              .filter((p: any) => p.content_summary && !p.error)
+              .slice(0, 10)
+              .map((p: any) => `- ${p.title || p.url}: ${p.content_summary}`)
+              .join('\n');
+            if (pageSummaries) contentParts.push(`\nKey Pages:\n${pageSummaries}`);
+            const extracted_content = contentParts.join('\n') || null;
+
+            // Build llm.txt markdown from all available data
+            const llmParts: string[] = [];
+            llmParts.push(`# ${enReport.company_name || company.website_title || company.domain}`);
+            llmParts.push('');
+            if (enReport.summary) {
+              llmParts.push(`> ${enReport.summary}`);
+              llmParts.push('');
+            }
+            llmParts.push(`- **Website**: https://${company.domain}`);
+            if (enReport.industry) llmParts.push(`- **Industry**: ${enReport.industry}`);
+            if (enReport.country) llmParts.push(`- **Country**: ${enReport.country}`);
+            if (enReport.market) llmParts.push(`- **Market**: ${enReport.market}`);
+            llmParts.push('');
+
+            if (enReport.products_services?.length) {
+              llmParts.push('## Products & Services');
+              llmParts.push('');
+              for (const ps of enReport.products_services) {
+                llmParts.push(`### ${ps.name}`);
+                llmParts.push(`${ps.description}`);
+                llmParts.push('');
+              }
+            }
+
+            if (enReport.strengths?.length) {
+              llmParts.push('## Strengths');
+              llmParts.push('');
+              for (const s of enReport.strengths) llmParts.push(`- ${s}`);
+              llmParts.push('');
+            }
+
+            if (enReport.categories?.length) {
+              llmParts.push('## Categories');
+              llmParts.push('');
+              for (const c of enReport.categories) llmParts.push(`- ${c}`);
+              llmParts.push('');
+            }
+
+            // Key pages section
+            const topPages = pagesData
+              .filter((p: any) => p.title && !p.error)
+              .slice(0, 15);
+            if (topPages.length > 0) {
+              llmParts.push('## Key Pages');
+              llmParts.push('');
+              for (const p of topPages) {
+                llmParts.push(`- [${p.title}](${p.url}): ${p.meta_description || p.content_summary || ''}`);
+              }
+              llmParts.push('');
+            }
+
+            if (enReport.tags?.length) {
+              llmParts.push(`## Tags`);
+              llmParts.push('');
+              llmParts.push(enReport.tags.join(', '));
+              llmParts.push('');
+            }
+
+            const llm_txt = llmParts.join('\n');
+
+            // Save all LLM data to companies table
+            await updateCompany(db, company.id, {
+              metatags,
+              extracted_content,
+              llm_txt,
+              llm_txt_status: 'outdated',
+            });
+            console.log(`[analyze] ✓ LLM data filled for company ${company.id}`);
+          } catch (llmErr: any) {
+            console.error(`[analyze] LLM data generation failed (non-fatal):`, llmErr?.message || llmErr);
+          }
+        }
+
         // Update company profile with denormalized fields
         await updateCompany(db, company.id, {
           company_name: enReport.company_name || null,
@@ -847,6 +954,44 @@ Respond with ONLY the JSON object, no markdown fences.`;
             completed_at: new Date().toISOString(),
             status_message: `Analysis complete (AI insights limited). GEO Score: ${compositeResult.composite}/100`,
           });
+
+          // Auto-fill basic LLM data on fallback path (limited without AI insights)
+          if (company.domain && !company.llm_txt) {
+            try {
+              const metaParts: string[] = [];
+              if (company.meta_description) metaParts.push(`Description: ${company.meta_description}`);
+              if (company.meta_keywords) metaParts.push(`Keywords: ${company.meta_keywords}`);
+              const metatags = metaParts.join('\n') || null;
+
+              const pageSummaries = pagesData
+                .filter((p: any) => p.content_summary && !p.error)
+                .slice(0, 10)
+                .map((p: any) => `- ${p.title || p.url}: ${p.content_summary}`)
+                .join('\n');
+              const extracted_content = pageSummaries || null;
+
+              const llmParts: string[] = [];
+              llmParts.push(`# ${company.website_title || company.domain}`);
+              llmParts.push('');
+              llmParts.push(`- **Website**: https://${company.domain}`);
+              llmParts.push('');
+              if (pageSummaries) {
+                llmParts.push('## Key Pages');
+                llmParts.push('');
+                const topPages = pagesData.filter((p: any) => p.title && !p.error).slice(0, 15);
+                for (const p of topPages) {
+                  llmParts.push(`- [${p.title}](${p.url}): ${p.meta_description || p.content_summary || ''}`);
+                }
+              }
+              const llm_txt = llmParts.join('\n');
+
+              await updateCompany(db, company.id, { metatags, extracted_content, llm_txt, llm_txt_status: 'outdated' });
+              console.log(`[analyze] ✓ LLM data filled for company ${company.id} (fallback)`);
+            } catch (llmErr: any) {
+              console.error(`[analyze] LLM data generation failed on fallback (non-fatal):`, llmErr?.message || llmErr);
+            }
+          }
+
           return withCors(req, ok({
             success: true,
             message: "Analysis completed with algorithmic scores (AI timed out).",
