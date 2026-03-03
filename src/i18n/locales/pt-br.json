@@ -84,11 +84,19 @@
     "plans": "Planos",
     "insights": "Insights",
     "analyses": "Análises",
-    "myCompany": "Minha Empresa",
+    "monitorCompany": "Minha Empresa",
     "support": "Suporte",
     "sectionMain": "Principal",
     "sectionAnalytics": "Monitoramento IA",
     "sectionAdmin": "Admin"
+  },
+  "flow": {
+    "noCompanyTitle": "Empresa Necessária",
+    "noCompanyDesc": "Configure sua empresa para desbloquear todos os recursos.",
+    "noCompanyAction": "Configurar Empresa",
+    "noModelsTitle": "Modelos de IA Necessários",
+    "noModelsDesc": "Selecione pelo menos um modelo de IA para começar a monitorar.",
+    "noModelsAction": "Configurar Modelos"
   },
   "platforms": {
     "title": "Plataformas IA",
@@ -569,10 +577,16 @@
     }
   },
   "company": {
-    "title": "Minha Empresa",
+    "title": "Monitore sua Empresa",
     "subtitle": "Perfil da empresa e análise do site",
-    "setupTitle": "Vincular sua Empresa",
+    "setupTitle": "Monitore sua Empresa",
     "setupSubtitle": "Insira o domínio da sua empresa para iniciar a análise. Vamos analisar seu site e gerar um relatório completo de SEO/GEO.",
+    "stepScanTitle": "Escanear seu Site",
+    "stepScanDesc": "Rastreamos as páginas do seu site, verificamos robots.txt, sitemap e dados estruturados.",
+    "stepAnalyzeTitle": "Análise com IA",
+    "stepAnalyzeDesc": "Nossa IA analisa a qualidade do conteúdo, prontidão SEO/GEO e o cenário competitivo.",
+    "stepMonitorTitle": "Monitorar e Melhorar",
+    "stepMonitorDesc": "Obtenha insights acionáveis, acompanhe mudanças ao longo do tempo e otimize sua visibilidade em IA.",
     "domain": "Domínio",
     "domainPlaceholder": "ex. exemplo.com.br",
     "description": "Descrição (opcional)",

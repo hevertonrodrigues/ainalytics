@@ -5,7 +5,7 @@ import { TenantProvider } from '@/contexts/TenantContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { ProtectedRoute } from '@/components/guards/ProtectedRoute';
 import { GuestRoute } from '@/components/guards/GuestRoute';
-import { PlanGate } from '@/components/guards/PlanGate';
+import { FlowGate } from '@/components/guards/FlowGate';
 import { SuperAdminGate } from '@/components/guards/SuperAdminGate';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LayoutProvider } from '@/contexts/LayoutContext';
@@ -92,8 +92,13 @@ export function App() {
               <Route path="plans" element={<PlansPage />} />
               <Route path="profile" element={<ProfilePage />} />
 
-              {/* Plan-gated — requires tenant to have an active plan */}
-              <Route element={<PlanGate />}>
+              {/* Flow-gated — sequential: plan → company → models */}
+              <Route element={<FlowGate />}>
+                {/* Company & Models accessible at their gate step */}
+                <Route path="company" element={<MyCompanyPage />} />
+                <Route path="models" element={<ModelsPage />} />
+
+                {/* Fully-gated — requires all setup steps complete */}
                 <Route index element={<Dashboard />} />
                 <Route path="settings" element={<TenantSettings />} />
                 <Route path="topics" element={<TopicsPage />} />
@@ -106,8 +111,6 @@ export function App() {
                 <Route path="sources" element={<SourcesPage />} />
                 <Route path="sources/:id" element={<SourceDetailPage />} />
                 <Route path="llmtext" element={<LlmTextPage />} />
-                <Route path="models" element={<ModelsPage />} />
-                <Route path="company" element={<MyCompanyPage />} />
 
                 {/* SuperAdmin-only */}
                 <Route element={<SuperAdminGate />}>

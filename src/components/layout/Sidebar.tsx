@@ -23,6 +23,7 @@ import {
   FileText,
   Building2,
   X,
+  Radar,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -37,11 +38,13 @@ interface NavItem {
   key: string;
   path: string;
   icon: React.ComponentType<{ className?: string }>;
+  /** If true, this item is always enabled when plan is active (not blocked by company/models gates) */
+  alwaysEnabled?: boolean;
 }
 
 const MAIN_NAV: NavItem[] = [
   { key: 'nav.overview', path: '/dashboard', icon: LayoutDashboard },
-  { key: 'nav.myCompany', path: '/dashboard/company', icon: Building2 },
+  { key: 'nav.monitorCompany', path: '/dashboard/company', icon: Radar, alwaysEnabled: true },
 ];
 
 const ANALYTICS_NAV: NavItem[] = [
@@ -51,7 +54,7 @@ const ANALYTICS_NAV: NavItem[] = [
   { key: 'nav.analyses', path: '/dashboard/analyses', icon: BarChart3 },
   { key: 'nav.sources', path: '/dashboard/sources', icon: BookOpen },
   { key: 'nav.llmText', path: '/dashboard/llmtext', icon: FileText },
-  { key: 'nav.models', path: '/dashboard/models', icon: Layers },
+  { key: 'nav.models', path: '/dashboard/models', icon: Layers, alwaysEnabled: true },
 ];
 
 const SA_PLATFORMS_NAV: NavItem = { key: 'nav.platforms', path: '/dashboard/platforms', icon: Cpu };
@@ -59,7 +62,7 @@ const SA_PLATFORMS_NAV: NavItem = { key: 'nav.platforms', path: '/dashboard/plat
 export function Sidebar() {
   const { t } = useTranslation();
   const { signOut, profile } = useAuth();
-  const { currentTenant, tenants, switchTenant } = useTenant();
+  const { currentTenant, tenants, switchTenant, hasCompany, hasModels, isFullySetup } = useTenant();
   const { theme, toggleTheme } = useTheme();
   const { layoutMode, toggleLayoutMode, isSidebarOpen, setSidebarOpen } = useLayout();
   const navigate = useNavigate();
@@ -78,9 +81,11 @@ export function Sidebar() {
     navigate('/', { replace: true });
   };
 
-  /** Render a nav item — disabled when no plan */
-  const renderNavItem = ({ key, path, icon: Icon }: NavItem) => {
-    if (!hasPlan) {
+  /** Render a nav item — disabled when flow gates are incomplete */
+  const renderNavItem = ({ key, path, icon: Icon, alwaysEnabled }: NavItem) => {
+    const isEnabled = !hasPlan ? false : alwaysEnabled ? true : isFullySetup;
+
+    if (!isEnabled) {
       return (
         <span key={path} className="nav-link nav-link-disabled">
           <Icon className="nav-link-icon" />
@@ -100,6 +105,47 @@ export function Sidebar() {
         <span>{t(key)}</span>
       </NavLink>
     );
+  };
+
+  /** Determine which setup step banner to show */
+  const renderSetupBanner = () => {
+    if (!hasPlan) {
+      return (
+        <div className="mx-3 mt-3 p-3 rounded-lg bg-warning/10 border border-warning/20">
+          <p className="text-xs font-medium text-warning mb-1.5">{t('plans.noPlanTitle')}</p>
+          <p className="text-xs text-text-secondary mb-2">{t('plans.noPlanDesc')}</p>
+          <NavLink to="/dashboard/plans" className="btn btn-primary w-full text-xs py-1.5">
+            <CreditCard className="w-3.5 h-3.5" />
+            {t('plans.selectPlan')}
+          </NavLink>
+        </div>
+      );
+    }
+    if (!hasCompany) {
+      return (
+        <div className="mx-3 mt-3 p-3 rounded-lg bg-brand-primary/10 border border-brand-primary/20">
+          <p className="text-xs font-medium text-brand-primary mb-1.5">{t('flow.noCompanyTitle')}</p>
+          <p className="text-xs text-text-secondary mb-2">{t('flow.noCompanyDesc')}</p>
+          <NavLink to="/dashboard/company" className="btn btn-primary w-full text-xs py-1.5">
+            <Building2 className="w-3.5 h-3.5" />
+            {t('flow.noCompanyAction')}
+          </NavLink>
+        </div>
+      );
+    }
+    if (!hasModels) {
+      return (
+        <div className="mx-3 mt-3 p-3 rounded-lg bg-brand-accent/10 border border-brand-accent/20">
+          <p className="text-xs font-medium text-brand-accent mb-1.5">{t('flow.noModelsTitle')}</p>
+          <p className="text-xs text-text-secondary mb-2">{t('flow.noModelsDesc')}</p>
+          <NavLink to="/dashboard/models" className="btn btn-primary w-full text-xs py-1.5">
+            <Layers className="w-3.5 h-3.5" />
+            {t('flow.noModelsAction')}
+          </NavLink>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -143,20 +189,8 @@ export function Sidebar() {
         </div>
       )}
 
-      {/* No-plan banner */}
-      {!hasPlan && (
-        <div className="mx-3 mt-3 p-3 rounded-lg bg-warning/10 border border-warning/20">
-          <p className="text-xs font-medium text-warning mb-1.5">{t('plans.noPlanTitle')}</p>
-          <p className="text-xs text-text-secondary mb-2">{t('plans.noPlanDesc')}</p>
-          <NavLink
-            to="/dashboard/plans"
-            className="btn btn-primary w-full text-xs py-1.5"
-          >
-            <CreditCard className="w-3.5 h-3.5" />
-            {t('plans.selectPlan')}
-          </NavLink>
-        </div>
-      )}
+      {/* Setup step banner */}
+      {renderSetupBanner()}
 
       {/* Navigation */}
       <nav className="flex-1 py-2 px-3 overflow-y-auto">
@@ -191,7 +225,7 @@ export function Sidebar() {
 
         {/* Settings */}
         <div className="px-3 pb-1">
-          {hasPlan ? (
+          {isFullySetup ? (
             <NavLink
               to="/dashboard/settings"
               className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}

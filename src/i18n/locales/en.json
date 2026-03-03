@@ -84,11 +84,19 @@
     "plans": "Plans",
     "insights": "Insights",
     "analyses": "Analyses",
-    "myCompany": "My Company",
+    "monitorCompany": "My Company",
     "support": "Support",
     "sectionMain": "Main",
     "sectionAnalytics": "AI Monitoring",
     "sectionAdmin": "Admin"
+  },
+  "flow": {
+    "noCompanyTitle": "Company Required",
+    "noCompanyDesc": "Set up your company to unlock all features.",
+    "noCompanyAction": "Set Up Company",
+    "noModelsTitle": "AI Models Required",
+    "noModelsDesc": "Select at least one AI model to start monitoring.",
+    "noModelsAction": "Configure Models"
   },
   "platforms": {
     "title": "AI Platforms",
@@ -569,10 +577,16 @@
     }
   },
   "company": {
-    "title": "My Company",
+    "title": "Monitor Your Company",
     "subtitle": "Company profile and website analysis",
-    "setupTitle": "Link Your Company",
+    "setupTitle": "Monitor Your Company",
     "setupSubtitle": "Enter your company's domain to start the analysis. We'll scrape your website and generate a comprehensive SEO/GEO report.",
+    "stepScanTitle": "Scan Your Website",
+    "stepScanDesc": "We crawl your website pages, check robots.txt, sitemap, and structured data.",
+    "stepAnalyzeTitle": "AI Analysis",
+    "stepAnalyzeDesc": "Our AI analyzes your content quality, SEO/GEO readiness, and competitive landscape.",
+    "stepMonitorTitle": "Monitor & Improve",
+    "stepMonitorDesc": "Get actionable insights, track changes over time, and optimize your AI visibility.",
     "domain": "Domain",
     "domainPlaceholder": "e.g. example.com",
     "description": "Description (optional)",

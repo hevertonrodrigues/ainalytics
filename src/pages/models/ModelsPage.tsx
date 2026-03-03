@@ -4,6 +4,7 @@ import { Layers, Plus, Trash2, RefreshCw, X, Search, Check } from 'lucide-react'
 import { apiClient } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { useTenant } from '@/contexts/TenantContext';
 import type { Platform, Model, TenantPlatformModel } from '@/types';
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -18,6 +19,7 @@ export function ModelsPage() {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const { profile } = useAuth();
+  const { setHasModels } = useTenant();
   const isSA = !!profile?.is_sa;
 
   const [platforms, setPlatforms] = useState<Platform[]>([]);
@@ -99,6 +101,7 @@ export function ModelsPage() {
       setAddingPlatformId(null);
       setAddingModelId(null);
       await loadAll();
+      setHasModels(true);
     } catch {
       setError(t('common.error'));
     } finally {
@@ -131,6 +134,9 @@ export function ModelsPage() {
       await apiClient.delete(`/platforms/preferences?id=${pref.id}`);
       showToast(t('models.removed'));
       await loadAll();
+      // Check if any preferences remain
+      const remaining = preferences.filter((p) => p.id !== pref.id);
+      setHasModels(remaining.length > 0);
     } catch {
       setError(t('common.error'));
     } finally {

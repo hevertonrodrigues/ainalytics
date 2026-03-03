@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Building2,
   Globe,
   Search,
   AlertCircle,
@@ -22,10 +21,12 @@ import {
   ShieldX,
   ExternalLink,
   Download,
+  Radar,
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/contexts/ToastContext';
 import { apiClient } from '@/lib/api';
 import type { Company, AiReport, CompanyPage } from '@/types';
@@ -99,6 +100,7 @@ function safeParse<T>(value: any): T | null {
 export function MyCompanyPage() {
   const { t } = useTranslation();
   const { profile } = useAuth();
+  const { setHasCompany } = useTenant();
   const { showToast } = useToast();
 
   const [company, setCompany] = useState<Company | null>(null);
@@ -207,6 +209,7 @@ export function MyCompanyPage() {
         target_language: targetLanguage,
       });
       setCompany(res.data);
+      setHasCompany(true);
       showToast(t('company.created'), 'success');
 
       // Trigger scraping
@@ -372,23 +375,62 @@ export function MyCompanyPage() {
   // ─── Setup Form (no company) ─────────────────────────────
   if (!company) {
     return (
-      <div className="stagger-enter space-y-6">
-        <div>
-          <h1 className="text-xl font-bold text-text-primary">{t('company.title')}</h1>
-          <p className="text-sm text-text-secondary mt-1">{t('company.subtitle')}</p>
-        </div>
+      <div className="stagger-enter space-y-8 max-w-4xl mx-auto">
+        {/* Hero Section */}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-brand-primary/20 via-bg-secondary to-brand-accent/10 border border-glass-border p-6 md:p-8">
+          {/* Decorative blobs */}
+          <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-brand-primary/10 blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-brand-accent/10 blur-3xl pointer-events-none" />
 
-        <div className="dashboard-card p-8 max-w-xl mx-auto">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 flex items-center justify-center mx-auto mb-4">
-              <Building2 className="w-8 h-8 text-brand-primary" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-5 mb-3">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-accent flex items-center justify-center shrink-0 shadow-lg shadow-brand-primary/20">
+                <Radar className="w-7 h-7 text-white" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold text-text-primary">
+                {t('company.setupTitle')}
+              </h1>
             </div>
-            <h2 className="text-lg font-semibold text-text-primary">{t('company.setupTitle')}</h2>
-            <p className="text-sm text-text-secondary mt-2 max-w-md mx-auto">
+            <p className="text-sm md:text-base text-text-secondary leading-relaxed">
               {t('company.setupSubtitle')}
             </p>
           </div>
+        </div>
 
+        {/* Steps & Feature Highlights */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { step: 1, icon: Globe, titleKey: 'company.stepScanTitle', descKey: 'company.stepScanDesc', fIcon: Target, fLabel: t('company.geoScore'), fColor: 'text-success', fBg: 'bg-success/10' },
+            { step: 2, icon: Bot, titleKey: 'company.stepAnalyzeTitle', descKey: 'company.stepAnalyzeDesc', fIcon: FileText, fLabel: 'LLM.txt', fColor: 'text-brand-secondary', fBg: 'bg-brand-secondary/10' },
+            { step: 3, icon: BarChart3, titleKey: 'company.stepMonitorTitle', descKey: 'company.stepMonitorDesc', fIcon: Zap, fLabel: t('company.aiReadiness'), fColor: 'text-warning', fBg: 'bg-warning/10' },
+          ].map(({ step, icon: StepIcon, titleKey, descKey, fIcon: FIcon, fLabel, fColor, fBg }) => (
+            <div key={step} className="dashboard-card relative overflow-hidden group flex flex-col">
+              <div className="p-5 flex-1">
+                <div className="absolute top-3 right-3 text-4xl font-black text-text-muted/5 select-none">
+                  {step}
+                </div>
+                <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center mb-3 group-hover:bg-brand-primary/20 transition-colors">
+                  <StepIcon className="w-5 h-5 text-brand-primary" />
+                </div>
+                <h3 className="text-sm font-semibold text-text-primary mb-1">
+                  {t(titleKey)}
+                </h3>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  {t(descKey)}
+                </p>
+              </div>
+              <div className="border-t border-glass-border px-5 py-3 flex items-center gap-3">
+                <div className={`w-7 h-7 rounded-lg ${fBg} flex items-center justify-center shrink-0`}>
+                  <FIcon className={`w-3.5 h-3.5 ${fColor}`} />
+                </div>
+                <span className="text-xs font-medium text-text-secondary">{fLabel}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Setup Form Card */}
+        <div className="dashboard-card p-8">
           <div className="space-y-4">
             <div>
               <label className="kpi-label block mb-1.5">{t('company.domain')} *</label>
@@ -437,7 +479,7 @@ export function MyCompanyPage() {
             <button
               onClick={handleCreate}
               disabled={creating || !domain.trim()}
-              className="btn btn-primary w-full mt-2"
+              className="btn btn-primary w-full mt-2 py-3 text-base font-semibold"
               id="company-create-btn"
             >
               {creating ? (
