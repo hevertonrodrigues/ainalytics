@@ -151,7 +151,7 @@ export function AnalyzeForm({
       </div>
 
       {/* Navigation */}
-      <div className="mt-auto pt-6 border-t border-glass-border flex items-center justify-between">
+      <div className="mt-auto pt-6 border-t border-glass-border flex">
         <button onClick={onBack} className="btn btn-ghost btn-sm" id="onboarding-prev-analyze">
           <ChevronLeft className="w-4 h-4" />
           {t('common.back')}

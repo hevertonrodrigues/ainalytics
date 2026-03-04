@@ -6,8 +6,8 @@ import { createAdminClient } from "../_shared/supabase.ts";
 
 /**
  * Company Edge Function
- * - GET  → Returns the current tenant's linked company (or null)
- * - POST → Creates a new company + tenant_companies link
+ * - GET  → Returns the current tenant's company (or null)
+ * - POST → Creates a new company for the tenant
  */
 
 serve(async (req: Request) => {
@@ -31,21 +31,11 @@ serve(async (req: Request) => {
 
     switch (req.method) {
       case "GET": {
-        // Fetch company linked to this tenant
-        const { data: link } = await db
-          .from("tenant_companies")
-          .select("company_id")
-          .eq("tenant_id", tenantId)
-          .single();
-
-        if (!link) {
-          return withCors(req, ok(null));
-        }
-
+        // Fetch company belonging to this tenant
         const { data: company, error: cErr } = await db
           .from("companies")
           .select("*")
-          .eq("id", link.company_id)
+          .eq("tenant_id", tenantId)
           .single();
 
         if (cErr || !company) {
@@ -74,13 +64,13 @@ serve(async (req: Request) => {
         }
 
         // Check if tenant already has a company
-        const { data: existingLink } = await db
-          .from("tenant_companies")
+        const { data: existingCompany } = await db
+          .from("companies")
           .select("id")
           .eq("tenant_id", tenantId)
           .single();
 
-        if (existingLink) {
+        if (existingCompany) {
           return withCors(req, conflict("This tenant already has a company linked."));
         }
 
@@ -134,20 +124,6 @@ serve(async (req: Request) => {
           return withCors(req, serverError("Failed to create company."));
         }
 
-        // Create tenant_companies link
-        const { error: linkErr } = await db
-          .from("tenant_companies")
-          .insert({
-            tenant_id: tenantId,
-            company_id: company.id,
-          });
-
-        if (linkErr) {
-          // Cleanup: delete the orphaned company
-          await db.from("companies").delete().eq("id", company.id);
-          console.error("[company] Failed to link company to tenant:", linkErr);
-          return withCors(req, serverError("Failed to link company to tenant."));
-        }
 
         // Update tenant
         const tenantUpdates: Record<string, string> = {};
@@ -179,14 +155,14 @@ serve(async (req: Request) => {
           return withCors(req, badRequest("Only owners and admins can edit a company."));
         }
 
-        // Find company linked to tenant
-        const { data: patchLink } = await db
-          .from("tenant_companies")
-          .select("company_id")
+        // Find company belonging to tenant
+        const { data: patchCompany } = await db
+          .from("companies")
+          .select("id")
           .eq("tenant_id", tenantId)
           .single();
 
-        if (!patchLink) {
+        if (!patchCompany) {
           return withCors(req, badRequest("No company linked to this tenant."));
         }
 
@@ -220,7 +196,7 @@ serve(async (req: Request) => {
         const { data: updatedCompany, error: updateErr } = await db
           .from("companies")
           .update(updates)
-          .eq("id", patchLink.company_id)
+          .eq("id", patchCompany.id)
           .select("*")
           .single();
 

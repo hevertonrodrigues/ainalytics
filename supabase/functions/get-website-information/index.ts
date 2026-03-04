@@ -46,28 +46,18 @@ serve(async (req: Request) => {
        return withCors(req, badRequest("Invalid action. Must be 'extract', 'generate', 'verify', or 'suggest_topics'."));
     }
 
-    // 2. Find company linked to tenant
-    const { data: link } = await sb
-      .from("tenant_companies")
-      .select("company_id")
-      .eq("tenant_id", tenantId)
-      .single();
-
-    if (!link) {
-      return withCors(req, badRequest("No company linked to this tenant."));
-    }
-
-    const companyId = link.company_id;
-
+    // 2. Find company belonging to tenant
     const { data: company, error: cErr } = await sb
       .from("companies")
       .select("id, domain, sitemap_xml, llm_txt, website_title, metatags, extracted_content")
-      .eq("id", companyId)
+      .eq("tenant_id", tenantId)
       .single();
-    
+
     if (cErr || !company) {
-      return withCors(req, badRequest("Company not found."));
+      return withCors(req, badRequest("No company linked to this tenant."));
     }
+
+    const companyId = company.id;
 
     if (!company.domain) {
       return withCors(req, badRequest("The company does not have a domain configured."));
