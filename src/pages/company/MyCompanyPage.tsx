@@ -23,8 +23,7 @@ import {
   Download,
   Radar,
 } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { generatePdfReport } from '@/lib/pdfReport';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/contexts/ToastContext';
@@ -294,58 +293,41 @@ export function MyCompanyPage() {
 
   // ─── Export AI Report to PDF ─────────────────────────────
   const handleExportPdf = async () => {
-    if (!reportRef.current || !company) return;
+    if (!company || !report) return;
     setIsExporting(true);
 
-    // Short delay to allow UI to settle
-    await new Promise(resolve => setTimeout(resolve, 100));
-
     try {
-      // 🚨 WORKAROUND for html2canvas oklab parse error (Tailwind 4 native issue)
-      // Some transparent/color-mixed colors use `oklab` which html2canvas 1.4.1 doesn't understand:
-      // Search and replace style strings in the ref just for the export.
-      
-      const elements = reportRef.current.querySelectorAll('*');
-      const originalStyles: { el: HTMLElement; style: string }[] = [];
-      
-      elements.forEach(el => {
-        if (el instanceof HTMLElement) {
-          const compStyle = window.getComputedStyle(el);
-          if (compStyle.color.includes('oklab') || compStyle.backgroundColor.includes('oklab') || compStyle.borderColor.includes('oklab')) {
-            originalStyles.push({ el, style: el.style.cssText });
-            // Very simple fallback for elements that might have inherited an oklab transparent color-mix 
-            // Often this is the placeholder color or standard hr border color
-            el.style.color = compStyle.color.includes('oklab') ? 'inherit' : compStyle.color;
-            el.style.backgroundColor = compStyle.backgroundColor.includes('oklab') ? 'transparent' : compStyle.backgroundColor;
-            el.style.borderColor = compStyle.borderColor.includes('oklab') ? 'transparent' : compStyle.borderColor;
-          }
-        }
-      });
+      const pdfBlob = generatePdfReport(company, report, parsedPages, t);
 
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#0a0a0b', // Match dark theme bg
-      });
+      // Build filename: CompanyName_GEO_Report_20260303_224800.pdf
+      const companySlug = (company.company_name || company.domain)
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .trim()
+        .split(/\s+/)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join('_');
+      const now = new Date();
+      const ts = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        String(now.getDate()).padStart(2, '0'),
+        '_',
+        String(now.getHours()).padStart(2, '0'),
+        String(now.getMinutes()).padStart(2, '0'),
+        String(now.getSeconds()).padStart(2, '0'),
+      ].join('');
+      const fileName = `${companySlug}_GEO_Report_${ts}.pdf`;
 
-      // Restore original styles
-      originalStyles.forEach(({ el, style }) => {
-        el.style.cssText = style;
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`${company.company_name || company.domain.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_report.pdf`);
+      const blobUrl = URL.createObjectURL(pdfBlob);
+      const anchor = document.createElement('a');
+      anchor.href = blobUrl;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      setTimeout(() => {
+        document.body.removeChild(anchor);
+        URL.revokeObjectURL(blobUrl);
+      }, 100);
 
       showToast(t('company.exportSuccess', 'PDF exported successfully'), 'success');
     } catch (err: any) {
