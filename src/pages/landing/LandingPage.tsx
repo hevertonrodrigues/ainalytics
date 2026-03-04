@@ -105,7 +105,13 @@ export function LandingPage() {
 
   const getDescription = (plan: Plan): string => {
     const settings = plan.settings as Record<string, unknown>;
-    return (settings?.description as string) || '';
+    const desc = settings?.description;
+    if (!desc) return '';
+    if (typeof desc === 'object') {
+      const lang = i18n.language || 'en';
+      return (desc as Record<string, string>)[lang] || (desc as Record<string, string>)['en'] || '';
+    }
+    return desc as string;
   };
 
   const pricingPlans: PricingPlan[] = plans.map((plan, idx) => {

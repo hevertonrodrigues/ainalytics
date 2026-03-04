@@ -96,6 +96,12 @@ function safeParse<T>(value: any): T | null {
 
 // ScoreRing is now imported from @/components/geo
 
+const LOCALE_TO_LANG_CODE: Record<string, string> = {
+  'pt-br': 'pt',
+  'es': 'es',
+  'en': 'en'
+};
+
 // ─── Main Component ────────────────────────────────────────
 export function MyCompanyPage() {
   const { t, i18n } = useTranslation();
@@ -110,10 +116,10 @@ export function MyCompanyPage() {
   const [confirmReAnalyze, setConfirmReAnalyze] = useState(false);
   const [domain, setDomain] = useState('');
   const [description, setDescription] = useState('');
-  const [targetLanguage, setTargetLanguage] = useState(i18n.language || 'en');
-  const [reportLang, setReportLang] = useState(i18n.language || 'en');
+  const [targetLanguage, setTargetLanguage] = useState(LOCALE_TO_LANG_CODE[i18n.language?.toLowerCase()] || 'en');
+  const [reportLang, setReportLang] = useState(LOCALE_TO_LANG_CODE[i18n.language?.toLowerCase()] || 'en');
   const [editDescription, setEditDescription] = useState('');
-  const [editLanguage, setEditLanguage] = useState(i18n.language || 'en');
+  const [editLanguage, setEditLanguage] = useState(LOCALE_TO_LANG_CODE[i18n.language?.toLowerCase()] || 'en');
   const [startingAnalysis, setStartingAnalysis] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -141,7 +147,7 @@ export function MyCompanyPage() {
     if (company) {
       setEditDescription(company.description || '');
       // Always default language to the current UI language
-      setEditLanguage(i18n.language || 'en');
+      setEditLanguage(LOCALE_TO_LANG_CODE[i18n.language?.toLowerCase()] || 'en');
     }
   }, [company, i18n.language]);
 
