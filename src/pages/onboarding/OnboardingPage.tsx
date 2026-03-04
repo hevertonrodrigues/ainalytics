@@ -42,7 +42,7 @@ function getEmailDomain(email: string | undefined): string | null {
 // ─── Main Component ─────────────────────────────────────────
 export function OnboardingPage() {
   const { t, i18n } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, refreshAuth } = useAuth();
   const { currentTenant, setHasCompany, updateTenantPlanId } = useTenant();
   const { formatPrice: formatCurrency } = useCurrency();
   const navigate = useNavigate();
@@ -145,7 +145,7 @@ export function OnboardingPage() {
   }, [step, result]);
 
   const skipToPlans = useCallback(async () => {
-    try { await apiClient.put('/users-me', { has_seen_onboarding: true }); } catch {}
+    try { await apiClient.put('/users-me', { has_seen_onboarding: true }); await refreshAuth(); } catch {}
     navigate('/dashboard/plans', { replace: true });
   }, [navigate]);
 
@@ -208,7 +208,7 @@ export function OnboardingPage() {
       setCurrentPlanId(codeModalPlanId);
       updateTenantPlanId(codeModalPlanId);
       closeCodeModal();
-      try { await apiClient.put('/users-me', { has_seen_onboarding: true }); } catch {}
+      try { await apiClient.put('/users-me', { has_seen_onboarding: true }); await refreshAuth(); } catch {}
       navigate('/dashboard/company', { replace: true });
     } catch (err) {
       setCodeError(err instanceof Error ? err.message : t('common.error'));

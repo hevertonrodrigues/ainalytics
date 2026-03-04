@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { X, KeyRound, Loader2 } from 'lucide-react';
 import { PricingPlans } from '@/components/PricingPlans';
@@ -29,8 +30,8 @@ function ActivationCodeModal({
     setTimeout(() => codeInputRef.current?.focus(), 100);
   }, []);
 
-  return (
-    <div className="interest-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 9999 }} onClick={onClose}>
+  return createPortal(
+    <div className="interest-modal-overlay" onClick={onClose}>
       <div className="interest-modal" onClick={(e) => e.stopPropagation()}>
         <div className="interest-modal-header">
           <div>
@@ -65,7 +66,8 @@ function ActivationCodeModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
