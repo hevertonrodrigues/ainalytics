@@ -165,7 +165,7 @@ export function OnboardingPage() {
         await apiClient.post('/company', {
           domain: domain.trim(),
           description: '',
-          target_language: 'en',
+          target_language: i18n.language || 'en',
         });
         setHasCompany(true);
         setCompanyExists(true);

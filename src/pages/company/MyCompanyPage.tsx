@@ -98,7 +98,7 @@ function safeParse<T>(value: any): T | null {
 
 // ─── Main Component ────────────────────────────────────────
 export function MyCompanyPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useAuth();
   const { setHasCompany } = useTenant();
   const { showToast } = useToast();
@@ -110,12 +110,10 @@ export function MyCompanyPage() {
   const [confirmReAnalyze, setConfirmReAnalyze] = useState(false);
   const [domain, setDomain] = useState('');
   const [description, setDescription] = useState('');
-  const [targetLanguage, setTargetLanguage] = useState('en');
-  const [reportLang, setReportLang] = useState('en');
-  const [editMode, setEditMode] = useState(false);
+  const [targetLanguage, setTargetLanguage] = useState(i18n.language || 'en');
+  const [reportLang, setReportLang] = useState(i18n.language || 'en');
   const [editDescription, setEditDescription] = useState('');
-  const [editLanguage, setEditLanguage] = useState('en');
-  const [saving, setSaving] = useState(false);
+  const [editLanguage, setEditLanguage] = useState(i18n.language || 'en');
   const [startingAnalysis, setStartingAnalysis] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -137,6 +135,15 @@ export function MyCompanyPage() {
   useEffect(() => {
     fetchCompany();
   }, [fetchCompany]);
+
+  // Sync edit fields when company data loads
+  useEffect(() => {
+    if (company) {
+      setEditDescription(company.description || '');
+      // Always default language to the current UI language
+      setEditLanguage(i18n.language || 'en');
+    }
+  }, [company, i18n.language]);
 
   // ─── Auto-fill domain from email ────────────────────────
   useEffect(() => {
@@ -453,7 +460,7 @@ export function MyCompanyPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder={t('company.descriptionPlaceholder')}
-                className="form-input min-h-[80px] resize-y"
+                className="input-field min-h-[80px] resize-y"
                 rows={3}
                 id="company-description-input"
               />
@@ -606,11 +613,10 @@ export function MyCompanyPage() {
             <div>
               <label className="kpi-label block mb-1.5">{t('company.editDescription')}</label>
               <textarea
-                value={editMode ? editDescription : (company.description || '')}
-                onChange={(e) => { if (!editMode) { setEditMode(true); setEditDescription(e.target.value); setEditLanguage(company.target_language || 'en'); } else { setEditDescription(e.target.value); } }}
-                onFocus={() => { if (!editMode) { setEditMode(true); setEditDescription(company.description || ''); setEditLanguage(company.target_language || 'en'); } }}
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
                 placeholder={t('company.descriptionPlaceholder')}
-                className="form-input min-h-[80px] resize-y"
+                className="input-field min-h-[80px] resize-y"
                 rows={3}
                 id="edit-description-input"
               />
@@ -619,9 +625,9 @@ export function MyCompanyPage() {
             <div>
               <label className="kpi-label block mb-1.5">{t('company.editLanguage')}</label>
               <select
-                value={editMode ? editLanguage : (company.target_language || 'en')}
-                onChange={(e) => { if (!editMode) { setEditMode(true); setEditDescription(company.description || ''); } setEditLanguage(e.target.value); }}
-                className="form-input"
+                value={editLanguage}
+                onChange={(e) => setEditLanguage(e.target.value)}
+                className="input-field"
                 id="edit-language-select"
               >
                 {LANGUAGES.map((lang) => (
@@ -632,32 +638,6 @@ export function MyCompanyPage() {
               </select>
             </div>
 
-            {editMode && (
-              <button
-                onClick={async () => {
-                  setSaving(true);
-                  try {
-                    await apiClient.patch('/company', {
-                      description: editDescription,
-                      target_language: editLanguage,
-                    });
-                    showToast(t('company.companyUpdated'), 'success');
-                    setEditMode(false);
-                    await fetchCompany();
-                  } catch (err: any) {
-                    showToast(err.message || 'Failed to save', 'error');
-                  } finally {
-                    setSaving(false);
-                  }
-                }}
-                disabled={saving}
-                className="btn btn-secondary w-full"
-                id="save-company-btn"
-              >
-                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                {t('company.saveChanges')}
-              </button>
-            )}
           </div>
 
           <button
@@ -665,6 +645,10 @@ export function MyCompanyPage() {
               try {
                 setStartingAnalysis(true);
                 autoTriggeredRef.current = false;
+                await apiClient.patch('/company', {
+                  description: editDescription,
+                  target_language: editLanguage,
+                });
                 await apiClient.post('/scrape-company', { action: 'scrape' });
                 await fetchCompany();
               } catch (err: any) {
