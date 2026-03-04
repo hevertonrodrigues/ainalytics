@@ -1,20 +1,23 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
- * Unified onboarding gate that guides users through a sequential setup:
- *   0. Onboarding → redirect to /dashboard/onboarding
- *   1. Plan    → redirect to /dashboard/plans
- *   2. Company → redirect to /dashboard/company
- *   3. Models  → redirect to /dashboard/models
+ * Unified onboarding / setup gate.
  *
- * Pages for each step are placed OUTSIDE this gate in the routing tree,
- * so they remain accessible even when the gate is active.
+ * Decision matrix (evaluated top-to-bottom):
+ *   • Still loading auth or tenant data → show spinner, NO redirect
+ *   • Tenant has plan_id              → skip onboarding, proceed to company/models gates
+ *   • No plan + has_seen_onboarding=F → redirect to /dashboard/onboarding
+ *   • No plan + has_seen_onboarding=T → redirect to /dashboard/plans
+ *
+ * Pages like /dashboard/plans, /dashboard/profile, /dashboard/onboarding
+ * are always reachable regardless of gate state.
  */
 export function FlowGate() {
-  const { currentTenant, hasCompany, hasModels } = useTenant();
-  const { profile } = useAuth();
+  const { currentTenant, hasCompany, hasModels, tenantLoading } = useTenant();
+  const { profile, loading: authLoading, initialized } = useAuth();
   const { pathname } = useLocation();
 
   const hasPlan = !!currentTenant?.plan_id;
@@ -24,22 +27,37 @@ export function FlowGate() {
   const alwaysAllowed = ['/dashboard/plans', '/dashboard/profile', '/dashboard/onboarding'];
   if (alwaysAllowed.some((p) => pathname.startsWith(p))) return <Outlet />;
 
-  // Gate 0: Onboarding
-  if (!hasSeenOnboarding) return <Navigate to="/dashboard/onboarding" replace />;
+  // ── Never redirect while data is still loading ──────────────
+  if (!initialized || authLoading || tenantLoading) {
+    return (
+      <div className="stagger-enter space-y-6">
+        <div className="dashboard-card p-12 text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-primary mx-auto" />
+        </div>
+      </div>
+    );
+  }
 
-  // Gate 1: Plan
-  if (!hasPlan) return <Navigate to="/dashboard/plans" replace />;
+  // ── Gate 0: Plan check (takes priority over onboarding) ─────
+  if (!hasPlan) {
+    // No plan — check if user still needs to see onboarding
+    if (!hasSeenOnboarding) return <Navigate to="/dashboard/onboarding" replace />;
+    // Already saw onboarding but no plan yet → send to plans
+    return <Navigate to="/dashboard/plans" replace />;
+  }
+
+  // ── From here on: tenant HAS a plan ─────────────────────────
 
   // Paths accessible after plan
   if (pathname.startsWith('/dashboard/company')) return <Outlet />;
 
-  // Gate 2: Company
+  // Gate 1: Company
   if (!hasCompany) return <Navigate to="/dashboard/company" replace />;
 
   // Paths accessible after company
   if (pathname.startsWith('/dashboard/models')) return <Outlet />;
 
-  // Gate 3: Models
+  // Gate 2: Models
   if (!hasModels) return <Navigate to="/dashboard/models" replace />;
 
   // All gates passed

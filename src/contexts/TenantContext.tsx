@@ -15,6 +15,8 @@ interface TenantContextValue {
   setHasModels: (v: boolean) => void;
   /** True when plan + company + models are all set up */
   isFullySetup: boolean;
+  /** True while tenant-related data (company, models) is being fetched */
+  tenantLoading: boolean;
   switchTenant: (tenantId: string) => void;
   updateTenantPlanId: (planId: string) => void;
   refreshTenant: () => Promise<void>;
@@ -28,6 +30,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [planOverrides, setPlanOverrides] = useState<Record<string, string>>({});
   const [hasCompany, setHasCompany] = useState(false);
   const [hasModels, setHasModels] = useState(false);
+  const [tenantLoading, setTenantLoading] = useState(true);
 
   const [currentTenantId, setCurrentTenantId] = useState<string>(() =>
     localStorage.getItem(STORAGE_KEYS.CURRENT_TENANT_ID) || '',
@@ -44,27 +47,31 @@ export function TenantProvider({ children }: { children: ReactNode }) {
 
   // Fetch company + models existence when tenant changes
   useEffect(() => {
-    if (!currentTenant?.id || !hasPlan) {
+    if (!currentTenant?.id) {
       setHasCompany(false);
       setHasModels(false);
+      setTenantLoading(false);
       return;
     }
     let cancelled = false;
+    setTenantLoading(true);
 
-    // Check company
-    apiClient
-      .get<any>('/company')
-      .then((res) => { if (!cancelled) setHasCompany(!!res.data); })
-      .catch(() => { if (!cancelled) setHasCompany(false); });
-
-    // Check models
-    apiClient
-      .get<any[]>('/platforms/preferences')
-      .then((res) => { if (!cancelled) setHasModels(Array.isArray(res.data) && res.data.length > 0); })
-      .catch(() => { if (!cancelled) setHasModels(false); });
+    // Fetch company and models in parallel, then mark loading done
+    Promise.all([
+      apiClient
+        .get<any>('/company')
+        .then((res) => { if (!cancelled) setHasCompany(!!res.data); })
+        .catch(() => { if (!cancelled) setHasCompany(false); }),
+      apiClient
+        .get<any[]>('/platforms/preferences')
+        .then((res) => { if (!cancelled) setHasModels(Array.isArray(res.data) && res.data.length > 0); })
+        .catch(() => { if (!cancelled) setHasModels(false); }),
+    ]).finally(() => {
+      if (!cancelled) setTenantLoading(false);
+    });
 
     return () => { cancelled = true; };
-  }, [currentTenant?.id, hasPlan]);
+  }, [currentTenant?.id]);
 
   const switchTenant = useCallback((tenantId: string) => {
     localStorage.setItem(STORAGE_KEYS.CURRENT_TENANT_ID, tenantId);
@@ -94,6 +101,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         hasModels,
         setHasModels,
         isFullySetup,
+        tenantLoading,
         switchTenant,
         updateTenantPlanId,
         refreshTenant,
