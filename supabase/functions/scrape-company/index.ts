@@ -140,25 +140,15 @@ serve(async (req: Request) => {
       );
     }
 
-    // Find company linked to tenant
-    const { data: link } = await db
-      .from("tenant_companies")
-      .select("company_id")
-      .eq("tenant_id", tenantId)
-      .single();
-
-    if (!link) {
-      return withCors(req, badRequest("No company linked to this tenant."));
-    }
-
+    // Find company belonging to tenant
     const { data: company, error: cErr } = await db
       .from("companies")
       .select("*")
-      .eq("id", link.company_id)
+      .eq("tenant_id", tenantId)
       .single();
 
     if (cErr || !company) {
-      return withCors(req, badRequest("Company not found."));
+      return withCors(req, badRequest("No company linked to this tenant."));
     }
 
     const body = await req.json().catch(() => ({ action: "scrape" }));
