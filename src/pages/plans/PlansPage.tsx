@@ -101,7 +101,15 @@ export function PlansPage() {
 
   const getDescription = (plan: Plan): string => {
     const settings = plan.settings as Record<string, unknown>;
-    return (settings?.description as string) || '';
+    const desc = settings?.description;
+    if (!desc) return '';
+    if (typeof desc === 'string') return desc;
+    if (typeof desc === 'object') {
+      const langMap = desc as Record<string, string>;
+      const lang = i18n.language || 'en';
+      return langMap[lang] || langMap['en'] || '';
+    }
+    return '';
   };
 
   if (loading) {

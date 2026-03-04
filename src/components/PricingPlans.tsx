@@ -42,8 +42,13 @@ function PricingCard({
   statusLabel,
   loading,
 }: PricingPlan) {
+  const isClickable = onSelect && !statusLabel && !disabled && !loading;
   return (
-    <div className={`landing-pricing-card glass-card${popular ? ' landing-pricing-popular' : ''}`}>
+    <div
+      className={`landing-pricing-card glass-card${popular ? ' landing-pricing-popular' : ''}`}
+      onClick={isClickable ? onSelect : undefined}
+      style={isClickable ? { cursor: 'pointer' } : undefined}
+    >
       {popular && <div className="landing-pricing-badge">{popular}</div>}
       <h3>{name}</h3>
       <div className="landing-pricing-price">
@@ -63,7 +68,7 @@ function PricingCard({
         </button>
       ) : onSelect ? (
         <button
-          onClick={onSelect}
+          onClick={(e) => { e.stopPropagation(); onSelect(); }}
           disabled={disabled || loading}
           className={`btn ${popular ? 'btn-primary' : 'btn-secondary'} w-full`}
           style={loading ? { opacity: 0.6 } : undefined}
@@ -102,8 +107,13 @@ function PricingBlock({
   statusLabel,
   loading,
 }: PricingPlan) {
+  const isClickable = onSelect && !statusLabel && !disabled && !loading;
   return (
-    <div className="glass-card landing-pricing-card" style={{ marginTop: '1.5rem' }}>
+    <div
+      className="glass-card landing-pricing-card"
+      onClick={isClickable ? onSelect : undefined}
+      style={{ marginTop: '1.5rem', ...(isClickable ? { cursor: 'pointer' } : {}) }}
+    >
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '2rem' }}>
         {/* Left: name + price */}
         <div style={{ flex: '0 0 auto' }}>
@@ -153,7 +163,7 @@ function PricingBlock({
           </button>
         ) : onSelect ? (
           <button
-            onClick={onSelect}
+            onClick={(e) => { e.stopPropagation(); onSelect(); }}
             disabled={disabled || loading}
             className="btn btn-secondary"
             style={{ whiteSpace: 'nowrap', ...(loading ? { opacity: 0.6 } : {}) }}

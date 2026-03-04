@@ -36,7 +36,7 @@ CREATE TRIGGER set_plans_updated_at
 INSERT INTO plans (name, price, is_active, sort_order, settings, features) VALUES
   (
     'Starter', 199, true, 1,
-    '{"max_prompts": 3, "refresh_rate": "monthly", "description": "Essential AI monitoring to get started. Perfect for freelancers and small businesses."}',
+    '{"max_prompts": 3, "refresh_rate": "monthly", "description": {"en": "Essential AI monitoring to get started. Perfect for freelancers and small businesses.", "pt-br": "Monitoramento essencial de IA para começar. Perfeito para freelancers e pequenas empresas.", "es": "Monitoreo esencial de IA para comenzar. Perfecto para freelancers y pequeñas empresas."}}',
     '{
       "en": [
         "3 AI prompts",
@@ -60,7 +60,7 @@ INSERT INTO plans (name, price, is_active, sort_order, settings, features) VALUE
   ),
   (
     'Growth', 399, true, 2,
-    '{"max_prompts": 10, "refresh_rate": "weekly", "description": "Scale your monitoring across all AI platforms with weekly insights."}',
+    '{"max_prompts": 10, "refresh_rate": "weekly", "description": {"en": "Scale your monitoring across all AI platforms with weekly insights.", "pt-br": "Escale seu monitoramento em todas as plataformas de IA com insights semanais.", "es": "Escala tu monitoreo en todas las plataformas de IA con insights semanales."}}',
     '{
       "en": [
         "10 AI prompts",
@@ -84,7 +84,7 @@ INSERT INTO plans (name, price, is_active, sort_order, settings, features) VALUE
   ),
   (
     'Business', 1799, true, 3,
-    '{"max_prompts": 40, "refresh_rate": "daily", "description": "Full-power real-time monitoring for brands that demand visibility."}',
+    '{"max_prompts": 40, "refresh_rate": "daily", "description": {"en": "Full-power real-time monitoring for brands that demand visibility.", "pt-br": "Monitoramento em tempo real para marcas que exigem visibilidade.", "es": "Monitoreo en tiempo real para marcas que exigen visibilidad."}}',
     '{
       "en": [
         "40 AI prompts",
@@ -111,7 +111,7 @@ INSERT INTO plans (name, price, is_active, sort_order, settings, features) VALUE
   ),
   (
     'Custom', 0, true, 4,
-    '{"custom_pricing": true, "description": "Tailored AI monitoring solutions for agencies and large organizations."}',
+    '{"custom_pricing": true, "description": {"en": "Tailored AI monitoring solutions for agencies and large organizations.", "pt-br": "Soluções personalizadas de monitoramento de IA para agências e grandes organizações.", "es": "Soluciones personalizadas de monitoreo de IA para agencias y grandes organizaciones."}}',
     '{
       "en": [
         "Unlimited prompts",

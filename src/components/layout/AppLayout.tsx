@@ -32,7 +32,7 @@ export function AppLayout() {
         </main>
       </div>
 
-      {profile && profile.has_seen_welcome_modal === false && !dismissedInSession && (
+      {profile && profile.has_seen_welcome_modal === false && !dismissedInSession && !isOnboarding && (
         <WelcomeModal onClose={() => setDismissedInSession(true)} />
       )}
 
