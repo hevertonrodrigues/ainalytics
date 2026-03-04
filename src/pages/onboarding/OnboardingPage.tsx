@@ -164,6 +164,7 @@ export function OnboardingPage() {
       } else {
         await apiClient.post('/company', {
           domain: domain.trim(),
+          company_name: companyName.trim() || null,
           description: '',
           target_language: i18n.language || 'en',
         });
@@ -211,7 +212,19 @@ export function OnboardingPage() {
       try { await apiClient.put('/users-me', { has_seen_onboarding: true }); await refreshAuth(); } catch {}
       navigate('/dashboard/company', { replace: true });
     } catch (err) {
-      setCodeError(err instanceof Error ? err.message : t('common.error'));
+      const errorStr = err instanceof Error ? err.message : t('common.error');
+      const errMap: Record<string, string> = {
+        'Invalid activation code': 'plans.errors.invalidCode',
+        'This activation code is no longer active': 'plans.errors.codeInactive',
+        'This activation code has already been used': 'plans.errors.codeUsed',
+        'This activation code is not valid for the selected plan': 'plans.errors.codeMismatch',
+        'Only tenant owners can change the plan': 'plans.errors.notOwner',
+        'Invalid or inactive plan': 'plans.errors.invalidPlan',
+        'Failed to claim activation code': 'plans.errors.claimFailed',
+        'activation_code is required': 'plans.errors.codeRequired'
+      };
+      const translationKey = errMap[errorStr];
+      setCodeError(translationKey ? t(translationKey) : errorStr);
     } finally {
       setSelecting(null);
     }

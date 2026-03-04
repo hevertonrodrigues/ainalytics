@@ -217,7 +217,17 @@
     "activationTitle": "Activation Code",
     "activationDesc": "Enter your 12-character activation code to activate this plan.",
     "activationPlaceholder": "XXXXXXXXXXXX",
-    "activate": "Activate Plan"
+    "activate": "Activate Plan",
+    "errors": {
+      "invalidCode": "Invalid activation code",
+      "codeInactive": "This activation code is no longer active",
+      "codeUsed": "This activation code has already been used",
+      "codeMismatch": "This activation code is not valid for the selected plan",
+      "notOwner": "Only organization owners can change the plan",
+      "invalidPlan": "Invalid or inactive plan",
+      "claimFailed": "Failed to claim activation code",
+      "codeRequired": "Activation code is required"
+    }
   },
   "analytics": {
     "totalDocuments": "Total Documents",

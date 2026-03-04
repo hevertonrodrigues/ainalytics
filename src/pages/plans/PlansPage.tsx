@@ -80,8 +80,19 @@ export function PlansPage() {
       setSuccess(t('plans.planSelected'));
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('common.error');
-      setCodeError(msg);
+      const errorStr = err instanceof Error ? err.message : t('common.error');
+      const errMap: Record<string, string> = {
+        'Invalid activation code': 'plans.errors.invalidCode',
+        'This activation code is no longer active': 'plans.errors.codeInactive',
+        'This activation code has already been used': 'plans.errors.codeUsed',
+        'This activation code is not valid for the selected plan': 'plans.errors.codeMismatch',
+        'Only tenant owners can change the plan': 'plans.errors.notOwner',
+        'Invalid or inactive plan': 'plans.errors.invalidPlan',
+        'Failed to claim activation code': 'plans.errors.claimFailed',
+        'activation_code is required': 'plans.errors.codeRequired'
+      };
+      const translationKey = errMap[errorStr];
+      setCodeError(translationKey ? t(translationKey) : errorStr);
     } finally {
       setSelecting(null);
     }

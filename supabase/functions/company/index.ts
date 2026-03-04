@@ -85,7 +85,7 @@ serve(async (req: Request) => {
         }
 
         const body = await req.json();
-        const { domain, description, target_language } = body;
+        const { domain, description, target_language, company_name } = body;
 
         if (!domain || typeof domain !== "string" || domain.trim().length === 0) {
           return withCors(req, badRequest("Domain is required."));
@@ -124,6 +124,7 @@ serve(async (req: Request) => {
             description: description?.trim() || null,
             target_language: target_language || "en",
             tenant_id: tenantId,
+            company_name: company_name?.trim() || null,
           })
           .select("*")
           .single();
@@ -146,6 +147,27 @@ serve(async (req: Request) => {
           await db.from("companies").delete().eq("id", company.id);
           console.error("[company] Failed to link company to tenant:", linkErr);
           return withCors(req, serverError("Failed to link company to tenant."));
+        }
+
+        // Update tenant
+        const tenantUpdates: Record<string, string> = {};
+        if (company_name?.trim()) {
+          tenantUpdates.name = company_name.trim();
+        }
+        if (normalizedDomain) {
+          tenantUpdates.main_domain = normalizedDomain;
+        }
+
+        if (Object.keys(tenantUpdates).length > 0) {
+          const { error: tenantErr } = await db
+            .from("tenants")
+            .update(tenantUpdates)
+            .eq("id", tenantId);
+            
+          if (tenantErr) {
+            console.error("[company] Failed to update tenant:", tenantErr);
+            // Non-fatal, we still return success for company creation
+          }
         }
 
         return withCors(req, created(company));
@@ -205,6 +227,24 @@ serve(async (req: Request) => {
         if (updateErr || !updatedCompany) {
           console.error("[company] Failed to update company:", updateErr);
           return withCors(req, serverError("Failed to update company."));
+        }
+
+        // Update tenant if name or domain changed
+        const tenantUpdates: Record<string, string> = {};
+        if (updates.domain) tenantUpdates.main_domain = updates.domain as string;
+        if (updates.company_name !== undefined && updates.company_name !== null) {
+            tenantUpdates.name = updates.company_name as string;
+        }
+        
+        if (Object.keys(tenantUpdates).length > 0) {
+           const { error: tenantErr } = await db
+             .from("tenants")
+             .update(tenantUpdates)
+             .eq("id", tenantId);
+           if (tenantErr) {
+             console.error("[company] Failed to update tenant:", tenantErr);
+             // Non-fatal, we still return success
+           }
         }
 
         return withCors(req, ok(updatedCompany));
