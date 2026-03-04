@@ -290,7 +290,7 @@ export function LandingPage() {
               ))}
             </div>
           ) : (
-            <PricingPlans plans={pricingPlans} />
+            <PricingPlans plans={pricingPlans} numericPrices={plans.map(p => p.price)} formatPrice={formatCurrency} />
           )}
         </div>
       </section>

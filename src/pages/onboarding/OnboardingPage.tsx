@@ -298,6 +298,8 @@ export function OnboardingPage() {
           <AnalyzeResults result={result} onShowCategoryInfo={() => setShowCategoryInfo(true)}>
             <PlansSelection
               pricingPlans={pricingPlans}
+              numericPrices={plans.map(p => p.price)}
+              formatPrice={formatCurrency}
               plansLoading={plansLoading}
               codeModalPlanId={codeModalPlanId}
               activationCode={activationCode}

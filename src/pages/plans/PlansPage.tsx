@@ -189,7 +189,7 @@ export function PlansPage() {
           <p className="text-text-muted text-sm">{t('plans.noPlans')}</p>
         </div>
       ) : (
-        <PricingPlans plans={pricingPlans} />
+        <PricingPlans plans={pricingPlans} numericPrices={plans.map(p => p.price)} formatPrice={formatCurrency} />
       )}
 
       {/* Owner note */}

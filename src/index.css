@@ -2277,6 +2277,63 @@ h6 {
   color: var(--color-text-secondary);
 }
 
+/* ─── Pricing Toggle ─── */
+.pricing-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-bottom: 2rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  background: var(--color-glass-bg);
+  border: 1px solid var(--color-glass-border);
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.pricing-toggle-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  background: transparent;
+  color: var(--color-text-muted);
+}
+
+.pricing-toggle-btn:hover {
+  color: var(--color-text-primary);
+}
+
+.pricing-toggle-btn.active {
+  background: var(--color-brand-primary);
+  color: white;
+  box-shadow: 0 2px 12px rgba(108, 92, 231, 0.3);
+}
+
+.pricing-toggle-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, #00b894, #00cec9);
+  color: white;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
 /* ─── Final CTA ─── */
 .landing-final-cta {
   padding: 6rem 0;

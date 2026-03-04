@@ -73,6 +73,8 @@ function ActivationCodeModal({
 
 interface PlansSelectionProps {
   pricingPlans: PricingPlan[];
+  numericPrices?: number[];
+  formatPrice?: (price: number) => string;
   plansLoading: boolean;
   codeModalPlanId: string | null;
   activationCode: string;
@@ -87,6 +89,8 @@ interface PlansSelectionProps {
 
 export function PlansSelection({
   pricingPlans,
+  numericPrices,
+  formatPrice,
   plansLoading,
   codeModalPlanId,
   activationCode,
@@ -109,7 +113,7 @@ export function PlansSelection({
             <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
           </div>
         ) : (
-          <PricingPlans plans={pricingPlans} />
+          <PricingPlans plans={pricingPlans} numericPrices={numericPrices} formatPrice={formatPrice} />
         )}
       </div>
 
