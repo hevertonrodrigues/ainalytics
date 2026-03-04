@@ -1,4 +1,11 @@
 /**
+ * Flag to block free/personal email providers from signing up.
+ * Set to `true` to enforce professional-email-only registration.
+ * Set to `false` to allow any valid email to register.
+ */
+export const BLOCK_FREE_EMAILS = false;
+
+/**
  * List of common free/personal email providers that are not considered "professional"
  */
 const FREE_EMAIL_PROVIDERS = new Set([
@@ -124,10 +131,12 @@ const FREE_EMAIL_PROVIDERS = new Set([
 ]);
 
 /**
- * Validates if an email belongs to a professional domain (not a common free provider)
+ * Validates if an email belongs to a professional domain (not a common free provider).
+ * When BLOCK_FREE_EMAILS is false, any valid email format passes.
  */
 export function isProfessionalEmail(email: string): boolean {
   if (!email || !email.includes('@')) return false;
+  if (!BLOCK_FREE_EMAILS) return true;
   const parts = email.split('@');
   const domain = parts[parts.length - 1]?.toLowerCase();
   return !!domain && !FREE_EMAIL_PROVIDERS.has(domain);
