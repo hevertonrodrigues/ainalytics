@@ -1,44 +1,91 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CreditCard, KeyRound, X } from 'lucide-react';
+import { CreditCard, Ticket } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useTenant } from '@/contexts/TenantContext';
 import { PricingPlans } from '@/components/PricingPlans';
 import { useCurrency } from '@/hooks/useCurrency';
-import type { PricingPlan } from '@/components/PricingPlans';
+import type { PricingPlan, BillingPeriod } from '@/components/PricingPlans';
 import { InterestFormModal } from '@/components/InterestFormModal';
 import type { Plan } from '@/types';
-import { useScrollLock } from '@/hooks/useScrollLock';
+import { ActivationCodeModal } from './ActivationCodeModal';
+import { CancelSubscriptionModal } from './CancelSubscriptionModal';
+import { SubscriptionSettings } from './SubscriptionSettings';
+
+// ─── Helpers ────────────────────────────────────────────────
+
+const ACTIVATION_ERROR_MAP: Record<string, string> = {
+  'Invalid activation code': 'plans.errors.invalidCode',
+  'This activation code is no longer active': 'plans.errors.codeInactive',
+  'This activation code has already been used': 'plans.errors.codeUsed',
+  'This activation code does not have a plan assigned': 'plans.errors.noPlanAssigned',
+  'The plan associated with this code is no longer available': 'plans.errors.planUnavailable',
+  'Only tenant owners can change the plan': 'plans.errors.notOwner',
+  'Failed to claim activation code': 'plans.errors.claimFailed',
+  'activation_code is required': 'plans.errors.codeRequired',
+};
+
+// ─── Component ──────────────────────────────────────────────
 
 export function PlansPage() {
   const { t, i18n } = useTranslation();
-  const { currentTenant, updateTenantPlanId } = useTenant();
+  const { currentTenant, refreshTenant } = useTenant();
   const { formatPrice: formatCurrency } = useCurrency();
 
+  // Data
   const [plans, setPlans] = useState<Plan[]>([]);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selecting, setSelecting] = useState<string | null>(null);
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('monthly');
+
+  // Alerts
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const [interestModalOpen, setInterestModalOpen] = useState(false);
 
-  // Activation code modal
-  const [codeModalPlanId, setCodeModalPlanId] = useState<string | null>(null);
+  // Modals
+  const [interestModalOpen, setInterestModalOpen] = useState(false);
+  const [codeModalOpen, setCodeModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+
+  // Activation code state
   const [activationCode, setActivationCode] = useState('');
   const [codeError, setCodeError] = useState('');
-  const codeInputRef = useRef<HTMLInputElement>(null);
+
+  // ─── Effects ────────────────────────────────────────────
 
   useEffect(() => {
     if (currentTenant) loadPlans();
   }, [currentTenant?.id]);
 
-  // Focus the code input when modal opens
+  // Handle Stripe checkout redirect
   useEffect(() => {
-    if (codeModalPlanId) {
-      setTimeout(() => codeInputRef.current?.focus(), 100);
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get('checkout');
+    if (checkout === 'success') {
+      showSuccess(t('plans.planSelected'));
+      window.history.replaceState({}, '', window.location.pathname);
+      if (currentTenant) loadPlans();
+    } else if (checkout === 'canceled') {
+      showError(t('plans.checkoutCanceled', 'Checkout was canceled'));
+      window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [codeModalPlanId]);
+  }, []);
+
+  // ─── Alert helpers ──────────────────────────────────────
+
+  const showSuccess = (msg: string) => {
+    setSuccess(msg);
+    setTimeout(() => setSuccess(''), 5000);
+  };
+
+  const showError = (msg: string) => {
+    setError(msg);
+    setTimeout(() => setError(''), 5000);
+  };
+
+  // ─── Data loading ───────────────────────────────────────
 
   const loadPlans = async () => {
     try {
@@ -46,62 +93,82 @@ export function PlansPage() {
       setPlans(res.data.plans || []);
       setCurrentPlanId(res.data.current_plan_id);
     } catch {
-      setError(t('common.error'));
+      showError(t('common.error'));
     } finally {
       setLoading(false);
     }
   };
 
-  const openCodeModal = (planId: string) => {
-    setCodeModalPlanId(planId);
-    setActivationCode('');
-    setCodeError('');
-  };
+  // ─── Actions ────────────────────────────────────────────
 
-  const closeCodeModal = () => {
-    setCodeModalPlanId(null);
-    setActivationCode('');
-    setCodeError('');
+  const handleStripeCheckout = async (planId: string) => {
+    setSelecting(planId);
+    setError('');
+    try {
+      const res = await apiClient.post<{ url: string }>('/stripe-checkout', {
+        plan_id: planId,
+        billing_interval: billingPeriod,
+        locale: i18n.language,
+      });
+      window.location.href = res.data.url;
+    } catch (err) {
+      showError(err instanceof Error ? err.message : t('plans.checkoutError'));
+      setSelecting(null);
+    }
   };
 
   const handleActivate = async () => {
-    if (!codeModalPlanId || !activationCode.trim()) return;
+    if (!activationCode.trim()) return;
     setCodeError('');
-    setSelecting(codeModalPlanId);
+    setSelecting('activation');
 
     try {
-      await apiClient.put('/plans', {
-        plan_id: codeModalPlanId,
-        activation_code: activationCode.trim(),
-      });
-      setCurrentPlanId(codeModalPlanId);
-      updateTenantPlanId(codeModalPlanId);
+      await apiClient.put('/plans', { activation_code: activationCode.trim() });
       closeCodeModal();
-      setSuccess(t('plans.planSelected'));
-      setTimeout(() => setSuccess(''), 3000);
+      showSuccess(t('plans.planSelected'));
+      loadPlans();
     } catch (err) {
-      const errorStr = err instanceof Error ? err.message : t('common.error');
-      const errMap: Record<string, string> = {
-        'Invalid activation code': 'plans.errors.invalidCode',
-        'This activation code is no longer active': 'plans.errors.codeInactive',
-        'This activation code has already been used': 'plans.errors.codeUsed',
-        'This activation code is not valid for the selected plan': 'plans.errors.codeMismatch',
-        'Only tenant owners can change the plan': 'plans.errors.notOwner',
-        'Invalid or inactive plan': 'plans.errors.invalidPlan',
-        'Failed to claim activation code': 'plans.errors.claimFailed',
-        'activation_code is required': 'plans.errors.codeRequired'
-      };
-      const translationKey = errMap[errorStr];
-      setCodeError(translationKey ? t(translationKey) : errorStr);
+      const msg = err instanceof Error ? err.message : t('common.error');
+      const key = ACTIVATION_ERROR_MAP[msg];
+      setCodeError(key ? t(key) : msg);
     } finally {
       setSelecting(null);
     }
   };
 
-  const formatPrice = (plan: Plan) => {
-    if ((plan.settings as Record<string, unknown>)?.custom_pricing) {
-      return t('plans.custom');
+  const handleCancelSubscription = async (reason: string, feedback?: string) => {
+    setCancelModalOpen(false);
+    setCanceling(true);
+    try {
+      await apiClient.post('/stripe-cancel', { reason, feedback });
+      showSuccess(t('plans.cancelSuccess'));
+      await refreshTenant();
+      loadPlans();
+    } catch (err) {
+      showError(err instanceof Error ? err.message : t('common.error'));
+    } finally {
+      setCanceling(false);
     }
+  };
+
+  // ─── Modal helpers ──────────────────────────────────────
+
+  const openCodeModal = () => {
+    setCodeModalOpen(true);
+    setActivationCode('');
+    setCodeError('');
+  };
+
+  const closeCodeModal = () => {
+    setCodeModalOpen(false);
+    setActivationCode('');
+    setCodeError('');
+  };
+
+  // ─── Derived data ───────────────────────────────────────
+
+  const formatPrice = (plan: Plan) => {
+    if ((plan.settings as Record<string, unknown>)?.custom_pricing) return t('plans.custom');
     return formatCurrency(plan.price);
   };
 
@@ -117,11 +184,12 @@ export function PlansPage() {
     if (typeof desc === 'string') return desc;
     if (typeof desc === 'object') {
       const langMap = desc as Record<string, string>;
-      const lang = i18n.language || 'en';
-      return langMap[lang] || langMap['en'] || '';
+      return langMap[i18n.language || 'en'] || langMap['en'] || '';
     }
     return '';
   };
+
+  // ─── Loading state ──────────────────────────────────────
 
   if (loading) {
     return (
@@ -136,11 +204,12 @@ export function PlansPage() {
     );
   }
 
-  /* Map API plans → PricingPlan props */
+  // ─── Map plans → PricingPlan props ──────────────────────
+
   const pricingPlans: PricingPlan[] = plans.map((plan, idx) => {
     const isCurrentPlan = plan.id === currentPlanId;
-    const isPopular = plan.name === 'Growth';
     const isCustom = !!(plan.settings as Record<string, unknown>)?.custom_pricing;
+    const isFree = plan.price <= 0;
 
     return {
       name: plan.name,
@@ -148,19 +217,21 @@ export function PlansPage() {
       priceLabel: plan.price > 0 ? t('plans.perMonth') : undefined,
       description: getDescription(plan),
       features: getFeatures(plan),
-      popular: isPopular ? t('plans.mostPopular') : undefined,
+      popular: plan.name === 'Growth' ? t('plans.mostPopular') : undefined,
       isBlock: idx >= 3,
       cta: isCustom ? t('plans.contactSales') : t('plans.selectPlan'),
       onSelect: isCustom
         ? () => setInterestModalOpen(true)
-        : isCurrentPlan
+        : isCurrentPlan || isFree
           ? undefined
-          : () => openCodeModal(plan.id),
+          : () => handleStripeCheckout(plan.id),
       disabled: !!selecting,
       loading: selecting === plan.id,
       statusLabel: isCurrentPlan ? t('plans.currentPlan') : undefined,
     };
   });
+
+  // ─── Render ─────────────────────────────────────────────
 
   return (
     <div className="stagger-enter max-w-5xl mx-auto space-y-8">
@@ -189,22 +260,55 @@ export function PlansPage() {
           <p className="text-text-muted text-sm">{t('plans.noPlans')}</p>
         </div>
       ) : (
-        <PricingPlans plans={pricingPlans} numericPrices={plans.map(p => p.price)} formatPrice={formatCurrency} />
+        <PricingPlans
+          plans={pricingPlans}
+          numericPrices={plans.map(p => p.price)}
+          formatPrice={formatCurrency}
+          onBillingPeriodChange={setBillingPeriod}
+        />
       )}
+
+      {/* Footer actions: activation code + settings gear */}
+      <div className="flex items-center justify-center gap-4">
+        <button
+          type="button"
+          onClick={openCodeModal}
+          className="inline-flex items-center gap-2 text-sm text-brand-primary hover:text-brand-primary/80 transition-colors font-medium"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 1rem' }}
+        >
+          <Ticket className="w-4 h-4" />
+          {t('plans.hasSubscription')}
+        </button>
+
+        {currentPlanId && (
+          <SubscriptionSettings
+            disabled={canceling}
+            onCancelClick={() => setCancelModalOpen(true)}
+          />
+        )}
+      </div>
 
       {/* Owner note */}
       <p className="text-center text-xs text-text-muted">
         {t('plans.ownerOnly')}
       </p>
 
-      {/* Interest Form Modal */}
+      {/* ─── Modals ───────────────────────────────────────── */}
+
       <InterestFormModal
         open={interestModalOpen}
         onClose={() => setInterestModalOpen(false)}
       />
 
-      {/* Activation Code Modal */}
-      {codeModalPlanId && (
+      {cancelModalOpen && (
+        <CancelSubscriptionModal
+          canceling={canceling}
+          onClose={() => setCancelModalOpen(false)}
+          onConfirm={handleCancelSubscription}
+        />
+      )}
+
+      {codeModalOpen && (
         <ActivationCodeModal
           selecting={selecting}
           onClose={closeCodeModal}
@@ -214,91 +318,6 @@ export function PlansPage() {
           codeError={codeError}
         />
       )}
-    </div>
-  );
-}
-
-interface ActivationCodeModalProps {
-  selecting: string | null;
-  onClose: () => void;
-  onActivate: () => Promise<void>;
-  activationCode: string;
-  setActivationCode: (val: string) => void;
-  codeError: string;
-}
-
-function ActivationCodeModal({
-  selecting,
-  onClose,
-  onActivate,
-  activationCode,
-  setActivationCode,
-  codeError,
-}: ActivationCodeModalProps) {
-  const { t } = useTranslation();
-  const codeInputRef = useRef<HTMLInputElement>(null);
-  useScrollLock(true);
-
-  useEffect(() => {
-    setTimeout(() => codeInputRef.current?.focus(), 100);
-  }, []);
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
-
-      {/* Modal */}
-      <div className="relative w-full max-w-sm dashboard-card p-6 space-y-4 animate-in fade-in zoom-in-95">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-brand-primary/10 flex items-center justify-center">
-              <KeyRound className="w-4 h-4 text-brand-primary" />
-            </div>
-            <h2 className="text-sm font-semibold text-text-primary">{t('plans.activationTitle')}</h2>
-          </div>
-          <button onClick={onClose} type="button" className="icon-btn">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        <p className="text-xs text-text-muted">{t('plans.activationDesc')}</p>
-
-        {/* Error */}
-        {codeError && (
-          <div className="p-2 rounded-xs bg-error/10 border border-error/20 text-error text-xs">
-            {codeError}
-          </div>
-        )}
-
-        {/* Code input */}
-        <form onSubmit={(e) => { e.preventDefault(); onActivate(); }}>
-          <input
-            ref={codeInputRef}
-            type="text"
-            value={activationCode}
-            onChange={(e) => setActivationCode(e.target.value.toUpperCase())}
-            placeholder={t('plans.activationPlaceholder')}
-            maxLength={12}
-            className="input-field text-center font-mono tracking-widest text-lg uppercase"
-            autoFocus
-          />
-
-          <div className="flex items-center gap-2 mt-4">
-            <button
-              type="submit"
-              disabled={!!selecting || activationCode.trim().length !== 12}
-              className="btn btn-primary btn-sm flex-1"
-            >
-              {selecting ? t('common.loading') : t('plans.activate')}
-            </button>
-            <button onClick={onClose} type="button" className="btn btn-ghost btn-sm">
-              {t('common.cancel')}
-            </button>
-          </div>
-        </form>
-      </div>
     </div>
   );
 }

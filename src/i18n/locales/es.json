@@ -227,11 +227,39 @@
       "codeInactive": "Este código de activación ya no está activo",
       "codeUsed": "Este código de activación ya ha sido utilizado",
       "codeMismatch": "Este código de activación no es válido para el plan seleccionado",
+      "noPlanAssigned": "Este código de activación no tiene un plan asignado",
+      "planUnavailable": "El plan asociado a este código ya no está disponible",
       "notOwner": "Solo los propietarios de la organización pueden cambiar el plan",
-      "invalidPlan": "Plan inválido o inactivo",
       "claimFailed": "Error al reclamar el código de activación",
       "codeRequired": "El código de activación es obligatorio"
-    }
+    },
+    "hasSubscription": "Ya tengo una suscripción",
+    "subscriptionSettings": "Configuraciones de suscripción",
+    "cancelSubscription": "Cancelar suscripción",
+    "cancelTitle": "¡No queremos que te vayas!",
+    "cancelConfirm": "Tus análisis de visibilidad en IA están trabajando para mantenerte por delante de la competencia. Si cancelas ahora, perderás acceso a todos tus datos de monitoreo y análisis.",
+    "cancelLoseTitle": "Esto es lo que perderás:",
+    "cancelLose1": "Monitoreo en tiempo real en todas las plataformas de IA",
+    "cancelLose2": "Datos históricos de visibilidad y análisis de tendencias",
+    "cancelLose3": "Insights competitivos y recomendaciones estratégicas",
+    "keepPlan": "Mantener mi plan",
+    "cancelAnyway": "Cancelar de todos modos",
+    "confirmCancel": "Confirmar cancelación",
+    "csatTitle": "Antes de irte...",
+    "csatSubtitle": "Ayúdanos a entender cómo podemos mejorar.",
+    "csatPlaceholder": "¿Algún comentario adicional? (opcional)",
+    "csatReasons": {
+      "too_expensive": "Es muy caro para mi presupuesto",
+      "not_useful": "No estoy obteniendo suficiente valor",
+      "missing_features": "Faltan funcionalidades que necesito",
+      "switched_competitor": "Cambié a otra herramienta",
+      "temporary": "Solo lo necesitaba temporalmente",
+      "other": "Otro motivo"
+    },
+    "cancelSuccess": "Suscripción cancelada exitosamente.",
+    "redirectingToCheckout": "Redirigiendo al pago...",
+    "checkoutError": "Error al iniciar el pago. Inténtelo de nuevo.",
+    "checkoutCanceled": "El pago fue cancelado."
   },
   "analytics": {
     "totalDocuments": "Total de Documentos",
@@ -716,10 +744,22 @@
   "onboarding": {
     "stepOf": "Paso {{current}} de {{total}}",
     "skip": "Omitir Onboarding",
+    "chosenPrompts": "Prompts Elegidos",
     "skipToPlans": "Ir a Planes →",
     "next": "Siguiente",
     "tryItNow": "Pruébalo Ahora",
     "steps": {
+      "welcome": {
+        "title": "Bienvenido a Ainalytics",
+        "description": "Ainalytics monitorea lo que las plataformas de IA dicen sobre su marca en ChatGPT, Gemini, Claude, Grok y más. Vamos a guiarlo por las funciones principales de la plataforma.",
+        "detail": "En los próximos pasos, aprenderá a analizar su empresa, crear tópicos y prompts, seleccionar modelos de IA y rastrear sus resultados de visibilidad.",
+        "features": {
+          "0": { "title": "Temas y Categorías", "desc": "Agrupe sus prompts lógicamente en categorías distintas para una mejor organización y monitoreo." },
+          "1": { "title": "Prompts", "desc": "Gestione sus entradas e instrucciones de IA para probar frente a múltiples plataformas y modelos." },
+          "2": { "title": "Fuentes", "desc": "Organice materiales de referencia y bases de conocimiento que fundamenten las respuestas de su IA." },
+          "3": { "title": "Generación LLM.txt", "desc": "Genere automáticamente un archivo llm.txt basado en su sitio web, listo para que lo consuman LLMs externos." }
+        }
+      },
       "company": {
         "title": "Analice su Empresa",
         "description": "Nuestro analizador GEO rastrea su sitio web, verifica factores técnicos como robots.txt, sitemap y datos estructurados, luego genera un informe impulsado por IA con recomendaciones accionables.",
@@ -740,14 +780,42 @@
           "2": { "title": "Modo Búsqueda Web", "desc": "Pruebe cómo responde la IA con y sin búsqueda web en tiempo real." }
         }
       },
-      "categories_prompts": {
-        "title": "Cree Tópicos y Prompts",
-        "description": "Organice su monitoreo en Tópicos — categorías que representan sus productos, servicios o segmentos de mercado. Luego cree Prompts — las preguntas reales que sus clientes hacen a las plataformas de IA — para ver si lo están recomendando.",
-        "detail": "Los Tópicos estructuran su estrategia, y los Prompts simulan búsquedas reales. Juntos, le permiten medir la visibilidad IA en cada área de negocio con consultas naturales.",
-        "features": {
-          "0": { "title": "Segmentos de Negocio", "desc": "Mapee tópicos a líneas de productos, servicios o segmentos competitivos que desea monitorear." },
-          "1": { "title": "Preguntas Reales", "desc": "Formule prompts naturales como '¿Cuál es el mejor [servicio] en [ubicación]?' para datos realistas." },
-          "2": { "title": "Ejecución Automática", "desc": "Los prompts se ejecutan automáticamente en todas las plataformas seleccionadas." }
+      "topics": {
+        "title": "Seleccione sus Temas",
+        "description": "Los Temas son categorías que representan sus productos, servicios o segmentos de mercado. Seleccione los relevantes para organizar su monitoreo.",
+        "detail": "Elija entre 1 y 5 temas. Puede agregar más después desde su dashboard.",
+        "items": {
+          "brand": { "title": "Reputación de Marca", "desc": "Monitoree cómo las plataformas de IA perciben y recomiendan su marca." },
+          "products": { "title": "Productos y Servicios", "desc": "Rastree menciones y recomendaciones de sus ofertas específicas." },
+          "industry": { "title": "Tendencias del Sector", "desc": "Vea cómo las plataformas de IA discuten su sector y dónde encaja usted." },
+          "compete": { "title": "Panorama Competitivo", "desc": "Compare su visibilidad con competidores en las recomendaciones de IA." }
+        }
+      },
+      "prompts": {
+        "title": "Elija sus Prompts",
+        "description": "Los Prompts son las preguntas reales que los clientes hacen a las plataformas de IA. Seleccione prompts para cada tema para simular búsquedas y ver si lo están recomendando.",
+        "detail": "Cada tema debe tener al menos 1 prompt. Los prompts se ejecutan automáticamente en todas las plataformas seleccionadas.",
+        "items": {
+          "brand": {
+            "0": { "title": "¿Qué es [Empresa]?", "desc": "Prueba el reconocimiento básico de marca y cómo la IA describe su empresa." },
+            "1": { "title": "¿Es [Empresa] confiable?", "desc": "Mide la reputación y señales de confianza asociadas a su marca." },
+            "2": { "title": "Reseñas de [Empresa]", "desc": "Verifica qué muestra la IA sobre reseñas y satisfacción de clientes." }
+          },
+          "products": {
+            "0": { "title": "Mejores proveedores de [tipo de producto]", "desc": "Prueba si la IA recomienda sus productos en búsquedas de categoría." },
+            "1": { "title": "[Producto] vs alternativas", "desc": "Compara cómo la IA posiciona su oferta frente a competidores." },
+            "2": { "title": "¿Cómo elegir un [tipo de producto]?", "desc": "Verifica si su producto aparece en respuestas de guía de compra." }
+          },
+          "industry": {
+            "0": { "title": "Principales empresas en [sector]", "desc": "Prueba si la IA lo incluye entre los líderes del sector." },
+            "1": { "title": "Tendencias en [sector] 2025", "desc": "Verifica si su marca aparece en discusiones prospectivas del sector." },
+            "2": { "title": "Líderes de mercado en [sector]", "desc": "Mide su posicionamiento en consultas sobre liderazgo de mercado." }
+          },
+          "compete": {
+            "0": { "title": "[Empresa] vs [Competidor]", "desc": "Consultas de comparación directa entre usted y competidores clave." },
+            "1": { "title": "Mejor alternativa a [Competidor]", "desc": "Prueba si la IA lo sugiere como alternativa a competidores." },
+            "2": { "title": "¿Por qué elegir [Empresa]?", "desc": "Evalúa el razonamiento de la IA para recomendar su marca." }
+          }
         }
       },
       "results": {

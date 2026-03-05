@@ -16,6 +16,8 @@ export interface PreAnalyzeResult {
   next_level: GeoNextLevel | null;
   factor_scores: GeoFactorScore[];
   top_recommendations: GeoTopRecommendation[];
+  suggested_topics: { id: string; title: string }[];
+  suggested_prompts: Record<string, { id: string; title: string }[]>;
 }
 
 // ─── Step config ────────────────────────────────────────────

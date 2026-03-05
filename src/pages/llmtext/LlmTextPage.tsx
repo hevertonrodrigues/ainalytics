@@ -109,9 +109,8 @@ export function LlmTextPage() {
       });
 
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error?.message || 'Failed to generate suggestions');
 
-      setSuggestions(data.data.topics || []);
+      setSuggestions(data?.raw_topics || []);
       setShowSuggestions(true);
       showToast(t('llmText.suggestionsSuccess', 'Suggestions generated successfully!'), 'success');
     } catch (err: any) {

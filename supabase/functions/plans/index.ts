@@ -16,7 +16,7 @@ serve(async (req: Request) => {
       default:
         return withCors(req, badRequest(`Method ${req.method} not allowed`));
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error("[plans]", err);
     if (err.status) {
       return withCors(
@@ -32,7 +32,7 @@ serve(async (req: Request) => {
 });
 
 // ────────────────────────────────────────────────────────────
-// GET /plans — list all active plans
+// GET /plans — list all active plans + current active plan from subscriptions
 // ────────────────────────────────────────────────────────────
 
 async function handleGet(req: Request): Promise<Response> {
@@ -48,24 +48,26 @@ async function handleGet(req: Request): Promise<Response> {
 
   if (plansError) return serverError(plansError.message);
 
-  // Fetch current tenant's plan_id
-  const { data: tenant, error: tenantError } = await db
-    .from("tenants")
+  // Fetch current active subscription's plan_id
+  const { data: activeSub } = await db
+    .from("subscriptions")
     .select("plan_id")
-    .eq("id", auth.tenantId)
+    .eq("tenant_id", auth.tenantId)
+    .in("status", ["active", "trialing"])
+    .order("created_at", { ascending: false })
+    .limit(1)
     .single();
 
-  if (tenantError) return serverError(tenantError.message);
-
-  return ok({ plans, current_plan_id: tenant?.plan_id || null });
+  return ok({ plans, current_plan_id: activeSub?.plan_id || null });
 }
 
 // ────────────────────────────────────────────────────────────
 // PUT /plans — assign a plan using an activation code
+// The activation code itself defines which plan to apply
+// (from activation_plans.plan_id)
 // ────────────────────────────────────────────────────────────
 
 interface SelectPlanBody {
-  plan_id: string;
   activation_code: string;
 }
 
@@ -73,9 +75,6 @@ async function handleSelectPlan(req: Request): Promise<Response> {
   const auth = await verifyAuth(req);
   const body: SelectPlanBody = await req.json();
 
-  if (!body.plan_id) {
-    return badRequest("plan_id is required");
-  }
   if (!body.activation_code || body.activation_code.trim().length === 0) {
     return badRequest("activation_code is required");
   }
@@ -96,19 +95,7 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     return forbidden("Only tenant owners can change the plan");
   }
 
-  // 2. Verify plan exists and is active
-  const { data: plan } = await db
-    .from("plans")
-    .select("id")
-    .eq("id", body.plan_id)
-    .eq("is_active", true)
-    .single();
-
-  if (!plan) {
-    return badRequest("Invalid or inactive plan");
-  }
-
-  // 3. Validate activation code
+  // 2. Validate activation code
   const { data: activation, error: activationError } = await db
     .from("activation_plans")
     .select("*")
@@ -129,9 +116,21 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     return badRequest("This activation code has already been used");
   }
 
-  // Code must match the selected plan
-  if (activation.plan_id !== body.plan_id) {
-    return badRequest("This activation code is not valid for the selected plan");
+  // Code must have a plan assigned
+  if (!activation.plan_id) {
+    return badRequest("This activation code does not have a plan assigned");
+  }
+
+  // 3. Verify the code's plan exists and is active
+  const { data: plan } = await db
+    .from("plans")
+    .select("id, name")
+    .eq("id", activation.plan_id)
+    .eq("is_active", true)
+    .single();
+
+  if (!plan) {
+    return badRequest("The plan associated with this code is no longer available");
   }
 
   // 4. Claim the activation code — set tenant_id
@@ -145,15 +144,41 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     return serverError("Failed to claim activation code");
   }
 
-  // 5. Update tenant's plan
-  const { data: updated, error: updateError } = await db
-    .from("tenants")
-    .update({ plan_id: body.plan_id })
-    .eq("id", auth.tenantId)
-    .select("id, name, slug, plan_id, created_at, updated_at")
+  // 5. Cancel any existing active subscriptions for this tenant
+  await db
+    .from("subscriptions")
+    .update({ status: "canceled", canceled_at: new Date().toISOString() })
+    .eq("tenant_id", auth.tenantId)
+    .in("status", ["active", "trialing"]);
+
+  // 6. Create a free 3-month subscription (activation code grant)
+  const now = new Date();
+  const threeMonthsLater = new Date(now);
+  threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
+
+  const { data: subscription, error: subError } = await db
+    .from("subscriptions")
+    .insert({
+      tenant_id: auth.tenantId,
+      plan_id: activation.plan_id,
+      stripe_subscription_id: null,
+      stripe_customer_id: null,
+      status: "active",
+      billing_interval: "unique",
+      paid_amount: 0,
+      currency: "usd",
+      current_period_start: now.toISOString(),
+      current_period_end: threeMonthsLater.toISOString(),
+      cancel_at_period_end: true, // auto-cancels after 3 months
+    })
+    .select()
     .single();
 
-  if (updateError) return serverError(updateError.message);
+  if (subError) {
+    console.error("[plans] Error creating activation subscription:", subError);
+    return serverError("Failed to create subscription");
+  }
 
-  return ok(updated);
+  return ok({ subscription, plan_id: activation.plan_id });
 }
+

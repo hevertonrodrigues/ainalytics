@@ -156,9 +156,6 @@ export function AnalyzeForm({
           <ChevronLeft className="w-4 h-4" />
           {t('common.back')}
         </button>
-        <button onClick={onSkip} className="text-xs text-text-muted hover:text-text-secondary transition-colors">
-          {t('onboarding.skipToPlans')}
-        </button>
       </div>
     </div>
   );

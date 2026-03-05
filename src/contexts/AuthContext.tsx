@@ -104,14 +104,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error('CONFIRM_EMAIL');
     }
 
-    const res = await apiClient.get<{ profile: Profile; tenants: Tenant[] }>('/users-me');
+    // The database trigger (handle_new_user) creates tenant + tenant_users records
+    // asynchronously. Retry /users-me with backoff to wait for the records to exist.
+    const MAX_RETRIES = 3;
+    const DELAYS = [500, 1500, 3000]; // ms
 
-    const firstTenant = res.data?.tenants?.[0];
-    if (firstTenant) {
-      localStorage.setItem(STORAGE_KEYS.CURRENT_TENANT_ID, firstTenant.id);
+    let lastError: unknown;
+    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      if (attempt > 0) {
+        await new Promise(r => setTimeout(r, DELAYS[attempt - 1] || 1000));
+      }
+      try {
+        const res = await apiClient.get<{ profile: Profile; tenants: Tenant[] }>('/users-me');
+
+        const firstTenant = res.data?.tenants?.[0];
+        if (firstTenant) {
+          localStorage.setItem(STORAGE_KEYS.CURRENT_TENANT_ID, firstTenant.id);
+        }
+
+        setState({ profile: res.data?.profile || null, tenants: res.data?.tenants || [], loading: false, initialized: true });
+        return; // success
+      } catch (err) {
+        lastError = err;
+        console.warn(`[signUp] /users-me attempt ${attempt + 1} failed, retrying...`);
+      }
     }
 
-    setState({ profile: res.data?.profile || null, tenants: res.data?.tenants || [], loading: false, initialized: true });
+    // All retries failed — still set initialized so the app doesn't hang
+    console.error('[signUp] Could not fetch user profile after signup:', lastError);
+    setState({ profile: null, tenants: [], loading: false, initialized: true });
   }, []);
 
   const signOut = useCallback(async () => {

@@ -1,9 +1,6 @@
-import { useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { MobileHeader } from './MobileHeader';
-import { useAuth } from '@/contexts/AuthContext';
-import { WelcomeModal } from '@/components/ui/WelcomeModal';
 import { TutorialModal } from '@/components/ui/TutorialModal';
 import { useTutorial } from '@/hooks/useTutorial';
 import { useLayout } from '@/contexts/LayoutContext';
@@ -11,8 +8,6 @@ import { useTranslation } from 'react-i18next';
 
 export function AppLayout() {
   const { t } = useTranslation();
-  const { profile } = useAuth();
-  const [dismissedInSession, setDismissedInSession] = useState(false);
   const { activeTutorial, dismissTutorial } = useTutorial();
   const { setSidebarOpen } = useLayout();
   const { pathname } = useLocation();
@@ -32,11 +27,7 @@ export function AppLayout() {
         </main>
       </div>
 
-      {profile && profile.has_seen_welcome_modal === false && !dismissedInSession && !isOnboarding && (
-        <WelcomeModal onClose={() => setDismissedInSession(true)} />
-      )}
-
-      {activeTutorial && (profile?.has_seen_welcome_modal || dismissedInSession) && (
+      {activeTutorial && (
         <TutorialModal
           title={t(activeTutorial.title)}
           paragraphs={activeTutorial.paragraphs.map(p => t(p))}

@@ -31,6 +31,10 @@ export interface PricingPlansProps {
   numericPrices?: number[];
   /** Formatter to convert a numeric price to a display string (e.g. "$49.50") */
   formatPrice?: (price: number) => string;
+  /** Callback when billing period changes */
+  onBillingPeriodChange?: (period: BillingPeriod) => void;
+  /** Controlled billing period (optional) */
+  billingPeriod?: BillingPeriod;
 }
 
 /* ─── Card (for first 3) ─── */
@@ -262,7 +266,7 @@ function PricingBlock({
 
 /* ─── Billing Toggle ─── */
 
-type BillingPeriod = "monthly" | "yearly";
+export type BillingPeriod = "monthly" | "yearly";
 
 function BillingToggle({
   period,
@@ -302,9 +306,16 @@ export function PricingPlans({
   plans,
   numericPrices,
   formatPrice,
+  onBillingPeriodChange,
+  billingPeriod: controlledPeriod,
 }: PricingPlansProps) {
   const { t } = useTranslation();
-  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>("monthly");
+  const [internalPeriod, setInternalPeriod] = useState<BillingPeriod>("monthly");
+  const billingPeriod = controlledPeriod ?? internalPeriod;
+  const setBillingPeriod = (p: BillingPeriod) => {
+    setInternalPeriod(p);
+    onBillingPeriodChange?.(p);
+  };
 
   // Apply yearly discount to plans
   const displayPlans = plans.map((plan, i) => {

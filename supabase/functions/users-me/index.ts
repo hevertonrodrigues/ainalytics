@@ -50,11 +50,26 @@ async function handleGet(req: Request): Promise<Response> {
   // Get all tenants
   const { data: memberships } = await db
     .from("tenant_users")
-    .select("tenant_id, role, tenants(id, name, slug, main_domain, plan_id, created_at, updated_at)")
+    .select("tenant_id, role, tenants(id, name, slug, main_domain, created_at, updated_at)")
     .eq("user_id", auth.user.id)
     .eq("is_active", true);
 
-  const tenants = (memberships || []).map((m: any) => m.tenants).filter(Boolean);
+  const tenantsList = (memberships || []).map((m: any) => m.tenants).filter(Boolean);
+
+  // For each tenant, fetch active subscription's plan_id
+  const tenants = await Promise.all(
+    tenantsList.map(async (t: any) => {
+      const { data: sub } = await db
+        .from("subscriptions")
+        .select("plan_id")
+        .eq("tenant_id", t.id)
+        .in("status", ["active", "trialing"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      return { ...t, active_plan_id: sub?.plan_id || null };
+    })
+  );
 
   return ok({ profile, tenants });
 }

@@ -74,7 +74,7 @@ export function Sidebar() {
     setSidebarOpen(false);
   }, [location.pathname, setSidebarOpen]);
 
-  const hasPlan = !!currentTenant?.plan_id;
+  const hasPlan = !!currentTenant?.active_plan_id;
 
   const handleSignOut = async () => {
     await signOut();

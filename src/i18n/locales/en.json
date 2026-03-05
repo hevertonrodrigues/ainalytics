@@ -227,11 +227,39 @@
       "codeInactive": "This activation code is no longer active",
       "codeUsed": "This activation code has already been used",
       "codeMismatch": "This activation code is not valid for the selected plan",
+      "noPlanAssigned": "This activation code does not have a plan assigned",
+      "planUnavailable": "The plan associated with this code is no longer available",
       "notOwner": "Only organization owners can change the plan",
-      "invalidPlan": "Invalid or inactive plan",
       "claimFailed": "Failed to claim activation code",
       "codeRequired": "Activation code is required"
-    }
+    },
+    "hasSubscription": "I already have a subscription",
+    "subscriptionSettings": "Subscription settings",
+    "cancelSubscription": "Cancel subscription",
+    "cancelTitle": "We'd hate to see you go!",
+    "cancelConfirm": "Your AI visibility insights are working hard to keep you ahead of the competition. If you cancel now, you'll lose access to all your monitoring data and analytics.",
+    "cancelLoseTitle": "Here's what you'll lose:",
+    "cancelLose1": "Real-time AI monitoring across all platforms",
+    "cancelLose2": "Historical visibility data and trend analysis",
+    "cancelLose3": "Competitive insights and recommendations",
+    "keepPlan": "Keep my plan",
+    "cancelAnyway": "Cancel anyway",
+    "confirmCancel": "Confirm cancellation",
+    "csatTitle": "Before you go...",
+    "csatSubtitle": "Help us understand what we could do better.",
+    "csatPlaceholder": "Any additional feedback? (optional)",
+    "csatReasons": {
+      "too_expensive": "It's too expensive for my budget",
+      "not_useful": "I'm not getting enough value from it",
+      "missing_features": "It's missing features I need",
+      "switched_competitor": "I switched to a different tool",
+      "temporary": "I only needed it temporarily",
+      "other": "Other reason"
+    },
+    "cancelSuccess": "Subscription canceled successfully.",
+    "redirectingToCheckout": "Redirecting to checkout...",
+    "checkoutError": "Failed to start checkout. Please try again.",
+    "checkoutCanceled": "Checkout was canceled."
   },
   "analytics": {
     "totalDocuments": "Total Documents",
@@ -722,10 +750,33 @@
   "onboarding": {
     "stepOf": "Step {{current}} of {{total}}",
     "skip": "Skip Onboarding",
+    "chosenPrompts": "Chosen Prompts",
     "skipToPlans": "Skip to Plans →",
     "next": "Next",
+    "analyzing": {
+      "checkingGrowth": "Checking growth for {{domain}}",
+      "discoveringOpportunities": "Discovering opportunities for {{domain}}",
+      "mappingStrategies": "Mapping strategies for {{domain}}",
+      "evaluatingPotential": "Evaluating potential for {{domain}}",
+      "identifyingStrengths": "Identifying strengths for {{domain}}",
+      "analyzingVisibility": "Analyzing AI visibility for {{domain}}",
+      "scanningPresence": "Scanning digital presence of {{domain}}",
+      "assessingReadiness": "Assessing GEO readiness for {{domain}}",
+      "wait": "This may take a few moments..."
+    },
     "tryItNow": "Try It Now",
     "steps": {
+      "welcome": {
+        "title": "Welcome to Ainalytics",
+        "description": "Ainalytics monitors what AI platforms say about your brand across ChatGPT, Gemini, Claude, Grok and more. Let's walk you through the core features of the platform.",
+        "detail": "In the next steps, you'll learn how to analyze your company, create topics & prompts, select AI models, and track your visibility results.",
+        "features": {
+          "0": { "title": "Topics & Categories", "desc": "Group your prompts logically into distinct categories for better organization and monitoring." },
+          "1": { "title": "Prompts", "desc": "Manage your AI inputs and instructions to test against multiple platforms and models." },
+          "2": { "title": "Sources", "desc": "Organize reference materials and knowledge bases that ground your AI responses." },
+          "3": { "title": "LLM.txt Generation", "desc": "Automatically generate an llm.txt file based on your website, ready for external LLMs to consume." }
+        }
+      },
       "company": {
         "title": "Analyze Your Company",
         "description": "Our GEO analyzer crawls your website, checks technical factors like robots.txt, sitemap, and structured data, then generates an AI-powered report with actionable insights.",
@@ -746,14 +797,42 @@
           "2": { "title": "Web Search Mode", "desc": "Test how AI responds with and without real-time web search enabled." }
         }
       },
-      "categories_prompts": {
-        "title": "Create Topics & Prompts",
-        "description": "Organize your monitoring into Topics — categories that represent your products, services, or market segments. Then create Prompts — the real questions your customers ask AI platforms — to see if you're being recommended.",
-        "detail": "Topics structure your strategy, and Prompts simulate real searches. Together, they let you measure AI visibility across every business area with natural, customer-like queries.",
-        "features": {
-          "0": { "title": "Business Segments", "desc": "Map topics to product lines, services, or competitive segments you want to monitor." },
-          "1": { "title": "Real Questions", "desc": "Craft natural prompts like 'What's the best [service] in [location]?' for realistic data." },
-          "2": { "title": "Auto-Execution", "desc": "Prompts run automatically across all selected platforms on your schedule." }
+      "topics": {
+        "title": "Select Your Topics",
+        "description": "Topics are categories that represent your products, services, or market segments. Select the ones relevant to your business to organize your monitoring.",
+        "detail": "Choose between 1 and 5 topics. You can always add more later from your dashboard.",
+        "items": {
+          "brand": { "title": "Brand Reputation", "desc": "Monitor how AI platforms perceive and recommend your brand overall." },
+          "products": { "title": "Products & Services", "desc": "Track mentions and recommendations of your specific offerings." },
+          "industry": { "title": "Industry Trends", "desc": "See how AI platforms discuss your industry and where you fit in." },
+          "compete": { "title": "Competitive Landscape", "desc": "Compare your visibility against competitors in AI recommendations." }
+        }
+      },
+      "prompts": {
+        "title": "Choose Your Prompts",
+        "description": "Prompts are the real questions customers ask AI platforms. Select prompts for each topic to simulate searches and see if you're being recommended.",
+        "detail": "Each topic should have at least 1 prompt. Prompts run automatically across all your selected platforms.",
+        "items": {
+          "brand": {
+            "0": { "title": "What is [Company]?", "desc": "Tests basic brand recognition and how AI describes your company." },
+            "1": { "title": "Is [Company] trustworthy?", "desc": "Measures reputation and trust signals associated with your brand." },
+            "2": { "title": "Reviews of [Company]", "desc": "Checks what AI surfaces about customer reviews and satisfaction." }
+          },
+          "products": {
+            "0": { "title": "Best [product type] providers", "desc": "Tests if AI recommends your products in category searches." },
+            "1": { "title": "[Product] vs alternatives", "desc": "Compares how AI positions your offering against competitors." },
+            "2": { "title": "How to choose a [product type]?", "desc": "Checks if your product appears in buying-guide responses." }
+          },
+          "industry": {
+            "0": { "title": "Top companies in [industry]", "desc": "Tests if AI includes you among industry leaders." },
+            "1": { "title": "Trends in [industry] 2025", "desc": "Checks if your brand appears in forward-looking industry discussions." },
+            "2": { "title": "[Industry] market leaders", "desc": "Measures your positioning in market-leadership queries." }
+          },
+          "compete": {
+            "0": { "title": "[Company] vs [Competitor]", "desc": "Direct comparison queries between you and key competitors." },
+            "1": { "title": "Best alternative to [Competitor]", "desc": "Tests if AI suggests you as an alternative to competitors." },
+            "2": { "title": "Why choose [Company] over others?", "desc": "Evaluates AI's reasoning for recommending your brand." }
+          }
         }
       },
       "results": {

@@ -4,6 +4,7 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { extractWebsiteInformation, generateLlmText, normalizeTenantHost, buildTenantHttpsUrl, fetchWithTimeout } from "../_shared/llm-generation.ts";
+import { generateAiSuggestions } from "../_shared/suggest-topics.ts";
 
 /**
  * Get Website Information Edge Function
@@ -121,85 +122,22 @@ serve(async (req: Request) => {
 
     // --- ACTION: SUGGEST TOPICS ---
     if (action === 'suggest_topics') {
-      if (!company.extracted_content) return withCors(req, badRequest("Cannot generate suggestions without extracting information first."));
-
-      let prompt = `
-        You are an expert AI prompt engineer and SEO analyst.
-        Based on the following extracted details about a website/company, generate a list of topics and prompts that users might ask AI platforms (like ChatGPT or Perplexity) about the services, products, or industry this company operates in.
-        
-        **CRITICAL INSTRUCTIONS:**
-        1. The prompts and topics must be **GENERIC** and focused on customer **NECESSITIES** or **SERVICES**.
-        2. **DO NOT MENTION THE COMPANY NAME** or specific brand names in the prompts or topics.
-        3. Imagine a client who needs a solution this company provides, but doesn't necessarily know the company yet.
-        4. You should suggest 3-5 high-value topics. For each topic, suggest 3-5 relevant prompts.
-        
-        **LANGUAGE REQUIREMENT:**
-        - You MUST respond in the following language: ${language}
-        - All fields in the JSON (name, description, text) must be in ${language}.
-        
-        Data:
-        - Title: ${company.website_title}
-        - Meta: ${company.metatags}
-        - Overview: ${company.extracted_content}
-        
-        You must respond with ONLY a valid JSON object matching the following structure exactly, with no markdown fences or other text:
-        {
-          "topics": [
-            {
-              "name": "string (Generic Topic Name in ${language})",
-              "description": "string (Short description in ${language})",
-              "prompts": [
-                {
-                  "text": "string (Generic prompt focused on service/need in ${language})",
-                  "description": "string (Why this prompt is useful in ${language})"
-                }
-              ]
-            }
-          ]
-        }
-      `;
-
-      if (company.sitemap_xml) {
-        const truncatedSitemap = company.sitemap_xml.slice(0, 15000);
-        prompt += `
-        
-        To assist you, here is the generated sitemap.xml content for the website:
-        <sitemap_xml>
-        ${truncatedSitemap}
-        </sitemap_xml>
-        `;
+      if (!company.extracted_content) {
+        return withCors(req, badRequest("Cannot generate suggestions without extracting information first."));
       }
 
-      const apiKey = Deno.env.get("OPENAI_API_KEY");
-      if (!apiKey) return withCors(req, serverError("OPENAI_API_KEY is not configured"));
-
-      const chatBody = {
-        model: "gpt-4o",
-        messages: [{ role: "user", content: prompt }],
-        response_format: { type: "json_object" }
-      };
-
-      const res = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify(chatBody),
-      });
-
-      if (!res.ok) return withCors(req, serverError("Failed to generate suggestions from AI provider."));
-      
-      const data = await res.json();
-      let suggestionsJson = data.choices[0]?.message?.content;
-
-      if (!suggestionsJson) return withCors(req, serverError("AI provider returned an empty response."));
-
-      let parsedResult;
       try {
-        parsedResult = JSON.parse(suggestionsJson.trim());
-      } catch (e) {
-        return withCors(req, serverError("AI produced invalid JSON output."));
+        const result = await generateAiSuggestions({
+          websiteTitle: company.website_title,
+          metatags: company.metatags,
+          extractedContent: company.extracted_content,
+          sitemapXml: company.sitemap_xml,
+          language,
+        });
+        return withCors(req, ok(result));
+      } catch (err: any) {
+        return withCors(req, serverError(err.message || "Failed to generate suggestions."));
       }
-
-      return withCors(req, ok(parsedResult));
     }
 
     // --- ACTION: GENERATE ---

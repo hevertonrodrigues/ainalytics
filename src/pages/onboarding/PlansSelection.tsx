@@ -1,9 +1,9 @@
 import { useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
-import { X, KeyRound, Loader2 } from 'lucide-react';
+import { X, KeyRound, Loader2, Ticket } from 'lucide-react';
 import { PricingPlans } from '@/components/PricingPlans';
-import type { PricingPlan } from '@/components/PricingPlans';
+import type { PricingPlan, BillingPeriod } from '@/components/PricingPlans';
 import { InterestFormModal } from '@/components/InterestFormModal';
 
 interface ActivationCodeModalProps {
@@ -85,6 +85,8 @@ interface PlansSelectionProps {
   onActivate: () => void;
   onSetActivationCode: (val: string) => void;
   onCloseInterestModal: () => void;
+  onOpenCodeModal: () => void;
+  onBillingPeriodChange?: (period: BillingPeriod) => void;
 }
 
 export function PlansSelection({
@@ -101,6 +103,8 @@ export function PlansSelection({
   onActivate,
   onSetActivationCode,
   onCloseInterestModal,
+  onOpenCodeModal,
+  onBillingPeriodChange,
 }: PlansSelectionProps) {
   const { t } = useTranslation();
 
@@ -113,8 +117,26 @@ export function PlansSelection({
             <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
           </div>
         ) : (
-          <PricingPlans plans={pricingPlans} numericPrices={numericPrices} formatPrice={formatPrice} />
+          <PricingPlans
+            plans={pricingPlans}
+            numericPrices={numericPrices}
+            formatPrice={formatPrice}
+            onBillingPeriodChange={onBillingPeriodChange}
+          />
         )}
+
+        {/* "Já tenho uma assinatura" Button */}
+        <div className="text-center mt-4">
+          <button
+            type="button"
+            onClick={onOpenCodeModal}
+            className="inline-flex items-center gap-2 text-sm text-brand-primary hover:text-brand-primary/80 transition-colors font-medium"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.5rem 1rem' }}
+          >
+            <Ticket className="w-4 h-4" />
+            {t('plans.hasSubscription')}
+          </button>
+        </div>
       </div>
 
       {codeModalPlanId && (

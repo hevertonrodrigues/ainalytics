@@ -32,7 +32,7 @@ export interface Tenant {
   id: string;
   name: string;
   slug: string;
-  plan_id: string | null;
+  active_plan_id: string | null;
   main_domain: string | null;
   prompt_executions_per_hour: number;
   created_at: string;

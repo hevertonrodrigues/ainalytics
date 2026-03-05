@@ -18,7 +18,6 @@ interface TenantContextValue {
   /** True while tenant-related data (company, models) is being fetched */
   tenantLoading: boolean;
   switchTenant: (tenantId: string) => void;
-  updateTenantPlanId: (planId: string) => void;
   refreshTenant: () => Promise<void>;
 }
 
@@ -27,7 +26,6 @@ const TenantContext = createContext<TenantContextValue | null>(null);
 export function TenantProvider({ children }: { children: ReactNode }) {
   const { tenants: authTenants, refreshAuth } = useAuth();
 
-  const [planOverrides, setPlanOverrides] = useState<Record<string, string>>({});
   const [hasCompany, setHasCompany] = useState(false);
   const [hasModels, setHasModels] = useState(false);
   const [tenantLoading, setTenantLoading] = useState(true);
@@ -36,13 +34,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     localStorage.getItem(STORAGE_KEYS.CURRENT_TENANT_ID) || '',
   );
 
-  const tenants: Tenant[] = authTenants.map((t) => {
-    const override = planOverrides[t.id];
-    return override !== undefined ? { ...t, plan_id: override } : t;
-  });
-
+  const tenants: Tenant[] = authTenants;
   const currentTenant = tenants.find((t) => t.id === currentTenantId) || tenants[0] || null;
-  const hasPlan = !!currentTenant?.plan_id;
+  const hasPlan = !!currentTenant?.active_plan_id;
   const isFullySetup = hasPlan && hasCompany && hasModels;
 
   // Fetch company + models existence when tenant changes
@@ -78,15 +72,6 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     setCurrentTenantId(tenantId);
   }, []);
 
-  const updateTenantPlanId = useCallback(
-    (planId: string) => {
-      if (currentTenant) {
-        setPlanOverrides((prev) => ({ ...prev, [currentTenant.id]: planId }));
-      }
-    },
-    [currentTenant],
-  );
-
   const refreshTenant = useCallback(async () => {
     if (refreshAuth) await refreshAuth();
   }, [refreshAuth]);
@@ -103,7 +88,6 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         isFullySetup,
         tenantLoading,
         switchTenant,
-        updateTenantPlanId,
         refreshTenant,
       }}
     >

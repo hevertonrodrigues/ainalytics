@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
  *
  * Decision matrix (evaluated top-to-bottom):
  *   • Still loading auth or tenant data → show spinner, NO redirect
- *   • Tenant has plan_id              → skip onboarding, proceed to company/models gates
+ *   • Tenant has active subscription    → skip onboarding, proceed to company/models gates
  *   • No plan + has_seen_onboarding=F → redirect to /dashboard/onboarding
  *   • No plan + has_seen_onboarding=T → redirect to /dashboard/plans
  *
@@ -20,7 +20,7 @@ export function FlowGate() {
   const { profile, loading: authLoading, initialized } = useAuth();
   const { pathname } = useLocation();
 
-  const hasPlan = !!currentTenant?.plan_id;
+  const hasPlan = !!currentTenant?.active_plan_id;
   const hasSeenOnboarding = !!profile?.has_seen_onboarding;
 
   // Paths always reachable regardless of gate state
