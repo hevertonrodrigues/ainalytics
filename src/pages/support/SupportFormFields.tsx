@@ -8,7 +8,6 @@ import {
   User,
   FileText,
   CheckCircle2,
-  Clock,
 } from 'lucide-react';
 
 /* ─── Props ────────────────────────────────────────────────── */
