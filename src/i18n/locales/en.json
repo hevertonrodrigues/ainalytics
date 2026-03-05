@@ -204,6 +204,7 @@
     "subtitle": "Select the perfect plan for your organization. Upgrade or change anytime.",
     "currentPlan": "Current Plan",
     "selectPlan": "Select Plan",
+    "upgradePlan": "Upgrade Plan",
     "planSelected": "Plan updated successfully",
     "free": "Free",
     "custom": "Custom",
@@ -879,6 +880,53 @@
         "authority": "Authority & Trust measures whether AI systems believe your content enough to cite it. Freshness is one of the strongest citation signals — Perplexity weights it at roughly 40% of its ranking, and 76% of ChatGPT's most-cited pages were updated within 30 days. Other authority signals like original research quality and expert credentials require subjective judgment that can't be fully automated by crawling alone.",
         "semantic": "Semantic/NLP measures whether AI correctly understands the meaning of your content at the language level. Readability scoring ensures the text matches patterns AI models were trained on — overly academic or jargon-heavy writing gets lower extraction confidence. Entity consistency checks whether you call the same thing by the same name across your entire site, because AI builds knowledge graphs and inconsistent naming creates confusion.",
         "summary": "In short: Technical = can the AI get in, Content = can it extract cleanly, Authority = does it trust what it finds, Semantic = does it understand the meaning correctly. They form a natural funnel — each layer depends on the one before it."
+      }
+    }
+  },
+  "support": {
+    "title": "Support",
+    "subtitle": "Have a question or need help? Send us a message or check our FAQ below.",
+    "responseTime": "We typically respond within 24 hours on business days.",
+    "form": {
+      "title": "Contact Us",
+      "name": "Your Name",
+      "email": "Your Email",
+      "subject": "Subject",
+      "subjectPlaceholder": "What do you need help with?",
+      "message": "Message",
+      "messagePlaceholder": "Describe your question or issue in detail...",
+      "submit": "Send Message",
+      "sending": "Sending...",
+      "success": "Message sent! We'll get back to you soon.",
+      "error": "Failed to send message. Please try again."
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": {
+        "0": {
+          "q": "How does AI visibility monitoring work?",
+          "a": "We send your prompts to major AI platforms (ChatGPT, Claude, Gemini, Grok) and analyze the responses to see if and how your brand is mentioned. Results are updated on a schedule based on your plan."
+        },
+        "1": {
+          "q": "How often are my results updated?",
+          "a": "Update frequency depends on your plan: Starter plans refresh monthly, Growth plans refresh weekly, and Business plans refresh daily. Custom plans can have custom refresh rates."
+        },
+        "2": {
+          "q": "Can I change my plan at any time?",
+          "a": "Yes! You can upgrade or change your plan at any time from the Plans page. When upgrading, you'll be charged a prorated amount for the remaining billing period."
+        },
+        "3": {
+          "q": "What is the LLM.txt file?",
+          "a": "LLM.txt is a specialized file you host on your website that provides AI scrapers with accurate, structured information about your business. It helps ensure AI platforms have the most up-to-date data about your brand."
+        },
+        "4": {
+          "q": "How do I improve my GEO score?",
+          "a": "Your GEO score is based on 25 optimization factors across 4 categories: Technical, Content, Authority, and Semantic. Use the recommendations in your company analysis report to prioritize improvements."
+        },
+        "5": {
+          "q": "Can I monitor multiple brands or clients?",
+          "a": "Yes! With multi-tenant workspaces, agencies and consultants can manage separate monitoring for each client. Each brand gets its own workspace, prompts, and visibility reports."
+        }
       }
     }
   }

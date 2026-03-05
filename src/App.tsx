@@ -36,6 +36,7 @@ const PlansPage = lazy(() => import('@/pages/plans/PlansPage').then(m => ({ defa
 const LlmTextPage = lazy(() => import('@/pages/llmtext/LlmTextPage').then(m => ({ default: m.LlmTextPage })));
 const MyCompanyPage = lazy(() => import('@/pages/company/MyCompanyPage').then(m => ({ default: m.MyCompanyPage })));
 const OnboardingPage = lazy(() => import('@/pages/onboarding/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
+const SupportPage = lazy(() => import('@/pages/support/SupportPage').then(m => ({ default: m.SupportPage })));
 const NotFoundPage = lazy(() => import('@/pages/error/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 
 const SUPPORTED_LANGS = new Set(
@@ -93,6 +94,7 @@ export function App() {
               <Route path="onboarding" element={<OnboardingPage />} />
               <Route path="plans" element={<PlansPage />} />
               <Route path="profile" element={<ProfilePage />} />
+              <Route path="support" element={<SupportPage />} />
 
               {/* Flow-gated — sequential: plan → company → models */}
               <Route element={<FlowGate />}>

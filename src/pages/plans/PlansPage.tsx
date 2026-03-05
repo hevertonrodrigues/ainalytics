@@ -207,27 +207,28 @@ export function PlansPage() {
   // ─── Map plans → PricingPlan props ──────────────────────
 
   const pricingPlans: PricingPlan[] = plans.map((plan, idx) => {
-    const isCurrentPlan = plan.id === currentPlanId;
     const isCustom = !!(plan.settings as Record<string, unknown>)?.custom_pricing;
     const isFree = plan.price <= 0;
+    const isPopular = plan.name === 'Growth';
 
     return {
+      planId: plan.id,
+      rawPrice: plan.price,
       name: plan.name,
       price: formatPrice(plan),
       priceLabel: plan.price > 0 ? t('plans.perMonth') : undefined,
       description: getDescription(plan),
       features: getFeatures(plan),
-      popular: plan.name === 'Growth' ? t('plans.mostPopular') : undefined,
+      popular: isPopular ? t('plans.mostPopular') : undefined,
       isBlock: idx >= 3,
       cta: isCustom ? t('plans.contactSales') : t('plans.selectPlan'),
       onSelect: isCustom
         ? () => setInterestModalOpen(true)
-        : isCurrentPlan || isFree
+        : isFree
           ? undefined
           : () => handleStripeCheckout(plan.id),
       disabled: !!selecting,
       loading: selecting === plan.id,
-      statusLabel: isCurrentPlan ? t('plans.currentPlan') : undefined,
     };
   });
 
@@ -265,6 +266,7 @@ export function PlansPage() {
           numericPrices={plans.map(p => p.price)}
           formatPrice={formatCurrency}
           onBillingPeriodChange={setBillingPeriod}
+          currentPlanId={currentPlanId}
         />
       )}
 

@@ -204,6 +204,7 @@
     "subtitle": "Selecione o plano perfeito para sua organização. Mude ou faça upgrade a qualquer momento.",
     "currentPlan": "Plano Atual",
     "selectPlan": "Selecionar Plano",
+    "upgradePlan": "Fazer Upgrade",
     "planSelected": "Plano atualizado com sucesso",
     "free": "Grátis",
     "custom": "Personalizado",
@@ -879,6 +880,53 @@
         "authority": "Autoridade e Confiança mede se os sistemas de IA confiam no seu conteúdo o suficiente para citá-lo. Atualidade é um dos sinais de citação mais fortes — o Perplexity atribui cerca de 40% do seu ranking a isso, e 76% das páginas mais citadas pelo ChatGPT foram atualizadas nos últimos 30 dias. Outros sinais como qualidade de pesquisa original e credenciais de especialistas requerem julgamento subjetivo que não pode ser totalmente automatizado.",
         "semantic": "Semântico/NLP mede se a IA entende corretamente o significado do seu conteúdo no nível linguístico. A pontuação de legibilidade garante que o texto corresponda aos padrões em que os modelos de IA foram treinados — textos excessivamente acadêmicos ou cheios de jargão recebem menor confiança de extração. A consistência de entidades verifica se você usa o mesmo nome para a mesma coisa em todo o site, pois a IA constrói grafos de conhecimento e nomenclatura inconsistente gera confusão.",
         "summary": "Resumindo: Técnico = a IA consegue acessar, Conteúdo = consegue extrair de forma limpa, Autoridade = confia no que encontra, Semântico = entende o significado corretamente. Formam um funil natural — cada camada depende da anterior."
+      }
+    }
+  },
+  "support": {
+    "title": "Suporte",
+    "subtitle": "Tem uma dúvida ou precisa de ajuda? Envie-nos uma mensagem ou consulte nossas perguntas frequentes.",
+    "responseTime": "Normalmente respondemos em até 24 horas em dias úteis.",
+    "form": {
+      "title": "Fale Conosco",
+      "name": "Seu Nome",
+      "email": "Seu E-mail",
+      "subject": "Assunto",
+      "subjectPlaceholder": "Com o que você precisa de ajuda?",
+      "message": "Mensagem",
+      "messagePlaceholder": "Descreva sua dúvida ou problema em detalhes...",
+      "submit": "Enviar Mensagem",
+      "sending": "Enviando...",
+      "success": "Mensagem enviada! Retornaremos em breve.",
+      "error": "Falha ao enviar mensagem. Tente novamente."
+    },
+    "faq": {
+      "title": "Perguntas Frequentes",
+      "items": {
+        "0": {
+          "q": "Como funciona o monitoramento de visibilidade em IA?",
+          "a": "Enviamos seus prompts às principais plataformas de IA (ChatGPT, Claude, Gemini, Grok) e analisamos as respostas para ver se e como sua marca é mencionada. Os resultados são atualizados conforme o cronograma do seu plano."
+        },
+        "1": {
+          "q": "Com que frequência meus resultados são atualizados?",
+          "a": "A frequência de atualização depende do seu plano: planos Starter atualizam mensalmente, Growth semanalmente e Business diariamente. Planos personalizados podem ter taxas customizadas."
+        },
+        "2": {
+          "q": "Posso mudar de plano a qualquer momento?",
+          "a": "Sim! Você pode fazer upgrade ou mudar de plano a qualquer momento na página de Planos. Ao fazer upgrade, será cobrado um valor proporcional pelo período restante de faturamento."
+        },
+        "3": {
+          "q": "O que é o arquivo LLM.txt?",
+          "a": "LLM.txt é um arquivo especializado que você hospeda no seu site para fornecer aos scrapers de IA informações precisas e estruturadas sobre seu negócio. Ele garante que as plataformas de IA tenham os dados mais atualizados sobre sua marca."
+        },
+        "4": {
+          "q": "Como melhoro minha pontuação GEO?",
+          "a": "Sua pontuação GEO é baseada em 25 fatores de otimização em 4 categorias: Técnico, Conteúdo, Autoridade e Semântico. Use as recomendações do relatório de análise da sua empresa para priorizar melhorias."
+        },
+        "5": {
+          "q": "Posso monitorar múltiplas marcas ou clientes?",
+          "a": "Sim! Com espaços multi-tenant, agências e consultores podem gerenciar monitoramento separado para cada cliente. Cada marca tem seu próprio espaço, prompts e relatórios de visibilidade."
+        }
       }
     }
   }

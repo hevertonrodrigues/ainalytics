@@ -323,11 +323,41 @@ export function OnboardingPage() {
     }
   };
 
+  // Create tenant_platform_models for default platforms (inactive)
+  const saveDefaultPlatformModels = async () => {
+    try {
+      // Fetch all platforms
+      const platformsRes = await apiClient.get<any[]>('/platforms');
+      const defaultPlatforms = (platformsRes.data || []).filter(
+        (p: any) => p.is_default && p.default_model_id
+      );
+
+      // Create a preference for each default platform
+      for (const platform of defaultPlatforms) {
+        try {
+          await apiClient.post('/platforms/preferences', {
+            platform_id: platform.id,
+            model_id: platform.default_model_id,
+            is_active: false,
+          });
+        } catch (err: any) {
+          // Skip if already exists or other error
+          console.warn(`[onboarding] Error creating platform preference: ${err.message}`);
+        }
+      }
+    } catch (err) {
+      console.warn('[onboarding] Could not save default platform models:', err);
+    }
+  };
+
   const handleStripeCheckout = async (planId: string) => {
     setSelecting(planId);
     try {
-      // Save topics & prompts before redirecting to Stripe
-      await saveSelectedTopicsAndPrompts();
+      // Save topics, prompts, and default platform models before redirecting to Stripe
+      await Promise.all([
+        saveSelectedTopicsAndPrompts(),
+        saveDefaultPlatformModels(),
+      ]);
 
       const res = await apiClient.post<{ url: string }>('/stripe-checkout', {
         plan_id: planId,
@@ -346,8 +376,11 @@ export function OnboardingPage() {
     setCodeError('');
     setSelecting('activation');
     try {
-      // Save topics & prompts before activating
-      await saveSelectedTopicsAndPrompts();
+      // Save topics, prompts, and default platform models before activating
+      await Promise.all([
+        saveSelectedTopicsAndPrompts(),
+        saveDefaultPlatformModels(),
+      ]);
 
       await apiClient.put('/plans', {
         activation_code: activationCode.trim(),
@@ -394,11 +427,12 @@ export function OnboardingPage() {
   };
 
   const pricingPlans: PricingPlan[] = plans.map((plan, idx) => {
-    const isCurrentPlan = plan.id === currentPlanId;
     const isCustom = !!(plan.settings as Record<string, unknown>)?.custom_pricing;
     const isPopular = plan.name === 'Growth';
     const isFree = plan.price <= 0;
     return {
+      planId: plan.id,
+      rawPrice: plan.price,
       name: plan.name,
       price: isCustom ? t('plans.custom') : formatCurrency(plan.price),
       priceLabel: plan.price > 0 ? t('plans.perMonth') : undefined,
@@ -409,10 +443,9 @@ export function OnboardingPage() {
       cta: isCustom ? t('plans.contactSales') : t('plans.selectPlan'),
       onSelect: isCustom
         ? () => setInterestModalOpen(true)
-        : isCurrentPlan || isFree ? undefined : () => handleStripeCheckout(plan.id),
+        : isFree ? undefined : () => handleStripeCheckout(plan.id),
       disabled: !!selecting,
       loading: selecting === plan.id,
-      statusLabel: isCurrentPlan ? t('plans.currentPlan') : undefined,
     };
   });
 
@@ -573,6 +606,7 @@ export function OnboardingPage() {
               onCloseInterestModal={() => setInterestModalOpen(false)}
               onOpenCodeModal={openCodeModal}
               onBillingPeriodChange={setBillingPeriod}
+              currentPlanId={currentPlanId}
             />
           </AnalyzeResults>
         ) : (

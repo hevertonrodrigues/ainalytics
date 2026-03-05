@@ -87,6 +87,7 @@ interface PlansSelectionProps {
   onCloseInterestModal: () => void;
   onOpenCodeModal: () => void;
   onBillingPeriodChange?: (period: BillingPeriod) => void;
+  currentPlanId?: string | null;
 }
 
 export function PlansSelection({
@@ -105,6 +106,7 @@ export function PlansSelection({
   onCloseInterestModal,
   onOpenCodeModal,
   onBillingPeriodChange,
+  currentPlanId,
 }: PlansSelectionProps) {
   const { t } = useTranslation();
 
@@ -122,6 +124,7 @@ export function PlansSelection({
             numericPrices={numericPrices}
             formatPrice={formatPrice}
             onBillingPeriodChange={onBillingPeriodChange}
+            currentPlanId={currentPlanId}
           />
         )}
 

@@ -864,5 +864,52 @@
         "summary": "En resumen: Técnico = ¿puede la IA acceder?, Contenido = ¿puede extraer limpiamente?, Autoridad = ¿confía en lo que encuentra?, Semántico = ¿entiende el significado correctamente? Forman un embudo natural — cada capa depende de la anterior."
       }
     }
+  },
+  "support": {
+    "title": "Soporte",
+    "subtitle": "¿Tiene una pregunta o necesita ayuda? Envíenos un mensaje o consulte nuestras preguntas frecuentes.",
+    "responseTime": "Generalmente respondemos dentro de las 24 horas en días hábiles.",
+    "form": {
+      "title": "Contáctenos",
+      "name": "Su Nombre",
+      "email": "Su Correo Electrónico",
+      "subject": "Asunto",
+      "subjectPlaceholder": "¿Con qué necesita ayuda?",
+      "message": "Mensaje",
+      "messagePlaceholder": "Describa su pregunta o problema en detalle...",
+      "submit": "Enviar Mensaje",
+      "sending": "Enviando...",
+      "success": "¡Mensaje enviado! Le responderemos pronto.",
+      "error": "Error al enviar el mensaje. Inténtelo de nuevo."
+    },
+    "faq": {
+      "title": "Preguntas Frecuentes",
+      "items": {
+        "0": {
+          "q": "¿Cómo funciona el monitoreo de visibilidad IA?",
+          "a": "Enviamos sus prompts a las principales plataformas de IA (ChatGPT, Claude, Gemini, Grok) y analizamos las respuestas para ver si y cómo se menciona su marca. Los resultados se actualizan según el calendario de su plan."
+        },
+        "1": {
+          "q": "¿Con qué frecuencia se actualizan mis resultados?",
+          "a": "La frecuencia de actualización depende de su plan: los planes Starter se actualizan mensualmente, los planes Growth semanalmente y los planes Business diariamente. Los planes personalizados pueden tener tasas personalizadas."
+        },
+        "2": {
+          "q": "¿Puedo cambiar mi plan en cualquier momento?",
+          "a": "¡Sí! Puede mejorar o cambiar su plan en cualquier momento desde la página de Planes. Al mejorar, se le cobrará un monto prorrateado por el período de facturación restante."
+        },
+        "3": {
+          "q": "¿Qué es el archivo LLM.txt?",
+          "a": "LLM.txt es un archivo especializado que aloja en su sitio web y proporciona a los rastreadores de IA información precisa y estructurada sobre su negocio. Ayuda a garantizar que las plataformas de IA tengan los datos más actualizados sobre su marca."
+        },
+        "4": {
+          "q": "¿Cómo mejoro mi puntuación GEO?",
+          "a": "Su puntuación GEO se basa en 25 factores de optimización en 4 categorías: Técnico, Contenido, Autoridad y Semántico. Use las recomendaciones del informe de análisis de su empresa para priorizar mejoras."
+        },
+        "5": {
+          "q": "¿Puedo monitorear múltiples marcas o clientes?",
+          "a": "¡Sí! Con espacios multi-tenant, agencias y consultores pueden gestionar monitoreo separado para cada cliente. Cada marca tiene su propio espacio, prompts e informes de visibilidad."
+        }
+      }
+    }
   }
 }

@@ -262,10 +262,13 @@ export function Sidebar() {
                   <CreditCard className="nav-link-icon" />
                   <span>{t('nav.plans')}</span>
                 </NavLink>
-                <button className="sidebar-action">
+                <NavLink
+                  to="/dashboard/support"
+                  className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
+                >
                   <HelpCircle className="nav-link-icon" />
                   <span>{t('nav.support')}</span>
-                </button>
+                </NavLink>
                 <button onClick={handleSignOut} className="sidebar-action sidebar-action-danger">
                   <LogOut className="nav-link-icon" />
                   <span>{t('auth.signOut')}</span>

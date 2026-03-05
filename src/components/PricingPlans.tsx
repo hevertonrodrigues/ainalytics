@@ -23,6 +23,10 @@ export interface PricingPlan {
   statusLabel?: string;
   /** Whether the plan is currently being selected (shows loading) */
   loading?: boolean;
+  /** Plan ID — used to match against currentPlanId */
+  planId?: string;
+  /** Raw numeric price — used for current/upgrade/downgrade logic */
+  rawPrice?: number;
 }
 
 export interface PricingPlansProps {
@@ -35,6 +39,8 @@ export interface PricingPlansProps {
   onBillingPeriodChange?: (period: BillingPeriod) => void;
   /** Controlled billing period (optional) */
   billingPeriod?: BillingPeriod;
+  /** ID of the currently active plan. When set, enables current-plan styling, upgrade labels, and disables cheaper plans. */
+  currentPlanId?: string | null;
 }
 
 /* ─── Card (for first 3) ─── */
@@ -308,6 +314,7 @@ export function PricingPlans({
   formatPrice,
   onBillingPeriodChange,
   billingPeriod: controlledPeriod,
+  currentPlanId,
 }: PricingPlansProps) {
   const { t } = useTranslation();
   const [internalPeriod, setInternalPeriod] = useState<BillingPeriod>("monthly");
@@ -317,21 +324,56 @@ export function PricingPlans({
     onBillingPeriodChange?.(p);
   };
 
-  // Apply yearly discount to plans
-  const displayPlans = plans.map((plan, i) => {
-    if (billingPeriod === "monthly") return plan;
+  // Determine current plan price for upgrade/downgrade logic
+  const hasActivePlan = !!currentPlanId;
+  const currentPlanPrice = hasActivePlan
+    ? plans.find((p) => p.planId === currentPlanId)?.rawPrice ?? 0
+    : null;
 
-    const rawPrice = numericPrices?.[i];
-    // Only apply discount if we have a numeric price > 0 and a formatter
-    if (rawPrice && rawPrice > 0 && formatPrice) {
-      const yearlyMonthlyPrice = rawPrice * 0.5;
-      return {
-        ...plan,
-        price: formatPrice(yearlyMonthlyPrice),
-        priceLabel: plan.priceLabel ? t("plans.perYear") : undefined,
-      };
+  // Apply yearly discount + current-plan logic
+  const displayPlans = plans.map((plan, i) => {
+    let result = { ...plan };
+
+    // Yearly discount
+    if (billingPeriod === "yearly") {
+      const rawPrice = numericPrices?.[i];
+      if (rawPrice && rawPrice > 0 && formatPrice) {
+        const yearlyMonthlyPrice = rawPrice * 0.5;
+        result.price = formatPrice(yearlyMonthlyPrice);
+        result.priceLabel = plan.priceLabel ? t("plans.perYear") : undefined;
+      }
     }
-    return plan;
+
+    // Current-plan logic (only when user has an active plan)
+    if (hasActivePlan && plan.planId) {
+      const isCurrentPlan = plan.planId === currentPlanId;
+      const planPrice = plan.rawPrice ?? 0;
+      const isCheaper = !isCurrentPlan && planPrice < (currentPlanPrice ?? 0);
+      const isUpgrade = !isCurrentPlan && planPrice > (currentPlanPrice ?? 0);
+      const isFree = planPrice <= 0;
+
+      if (isCurrentPlan) {
+        // Highlight current plan like "popular" + show status label
+        result.popular = t('plans.currentPlan');
+        result.statusLabel = t('plans.currentPlan');
+        result.onSelect = undefined;
+      } else {
+        // Hide "Most Popular" badge when there's an active plan
+        result.popular = undefined;
+
+        if (isCheaper || isFree) {
+          // Disable cheaper/free plans
+          result.onSelect = undefined;
+        }
+
+        if (isUpgrade) {
+          // Show upgrade label for more expensive plans
+          result.cta = t('plans.upgradePlan');
+        }
+      }
+    }
+
+    return result;
   });
 
   const cards = displayPlans.filter((p) => !p.isBlock);

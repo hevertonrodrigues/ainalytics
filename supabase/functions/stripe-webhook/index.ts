@@ -161,6 +161,37 @@ async function handleCheckoutCompleted(event: any) {
     });
   }
 
+  // ── Activate the default model on tenant_platform_models ──
+  try {
+    const { data: defaultPlatform } = await db
+      .from("platforms")
+      .select("id, default_model_id")
+      .eq("is_default", true)
+      .single();
+
+    if (defaultPlatform?.default_model_id) {
+      // Upsert: if the row exists set is_active=true, otherwise insert it active
+      await db
+        .from("tenant_platform_models")
+        .upsert(
+          {
+            tenant_id: tenantId,
+            platform_id: defaultPlatform.id,
+            model_id: defaultPlatform.default_model_id,
+            is_active: true,
+          },
+          { onConflict: "tenant_id,platform_id,model_id" }
+        );
+
+      console.log(
+        `[stripe-webhook] Default model activated for tenant ${tenantId} (platform=${defaultPlatform.id}, model=${defaultPlatform.default_model_id})`
+      );
+    }
+  } catch (modelErr) {
+    // Non-fatal: subscription was already created successfully
+    console.error("[stripe-webhook] Error activating default model:", modelErr);
+  }
+
   console.log(`[stripe-webhook] Subscription created for tenant ${tenantId}, plan ${planId}`);
 }
 
@@ -323,6 +354,16 @@ async function handleSubscriptionUpdated(event: any) {
     .update(updates)
     .eq("id", subscription.id);
 
+  // If canceled, deactivate all tenant models
+  if (stripeSub.status === "canceled") {
+    await db
+      .from("tenant_platform_models")
+      .update({ is_active: false })
+      .eq("tenant_id", subscription.tenant_id);
+
+    console.log(`[stripe-webhook] All models deactivated for tenant ${subscription.tenant_id}`);
+  }
+
   console.log(`[stripe-webhook] Subscription ${subscription.id} updated to status: ${stripeSub.status}`);
 }
 
@@ -346,6 +387,13 @@ async function handleSubscriptionDeleted(event: any) {
     })
     .eq("id", subscription.id);
 
+  // Deactivate all tenant models
+  await db
+    .from("tenant_platform_models")
+    .update({ is_active: false })
+    .eq("tenant_id", subscription.tenant_id);
+
+  console.log(`[stripe-webhook] All models deactivated for tenant ${subscription.tenant_id}`);
   console.log(`[stripe-webhook] Subscription ${subscription.id} canceled`);
 }
 
