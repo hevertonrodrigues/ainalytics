@@ -334,7 +334,9 @@
       "howItWorks": "Cómo Funciona",
       "pricing": "Precios",
       "signIn": "Iniciar Sesión",
-      "getStarted": "Verifique su Visibilidad IA"
+      "getStarted": "Verifique su Visibilidad IA",
+      "hello": "Hola, {{name}}",
+      "dashboard": "Panel"
     },
     "hero": {
       "title": "La IA ya está hablando",
@@ -958,6 +960,20 @@
       "partnership": "Alianza",
       "demo_request": "Solicitar una Demo",
       "other": "Otro"
+    },
+    "channels": {
+      "email": {
+        "title": "Envíenos un Correo",
+        "description": "Complete el formulario y le responderemos lo antes posible."
+      },
+      "response": {
+        "title": "Respuesta Rápida",
+        "description": "Nuestro equipo generalmente responde en pocas horas durante días hábiles."
+      },
+      "support": {
+        "title": "Soporte Dedicado",
+        "description": "Los planes premium incluyen soporte prioritario con tiempos de respuesta más rápidos."
+      }
     }
   }
 }

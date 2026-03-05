@@ -335,7 +335,9 @@
       "howItWorks": "How It Works",
       "pricing": "Pricing",
       "signIn": "Sign In",
-      "getStarted": "Check Your AI Visibility"
+      "getStarted": "Check Your AI Visibility",
+      "hello": "Hi, {{name}}",
+      "dashboard": "Dashboard"
     },
     "hero": {
       "title": "AI Is already talking",
@@ -976,6 +978,20 @@
       "partnership": "Partnership",
       "demo_request": "Request a Demo",
       "other": "Other"
+    },
+    "channels": {
+      "email": {
+        "title": "Email Us",
+        "description": "Fill out the form and we'll get back to you as soon as possible."
+      },
+      "response": {
+        "title": "Quick Response",
+        "description": "Our team typically responds within a few hours during business days."
+      },
+      "support": {
+        "title": "Dedicated Support",
+        "description": "Premium plans include priority support with faster response times."
+      }
     }
   }
 }

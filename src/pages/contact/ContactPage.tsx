@@ -1,6 +1,14 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sparkles } from 'lucide-react';
+import {
+  Sparkles,
+  Mail,
+  Clock,
+  MessageSquare,
+  ArrowUpRight,
+  Headphones,
+  Zap,
+} from 'lucide-react';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { LandingHeader } from '@/pages/landing/LandingHeader';
 import { LandingFooter } from '@/pages/landing/LandingFooter';
@@ -52,7 +60,7 @@ export function ContactPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
+          apikey: SUPABASE_ANON_KEY,
         },
         body: JSON.stringify({ name, email, subject, message }),
       });
@@ -81,150 +89,379 @@ export function ContactPage() {
     <div className="landing-page">
       <LandingHeader scrolled={scrolled} />
 
-      {/* Keyframes */}
+      {/* ─── Scoped Styles ────────────────────────── */}
       <style>{`
-        @keyframes support-float {
-          0% { transform: translateY(0) scale(1); }
-          100% { transform: translateY(-20px) scale(1.1); }
-        }
-        @keyframes support-gradient-shift {
+        @keyframes contact-gradient-shift {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
-        @keyframes support-success-in {
-          0% { transform: translateY(-8px); opacity: 0; }
-          100% { transform: translateY(0); opacity: 1; }
+        @keyframes contact-float-1 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          25% { transform: translate(30px, -20px) scale(1.05); }
+          50% { transform: translate(-10px, -40px) scale(1.1); }
+          75% { transform: translate(-30px, -15px) scale(1.02); }
+        }
+        @keyframes contact-float-2 {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(-25px, 20px) scale(1.08); }
+          66% { transform: translate(15px, -25px) scale(0.95); }
+        }
+        @keyframes contact-float-3 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          50% { transform: translate(20px, -30px) rotate(5deg); }
+        }
+        @keyframes contact-fade-up {
+          0% { opacity: 0; transform: translateY(24px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes contact-pulse-glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(108, 92, 231, 0.2); }
+          50% { box-shadow: 0 0 40px rgba(108, 92, 231, 0.4); }
+        }
+        .contact-hero-section {
+          position: relative;
+          padding-top: 7rem;
+          padding-bottom: 4rem;
+          min-height: 100vh;
+          overflow: hidden;
+        }
+        .contact-hero-section::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background:
+            radial-gradient(ellipse 60% 50% at 20% 0%, rgba(108,92,231,0.08) 0%, transparent 70%),
+            radial-gradient(ellipse 50% 40% at 80% 100%, rgba(253,121,168,0.06) 0%, transparent 70%),
+            radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0,206,201,0.04) 0%, transparent 60%);
+          pointer-events: none;
+        }
+        .contact-layout {
+          display: grid;
+          grid-template-columns: 1fr 1.4fr;
+          gap: 2.5rem;
+          align-items: start;
+        }
+        @media (max-width: 900px) {
+          .contact-layout { grid-template-columns: 1fr; }
+        }
+        .contact-info-panel {
+          position: sticky;
+          top: 6rem;
+          animation: contact-fade-up 0.6s ease both;
+        }
+        .contact-info-card {
+          position: relative;
+          overflow: hidden;
+          border-radius: var(--radius-sm, 12px);
+          padding: 2.25rem;
+          background: var(--color-glass-bg);
+          border: 1px solid var(--color-glass-border);
+          backdrop-filter: blur(16px);
+        }
+        .contact-info-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, var(--color-brand-primary), var(--color-brand-accent, #fd79a8), var(--color-brand-primary));
+          background-size: 200% 100%;
+          animation: contact-gradient-shift 4s ease infinite;
+        }
+        .contact-channel {
+          display: flex;
+          align-items: flex-start;
+          gap: 1rem;
+          padding: 1rem 0;
+        }
+        .contact-channel + .contact-channel {
+          border-top: 1px solid var(--color-glass-border);
+        }
+        .contact-channel-icon {
+          width: 2.5rem;
+          height: 2.5rem;
+          min-width: 2.5rem;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .contact-channel:hover .contact-channel-icon {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(108, 92, 231, 0.3);
+        }
+        .contact-form-panel {
+          animation: contact-fade-up 0.6s ease 0.15s both;
+        }
+        .contact-form-card {
+          position: relative;
+          overflow: hidden;
+          border-radius: var(--radius-sm, 12px);
+          padding: 2rem;
+          background: var(--color-glass-bg);
+          border: 1px solid var(--color-glass-border);
+          backdrop-filter: blur(16px);
+        }
+        .contact-form-card::after {
+          content: '';
+          position: absolute;
+          bottom: -80px;
+          right: -80px;
+          width: 200px;
+          height: 200px;
+          border-radius: 50%;
+          background: var(--color-brand-primary);
+          filter: blur(100px);
+          opacity: 0.06;
+          pointer-events: none;
+        }
+        .contact-orb {
+          position: absolute;
+          border-radius: 50%;
+          filter: blur(80px);
+          pointer-events: none;
+          z-index: 0;
+        }
+        .contact-trust-badges {
+          display: flex;
+          gap: 1rem;
+          margin-top: 1.5rem;
+          flex-wrap: wrap;
+        }
+        .contact-trust-badge {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 0.875rem;
+          border-radius: 100px;
+          background: var(--color-glass-bg);
+          border: 1px solid var(--color-glass-border);
+          font-size: 0.75rem;
+          color: var(--color-text-secondary);
+          transition: border-color 0.2s ease, color 0.2s ease;
+        }
+        .contact-trust-badge:hover {
+          border-color: var(--color-brand-primary);
+          color: var(--color-text-primary);
+        }
+        .contact-trust-badge svg {
+          width: 0.875rem;
+          height: 0.875rem;
+          color: var(--color-brand-primary);
         }
       `}</style>
 
-      <section
-        style={{
-          paddingTop: '7rem',
-          paddingBottom: '4rem',
-          minHeight: '100vh',
-        }}
-      >
-        <div className="landing-container" style={{ maxWidth: '720px' }}>
-          {/* ─── Hero Header ──────────────────────────── */}
+      {/* ─── Hero Section ─────────────────────────── */}
+      <section className="contact-hero-section">
+        {/* Floating orbs */}
+        <div
+          className="contact-orb"
+          style={{
+            width: '300px',
+            height: '300px',
+            background: 'var(--color-brand-primary)',
+            top: '5%',
+            left: '-5%',
+            opacity: 0.12,
+            animation: 'contact-float-1 20s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="contact-orb"
+          style={{
+            width: '200px',
+            height: '200px',
+            background: 'var(--color-brand-accent, #fd79a8)',
+            bottom: '10%',
+            right: '-3%',
+            opacity: 0.1,
+            animation: 'contact-float-2 16s ease-in-out infinite',
+          }}
+        />
+        <div
+          className="contact-orb"
+          style={{
+            width: '150px',
+            height: '150px',
+            background: '#00cec9',
+            top: '60%',
+            left: '50%',
+            opacity: 0.06,
+            animation: 'contact-float-3 18s ease-in-out infinite',
+          }}
+        />
+
+        <div
+          className="landing-container"
+          style={{ position: 'relative', zIndex: 1, maxWidth: '1100px' }}
+        >
+          {/* ─── Page Title ───────────────────────── */}
           <div
             style={{
-              position: 'relative',
-              overflow: 'hidden',
-              borderRadius: 'var(--radius-xs)',
-              padding: '3rem 2rem',
               textAlign: 'center',
-              background: 'var(--color-glass-bg)',
-              border: '1px solid var(--color-glass-border)',
-              marginBottom: '2rem',
+              marginBottom: '3rem',
+              animation: 'contact-fade-up 0.5s ease both',
             }}
           >
-            {/* Animated background gradient */}
-            <div
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background:
-                  'linear-gradient(135deg, rgba(108,92,231,0.08) 0%, rgba(253,121,168,0.05) 50%, rgba(0,206,201,0.06) 100%)',
-                backgroundSize: '200% 200%',
-                animation: 'support-gradient-shift 12s ease infinite',
-                pointerEvents: 'none',
-              }}
-            />
 
-            {/* Floating orbs */}
-            <div
+            <h1
               style={{
-                position: 'absolute',
-                width: '120px',
-                height: '120px',
-                borderRadius: '50%',
-                background: 'var(--color-brand-primary)',
-                top: '-30px',
-                left: '10%',
-                filter: 'blur(84px)',
-                opacity: 0.2,
-                animation: 'support-float 8s ease-in-out 0s infinite alternate',
-                pointerEvents: 'none',
+                fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+                fontWeight: 700,
+                fontFamily: 'var(--font-display)',
+                color: 'var(--color-text-primary)',
+                marginBottom: '0.75rem',
+                lineHeight: 1.2,
               }}
-            />
-            <div
+            >
+              {t('contactPage.title')}
+            </h1>
+            <p
               style={{
-                position: 'absolute',
-                width: '80px',
-                height: '80px',
-                borderRadius: '50%',
-                background: 'var(--color-brand-accent)',
-                top: '60%',
-                left: '85%',
-                filter: 'blur(56px)',
-                opacity: 0.2,
-                animation: 'support-float 8s ease-in-out 2s infinite alternate',
-                pointerEvents: 'none',
+                color: 'var(--color-text-secondary)',
+                fontSize: '1rem',
+                maxWidth: '520px',
+                margin: '0 auto',
+                lineHeight: 1.7,
               }}
-            />
-
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div
-                style={{
-                  width: '3.5rem',
-                  height: '3.5rem',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(135deg, var(--color-brand-primary), #7c6cf0)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 1.25rem',
-                  boxShadow: '0 8px 32px var(--color-brand-glow)',
-                }}
-              >
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-
-              <h1
-                style={{
-                  fontSize: '2rem',
-                  fontWeight: 700,
-                  fontFamily: 'var(--font-display)',
-                  color: 'var(--color-text-primary)',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                {t('contactPage.title')}
-              </h1>
-              <p
-                style={{
-                  color: 'var(--color-text-secondary)',
-                  fontSize: '0.9375rem',
-                  maxWidth: '480px',
-                  margin: '0 auto',
-                  lineHeight: 1.6,
-                }}
-              >
-                {t('contactPage.subtitle')}
-              </p>
-            </div>
+            >
+              {t('contactPage.subtitle')}
+            </p>
           </div>
 
-          {/* ─── Contact Form ─────────────────────────── */}
-          <div className="glass-card" style={{ padding: '1.75rem' }}>
-            <SupportFormFields
-              name={name}
-              onNameChange={setName}
-              email={email}
-              onEmailChange={setEmail}
-              subject={subject}
-              onSubjectChange={setSubject}
-              subjectOptions={subjectOptions}
-              message={message}
-              onMessageChange={setMessage}
-              sending={sending}
-              error={error}
-              success={success}
-              onSubmit={handleSubmit}
-              showCardWrapper={false}
-              titleKey="contactPage.formTitle"
-            />
+          {/* ─── Two-Column Layout ────────────────── */}
+          <div className="contact-layout">
+            {/* Left: Info Panel */}
+            <div className="contact-info-panel">
+              <div className="contact-info-card">
+                {/* Channel: Email */}
+                <div className="contact-channel">
+                  <div
+                    className="contact-channel-icon"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(108,92,231,0.15), rgba(108,92,231,0.05))',
+                    }}
+                  >
+                    <Mail style={{ width: '1.125rem', height: '1.125rem', color: 'var(--color-brand-primary)' }} />
+                  </div>
+                  <div>
+                    <h4
+                      style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        color: 'var(--color-text-primary)',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {t('contactPage.channels.email.title')}
+                    </h4>
+                    <p
+                      style={{
+                        fontSize: '0.8125rem',
+                        color: 'var(--color-text-secondary)',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {t('contactPage.channels.email.description')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Channel: Response Time */}
+                <div className="contact-channel">
+                  <div
+                    className="contact-channel-icon"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(0,206,201,0.15), rgba(0,206,201,0.05))',
+                    }}
+                  >
+                    <Clock style={{ width: '1.125rem', height: '1.125rem', color: '#00cec9' }} />
+                  </div>
+                  <div>
+                    <h4
+                      style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        color: 'var(--color-text-primary)',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {t('contactPage.channels.response.title')}
+                    </h4>
+                    <p
+                      style={{
+                        fontSize: '0.8125rem',
+                        color: 'var(--color-text-secondary)',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {t('contactPage.channels.response.description')}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Channel: Support */}
+                <div className="contact-channel">
+                  <div
+                    className="contact-channel-icon"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(253,121,168,0.15), rgba(253,121,168,0.05))',
+                    }}
+                  >
+                    <Headphones
+                      style={{ width: '1.125rem', height: '1.125rem', color: 'var(--color-brand-accent, #fd79a8)' }}
+                    />
+                  </div>
+                  <div>
+                    <h4
+                      style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        color: 'var(--color-text-primary)',
+                        marginBottom: '0.25rem',
+                      }}
+                    >
+                      {t('contactPage.channels.support.title')}
+                    </h4>
+                    <p
+                      style={{
+                        fontSize: '0.8125rem',
+                        color: 'var(--color-text-secondary)',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {t('contactPage.channels.support.description')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Contact Form */}
+            <div className="contact-form-panel">
+              <div className="contact-form-card">
+                <SupportFormFields
+                  name={name}
+                  onNameChange={setName}
+                  email={email}
+                  onEmailChange={setEmail}
+                  subject={subject}
+                  onSubjectChange={setSubject}
+                  subjectOptions={subjectOptions}
+                  message={message}
+                  onMessageChange={setMessage}
+                  sending={sending}
+                  error={error}
+                  success={success}
+                  onSubmit={handleSubmit}
+                  showCardWrapper={false}
+                  titleKey="contactPage.formTitle"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>

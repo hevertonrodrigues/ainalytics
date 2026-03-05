@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Menu, X } from 'lucide-react';
-import { APP_NAME, LOCALES } from '@/lib/constants';
+import { Menu, X, LayoutDashboard } from 'lucide-react';
+import { APP_NAME, LOCALES, STORAGE_KEYS } from '@/lib/constants';
+import { supabase } from '@/lib/supabase';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
 const SUPPORTED_LANG_CODES: Set<string> = new Set(Object.values(LOCALES));
@@ -16,6 +17,23 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+
+  // Check if user is logged in (lightweight — no AuthProvider needed)
+  useEffect(() => {
+    const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+    if (!token) return;
+
+    const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN) || '';
+    supabase.auth.setSession({ access_token: token, refresh_token: refreshToken }).then(({ data: { session } }) => {
+      if (session?.user) {
+        const name = session.user.user_metadata?.full_name as string | undefined;
+        setUserName(name?.split(' ')[0] || name || session.user.email?.split('@')[0] || null);
+      }
+    }).catch(() => {
+      // Token invalid or expired — treat as logged out
+    });
+  }, []);
 
   const handleLogoClick = (e: React.MouseEvent) => {
     if (location.pathname === '/') {
@@ -40,6 +58,8 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
     },
     [i18n, location.pathname, navigate],
   );
+
+  const isLoggedIn = !!userName;
 
   return (
     <nav className={`landing-nav${scrolled ? ' landing-nav-scrolled' : ''}`}>
@@ -69,8 +89,20 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
               </button>
             ))}
           </div>
-          <Link to="/signin" className="btn btn-ghost btn-sm">{t('landing.nav.signIn')}</Link>
-          <Link to="/signup" className="btn btn-primary btn-sm">{t('landing.nav.getStarted')}</Link>
+          {isLoggedIn ? (
+            <>
+              <span className="landing-nav-greeting">{t('landing.nav.hello', { name: userName })}</span>
+              <Link to="/dashboard" className="btn btn-primary btn-sm">
+                <LayoutDashboard className="w-4 h-4" />
+                {t('landing.nav.dashboard')}
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className="btn btn-ghost btn-sm">{t('landing.nav.signIn')}</Link>
+              <Link to="/signup" className="btn btn-primary btn-sm">{t('landing.nav.getStarted')}</Link>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -101,8 +133,20 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
               </button>
             ))}
           </div>
-          <Link to="/signin" className="btn btn-ghost btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.signIn')}</Link>
-          <Link to="/signup" className="btn btn-primary btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.getStarted')}</Link>
+          {isLoggedIn ? (
+            <>
+              <span className="landing-nav-greeting" style={{ textAlign: 'center' }}>{t('landing.nav.hello', { name: userName })}</span>
+              <Link to="/dashboard" className="btn btn-primary btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>
+                <LayoutDashboard className="w-4 h-4" />
+                {t('landing.nav.dashboard')}
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/signin" className="btn btn-ghost btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.signIn')}</Link>
+              <Link to="/signup" className="btn btn-primary btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.getStarted')}</Link>
+            </>
+          )}
         </div>
       )}
     </nav>

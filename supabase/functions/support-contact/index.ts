@@ -7,7 +7,7 @@ import { createAdminClient } from "../_shared/supabase.ts";
 /**
  * support-contact — Authenticated endpoint.
  * Accepts POST with support message data.
- * Saves to support_messages table.
+ * Saves to contact_messages table.
  */
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -66,7 +66,7 @@ serve(async (req: Request) => {
     const db = createAdminClient();
 
     const { data, error: dbError } = await db
-      .from("support_messages")
+      .from("contact_messages")
       .insert({
         tenant_id: auth.tenantId,
         user_id: auth.user.id,

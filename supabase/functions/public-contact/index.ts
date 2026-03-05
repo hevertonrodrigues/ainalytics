@@ -6,7 +6,7 @@ import { createAdminClient } from "../_shared/supabase.ts";
 /**
  * public-contact — Unauthenticated endpoint.
  * Accepts POST with public contact form data.
- * Saves to support_messages table with null tenant_id / user_id.
+ * Saves to contact_messages table with null tenant_id / user_id.
  */
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -51,11 +51,11 @@ serve(async (req: Request) => {
       return withCors(req, badRequest("message is required"));
     }
 
-    // ── Insert support message (no tenant, no user) ──
+    // ── Insert contact message (no tenant, no user) ──
     const db = createAdminClient();
 
     const { data, error: dbError } = await db
-      .from("support_messages")
+      .from("contact_messages")
       .insert({
         tenant_id: null,
         user_id: null,

@@ -1799,6 +1799,13 @@ h6 {
   gap: 0.75rem;
 }
 
+.landing-nav-greeting {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
 .landing-mobile-toggle {
   display: none;
   background: none;
@@ -2388,20 +2395,20 @@ h6 {
 }
 
 .landing-faq-item {
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--color-glass-bg);
+  border: 1px solid var(--color-glass-border);
   border-radius: 12px;
   overflow: hidden;
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .landing-faq-item:hover {
-  border-color: rgba(108, 92, 231, 0.3);
+  border-color: rgba(108, 92, 231, 0.35);
 }
 
 .landing-faq-item-open {
-  border-color: #6c5ce7;
-  box-shadow: 0 0 0 1px rgba(108, 92, 231, 0.12), 0 4px 20px rgba(108, 92, 231, 0.06);
+  border-color: var(--color-brand-primary);
+  box-shadow: 0 0 0 1px rgba(108, 92, 231, 0.15), 0 4px 24px rgba(108, 92, 231, 0.08);
 }
 
 .landing-faq-question {
@@ -2417,27 +2424,27 @@ h6 {
   font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 600;
-  color: #1a1a2e;
+  color: var(--color-text-primary);
   line-height: 1.5;
   gap: 1rem;
   transition: color 0.2s ease;
 }
 
 .landing-faq-question:hover {
-  color: #6c5ce7;
+  color: var(--color-brand-secondary);
 }
 
 .landing-faq-chevron {
   flex-shrink: 0;
   width: 1.25rem;
   height: 1.25rem;
-  color: #666;
+  color: var(--color-text-muted);
   transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), color 0.2s ease;
 }
 
 .landing-faq-chevron.open {
   transform: rotate(180deg);
-  color: #6c5ce7;
+  color: var(--color-brand-secondary);
 }
 
 .landing-faq-answer {
@@ -2454,9 +2461,40 @@ h6 {
 
 .landing-faq-answer p {
   font-size: 0.9375rem;
-  color: #444;
+  color: var(--color-text-secondary);
   line-height: 1.7;
   margin: 0;
+}
+
+/* Light-mode FAQ overrides for landing page */
+[data-theme="light"] .landing-faq-item {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .landing-faq-item:hover {
+  border-color: rgba(108, 92, 231, 0.3);
+}
+
+[data-theme="light"] .landing-faq-item-open {
+  border-color: #6c5ce7;
+  box-shadow: 0 0 0 1px rgba(108, 92, 231, 0.1), 0 4px 20px rgba(108, 92, 231, 0.06);
+}
+
+[data-theme="light"] .landing-faq-question {
+  color: #1a1a2e;
+}
+
+[data-theme="light"] .landing-faq-question:hover {
+  color: #6c5ce7;
+}
+
+[data-theme="light"] .landing-faq-chevron {
+  color: #666;
+}
+
+[data-theme="light"] .landing-faq-answer p {
+  color: #444;
 }
 
 /* ─── Footer ─── */
