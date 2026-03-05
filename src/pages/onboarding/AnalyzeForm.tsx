@@ -20,6 +20,7 @@ interface AnalyzeFormProps {
   onCompanyNameChange: (value: string) => void;
   onAnalyze: () => void;
   onBack: () => void;
+  onSkip?: () => void;
 }
 
 export function AnalyzeForm({
