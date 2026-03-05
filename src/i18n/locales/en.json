@@ -272,7 +272,8 @@
     "cancelSuccess": "Subscription canceled successfully.",
     "redirectingToCheckout": "Redirecting to checkout...",
     "checkoutError": "Failed to start checkout. Please try again.",
-    "checkoutCanceled": "Checkout was canceled."
+    "checkoutCanceled": "Checkout was canceled.",
+    "trialBadge": "{{days}}-day free trial"
   },
   "analytics": {
     "totalDocuments": "Total Documents",

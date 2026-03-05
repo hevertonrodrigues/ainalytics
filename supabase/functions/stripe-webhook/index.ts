@@ -97,6 +97,9 @@ async function handleCheckoutCompleted(event: any) {
   const paidAmount = session.amount_total ? session.amount_total / 100 : 0;
   const currency = session.currency || "usd";
 
+  // Determine subscription status — Stripe sets 'trialing' when trial_period_days is used
+  const subscriptionStatus = stripeSubscription?.status === "trialing" ? "trialing" : "active";
+
   // Create subscription record
   const { data: subscription, error: subError } = await db
     .from("subscriptions")
@@ -105,7 +108,7 @@ async function handleCheckoutCompleted(event: any) {
       plan_id: planId,
       stripe_subscription_id: session.subscription || null,
       stripe_customer_id: session.customer || null,
-      status: "active",
+      status: subscriptionStatus,
       billing_interval: billingInterval,
       paid_amount: paidAmount,
       currency,

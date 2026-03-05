@@ -271,7 +271,8 @@
     "cancelSuccess": "Suscripción cancelada exitosamente.",
     "redirectingToCheckout": "Redirigiendo al pago...",
     "checkoutError": "Error al iniciar el pago. Inténtelo de nuevo.",
-    "checkoutCanceled": "El pago fue cancelado."
+    "checkoutCanceled": "El pago fue cancelado.",
+    "trialBadge": "Prueba gratis por {{days}} días"
   },
   "analytics": {
     "totalDocuments": "Total de Documentos",

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 /* ─── Types ─── */
@@ -27,6 +27,8 @@ export interface PricingPlan {
   planId?: string;
   /** Raw numeric price — used for current/upgrade/downgrade logic */
   rawPrice?: number;
+  /** Number of free trial days (0 = no trial) */
+  trialDays?: number;
 }
 
 export interface PricingPlansProps {
@@ -57,7 +59,9 @@ function PricingCard({
   disabled,
   statusLabel,
   loading,
+  trialDays,
 }: PricingPlan) {
+  const { t } = useTranslation();
   const isClickable = onSelect && !statusLabel && !disabled && !loading;
   return (
     <div
@@ -73,6 +77,12 @@ function PricingCard({
           <span className="landing-pricing-period">{priceLabel}</span>
         )}
       </div>
+      {!!trialDays && trialDays > 0 && (
+        <div className="pricing-trial-badge">
+          <Sparkles className="w-3.5 h-3.5" />
+          {t('plans.trialBadge', { days: trialDays })}
+        </div>
+      )}
       <p className="landing-pricing-desc">{description}</p>
 
       {statusLabel ? (
@@ -130,7 +140,9 @@ function PricingBlock({
   disabled,
   statusLabel,
   loading,
+  trialDays,
 }: PricingPlan) {
+  const { t } = useTranslation();
   const isClickable = onSelect && !statusLabel && !disabled && !loading;
   return (
     <div
@@ -185,6 +197,12 @@ function PricingBlock({
               </span>
             )}
           </div>
+          {!!trialDays && trialDays > 0 && (
+            <div className="pricing-trial-badge">
+              <Sparkles className="w-3.5 h-3.5" />
+              {t('plans.trialBadge', { days: trialDays })}
+            </div>
+          )}
         </div>
 
         {/* Center: description or features */}
@@ -346,6 +364,9 @@ export function PricingPlans({
 
     // Current-plan logic (only when user has an active plan)
     if (hasActivePlan && plan.planId) {
+      // Hide trial badge when user already has an active plan
+      result.trialDays = undefined;
+
       const isCurrentPlan = plan.planId === currentPlanId;
       const planPrice = plan.rawPrice ?? 0;
       const isCheaper = !isCurrentPlan && planPrice < (currentPlanPrice ?? 0);

@@ -71,6 +71,36 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
+    // ─── PATCH: cancel the latest pending payment attempt ──
+    if (req.method === "PATCH") {
+      const auth = await verifyAuth(req);
+      const db = createAdminClient();
+
+      // Find the most recent pending payment attempt for this tenant
+      const { data: pending } = await db
+        .from("payment_attempts")
+        .select("id")
+        .eq("tenant_id", auth.tenantId)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (pending) {
+        const { error: updateErr } = await db
+          .from("payment_attempts")
+          .update({ status: "canceled" })
+          .eq("id", pending.id);
+
+        if (updateErr) {
+          console.error("[stripe-checkout] Error canceling payment_attempt:", updateErr);
+          return withCors(req, serverError("Failed to cancel payment attempt"));
+        }
+      }
+
+      return withCors(req, ok({ canceled: true }));
+    }
+
     if (req.method !== "POST") {
       return withCors(req, badRequest(`Method ${req.method} not allowed`));
     }
@@ -252,6 +282,7 @@ serve(async (req: Request) => {
           plan_id: body.plan_id,
           billing_interval: body.billing_interval,
         },
+        ...(plan.trial > 0 ? { trial_period_days: plan.trial } : {}),
       },
     });
 

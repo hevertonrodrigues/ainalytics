@@ -272,7 +272,8 @@
     "cancelSuccess": "Assinatura cancelada com sucesso.",
     "redirectingToCheckout": "Redirecionando para o pagamento...",
     "checkoutError": "Erro ao iniciar o pagamento. Tente novamente.",
-    "checkoutCanceled": "O pagamento foi cancelado."
+    "checkoutCanceled": "O pagamento foi cancelado.",
+    "trialBadge": "Teste grátis por {{days}} dias"
   },
   "analytics": {
     "totalDocuments": "Total de Documentos",

@@ -433,6 +433,7 @@ export function OnboardingPage() {
     return {
       planId: plan.id,
       rawPrice: plan.price,
+      trialDays: plan.trial,
       name: plan.name,
       price: isCustom ? t('plans.custom') : formatCurrency(plan.price),
       priceLabel: plan.price > 0 ? t('plans.perMonth') : undefined,

@@ -126,6 +126,7 @@ export function LandingPage() {
       description: getDescription(plan),
       features: getFeatures(plan),
       popular: isPopular ? t('plans.mostPopular') : undefined,
+      trialDays: plan.trial,
       isBlock: idx >= 3,
       cta: isCustom ? t('landing.pricing.custom.cta') : t('landing.pricing.free.cta'),
       onSelect: isCustom ? () => setInterestModalOpen(true) : undefined,

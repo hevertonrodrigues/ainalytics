@@ -68,6 +68,10 @@ export function PlansPage() {
       window.history.replaceState({}, '', window.location.pathname);
       if (currentTenant) loadPlans();
     } else if (checkout === 'canceled') {
+      // Update the pending payment attempt to canceled in the database
+      apiClient.patch('/stripe-checkout').catch((err) => {
+        console.error('Failed to cancel payment attempt:', err);
+      });
       showError(t('plans.checkoutCanceled', 'Checkout was canceled'));
       window.history.replaceState({}, '', window.location.pathname);
     }
@@ -214,6 +218,7 @@ export function PlansPage() {
     return {
       planId: plan.id,
       rawPrice: plan.price,
+      trialDays: plan.trial,
       name: plan.name,
       price: formatPrice(plan),
       priceLabel: plan.price > 0 ? t('plans.perMonth') : undefined,
