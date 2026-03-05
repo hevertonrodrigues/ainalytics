@@ -37,7 +37,9 @@ const LlmTextPage = lazy(() => import('@/pages/llmtext/LlmTextPage').then(m => (
 const MyCompanyPage = lazy(() => import('@/pages/company/MyCompanyPage').then(m => ({ default: m.MyCompanyPage })));
 const OnboardingPage = lazy(() => import('@/pages/onboarding/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
 const SupportPage = lazy(() => import('@/pages/support/SupportPage').then(m => ({ default: m.SupportPage })));
+const ContactPage = lazy(() => import('@/pages/contact/ContactPage').then(m => ({ default: m.ContactPage })));
 const NotFoundPage = lazy(() => import('@/pages/error/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+const LegalPage = lazy(() => import('@/pages/legal/LegalPage').then(m => ({ default: m.LegalPage })));
 
 const SUPPORTED_LANGS = new Set(
   (Array.isArray(i18n.options.supportedLngs) ? i18n.options.supportedLngs : ['en', 'es', 'pt-br']).filter(
@@ -79,6 +81,9 @@ export function App() {
           {/* Public landing page — no auth provider needed */}
           <Route index element={<LandingPage />} />
           <Route path="/:lang" element={<LandingWithLang />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<LegalPage />} />
+          <Route path="/privacy" element={<LegalPage />} />
 
           {/* All other routes require AuthProvider */}
           <Route element={<AuthProvider><AuthOutlet /></AuthProvider>}>

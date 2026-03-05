@@ -36,7 +36,19 @@
     "placeholderName": "John Doe",
     "placeholderEmail": "you@company.com",
     "placeholderPassword": "••••••••",
-    "placeholderPhone": "Enter phone number"
+    "placeholderPhone": "Enter phone number",
+    "errors": {
+      "invalidCredentials": "Invalid email or password. Please check your credentials and try again.",
+      "emailNotConfirmed": "Your email has not been confirmed yet. Please check your inbox for the confirmation link.",
+      "userAlreadyRegistered": "An account with this email already exists. Try signing in instead.",
+      "invalidPassword": "The password provided is not valid. Please choose a stronger password.",
+      "invalidEmail": "The email address format is invalid. Please enter a valid email.",
+      "rateLimitExceeded": "Too many attempts. Please wait a few minutes before trying again.",
+      "tooManyRequests": "For security purposes, please wait a moment before trying again.",
+      "samePassword": "The new password must be different from your current password.",
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "unknown": "An unexpected error occurred. Please try again or <a href='/dashboard/support'>contact our support team</a>."
+    }
   },
   "profile": {
     "title": "My Profile",
@@ -486,6 +498,10 @@
       "faq": "FAQ"
     }
   },
+  "legal": {
+    "termsTitle": "Terms of Service",
+    "privacyTitle": "Privacy Policy"
+  },
   "interestForm": {
     "title": "Let's Build Your Custom Plan",
     "subtitle": "Tell us about your needs and we'll craft a tailored AI monitoring solution for you.",
@@ -502,7 +518,7 @@
     "submit": "Send Request",
     "sending": "Sending...",
     "successTitle": "We Got Your Request!",
-    "successMessage": "Our team will review your needs and get back to you within 24 hours.",
+    "successMessage": "Our team will review your needs and get back to you.",
     "close": "Close"
   },
   "sources": {
@@ -892,7 +908,6 @@
   "support": {
     "title": "Support",
     "subtitle": "Have a question or need help? Send us a message or check our FAQ below.",
-    "responseTime": "We typically respond within 24 hours on business days.",
     "form": {
       "title": "Contact Us",
       "name": "Your Name",
@@ -949,6 +964,18 @@
           "a": "Yes! With multi-tenant workspaces, agencies and consultants can manage separate monitoring for each client. Each brand gets its own workspace, prompts, and visibility reports."
         }
       }
+    }
+  },
+  "contactPage": {
+    "title": "Contact Us",
+    "subtitle": "Have a question, want a demo, or interested in a partnership? We'd love to hear from you.",
+    "formTitle": "Send Us a Message",
+    "subjects": {
+      "general_inquiry": "General Inquiry",
+      "pricing": "Pricing",
+      "partnership": "Partnership",
+      "demo_request": "Request a Demo",
+      "other": "Other"
     }
   }
 }

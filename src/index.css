@@ -2584,6 +2584,94 @@ h6 {
   font-size: 0.75rem;
   color: var(--color-text-muted);
 }
+/* ─── Legal Pages (Terms, Privacy) ─── */
+.legal-page {
+  padding: 8rem 0 4rem;
+  min-height: 100vh;
+}
+
+.legal-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.legal-container h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  color: var(--color-text-primary);
+  margin-bottom: 2.5rem;
+  background: linear-gradient(135deg, var(--color-brand-primary), var(--color-brand-accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.legal-content {
+  line-height: 1.8;
+  color: var(--color-text-secondary);
+}
+
+.legal-content h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.75rem;
+  color: var(--color-text-primary);
+  margin: 2.5rem 0 1rem;
+}
+
+.legal-content h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.25rem;
+  color: var(--color-text-primary);
+  margin: 2rem 0 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--color-glass-border);
+}
+
+.legal-content h3:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.legal-content p {
+  margin-bottom: 1rem;
+  font-size: 0.9375rem;
+}
+
+.legal-content strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.legal-content a {
+  color: var(--color-brand-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+.legal-content a:hover {
+  color: var(--color-brand-primary);
+}
+
+.legal-content ul,
+.legal-content ol {
+  margin: 0.75rem 0 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.legal-content li {
+  font-size: 0.9375rem;
+}
+
+.legal-skeleton {
+  padding: 2rem 0;
+}
 
 /* ─── Scroll Reveal Animations ─── */
 .landing-reveal {

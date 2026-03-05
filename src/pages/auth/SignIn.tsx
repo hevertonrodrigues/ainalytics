@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
+import { getAuthErrorMessage } from '@/lib/authErrors';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
@@ -32,8 +33,7 @@ export function SignIn() {
       // Hard redirect — guarantees AuthContext restores session from localStorage
       window.location.href = '/dashboard';
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('common.error');
-      setError(msg);
+      setError(getAuthErrorMessage(err, t));
       setLoading(false);
     }
   };
@@ -91,9 +91,7 @@ export function SignIn() {
           <div className="auth-card">
             <form onSubmit={handleSubmit} className="auth-form">
               {error && (
-                <div className="auth-error">
-                  {error}
-                </div>
+                <div className="auth-error" dangerouslySetInnerHTML={{ __html: error }} />
               )}
 
               {/* Email */}

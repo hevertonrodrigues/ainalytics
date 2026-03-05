@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
+import { getAuthErrorMessage } from '@/lib/authErrors';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
 import type { Iso2 } from 'intl-tel-input/data';
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
@@ -63,8 +64,8 @@ export function SignUp() {
       // Hard redirect — guarantees AuthContext restores session from localStorage
       window.location.href = '/dashboard';
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('common.error');
-      if (msg === 'CONFIRM_EMAIL') {
+      const msg = getAuthErrorMessage(err, t);
+      if (err instanceof Error && err.message === 'CONFIRM_EMAIL') {
         setIsSuccess(true);
       } else {
         // Handle specific Supabase auth errors if possible, or just set generic error
@@ -314,7 +315,7 @@ export function SignUp() {
               {allErrors.length > 0 && (
                 <div className="auth-error mb-6">
                   {allErrors.map((err, idx) => (
-                    <div key={idx}>{err}</div>
+                    <div key={idx} dangerouslySetInnerHTML={{ __html: err }} />
                   ))}
                 </div>
               )}

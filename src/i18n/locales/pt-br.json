@@ -36,7 +36,19 @@
     "placeholderName": "João Silva",
     "placeholderEmail": "usuario@empresa.com.br",
     "placeholderPassword": "••••••••",
-    "placeholderPhone": "Digite seu número de telefone"
+    "placeholderPhone": "Digite seu número de telefone",
+    "errors": {
+      "invalidCredentials": "E-mail ou senha incorretos. Verifique suas credenciais e tente novamente.",
+      "emailNotConfirmed": "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada para encontrar o link de confirmação.",
+      "userAlreadyRegistered": "Já existe uma conta com este e-mail. Tente fazer login.",
+      "invalidPassword": "A senha fornecida não é válida. Escolha uma senha mais forte.",
+      "invalidEmail": "O formato do e-mail é inválido. Insira um e-mail válido.",
+      "rateLimitExceeded": "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.",
+      "tooManyRequests": "Por segurança, aguarde um momento antes de tentar novamente.",
+      "samePassword": "A nova senha deve ser diferente da senha atual.",
+      "sessionExpired": "Sua sessão expirou. Faça login novamente.",
+      "unknown": "Ocorreu um erro inesperado. Tente novamente ou <a href='/dashboard/support'>entre em contato com nosso suporte</a>."
+    }
   },
   "profile": {
     "title": "Meu Perfil",
@@ -486,6 +498,10 @@
       "faq": "FAQ"
     }
   },
+  "legal": {
+    "termsTitle": "Termos de Uso",
+    "privacyTitle": "Política de Privacidade"
+  },
   "interestForm": {
     "title": "Vamos Criar seu Plano Personalizado",
     "subtitle": "Conte-nos suas necessidades e criaremos uma solução de monitoramento IA sob medida para você.",
@@ -502,7 +518,7 @@
     "submit": "Enviar Solicitação",
     "sending": "Enviando...",
     "successTitle": "Recebemos sua Solicitação!",
-    "successMessage": "Nossa equipe analisará suas necessidades e entrará em contato em até 24 horas.",
+    "successMessage": "Nossa equipe analisará suas necessidades e entrará em contato.",
     "close": "Fechar"
   },
   "sources": {
@@ -892,7 +908,6 @@
   "support": {
     "title": "Suporte",
     "subtitle": "Tem uma dúvida ou precisa de ajuda? Envie-nos uma mensagem ou consulte nossas perguntas frequentes.",
-    "responseTime": "Normalmente respondemos em até 24 horas em dias úteis.",
     "form": {
       "title": "Fale Conosco",
       "name": "Seu Nome",
@@ -949,6 +964,18 @@
           "a": "Sim! Com espaços multi-tenant, agências e consultores podem gerenciar monitoramento separado para cada cliente. Cada marca tem seu próprio espaço, prompts e relatórios de visibilidade."
         }
       }
+    }
+  },
+  "contactPage": {
+    "title": "Fale Conosco",
+    "subtitle": "Tem uma dúvida, quer uma demo ou está interessado em uma parceria? Adoraríamos ouvir de você.",
+    "formTitle": "Envie-nos uma Mensagem",
+    "subjects": {
+      "general_inquiry": "Informações Gerais",
+      "pricing": "Preços",
+      "partnership": "Parceria",
+      "demo_request": "Solicitar uma Demo",
+      "other": "Outro"
     }
   }
 }

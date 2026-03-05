@@ -46,14 +46,14 @@ export function LandingFooter() {
 
         <div className="landing-footer-links">
           <h4>{t('landing.footer.support')}</h4>
-          <Link to="/dashboard/support">{t('landing.footer.contact')}</Link>
+          <Link to="/contact">{t('landing.footer.contact')}</Link>
           <a href="#faq">{t('landing.footer.faq')}</a>
         </div>
 
         <div className="landing-footer-links">
           <h4>{t('landing.footer.legal')}</h4>
-          <a href="#privacy">{t('landing.footer.privacy')}</a>
-          <a href="#terms">{t('landing.footer.terms')}</a>
+          <Link to="/privacy">{t('landing.footer.privacy')}</Link>
+          <Link to="/terms">{t('landing.footer.terms')}</Link>
         </div>
 
         <div className="landing-footer-bottom">

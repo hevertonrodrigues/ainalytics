@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME } from '@/lib/constants';
+import { getAuthErrorMessage } from '@/lib/authErrors';
 
 export function ForgotPassword() {
   const { t } = useTranslation();
@@ -22,8 +23,7 @@ export function ForgotPassword() {
       await forgotPassword(email);
       setSent(true);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('common.error');
-      setError(msg);
+      setError(getAuthErrorMessage(err, t));
     } finally {
       setLoading(false);
     }
@@ -58,9 +58,7 @@ export function ForgotPassword() {
             <>
               <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                  <div className="p-3 rounded-lg bg-error/10 border border-error/20 text-error text-sm">
-                    {error}
-                  </div>
+                  <div className="p-3 rounded-lg bg-error/10 border border-error/20 text-error text-sm" dangerouslySetInnerHTML={{ __html: error }} />
                 )}
 
                 <div>
