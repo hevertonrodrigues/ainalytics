@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback, type FormEvent } from 'react';
+import { useState, useEffect, useRef, useCallback, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiClient } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
+import { EDGE_FUNCTION_BASE, SUPABASE_ANON_KEY, STORAGE_KEYS } from '@/lib/constants';
 import { SearchSelect } from '@/components/ui/SearchSelect';
 import {
   Send,
@@ -186,8 +187,15 @@ const MAX_FILES = 5;
 
 /* ─── Component ────────────────────────────────────────────── */
 
+interface FaqRow {
+  id: string;
+  question: string;
+  answer: string;
+  status: string;
+}
+
 export function SupportPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { profile } = useAuth();
 
   const [name, setName] = useState(profile?.full_name || '');
@@ -201,7 +209,42 @@ export function SupportPage() {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const FAQ_KEYS = ['0', '1', '2', '3', '4', '5'] as const;
+  const [faqItems, setFaqItems] = useState<FaqRow[]>([]);
+  const [faqLoading, setFaqLoading] = useState(true);
+
+  // Map i18n locale to the lang param the edge function expects
+  const langMap: Record<string, string> = { en: 'en', 'pt-br': 'pt', es: 'es' };
+
+  useEffect(() => {
+    const fetchFaq = async () => {
+      setFaqLoading(true);
+      try {
+        const lang = langMap[i18n.language?.toLowerCase()] || 'en';
+        const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+
+        const headers: Record<string, string> = {
+          apikey: SUPABASE_ANON_KEY,
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const res = await fetch(
+          `${EDGE_FUNCTION_BASE}/faq?lang=${lang}`,
+          { headers },
+        );
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setFaqItems(json.data);
+        }
+      } catch {
+        // Silently fail — FAQ section will simply be empty
+      } finally {
+        setFaqLoading(false);
+      }
+    };
+    fetchFaq();
+  }, [i18n.language]);
 
   const subjectOptions = SUBJECT_KEYS.map((key) => ({
     value: key,
@@ -704,14 +747,30 @@ export function SupportPage() {
             </div>
 
             <div>
-              {FAQ_KEYS.map((key, i) => (
-                <FaqItem
-                  key={key}
-                  index={i}
-                  question={t(`support.faq.items.${key}.q`)}
-                  answer={t(`support.faq.items.${key}.a`)}
-                />
-              ))}
+              {faqLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      height: '3.25rem',
+                      borderRadius: 'var(--radius-xs)',
+                      background: 'var(--color-bg-tertiary)',
+                      marginBottom: '0.5rem',
+                      opacity: 0.5,
+                      animation: 'pulse 1.5s ease-in-out infinite',
+                    }}
+                  />
+                ))
+              ) : faqItems.length > 0 ? (
+                faqItems.map((item, i) => (
+                  <FaqItem
+                    key={item.id}
+                    index={i}
+                    question={item.question}
+                    answer={item.answer}
+                  />
+                ))
+              ) : null}
             </div>
           </div>
         </div>
