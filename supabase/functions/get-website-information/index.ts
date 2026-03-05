@@ -50,7 +50,7 @@ serve(async (req: Request) => {
     // 2. Find company belonging to tenant
     const { data: company, error: cErr } = await sb
       .from("companies")
-      .select("id, domain, sitemap_xml, llm_txt, website_title, metatags, extracted_content")
+      .select("id, domain, llm_txt, website_title, metatags, extracted_content")
       .eq("tenant_id", tenantId)
       .single();
 
@@ -126,12 +126,23 @@ serve(async (req: Request) => {
         return withCors(req, badRequest("Cannot generate suggestions without extracting information first."));
       }
 
+      // Fetch sitemap_xml from the latest analysis if available
+      let sitemapXml: string | null = null;
+      const { data: latestAnalysis } = await sb
+        .from("geo_analyses")
+        .select("sitemap_xml")
+        .eq("company_id", company.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      if (latestAnalysis) sitemapXml = latestAnalysis.sitemap_xml;
+
       try {
         const result = await generateAiSuggestions({
           websiteTitle: company.website_title,
           metatags: company.metatags,
           extractedContent: company.extracted_content,
-          sitemapXml: company.sitemap_xml,
+          sitemapXml,
           language,
         });
         return withCors(req, ok(result));

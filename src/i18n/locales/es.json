@@ -216,6 +216,7 @@
     "subtitle": "Seleccione el plan perfecto para su organización. Cambie o mejore en cualquier momento.",
     "currentPlan": "Plan Actual",
     "selectPlan": "Seleccionar Plan",
+    "upgradePlan": "Mejorar Plan",
     "planSelected": "Plan actualizado con éxito",
     "free": "Gratis",
     "custom": "Personalizado",
@@ -598,19 +599,6 @@
     "accept": "Aceptar",
     "accepted": "Aceptado"
   },
-  "welcomeModal": {
-    "title": "Bienvenido a Ainalytics",
-    "description": "Exploremos las características principales del sistema.",
-    "topicsTitle": "Temas y Categorías",
-    "topicsDesc": "Agrupe sus prompts lógicamente en distintas categorías para una mejor organización.",
-    "promptsTitle": "Prompts",
-    "promptsDesc": "Gestione sus entradas e instrucciones de IA para probar frente a múltiples plataformas y modelos.",
-    "sourcesTitle": "Fuentes",
-    "sourcesDesc": "Organice materiales de referencia y bases de conocimiento que fundamenten las respuestas de su IA.",
-    "llmTextTitle": "Generación LLM.txt",
-    "llmTextDesc": "Genere automáticamente un archivo llm.txt basado en sus prompts, listo para que lo consuman LLMs externos.",
-    "skipButton": "Omitir / No volver a mostrar"
-  },
   "tutorials": {
     "models": {
       "title": "Configuración de Modelos y Plataformas de IA",
@@ -669,8 +657,34 @@
     "created": "¡Empresa creada! Iniciando análisis...",
     "createError": "Error al crear la empresa",
     "alreadyLinked": "Esta organización ya tiene una empresa vinculada.",
-    "progressTitle": "Analizando su Sitio Web",
-    "progressSubtitle": "Estamos analizando su sitio web. Esto puede tardar unos minutos.",
+    "progressTitle": "Análisis Completo en Curso",
+    "progressSubtitle": "Estamos realizando un análisis exhaustivo de su sitio web — rastreando todas las páginas, verificando factores técnicos y generando insights con IA. Esto puede tardar unos minutos.",
+
+    "msg": {
+      "starting": "Iniciando análisis exhaustivo de {{domain}}…",
+      "checkingRobots": "Escaneando robots.txt para permisos de rastreadores de IA…",
+      "robotsFound": "robots.txt encontrado — analizando reglas de acceso de bots de IA…",
+      "robotsMissing": "robots.txt no encontrado — los bots de IA tienen acceso completo por defecto",
+      "lookingSitemap": "Buscando sitemap XML…",
+      "sitemapFound": "Sitemap encontrado — mapeando todas las URLs para rastreo profundo…",
+      "sitemapMissing": "Sitemap no encontrado — descubriendo páginas desde enlaces internos",
+      "checkingLlmsTxt": "Buscando llms.txt — archivo de instrucciones para IA…",
+      "llmsTxtFound": "llms.txt encontrado — instrucciones específicas para IA detectadas",
+      "llmsTxtMissing": "No se encontró archivo llms.txt",
+      "analyzingHomepage": "Analizando página principal y mapeando todas las páginas descubiertas…",
+      "discoveredPages": "{{count}} páginas descubiertas — preparando rastreo exhaustivo…",
+      "homepageAnalyzed": "Página principal analizada. Rastreo profundo de {{count}} páginas restantes en segundo plano…",
+      "homepageOnlyDone": "Página principal completamente analizada. Procediendo al análisis de IA…",
+      "scrapingComplete": "Rastreo profundo completado — {{completed}} páginas analizadas. Iniciando puntuación de IA…",
+      "computingFactors": "Calculando 25 factores de optimización GEO…",
+      "factorsComputed": "{{count}} puntuaciones de factores calculadas. Preparando análisis exhaustivo de IA…",
+      "sendingToAi": "Enviando datos para análisis profundo y recomendaciones de IA…",
+      "aiResponseReceived": "Análisis de IA recibido — procesando insights…",
+      "computingScore": "Calculando puntuación GEO compuesta y nivel de preparación…",
+      "finalizingReport": "Finalizando informe completo y guardando resultados…",
+      "analysisComplete": "¡Análisis completo finalizado! GEO Score: {{score}}/100",
+      "analysisCompleteLimited": "Análisis completado (insights de IA limitados). GEO Score: {{score}}/100"
+    },
     "statusPending": "Esperando para iniciar...",
     "statusScraping": "Extrayendo páginas del sitio web...",
     "statusScrapingDone": "Extracción completa. Iniciando análisis con IA...",
@@ -709,6 +723,10 @@
     "high": "Alto",
     "medium": "Medio",
     "low": "Bajo",
+    "words": "palabras",
+    "csr": "CSR",
+    "captcha": "Captcha",
+    "schema": "Schema",
     "product": "Producto",
     "service": "Servicio",
     "summary": "Resumen de IA",
@@ -724,6 +742,8 @@
     "scoreNeutral": "Neutro",
     "scoreBad": "Malo",
     "scoreVeryBad": "Muy Malo",
+    "reanalyze": "Re-analizar",
+    "reanalyzeIn": "Re-analizar en {{days}} días",
     "reAnalyzeStarted": "Re-análisis iniciado",
     "phaseFetchingRobots": "Obteniendo robots.txt...",
     "phaseFetchingSitemap": "Obteniendo sitemap...",
@@ -764,7 +784,8 @@
     "pdfAuthority": "Autoridad",
     "pdfSemantic": "Semántico",
     "exportSuccess": "PDF exportado exitosamente",
-    "exportError": "Error al exportar PDF"
+    "exportError": "Error al exportar PDF",
+    "generateSuggestions": "Generar Tópicos y Prompts"
   },
   "onboarding": {
     "stepOf": "Paso {{current}} de {{total}}",
@@ -773,6 +794,17 @@
     "skipToPlans": "Ir a Planes →",
     "next": "Siguiente",
     "tryItNow": "Pruébalo Ahora",
+    "analyzing": {
+      "checkingGrowth": "Verificando oportunidades de crecimiento para {{domain}}",
+      "discoveringOpportunities": "Descubriendo oportunidades para {{domain}}",
+      "mappingStrategies": "Mapeando estrategias para {{domain}}",
+      "evaluatingPotential": "Evaluando potencial de {{domain}}",
+      "identifyingStrengths": "Identificando fortalezas de {{domain}}",
+      "analyzingVisibility": "Analizando visibilidad IA de {{domain}}",
+      "scanningPresence": "Escaneando presencia digital de {{domain}}",
+      "assessingReadiness": "Evaluando preparación GEO de {{domain}}",
+      "wait": "Esto puede tomar unos momentos..."
+    },
     "steps": {
       "welcome": {
         "title": "Bienvenido a Ainalytics",

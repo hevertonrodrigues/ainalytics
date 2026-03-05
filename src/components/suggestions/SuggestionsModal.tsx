@@ -20,12 +20,15 @@ interface SuggestionsModalProps {
   isOpen: boolean;
   onClose: () => void;
   suggestions: SuggestedTopic[];
+  /** Called after Accept All finishes successfully */
+  onAcceptAll?: () => void;
 }
 
 export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
   isOpen,
   onClose,
   suggestions,
+  onAcceptAll,
 }) => {
   const { t } = useTranslation();
   const { showToast } = useToast();
@@ -116,6 +119,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
         await handleAcceptItem(i);
       }
       showToast(t('common.success'), 'success');
+      onAcceptAll?.();
     } catch (err: any) {
       showToast(err.message || t('common.error'), 'error');
     } finally {
@@ -132,16 +136,16 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
       />
       
       {/* Modal Container */}
-      <div className="relative bg-[#1e1e1e] border border-glass-border rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-bg-primary border border-glass-border rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-white/10">
+        <div className="flex items-center justify-between p-5 border-b border-glass-border">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white leading-none">
+              <h2 className="text-lg font-semibold text-text-primary leading-none">
                 {t('llmText.suggestionsTitle')}
               </h2>
               <p className="text-sm text-text-secondary mt-1.5">
@@ -151,7 +155,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 -mr-2 text-white/60 hover:text-white rounded-lg hover:bg-white/5 transition-colors"
+            className="p-2 -mr-2 text-text-muted hover:text-text-primary rounded-lg hover:bg-glass-hover transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -169,7 +173,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
               <div key={tIdx} className="space-y-4">
                 <div className="flex items-center justify-between group">
                   <div className="space-y-1">
-                    <h3 className="text-base font-semibold text-white flex items-center gap-2">
+                    <h3 className="text-base font-semibold text-text-primary flex items-center gap-2">
                       {topic.name}
                       {acceptedItems.has(`t-${tIdx}`) && (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-success bg-success/10 border border-success/20 px-2 py-0.5 rounded-full">
@@ -198,7 +202,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
                   )}
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 border-l border-white/5 ml-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-4 border-l border-glass-border ml-2">
                   {topic.prompts?.map((prompt, pIdx) => {
                     const pKey = `p-${tIdx}-${pIdx}`;
                     const isAccepted = acceptedItems.has(pKey);
@@ -209,12 +213,12 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
                         className={`p-4 rounded-xl border transition-all ${
                           isAccepted
                             ? 'bg-success/5 border-success/20'
-                            : 'bg-white/5 border-white/5 hover:border-brand-primary/30'
+                            : 'bg-bg-secondary/50 border-glass-border hover:border-brand-primary/30'
                         }`}
                       >
                         <div className="flex justify-between gap-3">
                           <div className="space-y-1">
-                            <p className="text-sm font-medium text-white line-clamp-2">
+                            <p className="text-sm font-medium text-text-primary line-clamp-2">
                               {prompt.text}
                             </p>
                             <p className="text-xs text-text-secondary line-clamp-2">
@@ -249,10 +253,10 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-5 border-t border-white/10 flex items-center justify-end gap-3 bg-white/5">
+        <div className="p-5 border-t border-glass-border flex items-center justify-end gap-3 bg-bg-secondary/30">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-white transition-colors"
+            className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
           >
             {t('common.close')}
           </button>

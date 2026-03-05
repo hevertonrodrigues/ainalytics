@@ -236,11 +236,16 @@ serve(async (req: Request) => {
         console.log(`[scrape] Reusing analysis record: ${analysisId}`);
       }
 
+      // NOTE: Do NOT set status to 'scraping' yet!
+      // The cron worker (crawl-pages) watches for status='scraping'.
+      // If we set it now, the cron may fire before pages are inserted
+      // and finalize with 0 pages. We keep status='pending' during
+      // the discovery phase and only switch to 'scraping' after pages
+      // are saved to the database.
       await updateAnalysis(db, analysisId, {
-        status: "scraping",
         progress: 2,
         error_message: null,
-        status_message: `Starting analysis for ${domain}…`,
+        status_message: JSON.stringify({ key: "company.msg.starting", params: { domain } }),
       });
 
       const baseUrl = `https://${domain}`;
@@ -249,7 +254,7 @@ serve(async (req: Request) => {
       console.log(`[scrape] Step 1: Fetching robots.txt…`);
       await updateAnalysis(db, analysisId, {
         progress: 3,
-        status_message: `Checking robots.txt for AI crawler permissions…`,
+        status_message: JSON.stringify({ key: "company.msg.checkingRobots" }),
       });
       let robotsTxt: string | null = null;
       const robotsRes = await fetchSafe(`${baseUrl}/robots.txt`);
@@ -263,15 +268,15 @@ serve(async (req: Request) => {
         robots_txt: robotsTxt,
         progress: 5,
         status_message: robotsTxt
-          ? `robots.txt found — checking AI bot access rules…`
-          : `No robots.txt found — AI bots have full access by default`,
+          ? JSON.stringify({ key: "company.msg.robotsFound" })
+          : JSON.stringify({ key: "company.msg.robotsMissing" }),
       });
 
       // ── Step 2: sitemap.xml ────────────────────────────
       console.log(`[scrape] Step 2: Fetching sitemap.xml…`);
       await updateAnalysis(db, analysisId, {
         progress: 6,
-        status_message: `Looking for XML sitemap…`,
+        status_message: JSON.stringify({ key: "company.msg.lookingSitemap" }),
       });
       let sitemapXml: string | null = null;
       const sitemapRes = await fetchSafe(`${baseUrl}/sitemap.xml`);
@@ -285,8 +290,8 @@ serve(async (req: Request) => {
         sitemap_xml: sitemapXml,
         progress: 8,
         status_message: sitemapXml
-          ? `Sitemap found — extracting page URLs…`
-          : `No sitemap found — will discover pages from links`,
+          ? JSON.stringify({ key: "company.msg.sitemapFound" })
+          : JSON.stringify({ key: "company.msg.sitemapMissing" }),
       });
 
       // ── Step 3: llms.txt ───────────────────────────────
@@ -301,15 +306,15 @@ serve(async (req: Request) => {
         llms_txt: llmsTxt,
         progress: 10,
         status_message: llmsTxt
-          ? `LLMs.txt found — AI-specific instructions detected`
-          : `No llms.txt file found`,
+          ? JSON.stringify({ key: "company.msg.llmsTxtFound" })
+          : JSON.stringify({ key: "company.msg.llmsTxtMissing" }),
       });
 
       // ── Step 4: Homepage crawl + URL discovery ─────────
       console.log(`[scrape] Step 4: Crawling homepage for URL discovery…`);
       await updateAnalysis(db, analysisId, {
         progress: 12,
-        status_message: `Analyzing homepage and discovering page URLs…`,
+        status_message: JSON.stringify({ key: "company.msg.analyzingHomepage" }),
       });
 
       let pageUrls: string[] = [];
@@ -437,7 +442,7 @@ serve(async (req: Request) => {
       console.log(`[scrape] Step 6: Saving ${totalPages} page URLs to database…`);
       await updateAnalysis(db, analysisId, {
         progress: 14,
-        status_message: `Discovered ${totalPages} pages. Saving and scheduling background crawl…`,
+        status_message: JSON.stringify({ key: "company.msg.discoveredPages", params: { count: totalPages } }),
       });
 
       // Insert homepage as completed (page_order = 0)
@@ -475,14 +480,16 @@ serve(async (req: Request) => {
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
       console.log(`[scrape] ✓ Foreground scrape complete in ${elapsed}s. ${totalPages} pages queued.`);
 
+      // NOW set status to 'scraping' — pages are safely in the DB
       await updateAnalysis(db, analysisId, {
+        status: "scraping",
         crawled_pages: homePageData ? [homePageData] : [],
         pages_crawled: 1,
         total_pages: totalPages,
         progress: 15,
         status_message: totalPages > 1
-          ? `Homepage analyzed. Crawling ${totalPages - 1} remaining pages in the background…`
-          : `Homepage analyzed. Starting AI analysis…`,
+          ? JSON.stringify({ key: "company.msg.homepageAnalyzed", params: { count: totalPages - 1 } })
+          : JSON.stringify({ key: "company.msg.homepageOnlyDone" }),
       });
 
       // If only homepage, go straight to scraping_done
@@ -490,7 +497,7 @@ serve(async (req: Request) => {
         await updateAnalysis(db, analysisId, {
           status: "scraping_done",
           progress: 48,
-          status_message: `Scraping complete — 1 page crawled. Starting AI analysis…`,
+          status_message: JSON.stringify({ key: "company.msg.homepageOnlyDone" }),
         });
       }
 
@@ -529,11 +536,25 @@ serve(async (req: Request) => {
 
       const analysisId = analysis.id;
 
+      // ── Safety check: verify all pages are done before analyzing ──
+      // Prevents incomplete analysis when crawl-pages hasn't finished yet
+      const { data: crawlProgress } = await db.rpc("get_crawl_progress", { p_analysis_id: analysisId });
+      if (crawlProgress && crawlProgress.length > 0) {
+        const cp = crawlProgress[0];
+        if (cp.pending > 0) {
+          console.warn(`[analyze] Analysis ${analysisId}: ${cp.pending} pages still pending/crawling. Rejecting analyze request.`);
+          return withCors(
+            req,
+            badRequest(`Pages are still being crawled (${cp.pending} remaining). Please wait for all pages to complete.`),
+          );
+        }
+      }
+
       await updateAnalysis(db, analysisId, {
         status: "analyzing",
         progress: 50,
         error_message: null,
-        status_message: `Computing algorithmic GEO factor scores…`,
+        status_message: JSON.stringify({ key: "company.msg.computingFactors" }),
       });
       console.log(`[analyze] ▶ Starting AI analysis for ${domain}`);
 
@@ -574,7 +595,7 @@ serve(async (req: Request) => {
 
       await updateAnalysis(db, analysisId, {
         progress: 58,
-        status_message: `Computed ${algorithmicScores.length} factor scores. Preparing AI analysis…`,
+        status_message: JSON.stringify({ key: "company.msg.factorsComputed", params: { count: algorithmicScores.length } }),
       });
       console.log(`[analyze] Computed ${algorithmicScores.length} algorithmic factor scores`);
 
@@ -658,7 +679,7 @@ Respond with ONLY the JSON object, no markdown fences.`;
 
       await updateAnalysis(db, analysisId, {
         progress: 62,
-        status_message: `Sending data to AI for company analysis and recommendations…`,
+        status_message: JSON.stringify({ key: "company.msg.sendingToAi" }),
       });
       console.log(`[analyze] Sending prompt to Anthropic API…`);
 
@@ -705,7 +726,7 @@ Respond with ONLY the JSON object, no markdown fences.`;
 
         await updateAnalysis(db, analysisId, {
           progress: 78,
-          status_message: `AI response received — processing results…`,
+          status_message: JSON.stringify({ key: "company.msg.aiResponseReceived" }),
         });
         console.log(`[analyze] AI response received, parsing…`);
 
@@ -739,7 +760,7 @@ Respond with ONLY the JSON object, no markdown fences.`;
 
         await updateAnalysis(db, analysisId, {
           progress: 85,
-          status_message: `Computing composite GEO score and readiness level…`,
+          status_message: JSON.stringify({ key: "company.msg.computingScore" }),
         });
 
         // 4. All 25 factor scores are algorithmically computed
@@ -774,7 +795,7 @@ Respond with ONLY the JSON object, no markdown fences.`;
 
         await updateAnalysis(db, analysisId, {
           progress: 92,
-          status_message: `Finalizing report and saving results…`,
+          status_message: JSON.stringify({ key: "company.msg.finalizingReport" }),
         });
 
         // 8. Save analysis results
@@ -785,7 +806,7 @@ Respond with ONLY the JSON object, no markdown fences.`;
           status: "completed",
           progress: 100,
           completed_at: new Date().toISOString(),
-          status_message: `Analysis complete! GEO Score: ${compositeResult.composite}/100`,
+          status_message: JSON.stringify({ key: "company.msg.analysisComplete", params: { score: compositeResult.composite } }),
         });
         console.log(`[analyze] ✓ Analysis complete. GEO Score: ${compositeResult.composite}/100`);
 
@@ -942,7 +963,7 @@ Respond with ONLY the JSON object, no markdown fences.`;
             status: "completed",
             progress: 100,
             completed_at: new Date().toISOString(),
-            status_message: `Analysis complete (AI insights limited). GEO Score: ${compositeResult.composite}/100`,
+            status_message: JSON.stringify({ key: "company.msg.analysisCompleteLimited", params: { score: compositeResult.composite } }),
           });
 
           // Auto-fill basic LLM data on fallback path (limited without AI insights)

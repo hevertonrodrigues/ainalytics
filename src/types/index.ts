@@ -53,7 +53,6 @@ export interface Profile extends BaseEntity {
   locale: 'en' | 'es' | 'pt-br';
   metadata: Record<string, unknown> | null;
   is_sa: boolean;
-  has_seen_welcome_modal: boolean;
   has_seen_onboarding: boolean;
   tutorial_views: Record<string, boolean> | null;
 }
@@ -521,7 +520,6 @@ export interface UpdateProfileInput {
   phone?: string;
   avatar_url?: string;
   locale?: 'en' | 'es' | 'pt-br';
-  has_seen_welcome_modal?: boolean;
   tutorial_views?: Record<string, boolean>;
 }
 

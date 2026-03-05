@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CreditCard, Ticket } from 'lucide-react';
 import { apiClient } from '@/lib/api';
@@ -31,6 +32,7 @@ export function PlansPage() {
   const { t, i18n } = useTranslation();
   const { currentTenant, refreshTenant } = useTenant();
   const { formatPrice: formatCurrency } = useCurrency();
+  const navigate = useNavigate();
 
   // Data
   const [plans, setPlans] = useState<Plan[]>([]);
@@ -64,9 +66,7 @@ export function PlansPage() {
     const params = new URLSearchParams(window.location.search);
     const checkout = params.get('checkout');
     if (checkout === 'success') {
-      showSuccess(t('plans.planSelected'));
-      window.history.replaceState({}, '', window.location.pathname);
-      if (currentTenant) loadPlans();
+      navigate('/dashboard/company', { replace: true, state: { toast: t('plans.planSelected') } });
     } else if (checkout === 'canceled') {
       // Update the pending payment attempt to canceled in the database
       apiClient.patch('/stripe-checkout').catch((err) => {

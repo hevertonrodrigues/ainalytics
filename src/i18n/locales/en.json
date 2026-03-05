@@ -599,19 +599,6 @@
     "accept": "Accept",
     "accepted": "Accepted"
   },
-  "welcomeModal": {
-    "title": "Welcome to Ainalytics",
-    "description": "Let's explore the core features of the system.",
-    "topicsTitle": "Topics & Categories",
-    "topicsDesc": "Group your prompts logically into distinct categories for better organization.",
-    "promptsTitle": "Prompts",
-    "promptsDesc": "Manage your AI inputs and instructions to test against multiple platforms and models.",
-    "sourcesTitle": "Sources",
-    "sourcesDesc": "Organize reference materials and knowledge bases that ground your AI responses.",
-    "llmTextTitle": "LLM.txt Generation",
-    "llmTextDesc": "Automatically generate an llm.txt file based on your prompts, ready for external LLMs to consume.",
-    "skipButton": "Skip / Do not show again"
-  },
   "tutorials": {
     "models": {
       "title": "Configuring AI Models & Platforms",
@@ -670,8 +657,34 @@
     "created": "Company created! Starting analysis...",
     "createError": "Failed to create company",
     "alreadyLinked": "This tenant already has a company linked.",
-    "progressTitle": "Analyzing Your Website",
-    "progressSubtitle": "We're scraping and analyzing your website. This may take a few minutes.",
+    "progressTitle": "Deep Analysis in Progress",
+    "progressSubtitle": "We're performing a comprehensive analysis of your website — crawling all pages, checking technical factors, and generating AI-powered insights. This may take a few minutes.",
+
+    "msg": {
+      "starting": "Starting comprehensive analysis of {{domain}}…",
+      "checkingRobots": "Scanning robots.txt for AI crawler permissions…",
+      "robotsFound": "robots.txt found — analyzing AI bot access rules…",
+      "robotsMissing": "No robots.txt found — AI bots have full access by default",
+      "lookingSitemap": "Searching for XML sitemap…",
+      "sitemapFound": "Sitemap found — mapping all page URLs for deep crawl…",
+      "sitemapMissing": "No sitemap found — discovering pages from internal links",
+      "checkingLlmsTxt": "Checking for llms.txt — AI-specific instructions file…",
+      "llmsTxtFound": "llms.txt found — AI-specific instructions detected",
+      "llmsTxtMissing": "No llms.txt file found",
+      "analyzingHomepage": "Analyzing homepage and mapping all discoverable pages…",
+      "discoveredPages": "Discovered {{count}} pages — preparing comprehensive crawl…",
+      "homepageAnalyzed": "Homepage analyzed. Deep crawling {{count}} remaining pages in the background…",
+      "homepageOnlyDone": "Homepage fully analyzed. Proceeding to AI analysis…",
+      "scrapingComplete": "Deep crawl complete — {{completed}} pages analyzed. Starting AI scoring…",
+      "computingFactors": "Computing 25 GEO optimization factors…",
+      "factorsComputed": "{{count}} factor scores computed. Preparing comprehensive AI analysis…",
+      "sendingToAi": "Sending data to AI for in-depth analysis and recommendations…",
+      "aiResponseReceived": "AI analysis received — processing insights…",
+      "computingScore": "Computing composite GEO score and readiness level…",
+      "finalizingReport": "Finalizing comprehensive report and saving results…",
+      "analysisComplete": "Deep analysis complete! GEO Score: {{score}}/100",
+      "analysisCompleteLimited": "Analysis complete (AI insights limited). GEO Score: {{score}}/100"
+    },
     "statusPending": "Waiting to start...",
     "statusScraping": "Scraping website pages...",
     "statusScrapingDone": "Scraping complete. Starting AI analysis...",
@@ -771,7 +784,8 @@
     "pdfAuthority": "Authority",
     "pdfSemantic": "Semantic",
     "exportSuccess": "PDF exported successfully",
-    "exportError": "Failed to export PDF"
+    "exportError": "Failed to export PDF",
+    "generateSuggestions": "Generate Topics & Prompts"
   },
   "onboarding": {
     "stepOf": "Step {{current}} of {{total}}",
@@ -780,7 +794,7 @@
     "skipToPlans": "Skip to Plans →",
     "next": "Next",
     "analyzing": {
-      "checkingGrowth": "Checking growth for {{domain}}",
+      "checkingGrowth": "Checking growth opportunities for {{domain}}",
       "discoveringOpportunities": "Discovering opportunities for {{domain}}",
       "mappingStrategies": "Mapping strategies for {{domain}}",
       "evaluatingPotential": "Evaluating potential for {{domain}}",

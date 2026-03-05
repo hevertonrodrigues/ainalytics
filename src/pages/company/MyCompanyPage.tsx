@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Globe,
   Search,
@@ -22,13 +23,16 @@ import {
   ExternalLink,
   Download,
   Radar,
+  Sparkles,
 } from 'lucide-react';
 import { generatePdfReport } from '@/lib/pdfReport';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/contexts/ToastContext';
 import { apiClient } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import type { Company, AiReport, CompanyPage } from '@/types';
+import { SuggestionsModal } from '@/components/suggestions/SuggestionsModal';
 import { LANGUAGES, getLanguageByCode } from '@/lib/languages';
 import {
   GeoScoreOverview,
@@ -83,6 +87,26 @@ function getStatusKey(status: string, progress = 0): string {
   return 'company.statusPending';
 }
 
+/**
+ * Translates a status_message from the backend.
+ * Backend stores either:
+ *   - A JSON string: {"key":"company.msg.starting","params":{"domain":"x.com"}}
+ *   - A raw English string (legacy): "Starting analysis for x.com…"
+ * Returns the translated string or the raw string as fallback.
+ */
+function translateStatusMessage(msg: string | null | undefined, t: (key: string, params?: Record<string, any>) => string): string | null {
+  if (!msg) return null;
+  try {
+    const parsed = JSON.parse(msg);
+    if (parsed && typeof parsed === 'object' && typeof parsed.key === 'string') {
+      return t(parsed.key, parsed.params || {});
+    }
+  } catch {
+    // Not JSON — return raw string (backwards compatibility)
+  }
+  return msg;
+}
+
 // ─── Safe JSON parse (handles double-serialized JSONB) ────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function safeParse<T>(value: any): T | null {
@@ -107,6 +131,19 @@ export function MyCompanyPage() {
   const { profile } = useAuth();
   const { setHasCompany } = useTenant();
   const { showToast } = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Show toast passed via navigation state (e.g. from checkout success)
+  const toastShownRef = useRef(false);
+  useEffect(() => {
+    const state = location.state as { toast?: string } | null;
+    if (state?.toast && !toastShownRef.current) {
+      toastShownRef.current = true;
+      showToast(state.toast, 'success');
+      window.history.replaceState({}, '', location.pathname);
+    }
+  }, []);
 
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
@@ -121,6 +158,9 @@ export function MyCompanyPage() {
   const [editLanguage, setEditLanguage] = useState(LOCALE_TO_LANG_CODE[i18n.language?.toLowerCase()] || 'en');
   const [startingAnalysis, setStartingAnalysis] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoTriggeredRef = useRef(false);
@@ -190,6 +230,8 @@ export function MyCompanyPage() {
                 await apiClient.post('/scrape-company', { action: 'analyze' });
               } catch (err) {
                 console.error('Auto-analyze failed:', err);
+                // Reset so we can retry on next poll cycle
+                autoTriggeredRef.current = false;
               }
             }
 
@@ -339,6 +381,40 @@ export function MyCompanyPage() {
     }
   };
 
+  // ─── Generate AI Topic & Prompt Suggestions ──────────────
+  const handleSuggest = async () => {
+    if (!company?.extracted_content) {
+      showToast(t('llmText.errorNoContent', 'Please extract information first.'), 'error');
+      return;
+    }
+
+    setSuggesting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('get-website-information', {
+        body: {
+          action: 'suggest_topics',
+          language: company.target_language || i18n.language || 'en',
+        },
+        headers: {
+          'x-tenant-id': localStorage.getItem('current_tenant_id') || '',
+        },
+      });
+
+      if (error) throw error;
+
+      // supabase.functions.invoke returns the full JSON body in `data`
+      // which is { success: true, data: { raw_topics: [...], ... } }
+      const topics = data?.data?.raw_topics || data?.raw_topics || [];
+      setSuggestions(topics);
+      setShowSuggestions(true);
+      showToast(t('llmText.suggestionsSuccess', 'Suggestions generated successfully!'), 'success');
+    } catch (err: any) {
+      console.error(err);
+      showToast(err.message || t('llmText.suggestionsError', 'An error occurred while generating suggestions'), 'error');
+    } finally {
+      setSuggesting(false);
+    }
+  };
   // ─── Derive report data (must be above early returns for hooks rules) ──
   const analysis = company?.latest_analysis;
   const analysisStatus = analysis?.status || 'pending';
@@ -520,7 +596,7 @@ export function MyCompanyPage() {
           <p className="text-sm text-text-secondary mb-6">
             {analysisStatus === 'error'
               ? analysis?.error_message || t('company.statusError')
-              : analysis?.status_message || t('company.progressSubtitle')}
+              : translateStatusMessage(analysis?.status_message, t) || t('company.progressSubtitle')}
           </p>
 
           {/* Progress bar */}
@@ -784,6 +860,20 @@ export function MyCompanyPage() {
             <CheckCircle2 className="w-4 h-4 text-success" />
             <span className="text-xs font-medium text-success">{t('company.statusCompleted')}</span>
           </div>
+
+          {/* Generate Suggestions Button */}
+          {hasReport(company) && company.extracted_content && (
+            <button
+              onClick={handleSuggest}
+              disabled={suggesting}
+              className="flex items-center gap-1.5 px-3 py-1.5 ml-2 text-xs font-medium rounded-lg text-text-primary bg-bg-secondary hover:bg-glass-hover border border-glass-border transition-all"
+              id="generate-suggestions-btn"
+              data-html2canvas-ignore="true"
+            >
+              {suggesting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-brand-primary" />}
+              {suggesting ? t('llmText.generating', 'Generating...') : t('company.generateSuggestions')}
+            </button>
+          )}
 
           {/* Export PDF Button */}
           {hasReport(company) && (
@@ -1074,6 +1164,19 @@ export function MyCompanyPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Suggestions Modal */}
+      {showSuggestions && (
+        <SuggestionsModal
+          isOpen={showSuggestions}
+          onClose={() => setShowSuggestions(false)}
+          suggestions={suggestions}
+          onAcceptAll={() => {
+            setShowSuggestions(false);
+            navigate('/dashboard/topics');
+          }}
+        />
       )}
     </div>
   );

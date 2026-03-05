@@ -599,19 +599,6 @@
     "accept": "Aceitar",
     "accepted": "Aceito"
   },
-  "welcomeModal": {
-    "title": "Bem-vindo ao Ainalytics",
-    "description": "Vamos explorar os principais recursos do sistema.",
-    "topicsTitle": "Tópicos e Categorias",
-    "topicsDesc": "Agrupe seus prompts logicamente em categorias distintas para melhor organização.",
-    "promptsTitle": "Prompts",
-    "promptsDesc": "Gerencie suas entradas e instruções de IA para testar em várias plataformas e modelos.",
-    "sourcesTitle": "Fontes",
-    "sourcesDesc": "Organize materiais de referência e bases de conhecimento que fundamentam suas respostas de IA.",
-    "llmTextTitle": "Geração LLM.txt",
-    "llmTextDesc": "Gere automaticamente um arquivo llm.txt com base em seus prompts, pronto para consumo por LLMs externos.",
-    "skipButton": "Pular / Não mostrar novamente"
-  },
   "tutorials": {
     "models": {
       "title": "Configurando Modelos e Plataformas de IA",
@@ -670,8 +657,34 @@
     "created": "Empresa criada! Iniciando análise...",
     "createError": "Falha ao criar empresa",
     "alreadyLinked": "Esta organização já possui uma empresa vinculada.",
-    "progressTitle": "Analisando seu Site",
-    "progressSubtitle": "Estamos analisando seu site. Isso pode levar alguns minutos.",
+    "progressTitle": "Análise Completa em Andamento",
+    "progressSubtitle": "Estamos realizando uma análise completa do seu site — rastreando todas as páginas, verificando fatores técnicos e gerando insights com IA. Isso pode levar alguns minutos.",
+
+    "msg": {
+      "starting": "Iniciando análise completa de {{domain}}…",
+      "checkingRobots": "Verificando robots.txt para permissões de crawlers de IA…",
+      "robotsFound": "robots.txt encontrado — analisando regras de acesso de bots de IA…",
+      "robotsMissing": "robots.txt não encontrado — bots de IA têm acesso total por padrão",
+      "lookingSitemap": "Buscando sitemap XML…",
+      "sitemapFound": "Sitemap encontrado — mapeando todas as URLs para rastreamento profundo…",
+      "sitemapMissing": "Nenhum sitemap encontrado — descobrindo páginas por links internos",
+      "checkingLlmsTxt": "Verificando llms.txt — arquivo de instruções para IA…",
+      "llmsTxtFound": "llms.txt encontrado — instruções específicas para IA detectadas",
+      "llmsTxtMissing": "Nenhum arquivo llms.txt encontrado",
+      "analyzingHomepage": "Analisando homepage e mapeando todas as páginas descobertas…",
+      "discoveredPages": "{{count}} páginas descobertas — preparando rastreamento completo…",
+      "homepageAnalyzed": "Homepage analisada. Rastreamento profundo de {{count}} páginas restantes em segundo plano…",
+      "homepageOnlyDone": "Homepage totalmente analisada. Prosseguindo para análise de IA…",
+      "scrapingComplete": "Rastreamento profundo concluído — {{completed}} páginas analisadas. Iniciando pontuação de IA…",
+      "computingFactors": "Calculando 25 fatores de otimização GEO…",
+      "factorsComputed": "{{count}} pontuações de fatores calculadas. Preparando análise completa de IA…",
+      "sendingToAi": "Enviando dados para análise profunda e recomendações de IA…",
+      "aiResponseReceived": "Análise de IA recebida — processando insights…",
+      "computingScore": "Calculando pontuação GEO composta e nível de prontidão…",
+      "finalizingReport": "Finalizando relatório completo e salvando resultados…",
+      "analysisComplete": "Análise completa finalizada! GEO Score: {{score}}/100",
+      "analysisCompleteLimited": "Análise concluída (insights de IA limitados). GEO Score: {{score}}/100"
+    },
     "statusPending": "Aguardando para iniciar...",
     "statusScraping": "Extraindo páginas do site...",
     "statusScrapingDone": "Extração completa. Iniciando análise com IA...",
@@ -771,7 +784,8 @@
     "pdfAuthority": "Autoridade",
     "pdfSemantic": "Semântico",
     "exportSuccess": "PDF exportado com sucesso",
-    "exportError": "Falha ao exportar PDF"
+    "exportError": "Falha ao exportar PDF",
+    "generateSuggestions": "Gerar Tópicos e Prompts"
   },
   "onboarding": {
     "stepOf": "Passo {{current}} de {{total}}",
@@ -780,7 +794,7 @@
     "skipToPlans": "Ir para Planos →",
     "next": "Próximo",
     "analyzing": {
-      "checkingGrowth": "Verificando crescimento de {{domain}}",
+      "checkingGrowth": "Verificando oportunidades de crescimento de {{domain}}",
       "discoveringOpportunities": "Descobrindo oportunidades para {{domain}}",
       "mappingStrategies": "Mapeando estratégias para {{domain}}",
       "evaluatingPotential": "Avaliando potencial de {{domain}}",

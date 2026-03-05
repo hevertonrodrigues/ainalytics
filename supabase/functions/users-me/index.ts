@@ -83,7 +83,6 @@ interface UpdateProfileBody {
   phone?: string;
   avatar_url?: string;
   locale?: string;
-  has_seen_welcome_modal?: boolean;
   has_seen_onboarding?: boolean;
   tutorial_views?: Record<string, boolean>;
 }
@@ -99,7 +98,6 @@ async function handleUpdate(req: Request): Promise<Response> {
   if (body.phone !== undefined) profileUpdate.phone = body.phone;
   if (body.avatar_url !== undefined) profileUpdate.avatar_url = body.avatar_url;
   if (body.locale !== undefined) profileUpdate.locale = body.locale;
-  if (body.has_seen_welcome_modal !== undefined) profileUpdate.has_seen_welcome_modal = body.has_seen_welcome_modal;
   if (body.has_seen_onboarding !== undefined) profileUpdate.has_seen_onboarding = body.has_seen_onboarding;
   if (body.tutorial_views !== undefined) profileUpdate.tutorial_views = body.tutorial_views;
 
