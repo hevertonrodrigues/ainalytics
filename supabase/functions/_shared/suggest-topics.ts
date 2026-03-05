@@ -113,25 +113,40 @@ export function generateAlgorithmicSuggestions(
 // ─── AI-powered suggestions (from extracted website data) ────
 // Uses OpenAI GPT-4o. Returns topics/prompts in the requested language.
 
+interface ExistingTopic {
+  name: string;
+  prompts: string[];
+}
+
 interface AiSuggestionsInput {
   websiteTitle: string | null;
   metatags: string | null;
   extractedContent: string | null;
   sitemapXml: string | null;
   language: string;
+  existingTopics?: ExistingTopic[];
+}
+
+interface RawTopic {
+  name: string;
+  description?: string;
+  isExisting?: boolean;
+  prompts: Array<{ text: string; description?: string }>;
 }
 
 export async function generateAiSuggestions(
   input: AiSuggestionsInput,
-): Promise<TopicSuggestionResult & { raw_topics: Array<{ name: string; description?: string; prompts: Array<{ text: string; description?: string }> }> }> {
-  const { websiteTitle, metatags, extractedContent, sitemapXml, language } = input;
+): Promise<TopicSuggestionResult & { raw_topics: RawTopic[] }> {
+  const { websiteTitle, metatags, extractedContent, sitemapXml, language, existingTopics } = input;
 
   if (!extractedContent) {
     throw new Error("Cannot generate suggestions without extracted content.");
   }
 
-  let prompt = `
-You are an expert AI prompt engineer and SEO analyst.
+  // Build the prompt parts
+  const parts: string[] = [];
+
+  parts.push(`You are an expert AI prompt engineer and SEO analyst.
 Based on the following extracted details about a website/company, generate a list of topics and prompts that users might ask AI platforms (like ChatGPT or Perplexity) about the services, products, or industry this company operates in.
 
 **CRITICAL INSTRUCTIONS:**
@@ -139,6 +154,9 @@ Based on the following extracted details about a website/company, generate a lis
 2. **DO NOT MENTION THE COMPANY NAME** or specific brand names in the prompts or topics.
 3. Imagine a client who needs a solution this company provides, but doesn't necessarily know the company yet.
 4. You should suggest 3-5 high-value topics. For each topic, suggest 3-5 relevant prompts.
+5. **DO NOT** create prompts that are duplicates or very similar to existing ones listed below.
+6. If an existing topic could benefit from NEW additional prompts, include it with "is_existing": true and ONLY new prompts (not the ones already listed).
+7. For brand-new topics that don't overlap with existing ones, use "is_existing": false.
 
 **LANGUAGE REQUIREMENT:**
 - You MUST respond in the following language: ${language}
@@ -147,13 +165,28 @@ Based on the following extracted details about a website/company, generate a lis
 Data:
 - Title: ${websiteTitle}
 - Meta: ${metatags}
-- Overview: ${extractedContent}
+- Overview: ${extractedContent}`);
 
+  if (existingTopics && existingTopics.length > 0) {
+    const existingBlock = existingTopics.map(t => {
+      const promptList = t.prompts.map(p => `  - "${p}"`).join("\n");
+      return `- Topic: "${t.name}"\n  Existing prompts:\n${promptList}`;
+    }).join("\n");
+
+    parts.push(`
+**EXISTING TOPICS AND PROMPTS (DO NOT DUPLICATE):**
+${existingBlock}
+
+IMPORTANT: Avoid generating prompts that are identical to or very similar in meaning to any of the listed existing prompts. If you suggest prompts for an existing topic, set "is_existing": true and only include NEW prompts that complement the existing ones.`);
+  }
+
+  parts.push(`
 You must respond with ONLY a valid JSON object matching the following structure exactly, with no markdown fences or other text:
 {
   "topics": [
     {
       "name": "string (Generic Topic Name in ${language})",
+      "is_existing": false,
       "prompts": [
         {
           "text": "string (Generic prompt focused on service/need in ${language})"
@@ -161,8 +194,9 @@ You must respond with ONLY a valid JSON object matching the following structure 
       ]
     }
   ]
-}
-  `;
+}`);
+
+  let prompt = parts.join("\n");
 
   if (sitemapXml) {
     const truncatedSitemap = sitemapXml.slice(0, 15000);
@@ -171,8 +205,7 @@ You must respond with ONLY a valid JSON object matching the following structure 
 To assist you, here is the generated sitemap.xml content for the website:
 <sitemap_xml>
 ${truncatedSitemap}
-</sitemap_xml>
-    `;
+</sitemap_xml>`;
   }
 
   const apiKey = Deno.env.get("OPENAI_API_KEY");
@@ -213,15 +246,20 @@ ${truncatedSitemap}
     throw new Error("AI provider returned an empty response.");
   }
 
-  let parsedResult: { topics: Array<{ name: string; description?: string; prompts: Array<{ text: string; description?: string }> }> };
+  let parsedResult: { topics: Array<{ name: string; description?: string; is_existing?: boolean; prompts: Array<{ text: string; description?: string }> }> };
   try {
     parsedResult = JSON.parse(suggestionsJson.trim());
   } catch (_e) {
     throw new Error("AI produced invalid JSON output.");
   }
 
-  // Preserve raw topics for backward compatibility (SuggestionsModal)
-  const rawTopics = parsedResult.topics || [];
+  // Preserve raw topics for SuggestionsModal (with isExisting flag)
+  const rawTopics: RawTopic[] = (parsedResult.topics || []).map(t => ({
+    name: t.name,
+    description: t.description,
+    isExisting: t.is_existing || false,
+    prompts: t.prompts || [],
+  }));
 
   // Convert the AI response format into our standard TopicSuggestionResult
   const suggestedTopics: SuggestedTopic[] = [];

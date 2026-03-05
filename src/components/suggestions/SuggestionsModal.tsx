@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Check, Loader2, Sparkles, PlusCircle } from 'lucide-react';
+import { X, Check, Loader2, Sparkles, PlusCircle, RefreshCw } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { useScrollLock } from '@/hooks/useScrollLock';
@@ -13,6 +13,7 @@ interface SuggestedPrompt {
 interface SuggestedTopic {
   name: string;
   description: string;
+  isExisting?: boolean;
   prompts: SuggestedPrompt[];
 }
 
@@ -173,8 +174,14 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
               <div key={tIdx} className="space-y-4">
                 <div className="flex items-center justify-between group">
                   <div className="space-y-1">
-                    <h3 className="text-base font-semibold text-text-primary flex items-center gap-2">
+                    <h3 className="text-base font-semibold text-text-primary flex items-center gap-2 flex-wrap">
                       {topic.name}
+                      {topic.isExisting && (
+                        <span className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary bg-brand-primary/10 border border-brand-primary/20 px-2 py-0.5 rounded-full">
+                          <RefreshCw className="w-3 h-3" />
+                          {t('llmText.complementary', 'Complementary')}
+                        </span>
+                      )}
                       {acceptedItems.has(`t-${tIdx}`) && (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-success bg-success/10 border border-success/20 px-2 py-0.5 rounded-full">
                           <Check className="w-3 h-3" />

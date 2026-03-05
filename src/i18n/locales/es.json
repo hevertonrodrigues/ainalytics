@@ -597,7 +597,8 @@
     "suggestionsError": "Error al generar sugerencias.",
     "acceptAll": "Aceptar Todo",
     "accept": "Aceptar",
-    "accepted": "Aceptado"
+    "accepted": "Aceptado",
+    "complementary": "Complementario"
   },
   "tutorials": {
     "models": {

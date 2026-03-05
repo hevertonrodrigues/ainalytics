@@ -137,6 +137,20 @@ serve(async (req: Request) => {
         .single();
       if (latestAnalysis) sitemapXml = latestAnalysis.sitemap_xml;
 
+      // Fetch existing topics and prompts for deduplication
+      const { data: existingTopicsData } = await sb
+        .from("topics")
+        .select("id, name, prompts(text)")
+        .eq("tenant_id", tenantId)
+        .eq("is_active", true);
+
+      const existingTopics = (existingTopicsData || []).map((t: any) => ({
+        name: t.name,
+        prompts: (t.prompts || []).map((p: any) => p.text),
+      }));
+
+      console.log(`[get-website-information] Found ${existingTopics.length} existing topics for context`);
+
       try {
         const result = await generateAiSuggestions({
           websiteTitle: company.website_title,
@@ -144,6 +158,7 @@ serve(async (req: Request) => {
           extractedContent: company.extracted_content,
           sitemapXml,
           language,
+          existingTopics,
         });
         return withCors(req, ok(result));
       } catch (err: any) {

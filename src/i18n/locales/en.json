@@ -597,7 +597,8 @@
     "suggestionsError": "Failed to generate suggestions.",
     "acceptAll": "Accept All",
     "accept": "Accept",
-    "accepted": "Accepted"
+    "accepted": "Accepted",
+    "complementary": "Complementary"
   },
   "tutorials": {
     "models": {
