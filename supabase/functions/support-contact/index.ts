@@ -36,13 +36,19 @@ serve(async (req: Request) => {
     ) {
       return withCors(req, badRequest("A valid email is required"));
     }
-    if (
-      !body.subject ||
-      typeof body.subject !== "string" ||
-      !body.subject.trim()
-    ) {
+
+    const VALID_SUBJECTS = [
+      "bug_report",
+      "account_billing",
+      "feature_request",
+      "data_results",
+      "integrations",
+      "other",
+    ];
+    if (!body.subject || !VALID_SUBJECTS.includes(body.subject)) {
       return withCors(req, badRequest("subject is required"));
     }
+
     if (
       !body.message ||
       typeof body.message !== "string" ||
@@ -50,6 +56,11 @@ serve(async (req: Request) => {
     ) {
       return withCors(req, badRequest("message is required"));
     }
+
+    // Optional attachments (array of storage paths)
+    const attachments: string[] = Array.isArray(body.attachments)
+      ? body.attachments.filter((a: unknown) => typeof a === "string")
+      : [];
 
     // ── Insert support message ──
     const db = createAdminClient();
@@ -63,6 +74,7 @@ serve(async (req: Request) => {
         email: body.email.trim().toLowerCase(),
         subject: body.subject.trim(),
         message: body.message.trim(),
+        attachments: attachments.length > 0 ? attachments : null,
       })
       .select("id, created_at")
       .single();
