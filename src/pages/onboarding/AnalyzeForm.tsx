@@ -20,7 +20,6 @@ interface AnalyzeFormProps {
   onCompanyNameChange: (value: string) => void;
   onAnalyze: () => void;
   onBack: () => void;
-  onSkip: () => void;
 }
 
 export function AnalyzeForm({
@@ -32,7 +31,6 @@ export function AnalyzeForm({
   onCompanyNameChange,
   onAnalyze,
   onBack,
-  onSkip,
 }: AnalyzeFormProps) {
   const { t } = useTranslation();
 
