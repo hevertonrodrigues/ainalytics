@@ -462,6 +462,11 @@
       "button": "Verificar Mi Visibilidad IA — Gratis",
       "noCard": "No se requiere tarjeta de crédito · Configuración en 60 segundos"
     },
+    "faq": {
+      "title": "Preguntas",
+      "titleHighlight": "Frecuentes",
+      "subtitle": "Todo lo que necesita saber sobre el monitoreo de visibilidad en IA."
+    },
     "footer": {
       "description": "La plataforma de monitoreo de visibilidad IA. Sepa qué dice la IA sobre usted antes que sus clientes.",
       "product": "Producto",
@@ -476,7 +481,8 @@
       "careers": "Empleo",
       "privacy": "Política de Privacidad",
       "terms": "Términos de Servicio",
-      "rights": "Todos los derechos reservados."
+      "rights": "Todos los derechos reservados.",
+      "faq": "FAQ"
     }
   },
   "interestForm": {

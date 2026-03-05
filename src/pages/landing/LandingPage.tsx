@@ -20,6 +20,7 @@ import type { Plan } from '@/types';
 import type { PricingPlan } from '@/components/PricingPlans';
 import { LandingHeader } from './LandingHeader';
 import { LandingHero } from './LandingHero';
+import { LandingFAQ } from './LandingFAQ';
 import { LandingFooter } from './LandingFooter';
 
 const AI_PLATFORMS = ['OpenAI', 'Anthropic', 'Google Gemini', 'xAI Grok', 'Perplexity'];
@@ -307,6 +308,8 @@ export function LandingPage() {
           <span className="landing-no-card">{t('landing.cta.noCard')}</span>
         </div>
       </section>
+
+      <LandingFAQ />
 
       <LandingFooter />
 

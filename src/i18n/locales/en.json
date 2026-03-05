@@ -463,6 +463,11 @@
       "button": "Check My AI Visibility — Free",
       "noCard": "No credit card required · Setup in 60 seconds"
     },
+    "faq": {
+      "title": "Frequently Asked",
+      "titleHighlight": "Questions",
+      "subtitle": "Everything you need to know about AI visibility monitoring."
+    },
     "footer": {
       "description": "The AI visibility monitoring platform. Know what AI says about you before your customers do.",
       "product": "Product",
@@ -477,7 +482,8 @@
       "careers": "Careers",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service",
-      "rights": "All rights reserved."
+      "rights": "All rights reserved.",
+      "faq": "FAQ"
     }
   },
   "interestForm": {
