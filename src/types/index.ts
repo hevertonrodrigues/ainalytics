@@ -168,7 +168,7 @@ export interface PromptAnswer {
   model: { id: string; slug: string; name: string } | null;
   model_id: string | null;
   answer_text: string | null;
-  tokens_used: Record<string, any> | null;
+  tokens_used: Record<string, unknown> | null;
   latency_ms: number | null;
   raw_request: unknown | null;
   raw_response: unknown | null;
@@ -177,8 +177,9 @@ export interface PromptAnswer {
   created_at: string;
   searched_at: string;
   web_search_enabled: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   annotations: any | null;
-  sources: any[] | null;
+  sources: Record<string, unknown>[] | null;
 }
 
 export interface Source extends BaseEntity {

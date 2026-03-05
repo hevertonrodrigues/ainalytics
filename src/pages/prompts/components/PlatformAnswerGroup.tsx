@@ -82,6 +82,7 @@ export function PlatformAnswerGroup({
       {/* Models list */}
       {profile?.is_sa && isExpanded && (
         <div className="border-t border-glass-border bg-bg-tertiary/30 p-4 space-y-4">
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
           {group.models.map((model: any) => (
             <div key={model.model_slug} className="space-y-2">
               <h3 className="text-sm font-medium text-text-secondary pl-2 flex items-center gap-2">

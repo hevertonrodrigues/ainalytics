@@ -69,7 +69,7 @@ export function AnswerItem({
         )}
         {profile?.is_sa && answer.tokens_used && (
           <span className="text-xs text-text-muted shrink-0">
-            {(answer.tokens_used.input || 0) + (answer.tokens_used.output || 0)} {t('promptDetail.tokens')}
+            {(Number(answer.tokens_used.input || 0) + Number(answer.tokens_used.output || 0))} {t('promptDetail.tokens')}
           </span>
         )}
       </div>

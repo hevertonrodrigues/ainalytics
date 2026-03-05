@@ -350,7 +350,7 @@ export function PricingPlans({
 
   // Apply yearly discount + current-plan logic
   const displayPlans = plans.map((plan, i) => {
-    let result = { ...plan };
+    const result = { ...plan };
 
     // Yearly discount
     if (billingPeriod === "yearly") {

@@ -62,7 +62,7 @@ function computePageWeights(count: number): number[] {
   return [HOME_WEIGHT, ...Array(count - 1).fill(otherWeight)];
 }
 
-function weightedAvg(values: number[], pageCount?: number): number {
+function weightedAvg(values: number[], _pageCount?: number): number {
   const valid = values.filter((n) => Number.isFinite(n));
   if (valid.length === 0) return 0;
   // If pageCount isn't provided or doesn't match, fall back to unweighted

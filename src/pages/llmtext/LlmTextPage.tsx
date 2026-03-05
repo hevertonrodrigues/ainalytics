@@ -20,6 +20,7 @@ export function LlmTextPage() {
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [previewTab, setPreviewTab] = useState<'preview' | 'raw'>('preview');
   const [suggesting, setSuggesting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestionLanguage, setSuggestionLanguage] = useState(t('i18n.language', 'en'));
@@ -60,6 +61,7 @@ export function LlmTextPage() {
 
       showToast(t('llmText.extractSuccess', 'Website information extracted successfully!'), 'success');
       await fetchCompany();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.extractError', 'An error occurred while extracting information'), 'error');
@@ -85,6 +87,7 @@ export function LlmTextPage() {
 
       showToast(t('llmText.generateSuccess', 'LLM.txt generated successfully!'), 'success');
       await fetchCompany();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.generateError', 'An error occurred while generating LLM.txt'), 'error');
@@ -113,6 +116,7 @@ export function LlmTextPage() {
       setSuggestions(data?.raw_topics || []);
       setShowSuggestions(true);
       showToast(t('llmText.suggestionsSuccess', 'Suggestions generated successfully!'), 'success');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.suggestionsError', 'An error occurred while generating suggestions'), 'error');
@@ -138,6 +142,7 @@ export function LlmTextPage() {
 
       showToast(t('llmText.verifySuccess', 'Status verified successfully!'), 'success');
       await fetchCompany();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.verifyError', 'An error occurred while verifying llm.txt'), 'error');
@@ -182,6 +187,7 @@ export function LlmTextPage() {
 
       showToast(t('llmText.sitemapUploadSuccess', 'Sitemap uploaded successfully!'), 'success');
       await fetchCompany();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.sitemapUploadError', 'Failed to upload sitemap.'), 'error');

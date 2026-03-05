@@ -300,7 +300,7 @@ export function scoreEntityConsistency(pages: ExtractedPageData[]): {
   for (const p of pages) {
     if (p.title) {
       // Brand is often after " | " or " - " in titles
-      const parts = p.title.split(/\s*[\|–—-]\s*/);
+      const parts = p.title.split(/\s*[|–—-]\s*/);
       if (parts.length > 1) brandCandidates.push(parts[parts.length - 1].trim());
     }
     if (p.open_graph.has_og_site_name) {

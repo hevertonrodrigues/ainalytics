@@ -38,6 +38,7 @@ export function PlatformsPage() {
   // Pre-load models for all platforms
   useEffect(() => {
     platforms.forEach((p) => loadModels(p.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [platforms]);
 
   const loadModels = async (platformId: string) => {

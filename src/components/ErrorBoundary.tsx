@@ -11,6 +11,7 @@ interface State {
   error: Error | null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 class ErrorBoundaryClass extends Component<Props & { t: any }, State> {
   public state: State = {
     hasError: false,

@@ -20,15 +20,6 @@ import {
   computeTopRecommendations,
 } from "./geo-scoring.ts";
 
-const SCRAPE_TIMEOUT_MS = 8_000;
-const CRAWL_DELAY_MS = 300;
-
-/**
- * Scrape Company Edge Function
- * Two-phase background processing:
- * - POST { action: 'scrape' }  → Phase 1: Fetch robots.txt, sitemap, scrape pages
- * - POST { action: 'analyze' } → Phase 2: Compute factor scores + AI analysis
- */
 
 // ─── Helpers ────────────────────────────────────────────────
 
@@ -36,9 +27,6 @@ import { fetchSafe, fetchWithRedirectChain, extractLinksFromHtml, MAX_PAGES_TO_S
 
 // extractLinksFromHtml is imported from fetch-utils.ts
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function extractUrlsFromSitemap(xml: string): string[] {
   const urls: string[] = [];
@@ -204,7 +192,7 @@ serve(async (req: Request) => {
       console.log(`[scrape] ▶ Starting foreground scrape for ${domain}`);
 
       // Create or reuse a pending analysis record
-      let analysis = await getLatestAnalysis(db, company.id);
+      const analysis = await getLatestAnalysis(db, company.id);
       
       // Enforce 7-day cooldown for non-admins if an analysis exists and is completed
       if (analysis && analysis.status === 'completed' && analysis.completed_at) {

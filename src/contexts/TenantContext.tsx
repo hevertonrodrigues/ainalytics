@@ -53,10 +53,12 @@ export function TenantProvider({ children }: { children: ReactNode }) {
     // Fetch company and models in parallel, then mark loading done
     Promise.all([
       apiClient
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .get<any>('/company')
         .then((res) => { if (!cancelled) setHasCompany(!!res.data); })
         .catch(() => { if (!cancelled) setHasCompany(false); }),
       apiClient
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .get<any[]>('/platforms/preferences')
         .then((res) => { if (!cancelled) setHasModels(Array.isArray(res.data) && res.data.length > 0); })
         .catch(() => { if (!cancelled) setHasModels(false); }),
@@ -96,6 +98,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useTenant(): TenantContextValue {
   const ctx = useContext(TenantContext);
   if (!ctx) throw new Error('useTenant must be used within TenantProvider');

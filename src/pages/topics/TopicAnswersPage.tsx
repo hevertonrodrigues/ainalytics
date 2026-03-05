@@ -345,7 +345,7 @@ export function TopicAnswersPage() {
                             )}
                             {profile?.is_sa && answer.tokens_used && (
                               <span className="text-xs text-text-muted">
-                                {answer.tokens_used.input + answer.tokens_used.output} tokens
+                                {Number(answer.tokens_used.input || 0) + Number(answer.tokens_used.output || 0)} tokens
                               </span>
                             )}
                           </div>

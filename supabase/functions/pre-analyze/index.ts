@@ -123,7 +123,7 @@ serve(async (req: Request) => {
           error: homeRes ? `HTTP ${homeRes.status}` : "Timeout or unreachable",
         };
       }
-    } catch (_err) {
+    } catch {
       homePageData = {
         url: `${baseUrl}/`,
         status_code: 0,

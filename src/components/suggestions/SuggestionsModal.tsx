@@ -57,6 +57,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
         description: topic.description
       }).catch(async (err) => {
         if (err.status === 409) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const topics = await apiClient.get<any[]>('/topics-prompts');
           const found = topics.data.find(t => t.name === topic.name);
           if (found) return { data: found };
@@ -104,6 +105,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
       if (!isAcceptingAll) {
         showToast(t('common.success'), 'success');
       }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       if (!isAcceptingAll) {
         showToast(err.message || t('common.error'), 'error');
@@ -121,6 +123,7 @@ export const SuggestionsModal: React.FC<SuggestionsModalProps> = ({
       }
       showToast(t('common.success'), 'success');
       onAcceptAll?.();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       showToast(err.message || t('common.error'), 'error');
     } finally {

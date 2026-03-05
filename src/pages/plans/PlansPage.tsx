@@ -59,6 +59,7 @@ export function PlansPage() {
 
   useEffect(() => {
     if (currentTenant) loadPlans();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTenant?.id]);
 
   // Handle Stripe checkout redirect
@@ -75,6 +76,7 @@ export function PlansPage() {
       showError(t('plans.checkoutCanceled', 'Checkout was canceled'));
       window.history.replaceState({}, '', window.location.pathname);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── Alert helpers ──────────────────────────────────────

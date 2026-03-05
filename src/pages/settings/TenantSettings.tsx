@@ -43,6 +43,7 @@ export function TenantSettings() {
       if (error) throw error;
       
       showToast(t('settings.saved', 'Settings saved successfully'), 'success');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       showToast(err.message || t('common.error'), 'error');
     } finally {
@@ -62,6 +63,7 @@ export function TenantSettings() {
       });
       if (error) throw error;
       showToast(t('settings.saved', 'Settings saved successfully'), 'success');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       showToast(err.message || t('common.error'), 'error');
     } finally {

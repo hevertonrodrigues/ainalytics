@@ -19,6 +19,7 @@ interface PhoneInputProps {
 /**
  * Returns only the digits count (excluding +)
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function getPhoneDigitCount(value: string): number {
   return value.replace(/\D/g, '').length;
 }
@@ -73,6 +74,7 @@ export function PhoneInput({
         onChangeValidity={handleValidityChange}
         initOptions={{
           initialCountry: defaultCountry,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           geoIpLookup: (success: (countryCode: any) => void, failure: () => void) => {
             fetch("https://ipapi.co/json")
               .then(res => res.json())

@@ -206,7 +206,7 @@ serve(async (req: Request) => {
       .select("id", { count: "exact", head: true })
       .eq("analysis_id", analysisId);
 
-    let totalNow = currentCount || 0;
+    const totalNow = currentCount || 0;
 
     if (totalNow < MAX_PAGES_TO_SCRAPE) {
       // Get all existing URLs to deduplicate
@@ -262,7 +262,8 @@ serve(async (req: Request) => {
         ? 15 + Math.round(((p.completed + p.errors) / p.total) * 33)
         : 15;
 
-      const shortUrl = pages[pages.length - 1]?.url?.replace(/https?:\/\/[^/]+/, '') || '';
+
+
 
       await db
         .from("geo_analyses")

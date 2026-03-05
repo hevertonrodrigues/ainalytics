@@ -10,6 +10,7 @@ export function SourceDetailPage() {
   const navigate = useNavigate();
   
   const [source, setSource] = useState<{ id: string, name: string | null, domain: string } | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [references, setReferences] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -49,6 +50,7 @@ export function SourceDetailPage() {
         if (mounted) {
           setReferences(data || []);
         }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.error(err);
         if (mounted) setError(t('common.error'));

@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
-import { ok, badRequest, serverError, unauthorized } from "../_shared/response.ts";
+import { ok, serverError, unauthorized } from "../_shared/response.ts";
 import { executePromptMulti } from "../_shared/ai-providers/index.ts";
 
 /**
@@ -77,7 +77,8 @@ serve(async (req: Request) => {
           failed++;
           console.error(`[prompt-search-worker] Job ${job.id} failed:`, err);
           
-          const isTimeout = err instanceof Error && err.message.includes("timed out");
+
+
           const finalStatus = job.attempts < 3 ? "pending" : "failed";
 
           await sb.rpc("complete_prompt_execution", {

@@ -249,7 +249,7 @@ ${truncatedSitemap}
   let parsedResult: { topics: Array<{ name: string; description?: string; is_existing?: boolean; prompts: Array<{ text: string; description?: string }> }> };
   try {
     parsedResult = JSON.parse(suggestionsJson.trim());
-  } catch (_e) {
+  } catch {
     throw new Error("AI produced invalid JSON output.");
   }
 

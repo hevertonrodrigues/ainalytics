@@ -94,6 +94,7 @@ function getStatusKey(status: string, progress = 0): string {
  *   - A raw English string (legacy): "Starting analysis for x.com…"
  * Returns the translated string or the raw string as fallback.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function translateStatusMessage(msg: string | null | undefined, t: (key: string, params?: Record<string, any>) => string): string | null {
   if (!msg) return null;
   try {
@@ -143,6 +144,7 @@ export function MyCompanyPage() {
       showToast(state.toast, 'success');
       window.history.replaceState({}, '', location.pathname);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const [company, setCompany] = useState<Company | null>(null);
@@ -159,6 +161,7 @@ export function MyCompanyPage() {
   const [startingAnalysis, setStartingAnalysis] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
@@ -249,6 +252,7 @@ export function MyCompanyPage() {
         if (pollRef.current) clearInterval(pollRef.current);
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company?.latest_analysis?.status]);
 
   // ─── Create company & start scraping ────────────────────
@@ -276,6 +280,7 @@ export function MyCompanyPage() {
       // Start polling
       autoTriggeredRef.current = false;
       await fetchCompany();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       showToast(err.message || t('company.createError'), 'error');
     } finally {
@@ -301,6 +306,7 @@ export function MyCompanyPage() {
         autoTriggeredRef.current = true;
       }
       fetchCompany();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       showToast(err.message || t('company.statusError'), 'error');
     }
@@ -326,6 +332,7 @@ export function MyCompanyPage() {
       // 4. Re-fetch to start polling
       fetchCompany();
       showToast(t('company.reAnalyzeStarted') || 'Re-analysis started', 'success');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       showToast(err.message || 'Re-analysis failed', 'error');
     } finally {
@@ -372,6 +379,7 @@ export function MyCompanyPage() {
       }, 100);
 
       showToast(t('company.exportSuccess', 'PDF exported successfully'), 'success');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error('PDF export error:', err);
       const msg = err?.message || err?.toString() || 'Unknown error';
@@ -408,6 +416,7 @@ export function MyCompanyPage() {
       setSuggestions(topics);
       setShowSuggestions(true);
       showToast(t('llmText.suggestionsSuccess', 'Suggestions generated successfully!'), 'success');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       showToast(err.message || t('llmText.suggestionsError', 'An error occurred while generating suggestions'), 'error');
@@ -715,6 +724,7 @@ export function MyCompanyPage() {
                 });
                 await apiClient.post('/scrape-company', { action: 'scrape' });
                 await fetchCompany();
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               } catch (err: any) {
                 showToast(err.message || 'Failed to start analysis', 'error');
               } finally {
@@ -833,6 +843,7 @@ export function MyCompanyPage() {
                           autoTriggeredRef.current = false;
                           await apiClient.post('/scrape-company', { action: 'scrape' });
                           await fetchCompany();
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         } catch (err: any) {
                           showToast(err.message || 'Failed to start re-analysis', 'error');
                         } finally {

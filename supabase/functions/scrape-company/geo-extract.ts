@@ -62,27 +62,19 @@ const DATE_PATTERNS = [
   /\d{4}-\d{2}-\d{2}/,
   /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]* \d{1,2},? \d{4}/i,
   /\d{1,2}\/\d{1,2}\/\d{4}/,
-  /\d{1,2}[\-\.]\d{1,2}[\-\.]\d{4}/,
+  /\d{1,2}[-.]\d{1,2}[-.]\d{4}/,
 ];
 
 const DATE_KEYWORDS = /updated|modified|last updated|published|posted|date/i;
 
 // ─── Helpers ────────────────────────────────────────────────
 
-function stripTags(html: string): string {
-  return html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-}
 
 function countMatches(html: string, pattern: RegExp): number {
   return (html.match(pattern) || []).length;
 }
 
-function extractAllMatches(html: string, pattern: RegExp): string[] {
-  const results: string[] = [];
-  let m;
-  while ((m = pattern.exec(html)) !== null) results.push(m[1] || m[0]);
-  return results;
-}
+
 
 function isQuestion(text: string): boolean {
   if (text.trim().endsWith("?")) return true;
@@ -414,7 +406,7 @@ export function extractFromHtml(html: string, pageUrl: string, headers?: Headers
   const navUlCount = countMatches(html, /<nav[\s\S]*?<ul/gi);
   const contentUlCount = Math.max(ulCount - navUlCount, 0);
   const liCount = countMatches(html, /<li[\s>]/gi);
-  const fakeListPatterns = countMatches(textContent, /(?:^|\n)\s*[•\-\*→]/g);
+  const fakeListPatterns = countMatches(textContent, /(?:^|\n)\s*[•\-*→]/g);
 
   // ── Paragraphs ────────────────────────────────────────
   const pRegex = /<p[^>]*>([\s\S]*?)<\/p>/gi;
@@ -731,7 +723,7 @@ export interface SitemapAnalysis {
 export function analyzeSitemap(
   sitemapXml: string | null,
   robotsAnalysis: RobotsAnalysis,
-  crawledUrls: string[],
+  _crawledUrls: string[],
 ): SitemapAnalysis {
   if (!sitemapXml) {
     return {

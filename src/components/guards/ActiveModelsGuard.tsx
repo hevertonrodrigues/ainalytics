@@ -46,7 +46,7 @@ export function ActiveModelsGuard({ children }: ActiveModelsGuardProps) {
     return () => {
       mounted = false;
     };
-  }, [currentTenant?.id]);
+  }, [currentTenant]);
 
   // Still loading the check
   if (hasActiveModels === null) {

@@ -167,7 +167,7 @@ export async function extractWebsiteInformation(companyId: string, dbClient?: an
   let parsedResult;
   try {
     parsedResult = JSON.parse(answerText.trim());
-  } catch (_e) {
+  } catch {
     throw new Error("AI produced invalid JSON output.");
   }
 

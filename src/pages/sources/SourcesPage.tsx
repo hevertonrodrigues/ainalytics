@@ -44,6 +44,7 @@ export function SourcesPage() {
       if (fetchErr) throw fetchErr;
       
       setSources(data || []);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setError(t('common.error'));
@@ -123,6 +124,7 @@ export function SourcesPage() {
             const references = source.prompt_answer_sources || [];
             
             // Get unique prompts from references
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const uniquePromptsMap = new Map<string, any>();
             references.forEach(ref => {
               if (ref.prompt_id && ref.prompt && !uniquePromptsMap.has(ref.prompt_id)) {
@@ -166,6 +168,7 @@ export function SourcesPage() {
                       {t('sources.promptsReferencing', { defaultValue: 'Prompts Referencing this Source' })}
                     </h4>
                     <div className="space-y-2">
+                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
                       {uniquePrompts.map((prompt: any, idx: number) => (
                         <div key={prompt.id || idx} className="p-3 rounded-md bg-bg-primary border border-glass-border shadow-sm flex items-center gap-3">
                           <MessageSquare className="w-4 h-4 text-brand-primary shrink-0" />

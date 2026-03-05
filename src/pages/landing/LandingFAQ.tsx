@@ -42,11 +42,11 @@ export function LandingFAQ() {
   useEffect(() => {
     if (faqs.length === 0) return;
 
+    const el = sectionRef.current;
+    if (!el) return;
+
     // Wait a frame so the DOM has painted
     const raf = requestAnimationFrame(() => {
-      const el = sectionRef.current;
-      if (!el) return;
-
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (prefersReduced) {
         el.querySelectorAll('.landing-reveal').forEach((node) => node.classList.add('visible'));
@@ -68,13 +68,15 @@ export function LandingFAQ() {
       el.querySelectorAll('.landing-reveal').forEach((node) => observer.observe(node));
 
       // Store for cleanup
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (el as any).__faqObserver = observer;
     });
 
     return () => {
       cancelAnimationFrame(raf);
-      const el = sectionRef.current;
-      if (el && (el as any).__faqObserver) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if ((el as any).__faqObserver) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (el as any).__faqObserver.disconnect();
       }
     };

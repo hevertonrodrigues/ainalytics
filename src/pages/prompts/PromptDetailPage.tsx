@@ -98,6 +98,7 @@ export function PromptDetailPage() {
 
       if (sourcesData) {
         const aggregated = new Map<string, PromptSource>();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         for (const item of (sourcesData as any[])) {
           const domain = item.source?.domain || 'Unknown';
           const name = item.source?.name || null;
