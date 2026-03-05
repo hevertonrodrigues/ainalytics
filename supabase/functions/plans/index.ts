@@ -179,6 +179,38 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     return serverError("Failed to create subscription");
   }
 
+  // 7. Activate the default model on tenant_platform_models immediately
+  // (activation code subscriptions are active from the start, unlike Stripe
+  //  where the webhook activates the model after payment confirmation)
+  try {
+    const { data: defaultPlatform } = await db
+      .from("platforms")
+      .select("id, default_model_id")
+      .eq("is_default", true)
+      .single();
+
+    if (defaultPlatform?.default_model_id) {
+      await db
+        .from("tenant_platform_models")
+        .upsert(
+          {
+            tenant_id: auth.tenantId,
+            platform_id: defaultPlatform.id,
+            model_id: defaultPlatform.default_model_id,
+            is_active: true,
+          },
+          { onConflict: "tenant_id,platform_id,model_id" }
+        );
+
+      console.log(
+        `[plans] Default model activated for tenant ${auth.tenantId} (platform=${defaultPlatform.id}, model=${defaultPlatform.default_model_id})`
+      );
+    }
+  } catch (modelErr) {
+    // Non-fatal: subscription was already created successfully
+    console.error("[plans] Error activating default model:", modelErr);
+  }
+
   return ok({ subscription, plan_id: activation.plan_id });
 }
 

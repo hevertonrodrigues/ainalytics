@@ -1,14 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Sparkles,
-  Mail,
-  Clock,
-  MessageSquare,
-  ArrowUpRight,
-  Headphones,
-  Zap,
-} from 'lucide-react';
+import { Mail, Clock, Headphones } from 'lucide-react';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { LandingHeader } from '@/pages/landing/LandingHeader';
 import { LandingFooter } from '@/pages/landing/LandingFooter';
