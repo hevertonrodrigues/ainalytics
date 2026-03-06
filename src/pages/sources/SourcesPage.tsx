@@ -11,9 +11,10 @@ interface SourceSummary {
   tenant_id: string;
   domain: string;
   total: number;
-  total_by_prompt: Array<{ prompt_id: string; prompt_text: string; count: number }>;
+  percent: number;
+  total_by_prompt: Array<{ prompt_id: string; prompt_text: string; count: number; percent: number }>;
   total_by_answer: Array<{ answer_id: string; count: number }>;
-  total_by_platform: Array<{ platform_id: string; platform_name: string; platform_slug: string; count: number }>;
+  total_by_platform: Array<{ platform_id: string; platform_name: string; platform_slug: string; count: number; percent: number }>;
   total_by_model: Array<{ model_id: string; model_name: string; model_slug: string; count: number }>;
 }
 
@@ -51,7 +52,7 @@ export function SourcesPage() {
         
       if (fetchErr) throw fetchErr;
       
-      // Edge function returns { success: true, data: [...] }
+      // Edge function returns { success: true, data: [...] } with pre-computed percentages
       const items: SourceSummary[] = data?.data || [];
       
       // Sort by total count descending
@@ -87,6 +88,7 @@ export function SourcesPage() {
 
     return filtered;
   }, [sources, searchTerm, companyDomain]);
+
 
   return (
     <div className="stagger-enter space-y-6 max-w-5xl">
@@ -174,7 +176,7 @@ export function SourcesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-text-muted">
-                    <span>{source.total} {t('sources.detailTitle', { defaultValue: 'References' })}</span>
+                    <span>{source.percent < 0.01 && source.percent > 0 ? '<0.01' : source.percent.toFixed(2)}% {t('sources.detailTitle', { defaultValue: 'References' })}</span>
                     {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
                 </div>
@@ -186,10 +188,10 @@ export function SourcesPage() {
                     {source.total_by_platform?.length > 0 && (
                       <div className="flex flex-wrap gap-3 mb-4">
                         {source.total_by_platform.map((p) => (
-                          <div key={p.platform_id} className="flex-1 min-w-[120px] p-3 rounded-md bg-bg-primary border border-glass-border">
-                            <div className="text-xs text-text-muted mb-1">{p.platform_name}</div>
-                            <div className="text-lg font-bold text-text-primary">{p.count}</div>
-                          </div>
+                            <div key={p.platform_id} className="flex-1 min-w-[120px] p-3 rounded-md bg-bg-primary border border-glass-border">
+                              <div className="text-xs text-text-muted mb-1">{p.platform_name}</div>
+                              <div className="text-lg font-bold text-text-primary">{p.percent < 0.01 && p.percent > 0 ? '<0.01' : p.percent.toFixed(2)}%</div>
+                            </div>
                         ))}
                       </div>
                     )}
@@ -202,17 +204,17 @@ export function SourcesPage() {
                         </h4>
                         <div className="space-y-2">
                           {source.total_by_prompt.map((p, idx) => (
-                            <div key={p.prompt_id || idx} className="p-3 rounded-md bg-bg-primary border border-glass-border shadow-sm flex items-center justify-between gap-3">
-                              <div className="flex items-center gap-3 min-w-0">
-                                <MessageSquare className="w-4 h-4 text-brand-primary shrink-0" />
-                                <span className="text-sm font-medium text-text-primary truncate">
-                                  {p.prompt_text}
+                              <div key={p.prompt_id || idx} className="p-3 rounded-md bg-bg-primary border border-glass-border shadow-sm flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <MessageSquare className="w-4 h-4 text-brand-primary shrink-0" />
+                                  <span className="text-sm font-medium text-text-primary truncate">
+                                    {p.prompt_text}
+                                  </span>
+                                </div>
+                                <span className="text-xs font-medium text-text-muted shrink-0">
+                                  {p.percent < 0.01 && p.percent > 0 ? '<0.01' : p.percent.toFixed(2)}%
                                 </span>
                               </div>
-                              <span className="text-xs font-medium text-text-muted shrink-0">
-                                {p.count}x
-                              </span>
-                            </div>
                           ))}
                         </div>
                       </>

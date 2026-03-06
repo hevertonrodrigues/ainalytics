@@ -17,14 +17,52 @@ serve(async (req: Request) => {
     const db = createAdminClient();
 
     // Query the materialized view filtered by tenant_id
-    // Using service_role to bypass REVOKE restrictions
     const { data, error } = await db.rpc("get_sources_summary", {
       p_tenant_id: auth.tenantId,
     });
 
     if (error) throw error;
 
-    return withCors(req, ok(data));
+    // Get total prompt_answers for this tenant (for percentage calculation)
+    const { count: totalAnswers, error: countErr } = await db
+      .from("prompt_answers")
+      .select("*", { count: "exact", head: true })
+      .eq("tenant_id", auth.tenantId);
+
+    if (countErr) throw countErr;
+
+    const total = totalAnswers ?? 0;
+
+    // Compute all percentages server-side
+    const enriched = (data || []).map((source: any) => {
+      const sourceTotal = source.total || 0;
+      const sourcePercent = total > 0
+        ? Math.round((sourceTotal / total) * 100 * 100) / 100
+        : 0;
+
+      const platformsWithPct = (source.total_by_platform || []).map((p: any) => ({
+        ...p,
+        percent: total > 0
+          ? Math.round((p.count / total) * 100 * 100) / 100
+          : 0,
+      }));
+
+      const promptsWithPct = (source.total_by_prompt || []).map((p: any) => ({
+        ...p,
+        percent: sourceTotal > 0
+          ? Math.round((p.count / sourceTotal) * 100 * 100) / 100
+          : 0,
+      }));
+
+      return {
+        ...source,
+        percent: sourcePercent,
+        total_by_platform: platformsWithPct,
+        total_by_prompt: promptsWithPct,
+      };
+    });
+
+    return withCors(req, ok(enriched));
   } catch (err) {
     console.error("[sources-summary]", err);
     if (err.status) {
