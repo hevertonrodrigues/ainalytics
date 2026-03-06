@@ -539,6 +539,11 @@
     "prompt": "Prompt",
     "close": "Cerrar",
     "yourDomain": "Tu Dominio",
+    "scoreBreakdown": "Desglose del Score",
+    "mentionRate": "Tasa de Mención",
+    "platformBreadth": "Amplitud de Plataformas",
+    "promptCoverage": "Cobertura de Prompts",
+    "distribution": "Distribución",
     "banner": "Las Fuentes representan los cimientos de conocimiento que los modelos de IA utilizan para fundamentar sus respuestas sobre su organización. Esta sección rastrea los dominios, URLs y anotaciones de texto específicas que los rastreadores de IA referencian al generar respuestas. Por ejemplo, puede ver si una IA está extrayendo datos de su documentación oficial, un artículo de noticias o el blog de un competidor. Comprender estas fuentes le permite identificar qué partes de su presencia en línea están alimentando eficazmente el 'cerebro' de la IA y dónde la información de su marca podría faltar o ser malinterpretada."
   },
   "llmText": {

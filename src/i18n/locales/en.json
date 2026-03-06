@@ -539,6 +539,11 @@
     "prompt": "Prompt",
     "close": "Close",
     "yourDomain": "Your Domain",
+    "scoreBreakdown": "Score Breakdown",
+    "mentionRate": "Mention Rate",
+    "platformBreadth": "Platform Breadth",
+    "promptCoverage": "Prompt Coverage",
+    "distribution": "Distribution",
     "banner": "Sources represent the foundations of knowledge that AI models use to ground their answers about your organization. This section tracks the domains, URLs, and specific text annotations that AI scrapers reference when generating responses. For example, you can see if an AI is pulling data from your official documentation, a news article, or a competitor's blog. Understanding these sources allows you to identify which parts of your online presence are effectively feeding the AI 'brain' and where your brand’s information might be missing or misinterpreted."
   },
   "llmText": {

@@ -1,10 +1,17 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Globe, ChevronDown, ChevronUp, MessageSquare, Building2 } from 'lucide-react';
+import { Search, Globe, ChevronDown, ChevronUp, MessageSquare, Building2, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/contexts/TenantContext';
 import { PageExplanation } from '@/components/PageExplanation';
+
+interface ScoreBreakdown {
+  mention_rate: number;
+  platform_breadth: number;
+  prompt_coverage: number;
+  distribution: number;
+}
 
 interface SourceSummary {
   id: string;
@@ -12,6 +19,8 @@ interface SourceSummary {
   domain: string;
   total: number;
   percent: number;
+  score: number;
+  score_breakdown: ScoreBreakdown;
   total_by_prompt: Array<{ prompt_id: string; prompt_text: string; count: number; percent: number }>;
   total_by_answer: Array<{ answer_id: string; count: number }>;
   total_by_platform: Array<{ platform_id: string; platform_name: string; platform_slug: string; count: number; percent: number }>;
@@ -52,11 +61,8 @@ export function SourcesPage() {
         
       if (fetchErr) throw fetchErr;
       
-      // Edge function returns { success: true, data: [...] } with pre-computed percentages
+      // Edge function returns data sorted by score, with pre-computed percentages
       const items: SourceSummary[] = data?.data || [];
-      
-      // Sort by total count descending
-      items.sort((a, b) => b.total - a.total);
       
       setSources(items);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -177,6 +183,14 @@ export function SourcesPage() {
                   </div>
                   <div className="flex items-center gap-4 text-sm text-text-muted">
                     <span>{source.percent < 0.01 && source.percent > 0 ? '<0.01' : source.percent.toFixed(2)}% {t('sources.detailTitle', { defaultValue: 'References' })}</span>
+                    <div className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                      source.score >= 70 ? 'bg-emerald-500/15 text-emerald-400' :
+                      source.score >= 40 ? 'bg-amber-500/15 text-amber-400' :
+                      source.score >= 15 ? 'bg-orange-500/15 text-orange-400' :
+                      'bg-red-500/15 text-red-400'
+                    }`}>
+                      {source.score.toFixed(1)}
+                    </div>
                     {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
                 </div>
@@ -184,6 +198,40 @@ export function SourcesPage() {
                 {/* Expanded content */}
                 {isExpanded && (
                   <div className="border-t border-glass-border bg-bg-secondary/30 p-4">
+                    {/* Score Breakdown */}
+                    {source.score_breakdown && (
+                      <div className="mb-4">
+                        <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                          <TrendingUp className="w-3.5 h-3.5" />
+                          {t('sources.scoreBreakdown', { defaultValue: 'Score Breakdown' })}
+                        </h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {[
+                            { label: t('sources.mentionRate', { defaultValue: 'Mention Rate' }), value: source.score_breakdown.mention_rate, weight: '35%' },
+                            { label: t('sources.platformBreadth', { defaultValue: 'Platform Breadth' }), value: source.score_breakdown.platform_breadth, weight: '25%' },
+                            { label: t('sources.promptCoverage', { defaultValue: 'Prompt Coverage' }), value: source.score_breakdown.prompt_coverage, weight: '20%' },
+                            { label: t('sources.distribution', { defaultValue: 'Distribution' }), value: source.score_breakdown.distribution, weight: '20%' },
+                          ].map((item) => (
+                            <div key={item.label} className="p-3 rounded-md bg-bg-primary border border-glass-border">
+                              <div className="text-[10px] text-text-muted mb-1.5">{item.label} <span className="opacity-50">({item.weight})</span></div>
+                              <div className="text-base font-bold text-text-primary mb-1.5">{item.value.toFixed(1)}</div>
+                              <div className="h-1.5 rounded-full bg-glass-border overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full transition-all ${
+                                    item.value >= 70 ? 'bg-emerald-500' :
+                                    item.value >= 40 ? 'bg-amber-500' :
+                                    item.value >= 15 ? 'bg-orange-500' :
+                                    'bg-red-500'
+                                  }`}
+                                  style={{ width: `${Math.min(100, item.value)}%` }}
+                                />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Platform counts */}
                     {source.total_by_platform?.length > 0 && (
                       <div className="flex flex-wrap gap-3 mb-4">
