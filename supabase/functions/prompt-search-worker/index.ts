@@ -183,6 +183,16 @@ async function processJob(
   const result = results[0];
 
   // ── Save to prompt_answers ────────────────────────────────
+  // Truncate large JSONB fields to avoid TOAST bloat & statement timeouts.
+  // raw_response can exceed 100 KB; cap both at ~10 KB stringified.
+  const MAX_RAW_BYTES = 10_000;
+  const truncateJson = (val: unknown): unknown => {
+    if (val == null) return null;
+    const str = JSON.stringify(val);
+    if (str.length <= MAX_RAW_BYTES) return val;
+    return { _truncated: true, byte_length: str.length, preview: str.slice(0, MAX_RAW_BYTES) };
+  };
+
   const row = {
     tenant_id: job.tenant_id,
     prompt_id: job.prompt_id,
@@ -192,8 +202,8 @@ async function processJob(
     answer_text: result.text,
     tokens_used: result.tokens,
     latency_ms: result.latency_ms,
-    raw_request: result.raw_request ?? null,
-    raw_response: result.raw_response ?? null,
+    raw_request: truncateJson(result.raw_request),
+    raw_response: truncateJson(result.raw_response),
     error: result.error || null,
     searched_at: searchedAt,
     deleted: false,
