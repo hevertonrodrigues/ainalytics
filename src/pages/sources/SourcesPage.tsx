@@ -1,16 +1,28 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Globe, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
+import { Search, Globe, ChevronDown, ChevronUp, MessageSquare, Building2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { useTenant } from '@/contexts/TenantContext';
 import { PageExplanation } from '@/components/PageExplanation';
 
-import type { SourceWithReferences } from '@/types/dashboard';
+interface SourceSummary {
+  id: string;
+  tenant_id: string;
+  domain: string;
+  total: number;
+  total_by_prompt: Array<{ prompt_id: string; prompt_text: string; count: number }>;
+  total_by_answer: Array<{ answer_id: string; count: number }>;
+  total_by_platform: Array<{ platform_id: string; platform_name: string; platform_slug: string; count: number }>;
+  total_by_model: Array<{ model_id: string; model_name: string; model_slug: string; count: number }>;
+}
 
 export function SourcesPage() {
   const { t } = useTranslation();
+  const { currentTenant } = useTenant();
+  const companyDomain = currentTenant?.main_domain?.toLowerCase() || '';
 
-  const [sources, setSources] = useState<SourceWithReferences[]>([]);
+  const [sources, setSources] = useState<SourceSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -30,20 +42,22 @@ export function SourcesPage() {
     try {
       setLoading(true);
       
-      const { data, error: fetchErr } = await supabase
-        .from('sources')
-        .select(`
-          *,
-          prompt_answer_sources(
-            prompt_id,
-            prompt:prompts(id, text)
-          )
-        `)
-        .order('domain', { ascending: true });
+      const { data, error: fetchErr } = await supabase.functions.invoke('sources-summary', {
+        method: 'GET',
+        headers: {
+          'x-tenant-id': localStorage.getItem('current_tenant_id') || '',
+        },
+      });
         
       if (fetchErr) throw fetchErr;
       
-      setSources(data || []);
+      // Edge function returns { success: true, data: [...] }
+      const items: SourceSummary[] = data?.data || [];
+      
+      // Sort by total count descending
+      items.sort((a, b) => b.total - a.total);
+      
+      setSources(items);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
@@ -57,11 +71,22 @@ export function SourcesPage() {
     loadSources();
   }, [loadSources]);
 
-  const filteredSources = sources.filter(
-    (s) =>
-      s.domain.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (s.name && s.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredSources = useMemo(() => {
+    const filtered = sources.filter(
+      (s) => s.domain.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Separate own source (matching company domain) from others
+    const ownIdx = filtered.findIndex(
+      (s) => companyDomain && s.domain.toLowerCase() === companyDomain
+    );
+    if (ownIdx > 0) {
+      const own = filtered.splice(ownIdx, 1)[0] as SourceSummary;
+      filtered.unshift(own);
+    }
+
+    return filtered;
+  }, [sources, searchTerm, companyDomain]);
 
   return (
     <div className="stagger-enter space-y-6 max-w-5xl">
@@ -77,10 +102,7 @@ export function SourcesPage() {
         </div>
       </div>
 
-      <PageExplanation 
-        message={t('sources.banner')} 
-        pageName={t('nav.sources')}
-      />
+      <PageExplanation message={t('sources.banner')} />
 
       {/* Controls */}
       <div className="flex flex-col sm:flex-row items-center gap-4">
@@ -121,72 +143,89 @@ export function SourcesPage() {
         <div className="flex flex-col space-y-3">
           {filteredSources.map((source) => {
             const isExpanded = expandedSources.has(source.id);
-            const references = source.prompt_answer_sources || [];
-            
-            // Get unique prompts from references
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const uniquePromptsMap = new Map<string, any>();
-            references.forEach(ref => {
-              if (ref.prompt_id && ref.prompt && !uniquePromptsMap.has(ref.prompt_id)) {
-                uniquePromptsMap.set(ref.prompt_id, ref.prompt);
-              }
-            });
-            const uniquePrompts = Array.from(uniquePromptsMap.values());
+            const isOwnSource = companyDomain && source.domain.toLowerCase() === companyDomain;
             
             return (
-              <div key={source.id} className="dashboard-card overflow-hidden">
+              <div key={source.id} className={`dashboard-card overflow-hidden ${
+                isOwnSource ? 'ring-2 ring-brand-primary/30 shadow-lg shadow-brand-primary/5' : ''
+              }`}>
                 {/* Main line */}
                 <div 
                   className="p-4 flex items-center justify-between cursor-pointer hover:bg-glass-hover transition-colors"
                   onClick={() => toggleExpand(source.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-brand-primary/10 text-brand-primary shrink-0">
-                      <Globe className="w-4 h-4" />
+                    <div className={`p-2 rounded-full shrink-0 ${
+                      isOwnSource
+                        ? 'bg-gradient-to-br from-brand-primary to-brand-accent text-white'
+                        : 'bg-brand-primary/10 text-brand-primary'
+                    }`}>
+                      {isOwnSource ? <Building2 className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                     </div>
-                    <div>
+                    <div className="flex items-center gap-2">
                       <h3 className="text-base font-semibold text-text-primary" title={source.domain}>
                         {source.domain}
                       </h3>
-                      {source.name && (
-                        <p className="text-xs text-text-muted mt-0.5 line-clamp-1" title={source.name}>
-                          {source.name}
-                        </p>
+                      {isOwnSource && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary">
+                          {t('sources.yourDomain', { defaultValue: 'Your Domain' })}
+                        </span>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-4 text-sm text-text-muted">
-                    <span>{references.length} {t('sources.detailTitle', { defaultValue: 'References' })}</span>
+                    <span>{source.total} {t('sources.detailTitle', { defaultValue: 'References' })}</span>
                     {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </div>
                 </div>
                 
                 {/* Expanded content */}
-                {isExpanded && uniquePrompts.length > 0 && (
+                {isExpanded && (
                   <div className="border-t border-glass-border bg-bg-secondary/30 p-4">
-                    <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
-                      {t('sources.promptsReferencing', { defaultValue: 'Prompts Referencing this Source' })}
-                    </h4>
-                    <div className="space-y-2">
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {uniquePrompts.map((prompt: any, idx: number) => (
-                        <div key={prompt.id || idx} className="p-3 rounded-md bg-bg-primary border border-glass-border shadow-sm flex items-center gap-3">
-                          <MessageSquare className="w-4 h-4 text-brand-primary shrink-0" />
-                          <span className="text-sm font-medium text-text-primary line-clamp-2">
-                            {prompt.text || t('sources.prompt')}
-                          </span>
+                    {/* Platform counts */}
+                    {source.total_by_platform?.length > 0 && (
+                      <div className="flex flex-wrap gap-3 mb-4">
+                        {source.total_by_platform.map((p) => (
+                          <div key={p.platform_id} className="flex-1 min-w-[120px] p-3 rounded-md bg-bg-primary border border-glass-border">
+                            <div className="text-xs text-text-muted mb-1">{p.platform_name}</div>
+                            <div className="text-lg font-bold text-text-primary">{p.count}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Prompts list */}
+                    {source.total_by_prompt?.length > 0 && (
+                      <>
+                        <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
+                          {t('sources.promptsReferencing', { defaultValue: 'Prompts Referencing this Source' })}
+                        </h4>
+                        <div className="space-y-2">
+                          {source.total_by_prompt.map((p, idx) => (
+                            <div key={p.prompt_id || idx} className="p-3 rounded-md bg-bg-primary border border-glass-border shadow-sm flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <MessageSquare className="w-4 h-4 text-brand-primary shrink-0" />
+                                <span className="text-sm font-medium text-text-primary truncate">
+                                  {p.prompt_text}
+                                </span>
+                              </div>
+                              <span className="text-xs font-medium text-text-muted shrink-0">
+                                {p.count}x
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                    
-                    {references.length > 0 && (
+                      </>
+                    )}
+
+                    {source.total > 0 && (
                       <div className="mt-4 flex justify-end">
                         <Link
                           to={`/dashboard/sources/${source.id}`}
                           className="text-sm font-medium text-brand-primary hover:text-brand-secondary transition-colors"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {t('common.viewAll', { defaultValue: 'View all references' })} ({references.length}) →
+                          {t('common.viewAll', { defaultValue: 'View all references' })} ({source.total}) →
                         </Link>
                       </div>
                     )}

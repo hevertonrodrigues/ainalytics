@@ -1,22 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 interface PageExplanationProps {
   message: string;
-  pageName?: string;
 }
 
-export function PageExplanation({ message, pageName }: PageExplanationProps) {
+export function PageExplanation({ message }: PageExplanationProps) {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(true);
-
-  // Auto-collapse on small screens on mount
-  useEffect(() => {
-    if (window.innerWidth < 1024) {
-      setIsExpanded(false);
-    }
-  }, []);
 
   if (!isExpanded) {
     return (
@@ -26,7 +18,7 @@ export function PageExplanation({ message, pageName }: PageExplanationProps) {
       >
         <HelpCircle className="w-4 h-4 text-brand-primary" />
         <span className="text-sm font-medium text-text-secondary group-hover:text-text-primary transition-colors">
-          {t('common.learnMoreAbout', { page: pageName || t('common.thisPage') })}
+          {t('common.aboutThisPage')}
         </span>
         <ChevronDown className="w-4 h-4 text-text-muted ml-auto" />
       </button>
@@ -46,10 +38,10 @@ export function PageExplanation({ message, pageName }: PageExplanationProps) {
         </div>
       </div>
       
-      {/* Collapse button - only shown if pageName is provided (which implies it's collapsable) or on small screens */}
+      {/* Collapse button - always visible */}
       <button 
         onClick={() => setIsExpanded(false)}
-        className="absolute top-2 right-2 p-1 rounded-md hover:bg-glass-hover text-text-muted transition-colors lg:hidden"
+        className="absolute top-2 right-2 p-1 rounded-md hover:bg-glass-hover text-text-muted transition-colors"
         title={t('common.close')}
       >
         <ChevronUp className="w-4 h-4" />
