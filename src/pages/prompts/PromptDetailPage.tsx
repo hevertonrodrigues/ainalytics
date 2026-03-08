@@ -82,13 +82,8 @@ export function PromptDetailPage() {
         .select(`
           url,
           title,
-          source:sources(domain, name),
-          answer:prompt_answers!prompt_answer_sources_answer_id_fkey(
-            platform_slug,
-            model:models!prompt_answers_model_id_fkey(
-              platform:platforms!models_platform_id_fkey(slug)
-            )
-          )
+          source:sources!source_id(domain, name),
+          answer:prompt_answers!answer_id(deleted, platform_slug)
         `)
         .eq('prompt_id', promptId);
 
@@ -100,15 +95,14 @@ export function PromptDetailPage() {
         const aggregated = new Map<string, PromptSource>();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         for (const item of (sourcesData as any[])) {
-          const domain = item.source?.domain || 'Unknown';
-          const name = item.source?.name || null;
-          
-          // Handle potential array or object return for joined resources
+          const source = Array.isArray(item.source) ? item.source[0] : item.source;
           const answer = Array.isArray(item.answer) ? item.answer[0] : item.answer;
-          const model = Array.isArray(answer?.model) ? answer.model[0] : answer?.model;
-          const platformObj = Array.isArray(model?.platform) ? model.platform[0] : model?.platform;
-          
-          const platform = platformObj?.slug || answer?.platform_slug || 'AI';
+
+          if (!answer || answer.deleted) continue;
+
+          const domain = source?.domain || 'Unknown';
+          const name = source?.name || null;
+          const platform = answer.platform_slug || 'AI';
 
           if (!aggregated.has(domain)) {
             aggregated.set(domain, {
@@ -134,6 +128,8 @@ export function PromptDetailPage() {
         setPromptSources(
           Array.from(aggregated.values()).sort((a, b) => b.total_count - a.total_count)
         );
+      } else {
+        setPromptSources([]);
       }
     } catch {
       setError(t('common.error'));
@@ -151,7 +147,10 @@ export function PromptDetailPage() {
         prompt_id: prompt.id,
         prompt_text: prompt.text,
       });
-      setAnswers(prev => [...res.data, ...prev]);
+      setAnswers((prev) => [...res.data, ...prev].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ));
+      await loadAll();
       showToast(t('answers.searchComplete'));
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');
@@ -224,13 +223,10 @@ export function PromptDetailPage() {
       });
 
       const newAnswer = res.data;
-      setAnswers((prev) => {
-        if (!newAnswer.error) {
-          const filtered = prev.filter((a) => a.id !== answer.id);
-          return [newAnswer, ...filtered];
-        }
-        return [newAnswer, ...prev];
-      });
+      setAnswers((prev) => [newAnswer, ...prev].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ));
+      await loadAll();
       showToast(newAnswer.error ? t('common.error') : t('answers.retryComplete'));
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');

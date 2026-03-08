@@ -29,6 +29,6 @@ supabase/functions/*/.npmrc
 dumps/*
 
 
-
 _mkt/*
-docs/*
+guide_docs/*
+scripts/*

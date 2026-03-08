@@ -35,7 +35,6 @@ export interface Tenant {
   slug: string;
   active_plan_id: string | null;
   main_domain: string | null;
-  prompt_executions_per_hour: number;
   created_at: string;
   updated_at: string;
 }

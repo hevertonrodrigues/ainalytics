@@ -23,11 +23,12 @@ serve(async (req: Request) => {
 
     if (error) throw error;
 
-    // Get total prompt_answers for this tenant
+    // Get all non-deleted answers for this tenant
     const { count: totalAnswers, error: countErr } = await db
       .from("prompt_answers")
       .select("*", { count: "exact", head: true })
-      .eq("tenant_id", auth.tenantId);
+      .eq("tenant_id", auth.tenantId)
+      .eq("deleted", false);
 
     if (countErr) throw countErr;
 

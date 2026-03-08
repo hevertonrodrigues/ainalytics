@@ -1,19 +1,215 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
-import { ok, badRequest, serverError } from "../_shared/response.ts";
-import { executePromptMulti } from "../_shared/ai-providers/index.ts";
+import { badRequest, ok, serverError } from "../_shared/response.ts";
+import {
+  executeAndStorePromptAnswer,
+  getErrorMessage,
+  loadPromptExecutionContext,
+  toPromptAnswerApiShape,
+  type PromptExecutionContext,
+} from "../_shared/prompt-execution.ts";
 
-/**
- * Prompt Search Edge Function
- * - POST /         → execute search against tenant's active models
- * - POST /retry    → retry a specific failed answer (marks old as deleted on success)
- * - GET  /         → retrieve non-deleted answers (by promptId or topicId)
- *
- * Search uses the tenant's active entries from tenant_platform_models.
- * Each model produces its own prompt_answer row.
- */
+interface ActiveSubscription {
+  subscription_id: string;
+  plan_id: string;
+  cadence_unit: string;
+  cadence_value: number;
+}
+
+interface PromptRecord {
+  id: string;
+  text: string;
+  is_active: boolean;
+}
+
+interface TargetRecord {
+  id: string;
+  tenant_id: string;
+  prompt_id: string;
+  platform_id: string;
+  model_id: string;
+  subscription_id: string | null;
+  plan_id: string | null;
+}
+
+interface RunRecord {
+  id: string;
+  target_id: string;
+}
+
+interface TenantModelRecord {
+  platform_id: string;
+  model_id: string;
+  platform: { id: string; slug: string; name: string } | null;
+  model: { id: string; slug: string; name: string; web_search_active?: boolean } | null;
+}
+
+interface RetryAnswerRecord {
+  id: string;
+  prompt_id: string;
+  platform_id: string | null;
+  model_id: string | null;
+}
+
+function getRpcRow<T>(data: T | T[] | null): T | null {
+  if (!data) return null;
+  return Array.isArray(data) ? (data[0] ?? null) : data;
+}
+
+function getTargetKey(promptId: string, platformId: string, modelId: string): string {
+  return `${promptId}:${platformId}:${modelId}`;
+}
+
+async function requireSuperAdmin(userId: string, tenantId: string): Promise<void> {
+  const db = createAdminClient();
+  const { data, error } = await db
+    .from("profiles")
+    .select("is_sa")
+    .eq("user_id", userId)
+    .eq("tenant_id", tenantId)
+    .eq("is_sa", true)
+    .limit(1);
+
+  if (error) {
+    throw { status: 500, message: "Failed to verify superadmin access" };
+  }
+
+  if (!data || data.length === 0) {
+    throw { status: 403, message: "Only superadmins can execute searches" };
+  }
+}
+
+async function getActiveSubscription(
+  tenantId: string,
+): Promise<{ response: Response | null; subscription: ActiveSubscription | null }> {
+  const db = createAdminClient();
+  const { data, error } = await db.rpc("get_tenant_active_prompt_subscription", {
+    p_tenant_id: tenantId,
+  });
+
+  if (error) {
+    return { response: serverError(error.message), subscription: null };
+  }
+
+  const subscription = getRpcRow(data as ActiveSubscription | ActiveSubscription[] | null);
+  if (!subscription) {
+    return {
+      response: badRequest("An active subscription is required to execute prompt searches"),
+      subscription: null,
+    };
+  }
+
+  return { response: null, subscription };
+}
+
+async function ensurePromptTarget(
+  tenantId: string,
+  promptId: string,
+  platformId: string,
+  modelId: string,
+): Promise<TargetRecord> {
+  const db = createAdminClient();
+  const { data, error } = await db.rpc("ensure_prompt_execution_target", {
+    p_tenant_id: tenantId,
+    p_prompt_id: promptId,
+    p_platform_id: platformId,
+    p_model_id: modelId,
+  });
+
+  const target = getRpcRow(data as TargetRecord | TargetRecord[] | null);
+  if (error || !target) {
+    throw new Error(error?.message || "Failed to create prompt execution target");
+  }
+
+  return target;
+}
+
+async function createProcessingRun(
+  target: TargetRecord,
+  triggerSource: "manual" | "retry",
+): Promise<RunRecord> {
+  const db = createAdminClient();
+  const startedAt = new Date().toISOString();
+
+  const { data, error } = await db
+    .from("prompt_execution_runs")
+    .insert({
+      tenant_id: target.tenant_id,
+      target_id: target.id,
+      prompt_id: target.prompt_id,
+      platform_id: target.platform_id,
+      model_id: target.model_id,
+      subscription_id: target.subscription_id,
+      plan_id: target.plan_id,
+      trigger_source: triggerSource,
+      scheduled_for: startedAt,
+      status: "processing",
+      attempt_count: 1,
+      max_attempts: 1,
+      available_at: startedAt,
+      started_at: startedAt,
+    })
+    .select("id, target_id")
+    .single();
+
+  if (error || !data) {
+    if (error?.code === "23505") {
+      throw new Error("A prompt execution is already in progress for one of the selected targets");
+    }
+    throw new Error(error?.message || "Failed to create prompt execution run");
+  }
+
+  return data as RunRecord;
+}
+
+async function finalizeInteractiveRun(
+  runId: string,
+  context: PromptExecutionContext,
+): Promise<Record<string, unknown> | null> {
+  const db = createAdminClient();
+
+  try {
+    const outcome = await executeAndStorePromptAnswer(db, context);
+    const { error: finalizeError } = await db.rpc("finalize_prompt_execution_run", {
+      p_run_id: runId,
+      p_prompt_answer_id: outcome.promptAnswerId,
+      p_final_status: outcome.finalStatus,
+      p_error_class: outcome.finalStatus === "failed" ? "provider_error" : null,
+      p_error_message: outcome.errorMessage,
+      p_provider_http_status: null,
+      p_provider_request_id: null,
+      p_retryable: false,
+    });
+
+    if (finalizeError) {
+      console.error("[prompt-search] finalize interactive run failed:", finalizeError);
+    }
+
+    return outcome.answer;
+  } catch (error) {
+    const message = getErrorMessage(error);
+
+    const { error: finalizeError } = await db.rpc("finalize_prompt_execution_run", {
+      p_run_id: runId,
+      p_prompt_answer_id: null,
+      p_final_status: "failed",
+      p_error_class: "execution_error",
+      p_error_message: message,
+      p_provider_http_status: null,
+      p_provider_request_id: null,
+      p_retryable: false,
+    });
+
+    if (finalizeError) {
+      console.error("[prompt-search] finalize failed after execution error:", finalizeError);
+    }
+
+    console.error("[prompt-search] interactive execution failed:", error);
+    return null;
+  }
+}
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") return handleCors(req);
@@ -24,220 +220,215 @@ serve(async (req: Request) => {
     const subPath = url.pathname.split("/prompt-search").pop() || "";
 
     if (req.method === "POST") {
-      const sb = createAdminClient();
-      const { data: profile } = await sb
-        .from("profiles")
-        .select("is_sa")
-        .eq("user_id", user.id)
-        .eq("tenant_id", tenantId)
-        .single();
-
-      if (!profile?.is_sa) {
-        return withCors(req, badRequest("Only superadmins can execute searches"));
-      }
+      await requireSuperAdmin(user.id, tenantId);
     }
 
     if (req.method === "POST" && subPath.startsWith("/retry")) {
-      return withCors(req, await handleRetry(req, tenantId));
+      return withCors(req, await handleRetry(tenantId, req));
     }
 
     switch (req.method) {
-      case "POST": return withCors(req, await handleSearch(req, tenantId));
-      case "GET":  return withCors(req, await handleGetAnswers(req, tenantId));
-      default:     return withCors(req, badRequest(`Method ${req.method} not allowed`));
+      case "POST":
+        return withCors(req, await handleSearch(tenantId, req));
+      case "GET":
+        return withCors(req, await handleGetAnswers(tenantId, req));
+      default:
+        return withCors(req, badRequest(`Method ${req.method} not allowed`));
     }
-  } catch (err: unknown) {
-    console.error("[prompt-search]", err);
-    const e = err as { status?: number; message?: string };
-    if (e.status) {
+  } catch (error: unknown) {
+    console.error("[prompt-search]", error);
+    const err = error as { status?: number; message?: string };
+    if (err.status) {
       return withCors(
         req,
         new Response(
-          JSON.stringify({ success: false, error: { message: e.message, code: e.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN" } }),
-          { status: e.status, headers: { "Content-Type": "application/json" } },
+          JSON.stringify({
+            success: false,
+            error: {
+              message: err.message,
+              code: err.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
+            },
+          }),
+          {
+            status: err.status,
+            headers: { "Content-Type": "application/json" },
+          },
         ),
       );
     }
-    return withCors(req, serverError(e.message || "Internal server error"));
+    return withCors(req, serverError(getErrorMessage(error)));
   }
 });
 
-/**
- * Execute search: send a prompt to all tenant's active platform+model combos.
- * Body: { prompt_id, prompt_text }
- * Models come from tenant_platform_models where is_active=true.
- */
-async function handleSearch(req: Request, tenantId: string) {
+async function handleSearch(tenantId: string, req: Request): Promise<Response> {
   const body = await req.json();
-  const { prompt_id, prompt_text } = body;
+  const promptId = typeof body.prompt_id === "string" ? body.prompt_id : "";
 
-  if (!prompt_id || !prompt_text) return badRequest("prompt_id and prompt_text are required");
+  if (!promptId) {
+    return badRequest("prompt_id is required");
+  }
 
-  const sb = createAdminClient();
+  const { response: subscriptionError } = await getActiveSubscription(tenantId);
+  if (subscriptionError) return subscriptionError;
 
-  // Load tenant's active models with platform info (include web_search_active)
-  const { data: tpm, error: tpmErr } = await sb
+  const db = createAdminClient();
+  const { data: prompt, error: promptError } = await db
+    .from("prompts")
+    .select("id, text, is_active")
+    .eq("tenant_id", tenantId)
+    .eq("id", promptId)
+    .single();
+
+  if (promptError || !prompt) {
+    return badRequest("Prompt not found");
+  }
+
+  const typedPrompt = prompt as PromptRecord;
+  if (!typedPrompt.is_active) {
+    return badRequest("Inactive prompts cannot be executed");
+  }
+
+  const { data: activeModels, error: modelError } = await db
     .from("tenant_platform_models")
-    .select("*, platform:platforms(id, slug, name), model:models(id, slug, name, web_search_active)")
+    .select("platform_id, model_id, platform:platforms(id, slug, name), model:models(id, slug, name, web_search_active)")
     .eq("tenant_id", tenantId)
     .eq("is_active", true);
 
-  if (tpmErr) return serverError(tpmErr.message);
-  if (!tpm || tpm.length === 0) {
-    return badRequest("No active models configured. Go to Models page to add platform+model preferences.");
+  if (modelError) {
+    return serverError(modelError.message);
   }
 
-  const searchedAt = new Date().toISOString();
+  const contexts: PromptExecutionContext[] = ((activeModels || []) as TenantModelRecord[])
+    .filter((entry) => entry.platform && entry.model)
+    .map((entry) => ({
+      tenantId,
+      promptId: typedPrompt.id,
+      promptText: typedPrompt.text,
+      platformId: entry.platform_id,
+      platformSlug: entry.platform!.slug,
+      platformName: entry.platform!.name,
+      modelId: entry.model_id,
+      modelSlug: entry.model!.slug,
+      modelName: entry.model!.name,
+      webSearchEnabled: entry.model?.web_search_active ?? false,
+    }));
 
-  // Build platform+model pairs for execution
-  const entries = tpm.map((t: { platform: { id: string; slug: string }; model: { id: string; slug: string; web_search_active?: boolean }; platform_id: string; model_id: string }) => ({
-    platformSlug: t.platform.slug,
-    modelSlug: t.model.slug,
-    platform_id: t.platform_id,
-    model_id: t.model_id,
-    webSearchEnabled: t.model.web_search_active ?? false,
-  }));
+  if (contexts.length === 0) {
+    return badRequest("No active models configured. Go to Models page to add platform and model preferences.");
+  }
 
-  // Execute prompt against all models in parallel
-  const results = await executePromptMulti(
-    entries.map((e) => ({ slug: e.platformSlug, model: e.modelSlug, webSearchEnabled: e.webSearchEnabled })),
-    prompt_text,
+  const targets = await Promise.all(
+    contexts.map((context) =>
+      ensurePromptTarget(tenantId, context.promptId, context.platformId, context.modelId)
+    ),
   );
 
-  // Save all results to database
-  const rows = results.map((r, i) => ({
-    tenant_id: tenantId,
-    prompt_id,
-    platform_slug: r.slug,
-    platform_id: entries[i].platform_id,
-    model_id: entries[i].model_id,
-    answer_text: r.text,
-    tokens_used: r.tokens,
-    latency_ms: r.latency_ms,
-    raw_request: r.raw_request ?? null,
-    raw_response: r.raw_response ?? null,
-    error: r.error || null,
-    searched_at: searchedAt,
-    deleted: false,
-    web_search_enabled: r.web_search_enabled ?? false,
-    annotations: r.annotations ?? null,
-    sources: r.sources ?? null,
-  }));
+  const runs = await Promise.all(targets.map((target) => createProcessingRun(target, "manual")));
+  const runByTargetId = new Map(runs.map((run) => [run.target_id, run]));
+  const targetByKey = new Map(
+    targets.map((target) => [getTargetKey(target.prompt_id, target.platform_id, target.model_id), target]),
+  );
 
-  const { data, error } = await sb
-    .from("prompt_answers")
-    .insert(rows)
-    .select("*, model:models!model_id(id, slug, name)");
+  const answers = await Promise.all(
+    contexts.map(async (context) => {
+      const target = targetByKey.get(getTargetKey(context.promptId, context.platformId, context.modelId));
+      const run = target ? runByTargetId.get(target.id) : null;
 
-  if (error) {
-    console.error("[prompt-search] DB insert error:", error);
-    return serverError(error.message);
+      if (!run) {
+        console.error("[prompt-search] Missing run for target", context.promptId, context.platformSlug, context.modelSlug);
+        return null;
+      }
+
+      return finalizeInteractiveRun(run.id, context);
+    }),
+  );
+
+  const filtered = answers.filter(Boolean) as Record<string, unknown>[];
+  if (filtered.length === 0) {
+    return serverError("No prompt answers could be stored");
   }
 
-  return ok(data);
+  filtered.sort((a, b) => {
+    const aTime = typeof a.created_at === "string" ? new Date(a.created_at).getTime() : 0;
+    const bTime = typeof b.created_at === "string" ? new Date(b.created_at).getTime() : 0;
+    return bTime - aTime;
+  });
+
+  return ok(filtered);
 }
 
-/**
- * Retry a specific failed answer.
- * Body: { answer_id }
- * On success, marks the old answer as deleted.
- */
-async function handleRetry(req: Request, tenantId: string) {
+async function handleRetry(tenantId: string, req: Request): Promise<Response> {
   const body = await req.json();
-  const { answer_id } = body;
+  const answerId = typeof body.answer_id === "string" ? body.answer_id : "";
 
-  if (!answer_id) return badRequest("answer_id is required");
+  if (!answerId) {
+    return badRequest("answer_id is required");
+  }
 
-  const sb = createAdminClient();
+  const { response: subscriptionError } = await getActiveSubscription(tenantId);
+  if (subscriptionError) return subscriptionError;
 
-  // Load the original answer
-  const { data: oldAnswer, error: oErr } = await sb
+  const db = createAdminClient();
+  const { data: oldAnswer, error: answerError } = await db
     .from("prompt_answers")
-    .select("*")
-    .eq("id", answer_id)
+    .select("id, prompt_id, platform_id, model_id")
     .eq("tenant_id", tenantId)
+    .eq("id", answerId)
     .single();
 
-  if (oErr || !oldAnswer) return badRequest("Answer not found");
-
-  // Load the prompt text
-  const { data: prompt, error: pErr } = await sb
-    .from("prompts")
-    .select("text")
-    .eq("id", oldAnswer.prompt_id)
-    .single();
-
-  if (pErr || !prompt) return badRequest("Prompt not found");
-
-  // Execute the prompt for this single model (look up slug + web_search_active from models table)
-  const { data: modelInfo } = await sb
-    .from("models")
-    .select("slug, web_search_active")
-    .eq("id", oldAnswer.model_id)
-    .single();
-  if (!modelInfo?.slug) return badRequest("Model not found for model_id: " + oldAnswer.model_id);
-
-  const results = await executePromptMulti(
-    [{ slug: oldAnswer.platform_slug, model: modelInfo.slug, webSearchEnabled: modelInfo.web_search_active ?? false }],
-    prompt.text,
-  );
-
-  const result = results[0];
-
-  const searchedAt = new Date().toISOString();
-
-  // Save the new answer
-  const { data: newAnswer, error: iErr } = await sb
-    .from("prompt_answers")
-    .insert({
-      tenant_id: tenantId,
-      prompt_id: oldAnswer.prompt_id,
-      platform_slug: result.slug,
-      platform_id: oldAnswer.platform_id,
-      model_id: oldAnswer.model_id,
-      answer_text: result.text,
-      tokens_used: result.tokens,
-      latency_ms: result.latency_ms,
-      raw_request: result.raw_request ?? null,
-      raw_response: result.raw_response ?? null,
-      error: result.error || null,
-      searched_at: searchedAt,
-      deleted: false,
-      web_search_enabled: result.web_search_enabled ?? false,
-      annotations: result.annotations ?? null,
-      sources: result.sources ?? null,
-    })
-    .select("*, model:models!model_id(id, slug, name)")
-    .single();
-
-  if (iErr) {
-    console.error("[prompt-search] retry insert error:", iErr);
-    return serverError(iErr.message);
+  if (answerError || !oldAnswer) {
+    return badRequest("Answer not found");
   }
 
-  // If the new answer succeeded, mark the old one as deleted
-  if (!result.error) {
-    await sb
-      .from("prompt_answers")
-      .update({ deleted: true })
-      .eq("id", answer_id);
+  const typedAnswer = oldAnswer as RetryAnswerRecord;
+  if (!typedAnswer.platform_id || !typedAnswer.model_id) {
+    return badRequest("The selected answer is missing platform or model data");
   }
 
-  return ok(newAnswer);
+  let context: PromptExecutionContext;
+  try {
+    context = await loadPromptExecutionContext(
+      db,
+      tenantId,
+      typedAnswer.prompt_id,
+      typedAnswer.platform_id,
+      typedAnswer.model_id,
+    );
+  } catch (error) {
+    return badRequest(getErrorMessage(error));
+  }
+
+  let target: TargetRecord;
+  let run: RunRecord;
+
+  try {
+    target = await ensurePromptTarget(
+      tenantId,
+      context.promptId,
+      context.platformId,
+      context.modelId,
+    );
+    run = await createProcessingRun(target, "retry");
+  } catch (error) {
+    return serverError(getErrorMessage(error));
+  }
+
+  const answer = await finalizeInteractiveRun(run.id, context);
+  if (!answer) {
+    return serverError("Retry failed before a prompt answer could be stored");
+  }
+
+  return ok(answer);
 }
 
-/**
- * Get non-deleted answers — by promptId or topicId.
- */
-async function handleGetAnswers(req: Request, tenantId: string) {
+async function handleGetAnswers(tenantId: string, req: Request): Promise<Response> {
   const url = new URL(req.url);
   const promptId = url.searchParams.get("promptId");
   const topicId = url.searchParams.get("topicId");
-
-  const sb = createAdminClient();
+  const db = createAdminClient();
 
   if (promptId) {
-    const { data, error } = await sb
+    const { data, error } = await db
       .from("prompt_answers")
       .select("*, model:models!model_id(id, slug, name)")
       .eq("tenant_id", tenantId)
@@ -246,22 +437,22 @@ async function handleGetAnswers(req: Request, tenantId: string) {
       .order("searched_at", { ascending: false });
 
     if (error) return serverError(error.message);
-    return ok(data);
+    return ok((data || []).map((row) => toPromptAnswerApiShape(row as Record<string, unknown>)));
   }
 
   if (topicId) {
-    const { data: prompts, error: pErr } = await sb
+    const { data: prompts, error: promptError } = await db
       .from("prompts")
       .select("id")
       .eq("tenant_id", tenantId)
       .eq("topic_id", topicId);
 
-    if (pErr) return serverError(pErr.message);
+    if (promptError) return serverError(promptError.message);
 
-    const promptIds = (prompts || []).map((p: { id: string }) => p.id);
+    const promptIds = (prompts || []).map((prompt: { id: string }) => prompt.id);
     if (promptIds.length === 0) return ok([]);
 
-    const { data, error } = await sb
+    const { data, error } = await db
       .from("prompt_answers")
       .select("*, model:models!model_id(id, slug, name)")
       .eq("tenant_id", tenantId)
@@ -270,8 +461,8 @@ async function handleGetAnswers(req: Request, tenantId: string) {
       .order("searched_at", { ascending: false });
 
     if (error) return serverError(error.message);
-    return ok(data);
+    return ok((data || []).map((row) => toPromptAnswerApiShape(row as Record<string, unknown>)));
   }
 
-  return badRequest("promptId or topicId query param is required");
+  return badRequest("promptId or topicId query parameter is required");
 }

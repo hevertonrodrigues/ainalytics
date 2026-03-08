@@ -38,9 +38,18 @@ export function SourceDetailPage() {
         const { data, error: fetchErr } = await supabase
           .from('prompt_answer_sources')
           .select(`
-            *,
-            prompt:prompts(text),
-            answer:prompt_answers(platform_slug, model_id)
+            id,
+            url,
+            title,
+            annotation,
+            created_at,
+            prompt:prompts!prompt_id(text),
+            answer:prompt_answers!answer_id(
+              deleted,
+              platform_slug,
+              model_id,
+              model:models!model_id(slug)
+            )
           `)
           .eq('source_id', id)
           .order('created_at', { ascending: false });
@@ -48,7 +57,31 @@ export function SourceDetailPage() {
         if (fetchErr) throw fetchErr;
         
         if (mounted) {
-          setReferences(data || []);
+          setReferences(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ((data || []) as any[])
+              .map((row) => {
+                const prompt = Array.isArray(row.prompt) ? row.prompt[0] : row.prompt;
+                const answer = Array.isArray(row.answer) ? row.answer[0] : row.answer;
+                const model = answer?.model && Array.isArray(answer.model)
+                  ? answer.model[0]
+                  : answer?.model;
+
+                return {
+                  id: row.id,
+                  url: row.url,
+                  title: row.title,
+                  annotation: row.annotation,
+                  created_at: row.created_at,
+                  prompt_text: prompt?.text || null,
+                  platform_slug: answer?.platform_slug || null,
+                  model_id: answer?.model_id || null,
+                  model_slug: model?.slug || null,
+                  deleted: answer?.deleted ?? false,
+                };
+              })
+              .filter((row) => !row.deleted)
+          );
         }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
@@ -127,16 +160,16 @@ export function SourceDetailPage() {
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <MessageSquare className="w-3.5 h-3.5 text-brand-primary" />
+                        <MessageSquare className="w-3.5 h-3.5 text-brand-primary" />
                       <span className="text-sm font-medium text-text-primary truncate">
-                        {ref.prompt?.text || t('sources.prompt')}
+                        {ref.prompt_text || t('sources.prompt')}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-text-muted">
                       <span className="px-1.5 py-0.5 rounded-sm bg-bg-tertiary">
-                        {ref.answer?.platform_slug || 'AI'} 
+                        {ref.platform_slug || 'AI'} 
                       </span>
-                      {ref.answer?.model_id && <span>• {ref.answer.model_id}</span>}
+                      {(ref.model_slug || ref.model_id) && <span>• {ref.model_slug || ref.model_id}</span>}
                       <span>• {new Date(ref.created_at).toLocaleDateString()}</span>
                     </div>
                   </div>

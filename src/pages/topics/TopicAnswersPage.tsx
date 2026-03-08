@@ -88,7 +88,9 @@ export function TopicAnswersPage() {
         prompt_text: prompt.text,
       });
 
-      setAnswers((prev) => [...res.data, ...prev]);
+      setAnswers((prev) => [...res.data, ...prev].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ));
       setExpandedPrompts((prev) => new Set([...prev, prompt.id]));
       showToast(t('answers.searchComplete'));
     } catch (err) {
@@ -111,15 +113,9 @@ export function TopicAnswersPage() {
 
       const newAnswer = res.data;
 
-      setAnswers((prev) => {
-        // If retry succeeded, remove the old answer (it's now deleted server-side)
-        // If retry failed again, keep both
-        if (!newAnswer.error) {
-          const filtered = prev.filter((a) => a.id !== answer.id);
-          return [newAnswer, ...filtered];
-        }
-        return [newAnswer, ...prev];
-      });
+      setAnswers((prev) => [newAnswer, ...prev].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      ));
       showToast(newAnswer.error ? t('common.error') : t('answers.retryComplete'));
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');
