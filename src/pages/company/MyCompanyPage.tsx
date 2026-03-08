@@ -24,6 +24,8 @@ import {
   Download,
   Radar,
   Sparkles,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { generatePdfReport } from '@/lib/pdfReport';
 import { useAuth } from '@/contexts/AuthContext';
@@ -37,9 +39,11 @@ import { LANGUAGES, getLanguageByCode } from '@/lib/languages';
 import {
   GeoScoreOverview,
   GeoFactorScorecard,
-  GeoRecommendations,
   ScoreRing,
+  ImprovementsAndRecommendations,
 } from '@/components/geo';
+import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import type { DeepAnalyzeTopic, DeepAnalyzeImprovement, DeepAnalyzePageUsed } from '@/types';
 
 // ─── Public email domains to skip for auto-fill ────────────
 const PUBLIC_DOMAINS = new Set([
@@ -346,7 +350,11 @@ export function MyCompanyPage() {
     setIsExporting(true);
 
     try {
-      const pdfBlob = generatePdfReport(company, report, parsedPages, t);
+      const pdfBlob = generatePdfReport(company, report, parsedPages, t, {
+        improvements: deepImprovements,
+        prompts: deepPrompts,
+        analyzedPages: deepAnalyzedPages,
+      });
 
       // Build filename: CompanyName_GEO_Report_20260303_224800.pdf
       const companySlug = (company.company_name || company.domain)
@@ -430,6 +438,12 @@ export function MyCompanyPage() {
   const analysisProgress = analysis?.progress || 0;
   const bilingualReport = safeParse<Record<string, AiReport>>(analysis?.ai_report);
   const parsedPages = safeParse<CompanyPage[]>(analysis?.crawled_pages) || [];
+
+  // Deep Analyze data from geo_analyses
+  const deepImprovements = safeParse<DeepAnalyzeImprovement[]>(analysis?.deep_improvements) || [];
+  const deepPrompts = safeParse<DeepAnalyzeTopic[]>(analysis?.deep_prompts) || [];
+  const deepAnalyzedPages = safeParse<DeepAnalyzePageUsed[]>(analysis?.deep_analyzed_pages) || [];
+  const [expandedTopics, setExpandedTopics] = useState<Set<number>>(new Set());
 
   const availableLangs = useMemo(() => {
     if (!bilingualReport) return ['en'];
@@ -962,25 +976,92 @@ export function MyCompanyPage() {
 
       {/* AI Summary */}
       {report?.summary && (
-        <div className="dashboard-card p-6">
-          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-            <Bot className="w-4 h-4 text-brand-primary" />
-            {t('company.summary')}
-          </h3>
+        <CollapsibleSection title={t('company.summary')} icon={Bot} padding="p-6">
           <p className="text-sm text-text-secondary leading-relaxed whitespace-pre-line">
             {report.summary}
           </p>
-        </div>
+        </CollapsibleSection>
       )}
 
-      {/* 25-Factor Scorecard */}
+      {/* Improvements & Recommendations (deep-analyze only) */}
+      {deepImprovements.length > 0 && (
+        <ImprovementsAndRecommendations
+          improvements={deepImprovements}
+        />
+      )}
+
+      {/* Deep Analyze Prompts */}
+      {deepPrompts.length > 0 && (
+        <CollapsibleSection title={t('company.deepPrompts')} icon={Sparkles} iconColor="var(--brand-accent)">
+          <div className="space-y-3">
+            {deepPrompts.map((topic, ti) => {
+              const isExpanded = expandedTopics.has(ti);
+              return (
+                <div key={ti} className="rounded-lg border border-glass-border overflow-hidden">
+                  <button
+                    className="w-full flex items-center justify-between p-3 hover:bg-glass-hover transition-colors text-left"
+                    onClick={() => {
+                      setExpandedTopics(prev => {
+                        const next = new Set(prev);
+                        if (next.has(ti)) next.delete(ti);
+                        else next.add(ti);
+                        return next;
+                      });
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-brand-primary">#{topic.topic_probability_rank}</span>
+                      <span className="text-sm font-medium text-text-primary">{topic.topic}</span>
+                    </div>
+                    {isExpanded ? <ChevronUp className="w-4 h-4 text-text-muted" /> : <ChevronDown className="w-4 h-4 text-text-muted" />}
+                  </button>
+                  {isExpanded && topic.prompts?.length > 0 && (
+                    <div className="border-t border-glass-border p-3 space-y-2">
+                      {topic.prompts.map((p, pi) => {
+                        const s = p.prompt_score ?? 0;
+                        const r = 14;
+                        const circ = 2 * Math.PI * r;
+                        const off = circ - (s / 100) * circ;
+                        const ringCol = s >= 75 ? '#00cec9' : s >= 50 ? '#fdcb6e' : '#ff6b6b';
+                        return (
+                          <div key={pi} className="flex items-center gap-3 p-2.5 rounded-lg bg-bg-primary/50 border border-glass-border">
+                            {/* Mini score circle */}
+                            <div className="relative shrink-0" style={{ width: 36, height: 36 }}>
+                              <svg className="-rotate-90" viewBox="0 0 36 36" width={36} height={36}>
+                                <circle cx={18} cy={18} r={r} fill="none" stroke="var(--glass-border)" strokeWidth="3" />
+                                <circle
+                                  cx={18} cy={18} r={r} fill="none"
+                                  stroke={ringCol} strokeWidth="3" strokeLinecap="round"
+                                  strokeDasharray={circ} strokeDashoffset={off}
+                                  style={{ transition: 'stroke-dashoffset 0.8s ease-out', filter: `drop-shadow(0 0 4px ${ringCol}40)` }}
+                                />
+                              </svg>
+                              <span
+                                className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-text-primary"
+                                style={{ fontFamily: 'Outfit, sans-serif' }}
+                              >
+                                {Math.round(s)}
+                              </span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <span className="text-xs font-medium text-text-primary leading-snug">"{p.prompt}"</span>
+                              <p className="text-[11px] text-text-muted mt-0.5 leading-relaxed">{p.why_it_has_high_probability}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </CollapsibleSection>
+      )}
+
+      {/* 25-Factor Scorecard (after prompts) */}
       {report?.factor_scores && report.factor_scores.length > 0 && (
         <GeoFactorScorecard factors={report.factor_scores} />
-      )}
-
-      {/* Top Priority Recommendations (factor-based) */}
-      {report?.top_recommendations && report.top_recommendations.length > 0 && (
-        <GeoRecommendations recommendations={report.top_recommendations} />
       )}
 
       {/* Tags & Categories */}
@@ -988,11 +1069,7 @@ export function MyCompanyPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Tags */}
           {report.tags?.length > 0 && (
-            <div className="dashboard-card p-5">
-              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-                <Tag className="w-4 h-4 text-brand-primary" />
-                {t('company.tags')}
-              </h3>
+            <CollapsibleSection title={t('company.tags')} icon={Tag}>
               <div className="flex flex-wrap gap-2">
                 {report.tags.map((tag, i) => (
                   <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
@@ -1000,16 +1077,12 @@ export function MyCompanyPage() {
                   </span>
                 ))}
               </div>
-            </div>
+            </CollapsibleSection>
           )}
 
           {/* Categories */}
           {report.categories?.length > 0 && (
-            <div className="dashboard-card p-5">
-              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-                <BarChart3 className="w-4 h-4 text-brand-accent" />
-                {t('company.categories')}
-              </h3>
+            <CollapsibleSection title={t('company.categories')} icon={BarChart3} iconColor="var(--brand-accent)">
               <div className="flex flex-wrap gap-2">
                 {report.categories.map((cat, i) => (
                   <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium bg-brand-accent/10 text-brand-accent border border-brand-accent/20">
@@ -1017,18 +1090,14 @@ export function MyCompanyPage() {
                   </span>
                 ))}
               </div>
-            </div>
+            </CollapsibleSection>
           )}
         </div>
       )}
 
       {/* Products & Services */}
       {report?.products_services && report.products_services.length > 0 && (
-        <div className="dashboard-card p-5">
-          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-            <Target className="w-4 h-4 text-brand-primary" />
-            {t('company.productsServices')}
-          </h3>
+        <CollapsibleSection title={t('company.productsServices')} icon={Target}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {report.products_services.map((ps, i) => (
               <div key={i} className="p-3 rounded-lg bg-bg-primary/50 border border-glass-border">
@@ -1042,18 +1111,14 @@ export function MyCompanyPage() {
               </div>
             ))}
           </div>
-        </div>
+        </CollapsibleSection>
       )}
 
       {/* Strengths & Weaknesses */}
       {report && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {report.strengths?.length > 0 && (
-            <div className="dashboard-card p-5">
-              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-                <TrendingUp className="w-4 h-4 text-success" />
-                {t('company.strengths')}
-              </h3>
+            <CollapsibleSection title={t('company.strengths')} icon={TrendingUp} iconColor="var(--success)">
               <ul className="space-y-2">
                 {report.strengths.map((s, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-text-secondary">
@@ -1062,15 +1127,11 @@ export function MyCompanyPage() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </CollapsibleSection>
           )}
 
           {report.weaknesses?.length > 0 && (
-            <div className="dashboard-card p-5">
-              <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-                <TrendingDown className="w-4 h-4 text-warning" />
-                {t('company.weaknesses')}
-              </h3>
+            <CollapsibleSection title={t('company.weaknesses')} icon={TrendingDown} iconColor="var(--warning)">
               <ul className="space-y-2">
                 {report.weaknesses.map((w, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-text-secondary">
@@ -1079,7 +1140,7 @@ export function MyCompanyPage() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </CollapsibleSection>
           )}
         </div>
       )}
@@ -1088,11 +1149,7 @@ export function MyCompanyPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* AI Bot Access */}
         {report?.ai_bot_access && Object.keys(report.ai_bot_access).length > 0 && (
-          <div className="dashboard-card p-5">
-            <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-              <Shield className="w-4 h-4 text-brand-primary" />
-              {t('company.aiBotAccess')}
-            </h3>
+          <CollapsibleSection title={t('company.aiBotAccess')} icon={Shield}>
             <div className="grid grid-cols-2 gap-3">
               {Object.entries(report.ai_bot_access).map(([bot, allowed]) => (
                 <div key={bot} className={`flex items-center gap-2 p-2.5 rounded-lg border ${allowed ? 'border-success/20 bg-success/5' : 'border-error/20 bg-error/5'}`}>
@@ -1110,22 +1167,24 @@ export function MyCompanyPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </CollapsibleSection>
         )}
 
         {/* Pages Analyzed */}
-        {parsedPages.length > 0 && (
-          <div className="dashboard-card p-5">
-            <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-              <FileText className="w-4 h-4 text-brand-primary" />
-              {t('company.pagesAnalyzed')}
-              <span className="text-xs text-text-muted font-normal">({parsedPages.length})</span>
-            </h3>
+        {(parsedPages.length > 0 || deepAnalyzedPages.length > 0) && (
+          <CollapsibleSection
+            title={t('company.pagesAnalyzed')}
+            icon={FileText}
+            badge={`(${parsedPages.filter(p => p.status_code === 200).length + deepAnalyzedPages.length})`}
+          >
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {parsedPages.filter(p => p.status_code === 200).map((page, i) => (
-                <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg bg-bg-primary/50 border border-glass-border text-sm">
+                <div key={`geo-${i}`} className="flex items-start gap-3 p-2.5 rounded-lg bg-bg-primary/50 border border-glass-border text-sm">
                   <div className="flex-1 min-w-0">
-                    <p className="text-text-primary font-medium truncate">{page.title || page.url}</p>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary border border-brand-primary/20">GEO</span>
+                      <p className="text-text-primary font-medium truncate">{page.title || page.url}</p>
+                    </div>
                     <span className="text-xs text-text-muted truncate block">{page.url}</span>
                     <div className="flex items-center gap-3 mt-1 text-xs text-text-muted">
                       <span>{page.word_count || 0} {t('company.words', 'words')}</span>
@@ -1137,17 +1196,27 @@ export function MyCompanyPage() {
                   </div>
                 </div>
               ))}
+              {deepAnalyzedPages.map((page, i) => (
+                <div key={`deep-${i}`} className="flex items-start gap-3 p-2.5 rounded-lg bg-bg-primary/50 border border-glass-border text-sm">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-brand-accent/10 text-brand-accent border border-brand-accent/20">DEEP</span>
+                      <p className="text-text-primary font-medium truncate">{page.page_type || page.url}</p>
+                    </div>
+                    <span className="text-xs text-text-muted truncate block">{page.url}</span>
+                    {page.reason_used && (
+                      <p className="text-[11px] text-text-muted mt-0.5">{page.reason_used}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
+          </CollapsibleSection>
         )}
 
         {/* Competitors */}
         {report?.competitors && report.competitors.length > 0 && (
-          <div className="dashboard-card p-5">
-            <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-              <Target className="w-4 h-4 text-warning" />
-              {t('company.competitors')}
-            </h3>
+          <CollapsibleSection title={t('company.competitors')} icon={Target} iconColor="var(--warning)">
             <ul className="space-y-1.5">
               {report.competitors.map((c, i) => (
                 <li key={i} className="text-sm text-text-secondary flex items-center gap-2">
@@ -1156,17 +1225,13 @@ export function MyCompanyPage() {
                 </li>
               ))}
             </ul>
-          </div>
+          </CollapsibleSection>
         )}
       </div>
 
       {/* Schema */}
       {report?.schema_markup_types && report.schema_markup_types.length > 0 && (
-        <div className="dashboard-card p-5">
-          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
-            <Zap className="w-4 h-4 text-success" />
-            {t('company.schemaMarkup')}
-          </h3>
+        <CollapsibleSection title={t('company.schemaMarkup')} icon={Zap} iconColor="var(--success)">
           <div className="flex flex-wrap gap-2">
             {report.schema_markup_types.map((type, i) => (
               <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium bg-success/10 text-success border border-success/20">
@@ -1174,7 +1239,7 @@ export function MyCompanyPage() {
               </span>
             ))}
           </div>
-        </div>
+        </CollapsibleSection>
       )}
 
       {/* Suggestions Modal */}

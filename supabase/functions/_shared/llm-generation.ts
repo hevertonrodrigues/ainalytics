@@ -1,4 +1,5 @@
 import { createAdminClient } from "./supabase.ts";
+import { EXTRACT_WEBSITE_INFO_PROMPT, GENERATE_LLM_TXT_PROMPT, replaceVars } from "./prompts/load.ts";
 
 const TENANT_FETCH_TIMEOUT_MS = 10_000;
 
@@ -116,21 +117,9 @@ export async function extractWebsiteInformation(companyId: string, dbClient?: an
     }
   }
 
-  const prompt = `
-    You are an expert web researcher and data extractor. 
-    I need you to search the internet for the domain "${domain}" and explore its main pages and content.
-    Based on your research, please extract the following:
-    1. website_title: The main title of the website or company name.
-    2. metatags: A summary of the core keywords, description, and meta information you can deduce.
-    3. extracted_content: A detailed summary of what the company does, their products/services, target audience, and any other relevant public information found on their website.
-    
-    You must respond with ONLY a valid JSON object matching the following structure exactly, with no markdown fences or other text:
-    {
-      "website_title": "string",
-      "metatags": "string",
-      "extracted_content": "string"
-    }
-  `;
+  const prompt = replaceVars(EXTRACT_WEBSITE_INFO_PROMPT, {
+    DOMAIN: domain,
+  });
 
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
@@ -201,30 +190,18 @@ export async function generateLlmText(companyId: string, dbClient?: any): Promis
   if (cdErr || !companyData) throw new Error("Failed to load extracted data.");
   if (!companyData.extracted_content) throw new Error("Cannot generate LLM.txt without extracting information first.");
 
-  let prompt = `
-    You are an expert technical writer formatting context documents for AI systems.
-    Based on the following extracted details about a website/company, generate a well-structured markdown document meant to be an 'llm.txt' file. 
-    This file is intended to provide AI models with the best possible context about the company when users upload it. 
-    It should include an overview, key links, product descriptions, company mission, and any other relevant structured context.
-    
-    Data:
-    - Title: ${companyData.website_title}
-    - Meta: ${companyData.metatags}
-    - Overview: ${companyData.extracted_content}
-    
-    CRITICAL: Do not output \`\`\`markdown or \`\`\` around your response. Output the raw markdown text directly.
-  `;
-
+  let sitemapSection = "";
   if (companyData.sitemap_xml) {
     const truncatedSitemap = companyData.sitemap_xml.slice(0, 15000);
-    prompt += `
-    
-    To assist you, here is the generated sitemap.xml content for the website. Use the structure and paths provided here to understand the website's hierarchy, find key pages, and formulate the best llm_txt file!
-    <sitemap_xml>
-    ${truncatedSitemap}
-    </sitemap_xml>
-    `;
+    sitemapSection = `\nTo assist you, here is the generated sitemap.xml content for the website. Use the structure and paths provided here to understand the website's hierarchy, find key pages, and formulate the best llm_txt file!\n<sitemap_xml>\n${truncatedSitemap}\n</sitemap_xml>`;
   }
+
+  let prompt = replaceVars(GENERATE_LLM_TXT_PROMPT, {
+    WEBSITE_TITLE: companyData.website_title,
+    METATAGS: companyData.metatags,
+    EXTRACTED_CONTENT: companyData.extracted_content,
+    SITEMAP_SECTION: sitemapSection,
+  });
 
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");

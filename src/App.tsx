@@ -37,6 +37,7 @@ const LlmTextPage = lazy(() => import('@/pages/llmtext/LlmTextPage').then(m => (
 const MyCompanyPage = lazy(() => import('@/pages/company/MyCompanyPage').then(m => ({ default: m.MyCompanyPage })));
 const OnboardingPage = lazy(() => import('@/pages/onboarding/OnboardingPage').then(m => ({ default: m.OnboardingPage })));
 const SupportPage = lazy(() => import('@/pages/support/SupportPage').then(m => ({ default: m.SupportPage })));
+const DeepAnalyzePage = lazy(() => import('@/pages/deep-analyze/DeepAnalyzePage').then(m => ({ default: m.DeepAnalyzePage })));
 const ContactPage = lazy(() => import('@/pages/contact/ContactPage').then(m => ({ default: m.ContactPage })));
 const NotFoundPage = lazy(() => import('@/pages/error/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 const LegalPage = lazy(() => import('@/pages/legal/LegalPage').then(m => ({ default: m.LegalPage })));
@@ -123,6 +124,7 @@ export function App() {
 
                 {/* SuperAdmin-only */}
                 <Route element={<SuperAdminGate />}>
+                  <Route path="deep-analyze" element={<DeepAnalyzePage />} />
                   <Route path="platforms" element={<PlatformsPage />} />
                 </Route>
               </Route>

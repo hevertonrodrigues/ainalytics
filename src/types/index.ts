@@ -337,6 +337,17 @@ export interface GeoAnalysis {
   total_pages: number;
   created_at: string;
   completed_at: string | null;
+  // Deep Analyze data
+  deep_analyze_id: string | null;
+  deep_analyze_score: number | null;
+  deep_generic_score: number | null;
+  deep_specific_score: number | null;
+  deep_metric_scores: Record<string, number> | null;
+  deep_improvements: DeepAnalyzeImprovement[];
+  deep_prompts: DeepAnalyzeTopic[];
+  deep_analyzed_pages: DeepAnalyzePageUsed[];
+  deep_reasoning: { summary: string; metric_reasoning: Record<string, string>; generic_score_reasoning: string; specific_score_reasoning: string } | null;
+  deep_confidence: number | null;
 }
 
 
@@ -365,6 +376,7 @@ export interface GeoCategoryScores {
   content: number;
   authority: number;
   semantic: number;
+  competitive_position?: number;
 }
 
 export type GeoReadinessLevel = 0 | 1 | 2 | 3 | 4 | 5;
@@ -444,6 +456,72 @@ export interface Company {
   updated_at: string;
   // Latest analysis joined from geo_analyses table
   latest_analysis: GeoAnalysis | null;
+}
+
+// ────────────────────────────────────────────────────────────
+// Deep Analyze (company_ai_analyses table)
+// ────────────────────────────────────────────────────────────
+
+export type DeepAnalyzeStatus = 'pending' | 'analyzing' | 'completed' | 'error';
+
+export interface DeepAnalyzePageUsed {
+  url: string;
+  page_type: string;
+  reason_used: string;
+}
+
+export interface DeepAnalyzePromptItem {
+  prompt: string;
+  prompt_score: number;
+  probability_rank_within_topic: number;
+  why_it_has_high_probability: string;
+}
+
+export interface DeepAnalyzeTopic {
+  topic: string;
+  topic_probability_rank: number;
+  prompts: DeepAnalyzePromptItem[];
+}
+
+export interface DeepAnalyzeImprovement {
+  priority_rank: number;
+  title: string;
+  description: string;
+  impacted_metrics: string[];
+  criticality_level: number;
+}
+
+export interface CompanyAiAnalysis {
+  id: string;
+  tenant_id: string;
+  url: string;
+  company_name: string | null;
+  status: DeepAnalyzeStatus;
+  error_message: string | null;
+  analysis_scope: {
+    primary_url: string;
+    relevant_pages_used: DeepAnalyzePageUsed[];
+  } | null;
+  final_score: number | null;
+  generic_score: number | null;
+  specific_score: number | null;
+  semantic_score: number | null;
+  content_score: number | null;
+  authority_score: number | null;
+  technical_score: number | null;
+  competitive_position_score: number | null;
+  reasoning: {
+    summary: string;
+    metric_reasoning: Record<string, string>;
+    generic_score_reasoning: string;
+    specific_score_reasoning: string;
+  } | null;
+  high_probability_prompts: DeepAnalyzeTopic[];
+  improvements: DeepAnalyzeImprovement[];
+  confidence: number | null;
+  raw_response: unknown | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface TenantCompany {

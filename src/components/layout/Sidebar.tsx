@@ -24,6 +24,7 @@ import {
   Building2,
   X,
   Radar,
+  Microscope,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -57,6 +58,7 @@ const ANALYTICS_NAV: NavItem[] = [
   { key: 'nav.models', path: '/dashboard/models', icon: Layers, alwaysEnabled: true },
 ];
 
+const SA_DEEP_ANALYZE_NAV: NavItem = { key: 'nav.deepAnalyze', path: '/dashboard/deep-analyze', icon: Microscope };
 const SA_PLATFORMS_NAV: NavItem = { key: 'nav.platforms', path: '/dashboard/platforms', icon: Cpu };
 
 export function Sidebar() {
@@ -204,6 +206,7 @@ export function Sidebar() {
         <div className="section-label mt-4">{t('nav.sectionAnalytics')}</div>
         <div className="space-y-0.5">
           {ANALYTICS_NAV.map(renderNavItem)}
+          {profile?.is_sa && renderNavItem(SA_DEEP_ANALYZE_NAV)}
           {profile?.is_sa && renderNavItem(SA_PLATFORMS_NAV)}
         </div>
       </nav>

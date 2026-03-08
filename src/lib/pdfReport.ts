@@ -5,7 +5,7 @@
  * GEO analysis data using jsPDF — no DOM capture.
  */
 import { jsPDF } from 'jspdf';
-import type { Company, AiReport, CompanyPage, GeoFactorScore, GeoTopRecommendation } from '@/types';
+import type { Company, AiReport, CompanyPage, GeoFactorScore, DeepAnalyzeImprovement, DeepAnalyzeTopic, DeepAnalyzePageUsed } from '@/types';
 
 // ─── Color palette (light theme for print) ─────────────────
 const C = {
@@ -62,12 +62,20 @@ function lighten(color: string, amount: number): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TFunc = any;
 
+// ─── Deep analyze data bundle ──────────────────────────────
+export interface PdfDeepData {
+  improvements: DeepAnalyzeImprovement[];
+  prompts: DeepAnalyzeTopic[];
+  analyzedPages: DeepAnalyzePageUsed[];
+}
+
 // ─── Main generator ────────────────────────────────────────
 export function generatePdfReport(
   company: Company,
   report: AiReport,
   pages: CompanyPage[],
   t: TFunc,
+  deepData?: PdfDeepData,
 ): Blob {
   const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const W = pdf.internal.pageSize.getWidth();   // 210
@@ -299,10 +307,109 @@ export function generatePdfReport(
   }
 
   // ══════════════════════════════════════════════════════════
+  // IMPROVEMENT SUGGESTIONS (from deep analyze)
+  // ══════════════════════════════════════════════════════════
+  const sortedImprovements = [...(deepData?.improvements || [])].sort((a, b) => {
+    if (b.criticality_level !== a.criticality_level) return b.criticality_level - a.criticality_level;
+    return a.priority_rank - b.priority_rank;
+  });
+
+  if (sortedImprovements.length > 0) {
+    sectionHeader(t('company.deepImprovements', 'Improvement Suggestions'), C.warning);
+
+    sortedImprovements.forEach((imp, i) => {
+      ensureSpace(16);
+      const critLevel = imp.criticality_level >= 7 ? 'high' : imp.criticality_level >= 4 ? 'medium' : 'low';
+      const critColor = critLevel === 'high' ? C.error : critLevel === 'medium' ? C.warning : C.success;
+
+      // Card background
+      roundedRect(ML, y, CW, 13, 2, C.bgLight, C.border);
+
+      // Priority number
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...hex(C.primary));
+      pdf.text(`${i + 1}`, ML + 5, y + 8.5);
+
+      // Criticality badge
+      const critW = 14;
+      roundedRect(ML + 12, y + 3, critW, 6, 1.5, lighten(critColor, 0.85), critColor);
+      pdf.setFontSize(6);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...hex(critColor));
+      pdf.text(`${imp.criticality_level}/10`, ML + 12 + critW / 2, y + 7.5, { align: 'center' });
+
+      // Title
+      pdf.setFontSize(8);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...hex(C.textDark));
+      const titleLines = pdf.splitTextToSize(imp.title, CW - 38);
+      pdf.text(titleLines[0], ML + 30, y + 5.5);
+
+      // Description
+      pdf.setFontSize(7);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(...hex(C.textMid));
+      const descLines = pdf.splitTextToSize(imp.description, CW - 38);
+      pdf.text(descLines.slice(0, 1).join(''), ML + 30, y + 10);
+
+      y += 15;
+    });
+    y += 3;
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // HIGHEST PROBABILITY PROMPTS (from deep analyze)
+  // ══════════════════════════════════════════════════════════
+  const deepPrompts = deepData?.prompts || [];
+  if (deepPrompts.length > 0) {
+    sectionHeader(t('company.deepPrompts', 'Highest Probability Prompts'), '#8b5cf6');
+
+    deepPrompts.forEach((topic) => {
+      ensureSpace(10);
+      // Topic header
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...hex(C.primary));
+      pdf.text(`#${topic.topic_probability_rank}`, ML + 3, y + 5);
+      pdf.setTextColor(...hex(C.textDark));
+      pdf.text(topic.topic, ML + 12, y + 5);
+      y += 8;
+
+      // Individual prompts
+      if (topic.prompts?.length > 0) {
+        topic.prompts.forEach((p) => {
+          ensureSpace(10);
+          roundedRect(ML + 4, y, CW - 4, 8, 1.5, C.bgLight, C.border);
+
+          // Score circle (simple text)
+          const scoreColor = p.prompt_score >= 75 ? C.success : p.prompt_score >= 50 ? C.warning : C.error;
+          roundedRect(ML + 7, y + 1, 6, 6, 3, lighten(scoreColor, 0.85), scoreColor);
+          pdf.setFontSize(5.5);
+          pdf.setFont('helvetica', 'bold');
+          pdf.setTextColor(...hex(scoreColor));
+          pdf.text(`${Math.round(p.prompt_score)}`, ML + 10, y + 5, { align: 'center' });
+
+          // Prompt text
+          pdf.setFontSize(7);
+          pdf.setFont('helvetica', 'normal');
+          pdf.setTextColor(...hex(C.textDark));
+          const promptLines = pdf.splitTextToSize(`"${p.prompt}"`, CW - 24);
+          pdf.text(promptLines[0], ML + 16, y + 5);
+
+          y += 9;
+        });
+      }
+      y += 2;
+    });
+    y += 3;
+  }
+
+  // ══════════════════════════════════════════════════════════
   // 25-FACTOR SCORECARD
   // ══════════════════════════════════════════════════════════
   if (report.factor_scores && report.factor_scores.length > 0) {
-    sectionHeader(t('company.pdfGeoFactorScorecard', 'GEO Factor Scorecard'), C.info);
+    sectionHeader(t('company.geoFactorScorecard', 'GEO Factor Scorecard'), C.info);
 
     // Table header
     ensureSpace(10);
@@ -358,50 +465,6 @@ export function generatePdfReport(
     });
 
     y += 4;
-  }
-
-  // ══════════════════════════════════════════════════════════
-  // TOP RECOMMENDATIONS
-  // ══════════════════════════════════════════════════════════
-  if (report.top_recommendations && report.top_recommendations.length > 0) {
-    sectionHeader(t('company.recommendations', 'Top Recommendations'), C.warning);
-
-    report.top_recommendations.forEach((rec: GeoTopRecommendation, i: number) => {
-      ensureSpace(18);
-      // Card
-      roundedRect(ML, y, CW, 15, 2, C.bgLight, C.border);
-      // Priority number
-      pdf.setFontSize(14);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(...hex(C.primary));
-      pdf.text(`${i + 1}`, ML + 5, y + 10);
-
-      // Factor name
-      pdf.setFontSize(9);
-      pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(...hex(C.textDark));
-      pdf.text(rec.factor_name, ML + 15, y + 6);
-
-      // Recommendation text
-      pdf.setFontSize(7.5);
-      pdf.setFont('helvetica', 'normal');
-      pdf.setTextColor(...hex(C.textMid));
-      const recLines = pdf.splitTextToSize(rec.recommendation, CW - 52);
-      pdf.text(recLines.slice(0, 2).join('\n'), ML + 15, y + 10.5);
-
-      // Potential gain badge
-      if (rec.potential_composite_gain > 0) {
-        const gainStr = `+${rec.potential_composite_gain.toFixed(1)}`;
-        roundedRect(ML + CW - 22, y + 3, 18, 9, 2, lighten(C.success, 0.85), C.success);
-        pdf.setFontSize(8);
-        pdf.setFont('helvetica', 'bold');
-        pdf.setTextColor(...hex(C.success));
-        pdf.text(gainStr, ML + CW - 13, y + 9.5, { align: 'center' });
-      }
-
-      y += 17;
-    });
-    y += 3;
   }
 
   // ══════════════════════════════════════════════════════════
@@ -621,9 +684,14 @@ export function generatePdfReport(
   // ══════════════════════════════════════════════════════════
   // PAGES ANALYZED
   // ══════════════════════════════════════════════════════════
+  // Merge crawled pages + deep analyzed pages
+  const deepPageUrls = new Set((deepData?.analyzedPages || []).map(dp => dp.url));
   const validPages = pages.filter(p => p.status_code === 200);
-  if (validPages.length > 0) {
-    sectionHeader(`${t('company.pagesAnalyzed', 'Pages Analyzed')} (${validPages.length})`, C.primary);
+  const deepOnlyPages = (deepData?.analyzedPages || []).filter(dp => !validPages.some(vp => vp.url === dp.url));
+  const totalPageCount = validPages.length + deepOnlyPages.length;
+
+  if (totalPageCount > 0) {
+    sectionHeader(`${t('company.pagesAnalyzed', 'Pages Analyzed')} (${totalPageCount})`, C.primary);
 
     // Table header
     ensureSpace(10);
@@ -661,15 +729,49 @@ export function generatePdfReport(
       pdf.setTextColor(...hex(schemaColor));
       pdf.text(page.has_structured_data ? t('company.pdfYes', 'Yes') : '-', ML + 167, y + 5);
 
+      // Deep-analyzed marker
+      if (deepPageUrls.has(page.url)) {
+        pdf.setFontSize(5);
+        pdf.setFont('helvetica', 'bold');
+        pdf.setTextColor(...hex(C.secondary));
+        pdf.text('DEEP', ML + CW - 8, y + 5);
+      }
+
       y += 7;
     });
 
-    if (validPages.length > 30) {
+    // Deep-only pages (not in crawled pages)
+    deepOnlyPages.slice(0, 10).forEach((dp, i) => {
+      ensureSpace(8);
+      const rowBg = (validPages.length + i) % 2 === 0 ? C.bg : C.bgLight;
+      pdf.setFillColor(...hex(rowBg));
+      pdf.rect(ML, y, CW, 7, 'F');
+
+      pdf.setFontSize(7);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(...hex(C.textDark));
+      const titleTrunc = pdf.splitTextToSize(dp.url, 105);
+      pdf.text(titleTrunc[0], ML + 3, y + 5);
+
+      pdf.setTextColor(...hex(C.textMid));
+      pdf.text('-', ML + 120, y + 5);
+      pdf.text('-', ML + 140, y + 5);
+      pdf.text('-', ML + 167, y + 5);
+
+      pdf.setFontSize(5);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(...hex(C.secondary));
+      pdf.text('DEEP', ML + CW - 8, y + 5);
+
+      y += 7;
+    });
+
+    if (totalPageCount > 30) {
       ensureSpace(6);
       pdf.setFontSize(7);
       pdf.setFont('helvetica', 'italic');
       pdf.setTextColor(...hex(C.textLight));
-      pdf.text(t('company.pdfAndMore', { count: validPages.length - 30 }), ML + 3, y + 3);
+      pdf.text(t('company.pdfAndMore', { count: totalPageCount - 30 }), ML + 3, y + 3);
       y += 6;
     }
     y += 4;

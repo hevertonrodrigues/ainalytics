@@ -19,6 +19,9 @@ import {
   computeCompositeScore,
   computeTopRecommendations,
 } from "./geo-scoring.ts";
+import { SCRAPE_COMPANY_ANALYZE_PROMPT, replaceVars } from "../_shared/prompts/load.ts";
+import { executePrompt } from "../_shared/ai-providers/index.ts";
+import { runDeepAnalyze } from "../_shared/deep-analyze-core.ts";
 
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -545,19 +548,6 @@ serve(async (req: Request) => {
         status_message: JSON.stringify({ key: "company.msg.computingFactors" }),
       });
       console.log(`[analyze] ▶ Starting AI analysis for ${domain}`);
-
-      const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
-      if (!apiKey) {
-        await updateAnalysis(db, analysisId, {
-          status: "error",
-          error_message: "ANTHROPIC_API_KEY not configured",
-        });
-        return withCors(
-          req,
-          serverError("ANTHROPIC_API_KEY is not configured"),
-        );
-      }
-
       // 1. Compute algorithmic factor scores for all 25 GEO factors
 
       const pagesData = Array.isArray(analysis.crawled_pages) ? analysis.crawled_pages : [];
@@ -587,7 +577,7 @@ serve(async (req: Request) => {
       });
       console.log(`[analyze] Computed ${algorithmicScores.length} algorithmic factor scores`);
 
-      // 3. Build AI prompt for content-quality factors + business intelligence
+      // 2. Build AI prompt for content-quality factors + business intelligence
       const targetLang = company.target_language || "en";
       const langNames: Record<string, string> = {
         en: "English", pt: "Portuguese", es: "Spanish", fr: "French",
@@ -605,8 +595,6 @@ serve(async (req: Request) => {
         })
         .join("\n---\n");
 
-
-
       // Pre-computed scores summary for AI context
       const algoSummary = algorithmicScores
         .map(
@@ -620,97 +608,45 @@ serve(async (req: Request) => {
           ? `All text fields must be in English. Output format: { "en": { <full response> } }`
           : `Output in TWO languages. ALL text fields (summary, strengths, weaknesses) must be fully translated.\nOutput format: { "en": { <response in English> }, "${targetLang}": { <response in ${targetLangName}> } }`;
 
-      const prompt = `You are an expert GEO (Generative Engine Optimization) analyst. Analyze this website and provide business intelligence.
-
-WEBSITE: ${company.domain}
-TITLE: ${company.website_title || "N/A"}
-META: ${company.meta_description || "N/A"}
-LANG: ${company.language || "N/A"}
-
-ROBOTS.TXT: ${analysis.robots_txt ? "Present" : "Not found"}
-AI BOT ACCESS: ${JSON.stringify(robotsAnalysis.bot_status, null, 2)}
-SITEMAP: ${analysis.sitemap_xml ? "Present" : "Not found"}
-
-ALREADY COMPUTED GEO FACTOR SCORES (25 factors, do NOT re-evaluate these — they are algorithmically computed):
-${algoSummary}
-
-PAGES (${pagesData.length} total):
-${pagesContext}
-
-INSTRUCTIONS:
-1. Based on the pre-computed factor scores above and the page content, derive strengths and weaknesses. The strengths MUST justify the factors that scored Excellent/Good. The weaknesses MUST justify and provide context for the factors that scored Warning/Critical. Do NOT generate new recommendations, these are handled algorithmically.
-2. Generate a company summary with industry classification and business intelligence.
-3. Identify competitors and products/services.
-
-Each language version must follow this EXACT JSON structure:
-{
-  "summary": "2-3 paragraph company summary with GEO findings",
-  "company_name": "Brand name",
-  "industry": "Primary industry",
-  "country": "Country of operation",
-  "market": "Target market",
-  "tags": ["up to 10 tags"],
-  "categories": ["up to 5 categories"],
-  "products_services": [{"name": "...", "description": "...", "type": "product|service"}],
-  "competitors": ["..."],
-  "content_quality": "excellent|good|fair|poor",
-  "structured_data_coverage": "comprehensive|partial|none",
-  "ai_bot_access": ${JSON.stringify(robotsAnalysis.bot_status)},
-  "schema_markup_types": ${JSON.stringify([...new Set(extractedPages.flatMap((p) => p.schema.detected_types))])},
-  "strengths": ["Derived directly from the high-scoring factors in the scorecard to explain why they are good..."],
-  "weaknesses": ["Derived directly from the low-scoring factors in the scorecard to explain the impact of these issues..."]
-}
-
-${bilingualBlock}
-
-Respond with ONLY the JSON object, no markdown fences.`;
+      const prompt = replaceVars(SCRAPE_COMPANY_ANALYZE_PROMPT, {
+        DOMAIN: company.domain,
+        WEBSITE_TITLE: company.website_title || "N/A",
+        META_DESCRIPTION: company.meta_description || "N/A",
+        LANGUAGE: company.language || "N/A",
+        ROBOTS_STATUS: analysis.robots_txt ? "Present" : "Not found",
+        BOT_STATUS: JSON.stringify(robotsAnalysis.bot_status, null, 2),
+        SITEMAP_STATUS: analysis.sitemap_xml ? "Present" : "Not found",
+        ALGO_SUMMARY: algoSummary,
+        PAGES_COUNT: String(pagesData.length),
+        PAGES_CONTEXT: pagesContext,
+        BOT_STATUS_JSON: JSON.stringify(robotsAnalysis.bot_status),
+        SCHEMA_TYPES_JSON: JSON.stringify([...new Set(extractedPages.flatMap((p) => p.schema.detected_types))]),
+        BILINGUAL_BLOCK: bilingualBlock,
+      });
 
       await updateAnalysis(db, analysisId, {
         progress: 62,
         status_message: JSON.stringify({ key: "company.msg.sendingToAi" }),
       });
-      console.log(`[analyze] Sending prompt to Anthropic API…`);
+      console.log(`[analyze] Sending prompt via ai-providers (anthropic)…`);
 
       try {
-        const res = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "x-api-key": apiKey,
-            "anthropic-version": "2023-06-01",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "claude-sonnet-4-20250514",
-            max_tokens: 8192,
-            temperature: 0,
-            messages: [{ role: "user", content: prompt }],
-          }),
-          signal: AbortSignal.timeout(45000),
+        const aiResult = await executePrompt("anthropic", {
+          prompt,
+          model: "claude-sonnet-4-20250514",
+          webSearchEnabled: false,
         });
 
-        if (!res.ok) {
-          const errText = await res.text();
-          console.error("[scrape-company] Anthropic API error:", errText);
+        if (aiResult.error || !aiResult.text) {
+          console.error("[scrape-company] AI error:", aiResult.error);
           await updateAnalysis(db, analysisId, {
             status: "error",
             error_message: "AI analysis failed",
           });
-          return withCors(req, serverError("AI analysis failed."));
+          return withCors(req, serverError(aiResult.error || "AI analysis failed."));
         }
 
-        const data = await res.json();
-        const assistantMsg = data.content?.[0]?.text;
-
-        if (!assistantMsg) {
-          await updateAnalysis(db, analysisId, {
-            status: "error",
-            error_message: "AI returned empty response",
-          });
-          return withCors(
-            req,
-            serverError("AI returned empty response."),
-          );
-        }
+        const assistantMsg = aiResult.text;
 
         await updateAnalysis(db, analysisId, {
           progress: 78,
@@ -758,20 +694,97 @@ Respond with ONLY the JSON object, no markdown fences.`;
         const topRecommendations =
           computeTopRecommendations(allFactorScores);
 
-        // 7. Inject factor scores into bilingual report
+        // ─── 5. Run Deep Analyze ────────────────────────────
+        await updateAnalysis(db, analysisId, {
+          progress: 88,
+          status_message: JSON.stringify({ key: "company.msg.deepAnalyze" }),
+        });
+        console.log(`[analyze] Running deep-analyze for ${domain}…`);
+
+        let deepResult: Awaited<ReturnType<typeof runDeepAnalyze>> | null = null;
+        let deepAnalyzeId: string | null = null;
+        try {
+          deepResult = await runDeepAnalyze(
+            `https://${domain}`,
+            targetLang,
+          );
+          console.log(`[analyze] Deep-analyze complete. Score: ${deepResult.final_score}`);
+
+          // Save to company_ai_analyses table and get the ID
+          const { data: deepRow, error: deepInsErr } = await db
+            .from("company_ai_analyses")
+            .insert({
+              tenant_id: tenantId,
+              status: "completed",
+              company_name: deepResult.company_name,
+              url: deepResult.url,
+              analysis_scope: deepResult.analysis_scope,
+              final_score: deepResult.final_score,
+              generic_score: deepResult.generic_score,
+              specific_score: deepResult.specific_score,
+              semantic_score: deepResult.metric_scores.semantic ?? null,
+              content_score: deepResult.metric_scores.content ?? null,
+              authority_score: deepResult.metric_scores.authority ?? null,
+              technical_score: deepResult.metric_scores.technical ?? null,
+              competitive_position_score: deepResult.metric_scores.competitive_position ?? null,
+              reasoning: deepResult.reasoning,
+              high_probability_prompts: deepResult.high_probability_prompts,
+              improvements: deepResult.improvements,
+              confidence: deepResult.confidence,
+              raw_response: deepResult.raw_response,
+            })
+            .select("id")
+            .single();
+          if (!deepInsErr && deepRow) {
+            deepAnalyzeId = deepRow.id;
+          }
+        } catch (deepErr: any) {
+          console.warn(`[analyze] Deep-analyze failed (non-fatal):`, deepErr?.message || deepErr);
+        }
+
+        // ─── 6. Merge Scores ────────────────────────────────
+        let mergedGeoScore = compositeResult.composite;
+        let mergedCategoryScores = { ...compositeResult.category_scores };
+
+        if (deepResult && deepResult.final_score != null) {
+          // GEO = (geo_composite + final + generic + specific) / 4
+          mergedGeoScore = Math.round(
+            ((compositeResult.composite +
+              (deepResult.final_score ?? 0) +
+              (deepResult.generic_score ?? 0) +
+              (deepResult.specific_score ?? 0)) / 4) * 10
+          ) / 10;
+
+          // Category averages: avg GEO category with matching deep metric
+          const dm = deepResult.metric_scores;
+          if (dm.semantic != null) {
+            mergedCategoryScores.semantic = Math.round(((mergedCategoryScores.semantic || 0) + dm.semantic) / 2 * 10) / 10;
+          }
+          if (dm.content != null) {
+            mergedCategoryScores.content = Math.round(((mergedCategoryScores.content || 0) + dm.content) / 2 * 10) / 10;
+          }
+          if (dm.authority != null) {
+            mergedCategoryScores.authority = Math.round(((mergedCategoryScores.authority || 0) + dm.authority) / 2 * 10) / 10;
+          }
+          if (dm.technical != null) {
+            mergedCategoryScores.technical = Math.round(((mergedCategoryScores.technical || 0) + dm.technical) / 2 * 10) / 10;
+          }
+          if (dm.competitive_position != null) {
+            (mergedCategoryScores as any).competitive_position = dm.competitive_position;
+          }
+        }
+
+        // ─── 7. Inject factor scores into bilingual report ──
         for (const lang of Object.keys(bilingualReport)) {
           if (bilingualReport[lang]) {
-            bilingualReport[lang].geo_score =
-              compositeResult.composite;
+            bilingualReport[lang].geo_score = mergedGeoScore;
             bilingualReport[lang].factor_scores = allFactorScores;
-            bilingualReport[lang].composite_score =
-              compositeResult.composite;
+            bilingualReport[lang].composite_score = mergedGeoScore;
             bilingualReport[lang].readiness_level =
               compositeResult.readiness_level;
             bilingualReport[lang].readiness_label =
               compositeResult.readiness_label;
-            bilingualReport[lang].category_scores =
-              compositeResult.category_scores;
+            bilingualReport[lang].category_scores = mergedCategoryScores;
             bilingualReport[lang].points_to_next_level =
               compositeResult.points_to_next_level;
             bilingualReport[lang].next_level =
@@ -782,21 +795,37 @@ Respond with ONLY the JSON object, no markdown fences.`;
         }
 
         await updateAnalysis(db, analysisId, {
-          progress: 92,
+          progress: 95,
           status_message: JSON.stringify({ key: "company.msg.finalizingReport" }),
         });
 
-        // 8. Save analysis results
-        await updateAnalysis(db, analysisId, {
+        // ─── 8. Save analysis results ───────────────────────
+        const saveData: Record<string, unknown> = {
           ai_report: bilingualReport,
-          geo_score: compositeResult.composite,
+          geo_score: mergedGeoScore,
           readiness_level: compositeResult.readiness_level,
           status: "completed",
           progress: 100,
           completed_at: new Date().toISOString(),
-          status_message: JSON.stringify({ key: "company.msg.analysisComplete", params: { score: compositeResult.composite } }),
-        });
-        console.log(`[analyze] ✓ Analysis complete. GEO Score: ${compositeResult.composite}/100`);
+          status_message: JSON.stringify({ key: "company.msg.analysisComplete", params: { score: mergedGeoScore } }),
+        };
+
+        // Store deep-analyze results in geo_analyses
+        if (deepResult) {
+          saveData.deep_analyze_id = deepAnalyzeId;
+          saveData.deep_analyze_score = deepResult.final_score;
+          saveData.deep_generic_score = deepResult.generic_score;
+          saveData.deep_specific_score = deepResult.specific_score;
+          saveData.deep_metric_scores = deepResult.metric_scores;
+          saveData.deep_improvements = deepResult.improvements;
+          saveData.deep_prompts = deepResult.high_probability_prompts;
+          saveData.deep_analyzed_pages = deepResult.analysis_scope?.relevant_pages_used || [];
+          saveData.deep_reasoning = deepResult.reasoning;
+          saveData.deep_confidence = deepResult.confidence;
+        }
+
+        await updateAnalysis(db, analysisId, saveData);
+        console.log(`[analyze] ✓ Analysis complete. Merged GEO Score: ${mergedGeoScore}/100`);
 
         // Auto-fill LLM columns from analyzed data (no extra API calls)
         if (company.domain && !company.llm_txt) {

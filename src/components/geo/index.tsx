@@ -4,6 +4,7 @@
  * for both the company page and future competitor analysis pages.
  */
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ChevronDown,
   ChevronUp,
@@ -13,6 +14,7 @@ import {
   Brain,
   ArrowUpRight,
   Lightbulb,
+  BarChart3,
 } from 'lucide-react';
 import type {
   GeoFactorScore,
@@ -28,6 +30,7 @@ const CATEGORY_ICONS: Record<string, typeof Shield> = {
   Content: BookOpen,
   Authority: Sparkles,
   Semantic: Brain,
+  'Competitive Position': BarChart3,
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -35,6 +38,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   Content: '#fd79a8',
   Authority: '#00cec9',
   Semantic: '#ffeaa7',
+  'Competitive Position': '#a29bfe',
 };
 
 // ─── GeoReadinessBadge ──────────────────────────────────────
@@ -45,6 +49,7 @@ interface GeoReadinessBadgeProps {
 }
 
 export function GeoReadinessBadge({ level, size = 'md' }: GeoReadinessBadgeProps) {
+  const { t } = useTranslation();
   const config = READINESS_CONFIG[level] ?? READINESS_CONFIG[0]!;
   const sizeClasses = {
     sm: 'px-2.5 py-1 text-[10px]',
@@ -66,7 +71,7 @@ export function GeoReadinessBadge({ level, size = 'md' }: GeoReadinessBadgeProps
         className="w-2 h-2 rounded-full"
         style={{ background: config.color, boxShadow: `0 0 6px ${config.color}` }}
       />
-      Level {level}: {config.label}
+      {t('company.level')} {level}: {config.label}
     </span>
   );
 }
@@ -137,40 +142,57 @@ export function GeoScoreOverview({
   pointsToNextLevel,
   nextLevel,
 }: GeoScoreOverviewProps) {
+  const { t } = useTranslation();
+  const [collapsed, setCollapsed] = useState(false);
   return (
     <div className="dashboard-card p-6">
-      <div className="flex flex-col md:flex-row items-center gap-6">
-        {/* Score ring */}
-        <div className="flex flex-col items-center gap-3">
-          <ScoreRing score={compositeScore} size={120} label="GEO Score" />
-          <GeoReadinessBadge level={readinessLevel} size="md" />
-        </div>
+      <button
+        type="button"
+        className="w-full flex items-center gap-2 text-left"
+        onClick={() => setCollapsed((c) => !c)}
+      >
+        <Brain className="w-4 h-4 shrink-0" style={{ color: 'var(--brand-primary)' }} />
+        <h3 className="text-sm font-semibold text-text-primary flex-1">{t('company.geoScoreOverview')}</h3>
+        {collapsed ? (
+          <ChevronDown className="w-4 h-4 text-text-muted shrink-0" />
+        ) : (
+          <ChevronUp className="w-4 h-4 text-text-muted shrink-0" />
+        )}
+      </button>
+      {!collapsed && (
+        <div className="mt-4 flex flex-col md:flex-row items-center gap-6">
+          {/* Score ring */}
+          <div className="flex flex-col items-center gap-3">
+            <ScoreRing score={compositeScore} size={120} label={t('company.geoScore')} />
+            <GeoReadinessBadge level={readinessLevel} size="md" />
+          </div>
 
-        {/* Category breakdown */}
-        <div className="flex-1 w-full">
-          <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
-            Category Breakdown
-          </h4>
-          <GeoCategoryBreakdown scores={categoryScores} />
+          {/* Category breakdown */}
+          <div className="flex-1 w-full">
+            <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
+              {t('company.categoryBreakdown')}
+            </h4>
+            <GeoCategoryBreakdown scores={categoryScores} />
 
-          {/* Next level indicator */}
-          {nextLevel && pointsToNextLevel > 0 && (
-            <div
-              className="mt-4 flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
-              style={{
-                background: 'rgba(108,92,231,0.06)',
-                border: '1px solid rgba(108,92,231,0.15)',
-              }}
-            >
-              <ArrowUpRight className="w-3.5 h-3.5" style={{ color: 'var(--brand-primary)' }} />
-              <span className="text-text-secondary">
-                <span className="font-semibold text-text-primary">{(pointsToNextLevel ?? 0).toFixed(1)} points</span>{' '}
-                to reach <span className="font-semibold" style={{ color: READINESS_CONFIG[nextLevel.level]?.color }}>Level {nextLevel.level}: {nextLevel.label}</span>
-              </span>
-            </div>
-          )}
+            {/* Next level indicator */}
+            {nextLevel && pointsToNextLevel > 0 && (
+              <div
+                className="mt-4 flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
+                style={{
+                  background: 'rgba(108,92,231,0.06)',
+                  border: '1px solid rgba(108,92,231,0.15)',
+                }}
+              >
+                <ArrowUpRight className="w-3.5 h-3.5" style={{ color: 'var(--brand-primary)' }} />
+                <span className="text-text-secondary">
+                  <span className="font-semibold text-text-primary">{(pointsToNextLevel ?? 0).toFixed(1)} {t('company.points')}</span>{' '}
+                  {t('company.toReach')} <span className="font-semibold" style={{ color: READINESS_CONFIG[nextLevel.level]?.color }}>{t('company.level')} {nextLevel.level}: {nextLevel.label}</span>
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -182,22 +204,36 @@ interface GeoCategoryBreakdownProps {
 }
 
 export function GeoCategoryBreakdown({ scores }: GeoCategoryBreakdownProps) {
+  const { t } = useTranslation();
+
+  const CAT_I18N: Record<string, string> = {
+    Technical: 'catTechnical',
+    Content: 'catContent',
+    Authority: 'catAuthority',
+    Semantic: 'catSemantic',
+    'Competitive Position': 'catCompetitivePosition',
+  };
+
   const categories = [
-    { key: 'technical', label: 'Technical', score: scores.technical },
-    { key: 'content', label: 'Content', score: scores.content },
-    { key: 'authority', label: 'Authority', score: scores.authority },
-    { key: 'semantic', label: 'Semantic', score: scores.semantic },
+    { key: 'technical', catKey: 'Technical', score: scores.technical },
+    { key: 'content', catKey: 'Content', score: scores.content },
+    { key: 'authority', catKey: 'Authority', score: scores.authority },
+    { key: 'semantic', catKey: 'Semantic', score: scores.semantic },
+    ...(scores.competitive_position != null
+      ? [{ key: 'competitive_position', catKey: 'Competitive Position', score: scores.competitive_position }]
+      : []),
   ];
 
   return (
     <div className="space-y-2.5">
       {categories.map((cat) => {
-        const Icon = CATEGORY_ICONS[cat.label] || Shield;
-        const color = CATEGORY_COLORS[cat.label] || '#6c5ce7';
+        const Icon = CATEGORY_ICONS[cat.catKey] || Shield;
+        const color = CATEGORY_COLORS[cat.catKey] || '#6c5ce7';
+        const label = t(`company.${CAT_I18N[cat.catKey] || 'catTechnical'}`);
         return (
           <div key={cat.key} className="flex items-center gap-3">
             <Icon className="w-3.5 h-3.5 shrink-0" style={{ color }} />
-            <span className="text-xs font-medium text-text-secondary w-20 shrink-0">{cat.label}</span>
+            <span className="text-xs font-medium text-text-secondary w-20 shrink-0">{label}</span>
             <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg-tertiary)' }}>
               <div
                 className="h-full rounded-full transition-all duration-700 ease-out"
@@ -220,10 +256,28 @@ interface GeoFactorCardProps {
   factor: GeoFactorScore;
 }
 
+const STATUS_I18N: Record<string, string> = {
+  excellent: 'statusExcellent',
+  good: 'statusGood',
+  warning: 'statusWarning',
+  critical: 'statusCritical',
+};
+
+const CAT_I18N_MAP: Record<string, string> = {
+  Technical: 'catTechnical',
+  Content: 'catContent',
+  Authority: 'catAuthority',
+  Semantic: 'catSemantic',
+  'Competitive Position': 'catCompetitivePosition',
+};
+
 export function GeoFactorCard({ factor }: GeoFactorCardProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const colors = STATUS_COLORS[factor.status as keyof typeof STATUS_COLORS] ?? STATUS_COLORS.warning;
   const Icon = CATEGORY_ICONS[factor.category] || Shield;
+  const statusLabel = t(`company.${STATUS_I18N[factor.status] || 'statusWarning'}`);
+  const categoryLabel = t(`company.${CAT_I18N_MAP[factor.category] || 'catTechnical'}`);
 
   return (
     <div
@@ -259,12 +313,12 @@ export function GeoFactorCard({ factor }: GeoFactorCardProps) {
               className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded tracking-wider shrink-0"
               style={{ color: colors.text, background: colors.bg, border: `1px solid ${colors.border}` }}
             >
-              {factor.status}
+              {statusLabel}
             </span>
           </div>
           <div className="flex items-center gap-1.5 mt-0.5">
             <Icon className="w-3 h-3" style={{ color: CATEGORY_COLORS[factor.category] || '#6c5ce7' }} />
-            <span className="text-[10px] text-text-muted">{factor.category}</span>
+            <span className="text-[10px] text-text-muted">{categoryLabel}</span>
             <span className="text-[10px] text-text-muted">·</span>
             <span className="text-[10px] text-text-muted" style={{ fontFamily: 'JetBrains Mono, monospace' }}>
               w={factor.weight}
@@ -318,6 +372,8 @@ interface GeoFactorScorecardProps {
 }
 
 export function GeoFactorScorecard({ factors }: GeoFactorScorecardProps) {
+  const { t } = useTranslation();
+  const [collapsed, setCollapsed] = useState(false);
   const [filter, setFilter] = useState<CategoryFilter>('all');
   const [sortBy, setSortBy] = useState<'score' | 'weight'>('score');
 
@@ -329,65 +385,82 @@ export function GeoFactorScorecard({ factors }: GeoFactorScorecardProps) {
     });
 
   const tabs: { key: CategoryFilter; label: string }[] = [
-    { key: 'all', label: `All (${factors.length})` },
-    { key: 'Technical', label: 'Technical' },
-    { key: 'Content', label: 'Content' },
-    { key: 'Authority', label: 'Authority' },
-    { key: 'Semantic', label: 'Semantic' },
+    { key: 'all', label: `${t('company.allFactors')} (${factors.length})` },
+    { key: 'Technical', label: t('company.catTechnical') },
+    { key: 'Content', label: t('company.catContent') },
+    { key: 'Authority', label: t('company.catAuthority') },
+    { key: 'Semantic', label: t('company.catSemantic') },
   ];
 
   return (
     <div className="dashboard-card p-5">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+        <button
+          type="button"
+          className="flex items-center gap-2 text-left flex-1"
+          onClick={() => setCollapsed((c) => !c)}
+        >
           <Shield className="w-4 h-4 text-brand-primary" />
-          GEO Factor Scorecard
-          <span className="text-xs text-text-muted font-normal">({factors.length} factors)</span>
-        </h3>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setSortBy('score')}
-            className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${
-              sortBy === 'score' ? 'bg-brand-primary/20 text-brand-primary' : 'text-text-muted hover:text-text-secondary'
-            }`}
-          >
-            By Score
-          </button>
-          <button
-            onClick={() => setSortBy('weight')}
-            className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${
-              sortBy === 'weight' ? 'bg-brand-primary/20 text-brand-primary' : 'text-text-muted hover:text-text-secondary'
-            }`}
-          >
-            By Weight
-          </button>
-        </div>
+          <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 flex-1">
+            {t('company.geoFactorScorecard')}
+            <span className="text-xs text-text-muted font-normal">({factors.length} {t('company.factors')})</span>
+          </h3>
+          {collapsed ? (
+            <ChevronDown className="w-4 h-4 text-text-muted shrink-0" />
+          ) : (
+            <ChevronUp className="w-4 h-4 text-text-muted shrink-0" />
+          )}
+        </button>
+        {!collapsed && (
+          <div className="flex items-center gap-1 ml-3">
+            <button
+              onClick={() => setSortBy('score')}
+              className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${
+                sortBy === 'score' ? 'bg-brand-primary/20 text-brand-primary' : 'text-text-muted hover:text-text-secondary'
+              }`}
+            >
+              {t('company.byScore')}
+            </button>
+            <button
+              onClick={() => setSortBy('weight')}
+              className={`px-2 py-0.5 text-[10px] rounded font-medium transition-colors ${
+                sortBy === 'weight' ? 'bg-brand-primary/20 text-brand-primary' : 'text-text-muted hover:text-text-secondary'
+              }`}
+            >
+              {t('company.byWeight')}
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Category tabs */}
-      <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setFilter(tab.key)}
-            className={`px-3 py-1.5 text-xs rounded-lg font-medium whitespace-nowrap transition-all ${
-              filter === tab.key
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
-            }`}
-            style={filter === tab.key ? { boxShadow: '0 0 12px rgba(108,92,231,0.25)' } : {}}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      {!collapsed && (
+        <>
+          {/* Category tabs */}
+          <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setFilter(tab.key)}
+                className={`px-3 py-1.5 text-xs rounded-lg font-medium whitespace-nowrap transition-all ${
+                  filter === tab.key
+                    ? 'bg-brand-primary text-white shadow-sm'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-tertiary'
+                }`}
+                style={filter === tab.key ? { boxShadow: '0 0 12px rgba(108,92,231,0.25)' } : {}}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-      {/* Factor list */}
-      <div className="space-y-2">
-        {filteredFactors.map((factor) => (
-          <GeoFactorCard key={factor.factor_id} factor={factor} />
-        ))}
-      </div>
+          {/* Factor list */}
+          <div className="space-y-2">
+            {filteredFactors.map((factor) => (
+              <GeoFactorCard key={factor.factor_id} factor={factor} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -451,3 +524,5 @@ export function GeoRecommendations({ recommendations }: GeoRecommendationsProps)
     </div>
   );
 }
+
+export { ImprovementsAndRecommendations } from './ImprovementsAndRecommendations';
