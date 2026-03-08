@@ -612,7 +612,6 @@ h6 {
 }
 
 .data-table th {
-  text-align: left;
   padding: 0.75rem 1rem;
   font-weight: 500;
   font-size: 0.75rem;
@@ -620,14 +619,17 @@ h6 {
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
   border-bottom: 1px solid var(--color-glass-border);
+  vertical-align: middle;
 }
 
 .data-table td {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
   color: var(--color-text-primary);
   border-bottom: 1px solid var(--color-glass-border);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
+  vertical-align: middle;
+  line-height: 32px;
 }
 
 .data-table tbody tr {
