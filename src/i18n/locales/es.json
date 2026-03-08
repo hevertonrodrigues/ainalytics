@@ -329,7 +329,9 @@
     "VALIDATION_ERROR": "Verifique su entrada",
     "INTERNAL_ERROR": "Algo salió mal. Intente nuevamente.",
     "TENANT_REQUIRED": "Seleccione una organización",
-    "INVALID_TENANT": "Organización inválida"
+    "INVALID_TENANT": "Organización inválida",
+    "RECAPTCHA_FAILED": "La verificación de seguridad falló. Inténtalo de nuevo.",
+    "RECAPTCHA_BLOCKED": "Esta solicitud fue bloqueada por razones de seguridad."
   },
   "landing": {
     "nav": {

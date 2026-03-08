@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
-import { created, badRequest, serverError } from "../_shared/response.ts";
+import { created, badRequest, forbidden, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { verifyRecaptcha } from "../_shared/verify-recaptcha.ts";
 
 /**
  * interest-leads — PUBLIC endpoint (no auth required).
@@ -30,6 +31,13 @@ serve(async (req: Request) => {
     const phoneDigits = (body.phone || "").replace(/\D/g, "");
     if (!body.phone || phoneDigits.length < 10) {
       return withCors(req, badRequest("Phone is required (min 10 digits)"));
+    }
+
+    // ── Verify reCAPTCHA ──
+    const recaptcha = await verifyRecaptcha(body.recaptcha_token, "interest_lead");
+    if (!recaptcha.valid) {
+      console.warn("[interest-leads] reCAPTCHA rejected — score:", recaptcha.score);
+      return withCors(req, forbidden("Security verification failed"));
     }
 
     // ── Extract metadata from headers ──

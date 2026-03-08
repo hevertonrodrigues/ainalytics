@@ -4,6 +4,7 @@ import { X, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { EDGE_FUNCTION_BASE, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
 import { useScrollLock } from '@/hooks/useScrollLock';
+import { executeRecaptcha } from '@/lib/recaptcha';
 
 interface InterestFormModalProps {
   open: boolean;
@@ -63,6 +64,9 @@ export function InterestFormModal({ open, onClose }: InterestFormModalProps) {
     setErrorMsg('');
 
     try {
+      // reCAPTCHA v3 — get token before submitting
+      const recaptcha_token = await executeRecaptcha('interest_lead');
+
       const res = await fetch(`${EDGE_FUNCTION_BASE}/interest-leads`, {
         method: 'POST',
         headers: { 
@@ -78,6 +82,7 @@ export function InterestFormModal({ open, onClose }: InterestFormModalProps) {
           screen_resolution: `${window.screen.width}x${window.screen.height}`,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           page_url: window.location.href,
+          recaptcha_token,
         }),
       });
 

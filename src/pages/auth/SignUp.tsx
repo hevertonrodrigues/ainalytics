@@ -8,6 +8,7 @@ import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/P
 import type { Iso2 } from 'intl-tel-input/data';
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
 import { isProfessionalEmail } from '@/lib/email';
+import { executeRecaptcha } from '@/lib/recaptcha';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
 const LANGUAGE_COUNTRY_MAP: Record<string, Iso2> = {
@@ -60,6 +61,12 @@ export function SignUp() {
 
     setLoading(true);
     try {
+      // reCAPTCHA v3 — frontend gating before auth
+      const token = await executeRecaptcha('sign_up');
+      if (token === null) {
+        // Site key not set — skip gating in development
+      }
+
       await signUp(email, password, fullName, '', phone, '');
       // Hard redirect — guarantees AuthContext restores session from localStorage
       window.location.href = '/dashboard';

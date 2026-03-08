@@ -329,7 +329,9 @@
     "VALIDATION_ERROR": "Please check your input",
     "INTERNAL_ERROR": "Something went wrong. Please try again.",
     "TENANT_REQUIRED": "Please select an organization",
-    "INVALID_TENANT": "Invalid organization"
+    "INVALID_TENANT": "Invalid organization",
+    "RECAPTCHA_FAILED": "Security verification failed. Please try again.",
+    "RECAPTCHA_BLOCKED": "This request was blocked for security reasons."
   },
   "landing": {
     "nav": {

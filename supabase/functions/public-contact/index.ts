@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
-import { created, badRequest, serverError } from "../_shared/response.ts";
+import { created, badRequest, forbidden, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { verifyRecaptcha } from "../_shared/verify-recaptcha.ts";
 
 /**
  * public-contact — Unauthenticated endpoint.
@@ -49,6 +50,13 @@ serve(async (req: Request) => {
       !body.message.trim()
     ) {
       return withCors(req, badRequest("message is required"));
+    }
+
+    // ── Verify reCAPTCHA ──
+    const recaptcha = await verifyRecaptcha(body.recaptcha_token, "public_contact");
+    if (!recaptcha.valid) {
+      console.warn("[public-contact] reCAPTCHA rejected — score:", recaptcha.score);
+      return withCors(req, forbidden("Security verification failed"));
     }
 
     // ── Insert contact message (no tenant, no user) ──

@@ -5,6 +5,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { LandingHeader } from '@/pages/landing/LandingHeader';
 import { LandingFooter } from '@/pages/landing/LandingFooter';
 import { SupportFormFields } from '@/pages/support/SupportFormFields';
+import { executeRecaptcha } from '@/lib/recaptcha';
 
 /* ─── Constants ────────────────────────────────────────────── */
 
@@ -48,13 +49,16 @@ export function ContactPage() {
     setSending(true);
 
     try {
+      // reCAPTCHA v3 — get token before submitting
+      const recaptcha_token = await executeRecaptcha('public_contact');
+
       const res = await fetch(`${SUPABASE_URL}/functions/v1/public-contact`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           apikey: SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ name, email, subject, message }),
+        body: JSON.stringify({ name, email, subject, message, recaptcha_token }),
       });
 
       const json = await res.json();

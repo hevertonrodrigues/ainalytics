@@ -2,6 +2,7 @@ export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Ainalytics';
 
 export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321';
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+export const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
 export const ROLES = {
   OWNER: 'owner',

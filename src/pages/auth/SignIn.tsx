@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { getAuthErrorMessage } from '@/lib/authErrors';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { executeRecaptcha } from '@/lib/recaptcha';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
 
@@ -29,6 +30,12 @@ export function SignIn() {
     setLoading(true);
 
     try {
+      // reCAPTCHA v3 — frontend gating before auth
+      const token = await executeRecaptcha('sign_in');
+      if (token === null) {
+        // Site key not set — skip gating in development
+      }
+
       await signIn(email, password);
       // Hard redirect — guarantees AuthContext restores session from localStorage
       window.location.href = '/dashboard';

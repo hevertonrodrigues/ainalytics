@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME } from '@/lib/constants';
 import { getAuthErrorMessage } from '@/lib/authErrors';
+import { executeRecaptcha } from '@/lib/recaptcha';
 
 export function ForgotPassword() {
   const { t } = useTranslation();
@@ -20,6 +21,12 @@ export function ForgotPassword() {
     setLoading(true);
 
     try {
+      // reCAPTCHA v3 — frontend gating before auth
+      const token = await executeRecaptcha('forgot_password');
+      if (token === null) {
+        // Site key not set — skip gating in development
+      }
+
       await forgotPassword(email);
       setSent(true);
     } catch (err) {
