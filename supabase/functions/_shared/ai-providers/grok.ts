@@ -27,7 +27,11 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
     // Only add web_search tool if enabled for this model
     let webSearchEnabled = req.webSearchEnabled !== false;
     if (webSearchEnabled) {
-      body.tools = [{ type: "web_search" }];
+      const webSearchTool: Record<string, unknown> = { type: "web_search" };
+      if (req.country) {
+        webSearchTool.user_location = { type: "approximate", country: req.country.toUpperCase() };
+      }
+      body.tools = [webSearchTool];
       body.tool_choice = "required";
     }
 

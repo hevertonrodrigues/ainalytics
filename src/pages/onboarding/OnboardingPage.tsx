@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { useCurrency } from '@/hooks/useCurrency';
 import { apiClient } from '@/lib/api';
-import { suggestCompanyNameFromDomain } from '@/lib/email';
+import { suggestCompanyNameFromDomain, isFreeEmailDomain } from '@/lib/email';
 import { extractRootDomain } from '@/lib/domain';
 import type { PricingPlan, BillingPeriod } from '@/components/PricingPlans';
 import type { Plan } from '@/types';
@@ -42,15 +42,10 @@ const TOTAL_STEPS = STEP_FINAL + 1;                // 5
 const TOPICS_STEP_CONFIG: StepConfig = { key: 'topics', icon: FolderOpen, color: 'from-blue-500 to-indigo-600' };
 const PROMPTS_STEP_CONFIG: StepConfig = { key: 'prompts', icon: MessageSquare, color: 'from-pink-500 to-rose-600' };
 
-const PUBLIC_DOMAINS = new Set([
-  'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com',
-  'aol.com', 'protonmail.com', 'icloud.com', 'mail.com', 'zoho.com',
-]);
-
 function getEmailDomain(email: string | undefined): string | null {
   if (!email) return null;
   const domain = email.split('@')[1]?.toLowerCase();
-  if (!domain || PUBLIC_DOMAINS.has(domain)) return null;
+  if (!domain || isFreeEmailDomain(domain)) return null;
   return domain;
 }
 

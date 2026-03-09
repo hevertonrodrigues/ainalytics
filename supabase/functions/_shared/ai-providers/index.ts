@@ -61,10 +61,12 @@ export async function executePromptMulti(
   platforms: Array<{ slug: string; model: string; webSearchEnabled?: boolean }>,
   prompt: string,
   systemInstruction?: string,
+  country?: string,
+  language?: string,
 ): Promise<Array<{ slug: string } & AiResponse>> {
   const results = await Promise.allSettled(
     platforms.map(async ({ slug, model, webSearchEnabled }) => {
-      const res = await executePrompt(slug, { prompt, model, systemInstruction, webSearchEnabled });
+      const res = await executePrompt(slug, { prompt, model, systemInstruction, webSearchEnabled, country, language });
       return { slug, ...res };
     }),
   );

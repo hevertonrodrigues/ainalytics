@@ -23,7 +23,11 @@ export const anthropicAdapter: AiAdapter = async (req: AiRequest): Promise<AiRes
     // Only add web_search tool if enabled for this model
     let webSearchEnabled = req.webSearchEnabled !== false;
     if (webSearchEnabled) {
-      body.tools = [{ type: "web_search_20250305", name: "web_search" }];
+      const webSearchTool: Record<string, unknown> = { type: "web_search_20250305", name: "web_search" };
+      if (req.country) {
+        webSearchTool.user_location = { type: "approximate", country: req.country.toUpperCase() };
+      }
+      body.tools = [webSearchTool];
     }
 
     // Retry loop: some models may reject web_search tool

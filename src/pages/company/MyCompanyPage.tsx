@@ -43,20 +43,13 @@ import {
   ImprovementsAndRecommendations,
 } from '@/components/geo';
 import { CollapsibleSection } from '@/components/ui/CollapsibleSection';
+import { isFreeEmailDomain } from '@/lib/email';
 import type { DeepAnalyzeTopic, DeepAnalyzeImprovement, DeepAnalyzePageUsed } from '@/types';
-
-// ─── Public email domains to skip for auto-fill ────────────
-const PUBLIC_DOMAINS = new Set([
-  'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'live.com',
-  'aol.com', 'protonmail.com', 'icloud.com', 'mail.com', 'zoho.com',
-  'yandex.com', 'gmx.com', 'fastmail.com', 'tutanota.com', 'pm.me',
-  'msn.com', 'me.com', 'mac.com', 'inbox.com', 'hey.com',
-]);
 
 function getEmailDomain(email: string | undefined): string | null {
   if (!email) return null;
   const domain = email.split('@')[1]?.toLowerCase();
-  if (!domain || PUBLIC_DOMAINS.has(domain)) return null;
+  if (!domain || isFreeEmailDomain(domain)) return null;
   return domain;
 }
 

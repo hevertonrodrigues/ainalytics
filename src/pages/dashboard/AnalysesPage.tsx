@@ -200,7 +200,7 @@ export function AnalysesPage() {
 
       {/* ── Row 2: Citation Share + GEO ──────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <CitationSharePie own={own} totalCitations={data.overview.total_citations} t={t} />
+        <CitationSharePie own={own} totalCitations={data.overview.total_citations} competitors={data.top_competitors} t={t} />
         {data.geo && <GeoRadarCard geo={data.geo} t={t} />}
       </div>
 
@@ -275,20 +275,67 @@ function KPI({ icon, color, label, value, sub }: {
 
 /* ── Citation Share Pie Chart ────────────────────────────── */
 
-function CitationSharePie({ own, totalCitations, t }: {
+function CitationSharePie({ own, totalCitations, competitors, t }: {
   own: OwnDomainData | null; totalCitations: number;
+  competitors: SourceItem[];
   t: ReturnType<typeof useTranslation>['t'];
 }) {
-  const ownTotal = own?.total || 0;
-  const othersTotal = totalCitations - ownTotal;
-  const ownPct = totalCitations > 0 ? Math.round((ownTotal / totalCitations) * 1000) / 10 : 0;
-  const othersPct = totalCitations > 0 ? Math.round((othersTotal / totalCitations) * 1000) / 10 : 0;
+  // Build segments: self + top 3 competitors by mentions + others
+  const SEGMENT_COLORS = [OWN_COLOR, '#6c5ce7', '#e84393', '#a29bfe', NEUTRAL];
 
+  const segments = useMemo(() => {
+    const ownTotal = own?.total || 0;
+    const top3 = [...competitors].sort((a, b) => b.total - a.total).slice(0, 3);
+    const top3Total = top3.reduce((sum, c) => sum + c.total, 0);
+    const othersTotal = Math.max(0, totalCitations - ownTotal - top3Total);
+
+    const items: Array<{ label: string; count: number; pct: number; color: string; isOwn?: boolean }> = [];
+
+    items.push({
+      label: t('analyses.yourDomain'),
+      count: ownTotal,
+      pct: totalCitations > 0 ? Math.round((ownTotal / totalCitations) * 1000) / 10 : 0,
+      color: SEGMENT_COLORS[0]!,
+      isOwn: true,
+    });
+
+    top3.forEach((c, i) => {
+      items.push({
+        label: c.domain,
+        count: c.total,
+        pct: totalCitations > 0 ? Math.round((c.total / totalCitations) * 1000) / 10 : 0,
+        color: SEGMENT_COLORS[i + 1]!,
+      });
+    });
+
+    if (othersTotal > 0 || top3.length < competitors.length) {
+      items.push({
+        label: t('analyses.otherSources'),
+        count: othersTotal,
+        pct: totalCitations > 0 ? Math.round((othersTotal / totalCitations) * 1000) / 10 : 0,
+        color: SEGMENT_COLORS[4]!,
+      });
+    }
+
+    return items;
+  }, [own, competitors, totalCitations, t]);
+
+  const ownPct = segments[0]?.pct || 0;
+
+  // SVG donut parameters
   const size = 180;
   const sw = 28;
   const r = (size - sw) / 2;
   const circ = 2 * Math.PI * r;
-  const ownDash = (ownPct / 100) * circ;
+
+  // Build arc segments
+  let cumulativeOffset = 0;
+  const arcs = segments.map((seg) => {
+    const dash = (seg.pct / 100) * circ;
+    const offset = cumulativeOffset;
+    cumulativeOffset += dash;
+    return { ...seg, dash, rotationDeg: -90 + (offset / circ) * 360 };
+  });
 
   return (
     <div className="dashboard-card p-6">
@@ -305,42 +352,32 @@ function CitationSharePie({ own, totalCitations, t }: {
             {/* Background ring */}
             <circle cx={size / 2} cy={size / 2} r={r} fill="none"
               stroke="var(--color-bg-tertiary)" strokeWidth={sw} />
-            {/* Others segment */}
-            <circle cx={size / 2} cy={size / 2} r={r} fill="none"
-              stroke={NEUTRAL} strokeWidth={sw} strokeOpacity={0.5}
-              strokeDasharray={`${circ - ownDash} ${ownDash}`}
-              strokeDashoffset={0}
-              transform={`rotate(${-90 + (ownPct / 100) * 360} ${size / 2} ${size / 2})`}
-              style={{ transition: 'all 1s ease' }} />
-            {/* Own segment */}
-            <circle cx={size / 2} cy={size / 2} r={r} fill="none"
-              stroke={OWN_COLOR} strokeWidth={sw}
-              strokeDasharray={`${ownDash} ${circ - ownDash}`}
-              strokeDashoffset={0}
-              transform={`rotate(-90 ${size / 2} ${size / 2})`}
-              strokeLinecap="round"
-              style={{ transition: 'all 1s ease' }} />
+            {/* Segments (draw in reverse so first segment is on top) */}
+            {[...arcs].reverse().map((arc, i) => (
+              <circle key={i} cx={size / 2} cy={size / 2} r={r} fill="none"
+                stroke={arc.color} strokeWidth={sw}
+                strokeOpacity={arc.isOwn ? 1 : 0.7}
+                strokeDasharray={`${arc.dash} ${circ - arc.dash}`}
+                transform={`rotate(${arc.rotationDeg} ${size / 2} ${size / 2})`}
+                strokeLinecap={arc.isOwn ? 'round' : undefined}
+                style={{ transition: 'all 1s ease' }} />
+            ))}
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-3xl font-bold font-mono" style={{ color: OWN_COLOR }}>{ownPct}%</span>
             <span className="text-[10px] text-text-muted">{t('analyses.yourShare')}</span>
           </div>
         </div>
-        <div className="space-y-4 min-w-0">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm shrink-0" style={{ background: OWN_COLOR }} />
-              <span className="text-sm font-semibold text-text-primary">{t('analyses.yourDomain')}</span>
+        <div className="space-y-2.5 min-w-0">
+          {segments.map((seg, i) => (
+            <div key={i} className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-sm shrink-0" style={{ background: seg.color, opacity: seg.isOwn ? 1 : 0.7 }} />
+                <span className={`text-xs truncate max-w-[140px] ${seg.isOwn ? 'font-semibold text-text-primary' : 'text-text-secondary'}`}>{seg.label}</span>
+              </div>
+              <div className="pl-5 text-[10px] text-text-muted">{seg.count} {t('analyses.mentions')} · {seg.pct}%</div>
             </div>
-            <div className="pl-5 text-xs text-text-secondary">{ownTotal} {t('analyses.mentions')} · {ownPct}%</div>
-          </div>
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-sm shrink-0" style={{ background: NEUTRAL, opacity: 0.5 }} />
-              <span className="text-sm text-text-secondary">{t('analyses.otherSources')}</span>
-            </div>
-            <div className="pl-5 text-xs text-text-muted">{othersTotal} {t('analyses.mentions')} · {othersPct}%</div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

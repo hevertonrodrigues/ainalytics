@@ -19,6 +19,12 @@ export const perplexityAdapter: AiAdapter = async (req: AiRequest): Promise<AiRe
       input: req.prompt,
       stream: false,
     };
+    if (req.country) {
+      body.user_location = { country: req.country.toUpperCase() };
+    }
+    if (req.language) {
+      body.search_language_filter = [req.language.toLowerCase()];
+    }
 
     const res = await fetch("https://api.perplexity.ai/responses", {
       method: "POST",

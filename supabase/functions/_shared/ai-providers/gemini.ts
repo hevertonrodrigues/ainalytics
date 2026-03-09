@@ -18,7 +18,10 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       contents: [{ parts: [{ text: req.prompt }] }],
     };
     if (req.systemInstruction) {
-      body.systemInstruction = { parts: [{ text: req.systemInstruction }] };
+      const locationHint = req.country ? `\nUser location context: country ${req.country.toUpperCase()}.` : "";
+      body.systemInstruction = { parts: [{ text: req.systemInstruction + locationHint }] };
+    } else if (req.country) {
+      body.systemInstruction = { parts: [{ text: `User location context: country ${req.country.toUpperCase()}.` }] };
     }
 
     // Only add google_search tool if enabled for this model

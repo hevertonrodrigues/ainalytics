@@ -9,6 +9,10 @@ export interface AiRequest {
   systemInstruction?: string;
   /** Whether web search should be enabled for this request (from models.web_search_active) */
   webSearchEnabled?: boolean;
+  /** ISO 3166-1 alpha-2 country code (e.g., "BR", "US") for localizing web search results */
+  country?: string;
+  /** ISO 639-1 language code (e.g., "pt", "en", "es") for filtering search language */
+  language?: string;
 }
 
 /** A single citation annotation linking text range to a source URL. */

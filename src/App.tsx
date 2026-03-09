@@ -41,6 +41,7 @@ const DeepAnalyzePage = lazy(() => import('@/pages/deep-analyze/DeepAnalyzePage'
 const ContactPage = lazy(() => import('@/pages/contact/ContactPage').then(m => ({ default: m.ContactPage })));
 const NotFoundPage = lazy(() => import('@/pages/error/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
 const LegalPage = lazy(() => import('@/pages/legal/LegalPage').then(m => ({ default: m.LegalPage })));
+const SalesPage = lazy(() => import('@/pages/sales/SalesPage').then(m => ({ default: m.SalesPage })));
 
 const SUPPORTED_LANGS = new Set(
   (Array.isArray(i18n.options.supportedLngs) ? i18n.options.supportedLngs : ['en', 'es', 'pt-br']).filter(
@@ -91,6 +92,7 @@ export function App() {
             {/* Public (guest) routes */}
             <Route path="/signin" element={<GuestRoute><SignIn /></GuestRoute>} />
             <Route path="/signup" element={<GuestRoute><SignUp /></GuestRoute>} />
+            <Route path="/oferta-marco" element={<GuestRoute><SalesPage /></GuestRoute>} />
             <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
             <Route path="/reset-password" element={<ResetPassword />} />
 

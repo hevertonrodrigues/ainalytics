@@ -143,6 +143,14 @@ export function isProfessionalEmail(email: string): boolean {
 }
 
 /**
+ * Checks if a domain belongs to a free/personal email provider
+ */
+export function isFreeEmailDomain(domain: string): boolean {
+  if (!domain) return false;
+  return FREE_EMAIL_PROVIDERS.has(domain.toLowerCase());
+}
+
+/**
  * Extracts the domain from an email address
  */
 export function extractDomainFromEmail(email: string): string | null {

@@ -15,6 +15,10 @@ export interface PromptExecutionContext {
   modelSlug: string;
   modelName: string;
   webSearchEnabled: boolean;
+  /** ISO 3166-1 alpha-2 country code from the tenant's company */
+  country?: string;
+  /** ISO 639-1 language code from the tenant's company */
+  language?: string;
 }
 
 export interface PromptExecutionStoredResult {
@@ -103,11 +107,12 @@ export async function loadPromptExecutionContext(
   platformId: string,
   modelId: string,
 ): Promise<PromptExecutionContext> {
-  const [{ data: prompt, error: promptError }, { data: platform, error: platformError }, { data: model, error: modelError }] =
+  const [{ data: prompt, error: promptError }, { data: platform, error: platformError }, { data: model, error: modelError }, { data: company }] =
     await Promise.all([
       db.from("prompts").select("id, text").eq("tenant_id", tenantId).eq("id", promptId).single(),
       db.from("platforms").select("id, slug, name").eq("id", platformId).single(),
       db.from("models").select("id, slug, name, platform_id, web_search_active").eq("id", modelId).single(),
+      db.from("companies").select("country, language").eq("tenant_id", tenantId).limit(1).maybeSingle(),
     ]);
 
   if (promptError || !prompt) {
@@ -137,6 +142,8 @@ export async function loadPromptExecutionContext(
     modelSlug: model.slug,
     modelName: model.name,
     webSearchEnabled: model.web_search_active ?? false,
+    country: company?.country || undefined,
+    language: company?.language || undefined,
   };
 }
 
@@ -170,6 +177,9 @@ export async function executeAndStorePromptAnswer(
           webSearchEnabled: context.webSearchEnabled,
         }],
         context.promptText,
+        undefined,
+        context.country,
+        context.language,
       ),
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error("Prompt execution timed out")), PER_PROMPT_TIMEOUT_MS)

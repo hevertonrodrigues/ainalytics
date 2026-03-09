@@ -13,7 +13,7 @@ interface AuthState {
 
 interface AuthContextValue extends AuthState {
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string, tenantName: string, phone: string, mainDomain: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string, tenantName: string, phone: string, mainDomain: string, code?: string) => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (password: string) => Promise<void>;
@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setState({ profile: res.data?.profile || null, tenants: res.data?.tenants || [], loading: false, initialized: true });
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string, fullName: string, tenantName: string, phone: string, mainDomain: string) => {
+  const signUp = useCallback(async (email: string, password: string, fullName: string, tenantName: string, phone: string, mainDomain: string, code?: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -95,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           tenant_name: tenantName,
           phone,
           main_domain: mainDomain,
+          ...(code ? { code } : {}),
         },
       },
     });
