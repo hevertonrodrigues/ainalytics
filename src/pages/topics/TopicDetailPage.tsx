@@ -5,6 +5,7 @@ import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { PromptForm } from '@/components/PromptForm';
 import { ActiveModelsGuard } from '@/components/guards/ActiveModelsGuard';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import type { Topic, Prompt } from '@/types';
 
 // Components
@@ -27,6 +28,8 @@ export function TopicDetailPage() {
   // Form state
   const [formMode, setFormMode] = useState<FormMode>('closed');
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const loadData = useCallback(async () => {
     if (!topicId) return;
@@ -74,14 +77,22 @@ export function TopicDetailPage() {
     loadData();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm(t('prompts.confirmDelete'))) return;
+  const handleDelete = (id: string) => {
+    setPendingDeleteId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!pendingDeleteId) return;
+    setDeleting(true);
     try {
-      await apiClient.delete(`/topics-prompts/prompts?id=${id}`);
+      await apiClient.delete(`/topics-prompts/prompts?id=${pendingDeleteId}`);
       showToast(t('prompts.deleted'));
       await loadData();
     } catch {
       setError(t('common.error'));
+    } finally {
+      setPendingDeleteId(null);
+      setDeleting(false);
     }
   };
 
@@ -161,6 +172,15 @@ export function TopicDetailPage() {
           </div>
         )}
       </div>
+
+      {pendingDeleteId && (
+        <ConfirmModal
+          message={t('prompts.confirmDelete')}
+          onConfirm={confirmDelete}
+          onCancel={() => setPendingDeleteId(null)}
+          loading={deleting}
+        />
+      )}
     </ActiveModelsGuard>
   );
 }

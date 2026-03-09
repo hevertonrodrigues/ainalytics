@@ -48,7 +48,13 @@ export const anthropicAdapter: AiAdapter = async (req: AiRequest): Promise<AiRes
 
       const errText = await res.text();
 
-      if (errText.includes("web_search") || errText.includes("tool") || errText.includes("not supported")) {
+      // Only strip web search if the error *specifically* indicates the tool type is unsupported
+      const isWebSearchUnsupported =
+        (errText.includes("web_search_20250305") && errText.includes("not supported")) ||
+        (errText.includes("web_search") && errText.includes("not available")) ||
+        (errText.includes("tool_type") && errText.includes("not supported"));
+
+      if (isWebSearchUnsupported) {
         console.warn(`[anthropic] web_search not supported for ${req.model}, retrying without it`);
         webSearchEnabled = false;
         delete body.tools;

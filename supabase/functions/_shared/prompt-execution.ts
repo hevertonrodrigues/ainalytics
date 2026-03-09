@@ -4,6 +4,49 @@ import { executePromptMulti } from "./ai-providers/index.ts";
 const PER_PROMPT_TIMEOUT_MS = 120_000;
 const MAX_RAW_BYTES = 10_000;
 
+/**
+ * Map of common country names (lowercase) → ISO 3166-1 alpha-2 codes.
+ * If the value is already a 2-letter code, it passes through directly.
+ */
+const COUNTRY_TO_ISO: Record<string, string> = {
+  brazil: "BR", "united states": "US", usa: "US", "united kingdom": "GB",
+  uk: "GB", germany: "DE", france: "FR", spain: "ES", italy: "IT",
+  portugal: "PT", canada: "CA", mexico: "MX", argentina: "AR",
+  colombia: "CO", chile: "CL", peru: "PE", uruguay: "UY", paraguay: "PY",
+  bolivia: "BO", ecuador: "EC", venezuela: "VE",
+  japan: "JP", china: "CN", india: "IN", australia: "AU",
+  "south korea": "KR", korea: "KR", indonesia: "ID", thailand: "TH",
+  vietnam: "VN", philippines: "PH", malaysia: "MY", singapore: "SG",
+  netherlands: "NL", belgium: "BE", switzerland: "CH", austria: "AT",
+  sweden: "SE", norway: "NO", denmark: "DK", finland: "FI",
+  poland: "PL", ireland: "IE", "czech republic": "CZ", czechia: "CZ",
+  romania: "RO", hungary: "HU", greece: "GR", turkey: "TR",
+  "south africa": "ZA", nigeria: "NG", egypt: "EG", morocco: "MA",
+  israel: "IL", "saudi arabia": "SA", "united arab emirates": "AE",
+  uae: "AE", russia: "RU", ukraine: "UA", "new zealand": "NZ",
+  "costa rica": "CR", panama: "PA", "dominican republic": "DO",
+  guatemala: "GT", honduras: "HN", "el salvador": "SV", nicaragua: "NI",
+  cuba: "CU", "puerto rico": "PR", taiwan: "TW", "hong kong": "HK",
+};
+
+/** Convert country name or code to ISO 3166-1 alpha-2 code, or undefined if unknown. */
+function toCountryIso(raw: string | null | undefined): string | undefined {
+  if (!raw) return undefined;
+  const trimmed = raw.trim();
+  if (trimmed.length === 2) return trimmed.toUpperCase(); // Already an ISO code
+  const mapped = COUNTRY_TO_ISO[trimmed.toLowerCase()];
+  if (mapped) return mapped;
+  console.warn(`[prompt-execution] Unknown country name: "${trimmed}", cannot map to ISO code`);
+  return undefined;
+}
+
+/** Normalize language to ISO 639-1 (2-letter), e.g. "pt-BR" → "pt" */
+function toLanguageIso(raw: string | null | undefined): string | undefined {
+  if (!raw) return undefined;
+  const code = raw.trim().split(/[-_]/)[0].toLowerCase();
+  return code.length === 2 || code.length === 3 ? code : undefined;
+}
+
 export interface PromptExecutionContext {
   tenantId: string;
   promptId: string;
@@ -142,8 +185,8 @@ export async function loadPromptExecutionContext(
     modelSlug: model.slug,
     modelName: model.name,
     webSearchEnabled: model.web_search_active ?? false,
-    country: company?.country || undefined,
-    language: company?.language || undefined,
+    country: toCountryIso(company?.country),
+    language: toLanguageIso(company?.language),
   };
 }
 

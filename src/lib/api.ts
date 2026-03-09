@@ -81,6 +81,11 @@ async function request<T>(
     body: body ? JSON.stringify(body) : undefined,
   });
 
+  // 204 No Content has no body — return a synthetic success envelope
+  if (res.status === 204) {
+    return { success: true, data: null as unknown as T };
+  }
+
   const json = (await res.json()) as ApiResponse<T>;
 
   if (!json.success) {
