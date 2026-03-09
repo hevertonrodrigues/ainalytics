@@ -134,6 +134,14 @@ export function SalesPage() {
   const revealRef = useScrollReveal();
   const [isSuccess, setIsSuccess] = useState(false);
 
+  /* Default to pt-br unless ?lang= is explicitly in the URL */
+  useEffect(() => {
+    const urlLang = new URLSearchParams(window.location.search).get('lang');
+    if (!urlLang) {
+      i18n.changeLanguage('pt-br');
+    }
+  }, [i18n]);
+
   /* Prevent search-engine indexing — paid media only */
   useEffect(() => {
     const meta = document.createElement('meta');
