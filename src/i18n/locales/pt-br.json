@@ -1145,7 +1145,7 @@
     "headerCta": "Garantir Minha Vaga",
     "urgencyBar": "⚡ OFERTA RELÂMPAGO — Vagas limitadas com 60% OFF encerram em:",
     "badge": "{{discount}}% OFF",
-    "badgeLimited": "Vagas Limitadas",
+    "badgeLimited": "Por Tempo Limitado",
     "heroTitle1": "A IA Já Está Decidindo",
     "heroTitle2": "Quem Seus Clientes Vão Escolher.",
     "heroTitle3": "E Você Nem Sabe Disso.",
@@ -1195,7 +1195,7 @@
     "formCta": "Ativar Meu Desconto de 60% →",
     "faqTitle": "Perguntas Que Você Pode Ter",
     "faq1Q": "Isso é real? O preço vai voltar ao normal?",
-    "faq1A": "Sim. Esta oferta é por tempo e vagas limitadas. Quem entrar agora garante R$ 198,00/mês (cobrado anualmente) enquanto mantiver a assinatura ativa. O preço normal é R$ 495,00/mês.",
+    "faq1A": "Sim. Esta oferta é por tempo limitado. Quem entrar agora garante R$ 198,00/mês (cobrado anualmente) enquanto mantiver a assinatura ativa. O preço normal é R$ 495,00/mês.",
     "faq2Q": "Preciso de cartão de crédito?",
     "faq2A": "Sim, o cartão de crédito é necessário para ativar o plano com desconto. Mas você pode cancelar a qualquer momento, sem multa.",
     "faq3Q": "O que acontece se eu cancelar?",
@@ -1207,7 +1207,7 @@
     "finalCtaTitle": "Cada Hora Que Passa, a IA Forma Novas Opiniões Sobre Você",
     "finalCtaDesc": "Você pode continuar ignorando o que o ChatGPT diz sobre sua marca. Ou pode estar entre os primeiros a monitorar, otimizar e dominar esse novo canal. A escolha é sua — mas o desconto de 60% não vai durar.",
     "finalCtaButton": "Garantir Minha Vaga com 60% OFF",
-    "finalCtaNote": "Vagas limitadas · Oferta expira em breve · Preço trava para sempre",
+    "finalCtaNote": "Por tempo limitado · Oferta expira em breve · Garanta o melhor preço agora",
     "successTitle": "Verifique seu e-mail!",
     "successDesc": "Enviamos um link de confirmação. Verifique sua caixa de entrada (e spam) para ativar sua conta com o desconto exclusivo."
   }
