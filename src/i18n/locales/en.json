@@ -1142,6 +1142,8 @@
     }
   },
   "sales": {
+    "metaTitle": "Ainalytics — 60% OFF | AI Visibility Monitoring Platform",
+    "metaDescription": "Limited-time offer: Monitor what ChatGPT, Gemini, and Claude say about your brand at 60% off. Know what AI says about you before your customers do.",
     "headerCta": "Claim My Spot",
     "urgencyBar": "⚡ FLASH SALE — Limited spots at 60% OFF end in:",
     "badge": "{{discount}}% OFF",

@@ -142,6 +142,29 @@ export function SalesPage() {
     }
   }, [i18n]);
 
+  /* Dynamic meta tags based on current language */
+  useEffect(() => {
+    const prevTitle = document.title;
+    document.title = t('sales.metaTitle');
+
+    // Update or create meta description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    const prevDesc = metaDesc?.getAttribute('content') ?? '';
+    if (metaDesc) {
+      metaDesc.setAttribute('content', t('sales.metaDescription'));
+    } else {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      metaDesc.setAttribute('content', t('sales.metaDescription'));
+      document.head.appendChild(metaDesc);
+    }
+
+    return () => {
+      document.title = prevTitle;
+      if (metaDesc) metaDesc.setAttribute('content', prevDesc);
+    };
+  }, [t]);
+
   /* Prevent search-engine indexing — paid media only */
   useEffect(() => {
     const meta = document.createElement('meta');
