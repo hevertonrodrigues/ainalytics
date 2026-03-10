@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ainalytics.tech/sitemap.xml

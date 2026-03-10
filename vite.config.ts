@@ -15,6 +15,7 @@ export default defineConfig({
     host: true,
   },
   build: {
+    target: 'es2020',
     rollupOptions: {
       output: {
         manualChunks: {

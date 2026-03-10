@@ -143,6 +143,7 @@ export function LandingPage() {
     <div className="landing-page" ref={revealRef}>
       <LandingHeader scrolled={scrolled} />
 
+      <main>
       <LandingHero />
 
       {/* ─── Logo Bar ─── */}
@@ -311,6 +312,7 @@ export function LandingPage() {
       </section>
 
       <LandingFAQ />
+      </main>
 
       <LandingFooter />
 

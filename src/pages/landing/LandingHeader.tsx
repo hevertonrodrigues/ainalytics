@@ -65,7 +65,7 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
     <nav className={`landing-nav${scrolled ? ' landing-nav-scrolled' : ''}`}>
       <div className="landing-container landing-nav-inner">
         <Link to="/" className="landing-logo" onClick={handleLogoClick}>
-          <img src="/logo-purple.png" alt="Ainalytics" className="landing-logo-img" />
+          <img src="/logo-purple.webp" alt="Ainalytics" className="landing-logo-img" width="56" height="56" />
           <span>{APP_NAME}</span>
         </Link>
 

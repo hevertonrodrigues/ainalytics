@@ -70,7 +70,7 @@
 
   --color-text-primary: #1a1a2e;
   --color-text-secondary: #64648a;
-  --color-text-muted: #9898b0;
+  --color-text-muted: #6b6b8a;
 
   --color-success: #00a89d;
   --color-warning: #e6a817;
@@ -2016,7 +2016,7 @@ h6 {
   font-weight: 600;
   font-size: 1.125rem;
   color: var(--color-text-secondary);
-  opacity: 0.65;
+  opacity: 0.7;
   transition: opacity 0.2s ease;
 }
 
@@ -2639,7 +2639,7 @@ h6 {
   gap: 0.5rem;
 }
 
-.landing-footer-links h4 {
+.landing-footer-links h3 {
   font-family: var(--font-display);
   font-size: 0.8125rem;
   font-weight: 600;

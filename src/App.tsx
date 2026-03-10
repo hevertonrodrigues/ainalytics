@@ -11,7 +11,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { LayoutProvider } from '@/contexts/LayoutContext';
 import i18n from '@/i18n';
 import { lazy, Suspense, useEffect } from 'react';
-import { LandingPage } from '@/pages/landing/LandingPage';
+const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 
 // Lazy-loaded page components (route-level code splitting)
 const SignIn = lazy(() => import('@/pages/auth/SignIn').then(m => ({ default: m.SignIn })));

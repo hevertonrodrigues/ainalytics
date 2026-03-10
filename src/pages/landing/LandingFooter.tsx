@@ -19,7 +19,7 @@ export function LandingFooter() {
       <div className="landing-container landing-footer-inner">
         <div className="landing-footer-brand">
           <div className="landing-logo">
-            <img src="/logo-purple.png" alt="Ainalytics" className="landing-logo-img landing-logo-img-sm" />
+            <img src="/logo-purple.webp" alt="Ainalytics" className="landing-logo-img landing-logo-img-sm" width="32" height="32" />
             <span>{APP_NAME}</span>
           </div>
           <p>{t('landing.footer.description')}</p>
@@ -31,7 +31,7 @@ export function LandingFooter() {
         </div>
 
         <div className="landing-footer-links">
-          <h4>{t('landing.footer.product')}</h4>
+          <h3>{t('landing.footer.product')}</h3>
           <a href="#features">{t('landing.nav.features')}</a>
           <a href="#how-it-works">{t('landing.nav.howItWorks')}</a>
           <a href="#pricing">{t('landing.nav.pricing')}</a>
@@ -39,19 +39,19 @@ export function LandingFooter() {
         </div>
 
         <div className="landing-footer-links">
-          <h4>{t('landing.footer.company')}</h4>
+          <h3>{t('landing.footer.company')}</h3>
           <a href="#about">{t('landing.footer.about')}</a>
           <a href="#blog">{t('landing.footer.blog')}</a>
         </div>
 
         <div className="landing-footer-links">
-          <h4>{t('landing.footer.support')}</h4>
+          <h3>{t('landing.footer.support')}</h3>
           <Link to="/contact">{t('landing.footer.contact')}</Link>
           <a href="#faq">{t('landing.footer.faq')}</a>
         </div>
 
         <div className="landing-footer-links">
-          <h4>{t('landing.footer.legal')}</h4>
+          <h3>{t('landing.footer.legal')}</h3>
           <Link to="/privacy">{t('landing.footer.privacy')}</Link>
           <Link to="/terms">{t('landing.footer.terms')}</Link>
         </div>
