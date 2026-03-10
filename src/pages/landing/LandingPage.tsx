@@ -12,16 +12,19 @@ import {
   ChevronRight,
   ArrowRight,
 } from 'lucide-react';
-import { PricingPlans } from '@/components/PricingPlans';
+import { Suspense, lazy } from 'react';
+
+const PricingPlans = lazy(() => import('@/components/PricingPlans').then(m => ({ default: m.PricingPlans })));
+const InterestFormModal = lazy(() => import('@/components/InterestFormModal').then(m => ({ default: m.InterestFormModal })));
+const LandingFAQ = lazy(() => import('./LandingFAQ').then(m => ({ default: m.LandingFAQ })));
+const LandingFooter = lazy(() => import('./LandingFooter').then(m => ({ default: m.LandingFooter })));
+
 import { useCurrency } from '@/hooks/useCurrency';
-import { InterestFormModal } from '@/components/InterestFormModal';
 import { supabase } from '@/lib/supabase';
 import type { Plan } from '@/types';
 import type { PricingPlan } from '@/components/PricingPlans';
 import { LandingHeader } from './LandingHeader';
 import { LandingHero } from './LandingHero';
-import { LandingFAQ } from './LandingFAQ';
-import { LandingFooter } from './LandingFooter';
 
 const AI_PLATFORMS = ['OpenAI', 'Anthropic', 'Google Gemini', 'xAI Grok', 'Perplexity'];
 
@@ -293,7 +296,9 @@ export function LandingPage() {
               ))}
             </div>
           ) : (
-            <PricingPlans plans={pricingPlans} numericPrices={plans.map(p => p.price)} formatPrice={formatCurrency} />
+            <Suspense fallback={<div className="landing-pricing-grid">{[1, 2, 3].map((i) => <div key={i} className="skeleton h-96 w-full rounded-xl" />)}</div>}>
+              <PricingPlans plans={pricingPlans} numericPrices={plans.map(p => p.price)} formatPrice={formatCurrency} />
+            </Suspense>
           )}
         </div>
       </section>
@@ -311,16 +316,22 @@ export function LandingPage() {
         </div>
       </section>
 
-      <LandingFAQ />
+      <Suspense fallback={<div className="h-96 skeleton" />}>
+        <LandingFAQ />
+      </Suspense>
       </main>
 
-      <LandingFooter />
+      <Suspense fallback={<div className="h-64 skeleton" />}>
+        <LandingFooter />
+      </Suspense>
 
       {/* Interest Form Modal */}
-      <InterestFormModal
-        open={interestModalOpen}
-        onClose={() => setInterestModalOpen(false)}
-      />
+      <Suspense fallback={null}>
+        <InterestFormModal
+          open={interestModalOpen}
+          onClose={() => setInterestModalOpen(false)}
+        />
+      </Suspense>
     </div>
   );
 }
