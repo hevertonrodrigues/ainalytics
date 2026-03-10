@@ -4,8 +4,18 @@ import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
 
+const deferCssPlugin = () => ({
+  name: 'defer-css',
+  transformIndexHtml(html: string) {
+    return html.replace(
+      /<link rel="stylesheet" crossorigin href="(.*?)">/g,
+      `<link rel="preload" href="$1" as="style" onload="this.onload=null;this.rel='stylesheet'">\n    <noscript><link rel="stylesheet" href="$1"></noscript>`
+    );
+  }
+});
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), visualizer({ open: false, filename: 'dist/stats.html' })],
+  plugins: [react(), tailwindcss(), visualizer({ open: false, filename: 'dist/stats.html' }), deferCssPlugin()],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -17,6 +27,7 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
+    modulePreload: false,
     rollupOptions: {
       output: {
         manualChunks: {
