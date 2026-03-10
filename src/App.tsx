@@ -11,6 +11,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { LayoutProvider } from '@/contexts/LayoutContext';
 import i18n from '@/i18n';
 import { lazy, Suspense, useEffect } from 'react';
+import { LandingPage } from '@/pages/landing/LandingPage';
 
 // Lazy-loaded page components (route-level code splitting)
 const SignIn = lazy(() => import('@/pages/auth/SignIn').then(m => ({ default: m.SignIn })));
@@ -31,7 +32,6 @@ const SourcesPage = lazy(() => import('@/pages/sources/SourcesPage').then(m => (
 const SourceDetailPage = lazy(() => import('@/pages/sources/SourceDetailPage').then(m => ({ default: m.SourceDetailPage })));
 const PlatformsPage = lazy(() => import('@/pages/platforms/PlatformsPage').then(m => ({ default: m.PlatformsPage })));
 const ModelsPage = lazy(() => import('@/pages/models/ModelsPage').then(m => ({ default: m.ModelsPage })));
-const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 const PlansPage = lazy(() => import('@/pages/plans/PlansPage').then(m => ({ default: m.PlansPage })));
 const LlmTextPage = lazy(() => import('@/pages/llmtext/LlmTextPage').then(m => ({ default: m.LlmTextPage })));
 const MyCompanyPage = lazy(() => import('@/pages/company/MyCompanyPage').then(m => ({ default: m.MyCompanyPage })));
