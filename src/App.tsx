@@ -1,16 +1,17 @@
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useParams, Navigate } from 'react-router-dom';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TenantProvider } from '@/contexts/TenantContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { LayoutProvider } from '@/contexts/LayoutContext';
+import i18n from '@/i18n';
+
 const ProtectedRoute = lazy(() => import('@/components/guards/ProtectedRoute').then(m => ({ default: m.ProtectedRoute })));
 const GuestRoute = lazy(() => import('@/components/guards/GuestRoute').then(m => ({ default: m.GuestRoute })));
 const FlowGate = lazy(() => import('@/components/guards/FlowGate').then(m => ({ default: m.FlowGate })));
 const SuperAdminGate = lazy(() => import('@/components/guards/SuperAdminGate').then(m => ({ default: m.SuperAdminGate })));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout').then(m => ({ default: m.AppLayout })));
-import { LayoutProvider } from '@/contexts/LayoutContext';
-import i18n from '@/i18n';
-import { lazy, Suspense, useEffect } from 'react';
 const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 
 // Lazy-loaded page components (route-level code splitting)
