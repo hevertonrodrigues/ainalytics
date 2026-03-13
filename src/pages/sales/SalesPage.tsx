@@ -12,6 +12,7 @@ import {
   CheckCircle,
   Star,
   ChevronDown,
+  X,
 } from 'lucide-react';
 import { SignUpForm } from '@/components/SignUpForm';
 import { APP_NAME } from '@/lib/constants';
@@ -133,6 +134,19 @@ export function SalesPage() {
   const countdown = useCountdown(48);
   const revealRef = useScrollReveal();
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  const [stickyCtaDismissed, setStickyCtaDismissed] = useState(false);
+
+  // Show sticky CTA after scrolling past hero
+  useEffect(() => {
+    const onScroll = () => {
+      if (!stickyCtaDismissed) {
+        setShowStickyCta(window.scrollY > 500);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [stickyCtaDismissed]);
 
   /* Default to pt-br unless ?lang= is explicitly in the URL */
   useEffect(() => {
@@ -221,6 +235,10 @@ export function SalesPage() {
               <Zap className="w-4 h-4" />
               {t('sales.badge', { discount: DISCOUNT_PERCENT })}
             </span>
+            <span className="sales-badge-trial">
+              <Shield className="w-3.5 h-3.5" />
+              {t('sales.trialBadge')}
+            </span>
             <span className="sales-badge-limited">
               <Clock className="w-3.5 h-3.5" />
               {t('sales.badgeLimited')}
@@ -299,10 +317,16 @@ export function SalesPage() {
         <div className="sales-container">
           <div className="sales-offer-card glass-card">
             <div className="sales-offer-header">
-              <span className="sales-badge-discount">
-                <Zap className="w-4 h-4" />
-                {t('sales.badge', { discount: DISCOUNT_PERCENT })}
-              </span>
+              <div className="sales-badge-row" style={{ justifyContent: 'center' }}>
+                <span className="sales-badge-discount">
+                  <Zap className="w-4 h-4" />
+                  {t('sales.badge', { discount: DISCOUNT_PERCENT })}
+                </span>
+                <span className="sales-badge-trial">
+                  <Shield className="w-3.5 h-3.5" />
+                  {t('sales.trialBadge')}
+                </span>
+              </div>
               <h2>{t('sales.offerTitle')}</h2>
               <p className="sales-offer-subtitle">{t('sales.offerSubtitle')}</p>
             </div>
@@ -405,6 +429,21 @@ export function SalesPage() {
           <Link to="/contact" target="_blank" rel="noopener noreferrer">{t('landing.footer.contact')}</Link>
         </div>
       </footer>
+
+      {/* Mobile Sticky CTA */}
+      <div className={`sales-sticky-cta ${showStickyCta && !stickyCtaDismissed ? 'visible' : ''}`}>
+        <button className="btn btn-primary" onClick={scrollToForm}>
+          {t('sales.heroCta')}
+          <ArrowRight className="w-4 h-4" />
+        </button>
+        <button
+          className="sales-sticky-cta-dismiss"
+          onClick={() => setStickyCtaDismissed(true)}
+          aria-label="Dismiss"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }

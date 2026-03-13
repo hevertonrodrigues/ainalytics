@@ -35,6 +35,16 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
     });
   }, []);
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileMenuOpen]);
+
   const handleLogoClick = (e: React.MouseEvent) => {
     if (location.pathname === '/') {
       e.preventDefault();
@@ -59,6 +69,7 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
     [i18n, location.pathname, navigate],
   );
 
+  const closeMenu = () => setMobileMenuOpen(false);
   const isLoggedIn = !!userName;
 
   return (
@@ -115,14 +126,26 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
         </button>
       </div>
 
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="landing-mobile-menu">
-          <a href="#features" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.features')}</a>
-          <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.howItWorks')}</a>
-          <a href="#pricing" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.pricing')}</a>
-          <div className="landing-mobile-menu-divider" />
-          <div className="locale-switcher" style={{ justifyContent: 'center' }}>
+      {/* Mobile menu overlay */}
+      <div
+        className={`landing-mobile-overlay${mobileMenuOpen ? ' open' : ''}`}
+        onClick={closeMenu}
+        aria-hidden="true"
+      />
+
+      {/* Mobile menu sheet */}
+      <div className={`landing-mobile-menu${mobileMenuOpen ? ' open' : ''}`}>
+        <div className="landing-mobile-menu-nav">
+          <a href="#features" onClick={closeMenu}>{t('landing.nav.features')}</a>
+          <a href="#how-it-works" onClick={closeMenu}>{t('landing.nav.howItWorks')}</a>
+          <a href="#pricing" onClick={closeMenu}>{t('landing.nav.pricing')}</a>
+          <a href="#faq" onClick={closeMenu}>{t('landing.footer.faq')}</a>
+        </div>
+
+        <div className="landing-mobile-menu-divider" />
+
+        <div className="landing-mobile-menu-locale">
+          <div className="locale-switcher">
             {Object.values(LOCALES).map((lng) => (
               <button
                 key={lng}
@@ -133,22 +156,27 @@ export function LandingHeader({ scrolled }: LandingHeaderProps) {
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="landing-mobile-menu-divider" />
+
+        <div className="landing-mobile-menu-actions">
           {isLoggedIn ? (
             <>
-              <span className="landing-nav-greeting" style={{ textAlign: 'center' }}>{t('landing.nav.hello', { name: userName })}</span>
-              <Link to="/dashboard" className="btn btn-primary btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>
+              <span className="landing-nav-greeting">{t('landing.nav.hello', { name: userName })}</span>
+              <Link to="/dashboard" className="btn btn-primary w-full" onClick={closeMenu}>
                 <LayoutDashboard className="w-4 h-4" />
                 {t('landing.nav.dashboard')}
               </Link>
             </>
           ) : (
             <>
-              <Link to="/signin" className="btn btn-ghost btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.signIn')}</Link>
-              <Link to="/signup" className="btn btn-primary btn-sm w-full" onClick={() => setMobileMenuOpen(false)}>{t('landing.nav.getStarted')}</Link>
+              <Link to="/signup" className="btn btn-primary w-full" onClick={closeMenu}>{t('landing.nav.getStarted')}</Link>
+              <Link to="/signin" className="btn btn-ghost w-full" onClick={closeMenu}>{t('landing.nav.signIn')}</Link>
             </>
           )}
         </div>
-      )}
+      </div>
     </nav>
   );
 }

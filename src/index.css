@@ -1815,23 +1815,17 @@ h6 {
   color: var(--color-text-primary);
   cursor: pointer;
   padding: 0.5rem;
+  z-index: 1001;
 }
 
+/* Mobile overlay (dimming background) */
+.landing-mobile-overlay {
+  display: none;
+}
+
+/* Mobile menu sheet */
 .landing-mobile-menu {
   display: none;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem 1.5rem;
-  background: var(--color-bg-secondary);
-  border-top: 1px solid var(--color-glass-border);
-}
-
-.landing-mobile-menu a {
-  font-size: 0.9375rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  text-decoration: none;
-  padding: 0.5rem 0;
 }
 
 .landing-mobile-menu-divider {
@@ -1848,8 +1842,123 @@ h6 {
   .landing-mobile-toggle {
     display: flex;
   }
+
+  /* Overlay backdrop */
+  .landing-mobile-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0);
+    -webkit-backdrop-filter: blur(0);
+    pointer-events: none;
+    transition: background 0.35s ease, backdrop-filter 0.35s ease;
+  }
+
+  .landing-mobile-overlay.open {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    pointer-events: auto;
+  }
+
+  /* Sheet menu */
   .landing-mobile-menu {
     display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 5rem 1.5rem 2rem;
+    background: var(--color-bg-secondary);
+    border-bottom: 1px solid var(--color-glass-border);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    transform: translateY(-100%);
+    opacity: 0;
+    transition:
+      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.3s ease;
+    gap: 0;
+    max-height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .landing-mobile-menu.open {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  [data-theme="light"] .landing-mobile-menu {
+    background: rgba(255, 255, 255, 0.97);
+  }
+
+  /* Nav section */
+  .landing-mobile-menu-nav {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .landing-mobile-menu-nav a {
+    font-size: 1.125rem;
+    font-weight: 600;
+    font-family: var(--font-display);
+    color: var(--color-text-primary);
+    text-decoration: none;
+    padding: 0.875rem 0;
+    min-height: 52px;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid rgba(var(--color-glass-border-rgb, 255, 255, 255), 0.05);
+    transition: color 0.2s ease;
+  }
+
+  .landing-mobile-menu-nav a:last-child {
+    border-bottom: none;
+  }
+
+  .landing-mobile-menu-nav a:active {
+    color: var(--color-brand-secondary);
+  }
+
+  /* Locale section */
+  .landing-mobile-menu-locale {
+    display: flex;
+    justify-content: center;
+    padding: 0.75rem 0;
+  }
+
+  .landing-mobile-menu-locale .locale-switcher {
+    justify-content: center;
+  }
+
+  /* Dividers */
+  .landing-mobile-menu .landing-mobile-menu-divider {
+    margin: 0.25rem 0;
+  }
+
+  /* Actions section */
+  .landing-mobile-menu-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding-top: 0.5rem;
+  }
+
+  .landing-mobile-menu-actions .btn {
+    min-height: 52px;
+    font-size: 1rem;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+  }
+
+  .landing-mobile-menu-actions .landing-nav-greeting {
+    text-align: center;
+    display: block;
+    padding: 0.25rem 0;
   }
 }
 
@@ -2849,7 +2958,7 @@ h6 {
     padding: 0 1.25rem;
   }
   .landing-hero {
-    padding: 7rem 0 2.5rem;
+    padding: 6.5rem 0 2rem;
   }
   .landing-hero-title {
     font-size: clamp(1.75rem, 8vw, 2.75rem);
@@ -2857,39 +2966,69 @@ h6 {
   .landing-hero-subtitle {
     font-size: 1rem;
     padding: 0 0.5rem;
+    line-height: 1.75;
+  }
+  .landing-hero-cta {
+    flex-direction: column;
+    width: 100%;
+    gap: 0.75rem;
+  }
+  .landing-hero-cta .btn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1rem;
+    justify-content: center;
+  }
+  .landing-hero-trust {
+    font-size: 0.8125rem;
+    text-align: center;
+    line-height: 1.6;
+    padding: 0 0.5rem;
   }
   .landing-section {
-    padding: 3.5rem 0;
+    padding: 3rem 0;
   }
   .landing-section-header {
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
   }
   .landing-section-header h2 {
     font-size: clamp(1.5rem, 5vw, 2rem);
   }
   .landing-features-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
+  }
+  .landing-feature-card {
+    padding: 1.25rem;
+  }
+  .landing-feature-card h3 {
+    font-size: 1rem;
+  }
+  .landing-feature-card p {
+    font-size: 0.875rem;
+    line-height: 1.65;
   }
   .landing-steps {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
   }
   .landing-step-arrow {
     display: none;
   }
   .landing-step-card {
     max-width: none;
-    padding: 1.5rem 1rem;
+    padding: 1.25rem 1rem;
   }
   .landing-logos-grid {
     gap: 1.5rem;
+    flex-wrap: wrap;
   }
   .landing-logo-item {
     font-size: 0.9375rem;
   }
   .landing-final-cta {
-    padding: 3.5rem 0;
+    padding: 3rem 0;
   }
   .landing-final-cta h2 {
     font-size: clamp(1.25rem, 5vw, 1.75rem);
@@ -2897,6 +3036,13 @@ h6 {
   .landing-final-cta p {
     font-size: 0.9375rem;
     padding: 0 0.5rem;
+    line-height: 1.7;
+  }
+  .landing-final-cta .btn {
+    width: 100%;
+    min-height: 48px;
+    font-size: 1rem;
+    justify-content: center;
   }
   .landing-footer-inner {
     grid-template-columns: 1fr;
@@ -2916,6 +3062,68 @@ h6 {
     max-width: 440px;
     margin: 0 auto;
   }
+  .landing-pricing-card .btn {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+  /* FAQ touch targets */
+  .landing-faq-question {
+    padding: 1rem 1.25rem;
+    min-height: 56px;
+    font-size: 0.9375rem;
+  }
+  .landing-faq-answer p {
+    padding: 0 1.25rem 1.25rem;
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+  /* Footer mobile - 2 column link grid */
+  .landing-footer {
+    padding: 3rem 0 1.5rem;
+  }
+  .landing-footer-inner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .landing-footer-brand {
+    max-width: none;
+    text-align: center;
+  }
+  .landing-footer-brand .landing-logo {
+    justify-content: center;
+  }
+  .landing-footer-brand p {
+    max-width: 320px;
+    margin: 0.75rem auto 0;
+  }
+  .landing-footer-social {
+    justify-content: center;
+  }
+  .landing-footer-social a {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  /* 2-col grid for link groups */
+  .landing-footer-links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .landing-footer-links h3 {
+    grid-column: 1 / -1;
+  }
+  .landing-footer-links a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    font-size: 0.9375rem;
+  }
+  .landing-footer-bottom {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+  }
 }
 
 /* ─── Small Mobile (≤480px) ─── */
@@ -2924,17 +3132,16 @@ h6 {
     padding: 0 1rem;
   }
   .landing-hero {
-    padding: 6rem 0 2rem;
+    padding: 5.5rem 0 1.5rem;
   }
-  .landing-hero-cta {
-    flex-direction: column;
-    width: 100%;
+  .landing-hero-title {
+    font-size: clamp(1.5rem, 8vw, 2.25rem);
   }
-  .landing-hero-cta .btn {
-    width: 100%;
+  .landing-hero-subtitle {
+    font-size: 0.9375rem;
   }
   .landing-logos {
-    padding: 2.5rem 0;
+    padding: 2rem 0;
   }
   .landing-logos-grid {
     gap: 1rem;
@@ -2943,7 +3150,7 @@ h6 {
     font-size: 0.8125rem;
   }
   .landing-feature-card {
-    padding: 1.5rem;
+    padding: 1.25rem;
   }
   .landing-section {
     padding: 2.5rem 0;
@@ -2957,6 +3164,70 @@ h6 {
   .landing-footer-links {
     flex-direction: column;
     gap: 1.5rem;
+  }
+  .landing-footer-link-group a {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ─── Sticky Mobile CTA Bar ─── */
+.landing-sticky-cta {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .landing-sticky-cta {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(var(--color-bg-primary-rgb, 10, 10, 15), 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--color-glass-border);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .landing-sticky-cta.visible {
+    transform: translateY(0);
+  }
+
+  .landing-sticky-cta .btn {
+    flex: 1;
+    min-height: 48px;
+    font-size: 0.9375rem;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .landing-sticky-cta-dismiss {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Add bottom padding to the page so content isn't hidden behind sticky bar */
+  .landing-page {
+    padding-bottom: 72px;
+  }
+
+  [data-theme="light"] .landing-sticky-cta {
+    background: rgba(255, 255, 255, 0.92);
   }
 }
 
@@ -3530,6 +3801,20 @@ html[data-layout="expanded"] main > div {
   border: 1px solid rgba(255, 107, 107, 0.25);
 }
 
+.sales-badge-trial {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.875rem;
+  background: rgba(72, 199, 142, 0.15);
+  color: var(--color-success);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  border-radius: 999px;
+  border: 1px solid rgba(72, 199, 142, 0.3);
+}
+
 .sales-hero-title {
   font-family: var(--font-display);
   font-size: clamp(2rem, 5vw, 3.5rem);
@@ -4005,20 +4290,58 @@ html[data-layout="expanded"] main > div {
 
 @media (max-width: 768px) {
   .sales-hero {
-    padding: 8rem 0 3rem;
+    padding: 5.5rem 0 2.5rem;
+  }
+
+  .sales-hero-title {
+    font-size: clamp(1.5rem, 6vw, 2.25rem);
+  }
+
+  .sales-hero-subtitle {
+    font-size: 0.9375rem;
+    line-height: 1.75;
+    padding: 0 0.25rem;
+  }
+
+  .sales-hero-cta .btn {
+    width: 100%;
+    min-height: 52px;
+    font-size: 1.0625rem;
+    justify-content: center;
   }
 
   .sales-section {
-    padding: 3rem 0;
+    padding: 2.5rem 0;
+  }
+
+  .sales-section-title {
+    font-size: clamp(1.25rem, 5vw, 1.75rem);
+    padding: 0 0.25rem;
+  }
+
+  .sales-container {
+    padding: 0 1rem;
   }
 
   .sales-offer-body {
-    padding: 1.5rem;
+    padding: 1.25rem;
+  }
+
+  .sales-offer-header {
+    padding: 1.5rem 1.25rem 1rem;
+  }
+
+  .sales-offer-header h2 {
+    font-size: 1.375rem;
   }
 
   .sales-urgency-bar {
-    font-size: 0.75rem;
-    gap: 0.5rem;
+    font-size: 0.6875rem;
+    gap: 0.375rem;
+    padding: 0.5rem 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
   }
 
   .sales-header-right .locale-switcher {
@@ -4027,10 +4350,185 @@ html[data-layout="expanded"] main > div {
 
   .sales-price-compare {
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 0.5rem;
   }
 
   .sales-price-compare > svg {
     transform: rotate(90deg);
+  }
+
+  .sales-price-amount-old {
+    font-size: 1.5rem;
+  }
+
+  .sales-price-amount-new {
+    font-size: 2rem;
+  }
+
+  .sales-pain-grid {
+    gap: 1rem;
+  }
+
+  .sales-pain-card {
+    padding: 1.25rem;
+  }
+
+  .sales-pain-card h3 {
+    font-size: 1rem;
+  }
+
+  .sales-bullets-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sales-bullet {
+    padding: 0.75rem 0.875rem;
+    font-size: 0.875rem;
+  }
+
+  .sales-proof-row {
+    gap: 1rem;
+  }
+
+  .sales-proof-card {
+    padding: 1.25rem;
+  }
+
+  /* FAQ touch targets */
+  .sales-faq-q {
+    padding: 1rem 0;
+    min-height: 52px;
+    font-size: 0.9375rem;
+  }
+
+  .sales-faq-a p {
+    font-size: 0.875rem;
+    line-height: 1.7;
+  }
+
+  /* Final CTA mobile */
+  .sales-final-cta {
+    padding: 3rem 0;
+  }
+
+  .sales-final-cta h2 {
+    font-size: clamp(1.25rem, 5vw, 1.5rem);
+    padding: 0 0.25rem;
+  }
+
+  .sales-final-cta p {
+    font-size: 0.9375rem;
+    padding: 0 0.5rem;
+  }
+
+  .sales-final-cta .btn {
+    width: 100%;
+    min-height: 52px;
+    font-size: 1.0625rem;
+    justify-content: center;
+  }
+
+  /* Form CTA */
+  .sales-form-wrapper .btn {
+    min-height: 52px;
+    font-size: 1rem;
+  }
+
+  /* Guarantee */
+  .sales-guarantee {
+    padding: 0.875rem;
+  }
+
+  /* Footer links */
+  .sales-footer-links {
+    gap: 1rem;
+  }
+
+  .sales-footer-links a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+}
+
+/* ── Small Mobile (≤480px) ── */
+
+@media (max-width: 480px) {
+  .sales-hero {
+    padding: 5rem 0 2rem;
+  }
+
+  .sales-badge-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .sales-hero-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .sales-countdown-unit {
+    font-size: 0.75rem;
+    min-width: 32px;
+  }
+}
+
+/* ── Sticky Sales CTA Bar ── */
+
+.sales-sticky-cta {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sales-sticky-cta {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 900;
+    padding: 0.625rem 1rem;
+    padding-bottom: calc(0.625rem + env(safe-area-inset-bottom, 0px));
+    background: rgba(var(--color-bg-primary-rgb, 10, 10, 15), 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--color-glass-border);
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .sales-sticky-cta.visible {
+    transform: translateY(0);
+  }
+
+  .sales-sticky-cta .btn {
+    flex: 1;
+    min-height: 48px;
+    font-size: 0.9375rem;
+    justify-content: center;
+    white-space: nowrap;
+  }
+
+  .sales-sticky-cta-dismiss {
+    background: none;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* Bottom padding for sticky bar */
+  .sales-page {
+    padding-bottom: 68px;
+  }
+
+  [data-theme="light"] .sales-sticky-cta {
+    background: rgba(255, 255, 255, 0.94);
   }
 }

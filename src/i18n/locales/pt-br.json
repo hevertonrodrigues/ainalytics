@@ -389,90 +389,90 @@
       "howItWorks": "Como Funciona",
       "pricing": "Preços",
       "signIn": "Entrar",
-      "getStarted": "Verifique sua Visibilidade IA",
+      "getStarted": "Verifique sua Visibilidade",
       "hello": "Olá, {{name}}",
       "dashboard": "Painel"
     },
     "hero": {
-      "title": "A IA já está falando",
-      "titleHighlight": "Sobre",
-      "rotatingWords": ["VOCÊ.", "SUA EMPRESA.", "SEU NEGÓCIO.", "SUA MARCA.", "SEUS PRODUTOS.", "SEUS CONCORRENTES.", "SEU MERCADO."],
-      "titleEnd": "Você sabe o que ela diz?",
-      "subtitle": "Neste momento, milhões de pessoas estão perguntando ao ChatGPT, Gemini, Grok, etc sobre o seu mercado. Se sua marca não aparece nas respostas da IA — seus concorrentes estão ocupando o seu lugar.",
-      "cta": "Descubra o que a IA diz sobre você",
-      "ctaSecondary": "Veja uma Demo ao Vivo",
-      "trustedBy": "Marcas que perdem visibilidade na IA não conseguem recuperá-la. Aja agora."
+      "title": "A IA está falando",
+      "titleHighlight": "sobre",
+      "rotatingWords": ["VOCÊ.", "SUA MARCA.", "SEU NEGÓCIO.", "SEUS PRODUTOS.", "SEUS CONCORRENTES."],
+      "titleEnd": "Você está ouvindo?",
+      "subtitle": "230 milhões de pessoas fizeram uma pergunta ao ChatGPT na semana passada. Muitas delas perguntaram sobre o seu mercado. Se sua marca não aparece nessas respostas — a de outra pessoa aparece.",
+      "cta": "Veja o que a IA diz sobre você",
+      "ctaSecondary": "Veja funcionando",
+      "trustedBy": "Grátis para começar · Sem cartão · Resultados em 60 segundos"
     },
     "logos": {
-      "title": "Monitore como essas plataformas de IA enxergam sua marca"
+      "title": "Monitoramos o que estas plataformas de IA falam sobre você"
     },
     "features": {
-      "title": "Pare de Ser Invisível para",
-      "titleHighlight": "as IAs que Importam",
-      "subtitle": "Seus clientes estão trocando o Google pela IA. Se a IA não sabe que você existe, eles também não.",
+      "title": "Seu próximo cliente vai perguntar à IA,",
+      "titleHighlight": "não ao Google",
+      "subtitle": "40% das buscas já passam pela IA primeiro. Se a IA não menciona você, esse cliente já foi embora.",
       "multiModel": {
-        "title": "Veja o Que Cada IA Diz Sobre Você",
-        "description": "Faça a mesma pergunta no ChatGPT, Claude, Gemini, Grok, etc. Descubra quais mencionam sua marca — e quais estão enviando clientes para a concorrência."
+        "title": "Uma pergunta. 5 IAs. 5 respostas diferentes.",
+        "description": "Perguntamos ao ChatGPT, Claude, Gemini, Grok e Perplexity exatamente a mesma coisa sobre seu mercado. Você vê quais te recomendam — e quais estão mandando seus clientes para concorrentes."
       },
       "webSearch": {
-        "title": "As IAs Realmente Te Encontram?",
-        "description": "Alguns modelos de IA dizem buscar na web mas nunca mostram seu conteúdo. Verificamos quais realmente fundamentam respostas em dados reais — e quais estão te deixando de fora."
+        "title": "Algumas IAs fingem te encontrar",
+        "description": "Certos modelos de IA dizem buscar na web — mas nunca mostram seu conteúdo. Testamos quais plataformas realmente puxam dados atualizados e quais te ignoram silenciosamente."
       },
       "topicOrg": {
-        "title": "Monitore Cada Ângulo",
-        "description": "Acompanhe como a IA responde sobre sua marca, produtos, mercado e concorrentes. Organize por tópico e veja sua visibilidade mudar ao longo do tempo."
+        "title": "Monitore cada pergunta que importa",
+        "description": "Acompanhe como a IA responde sobre sua marca, produtos, serviços e concorrentes. Organize por tópico, acompanhe mudanças semana a semana e identifique problemas antes que custem clientes."
       },
       "multiTenant": {
-        "title": "Um Dashboard por Cliente",
-        "description": "Agências e consultores: rodem monitoramento isolado para cada cliente. Cada marca tem seu próprio espaço, prompts e relatórios de visibilidade IA."
+        "title": "Agências: um dashboard por cliente",
+        "description": "Gerencia monitoramento de várias marcas? Cada cliente tem seu espaço isolado com prompts próprios, relatórios separados e scores individuais de visibilidade. Sem mistura, sem confusão."
       },
       "analytics": {
-        "title": "Scorecards de Visibilidade",
-        "description": "Scores de qualidade de resposta, frequência de menção, comparação com concorrentes e alertas de anomalias. Saiba no instante em que uma IA parar de recomendar você."
+        "title": "Seu score de visibilidade IA, atualizado semanalmente",
+        "description": "Frequência de menção, qualidade de resposta, comparação com concorrentes e alertas de anomalias — tudo em um scorecard. No momento em que a IA parar de te recomendar, você vai saber."
       },
       "i18n": {
-        "title": "A IA Te Vê Diferente por Idioma",
-        "description": "Monitore como a IA responde sobre sua marca em inglês, espanhol e português. Idiomas diferentes, visibilidade diferente. Você está perdendo mercados inteiros?"
+        "title": "Idioma diferente, visibilidade diferente",
+        "description": "Faça a mesma pergunta em inglês, espanhol e português — as respostas serão completamente diferentes. Você é visível em todos os mercados que atende, ou invisível em alguns?"
       }
     },
     "howItWorks": {
-      "title": "Descubra em",
-      "titleHighlight": "Três Minutos",
-      "subtitle": "Não espere semanas para descobrir que você tem sido invisível para a IA esse tempo todo.",
+      "title": "Receba seu primeiro relatório em",
+      "titleHighlight": "menos de 3 minutos",
+      "subtitle": "Sem ligações. Sem onboarding. Só respostas.",
       "step1": {
         "label": "Passo 1",
-        "title": "Nos Diga sua Marca e Tópicos",
-        "description": "Insira o nome da sua marca, produtos e palavras-chave do mercado. Criaremos os prompts que seus clientes reais já estão perguntando às plataformas de IA."
+        "title": "Digite o nome da sua marca",
+        "description": "Nos diga sua marca, produtos e mercado. Vamos gerar os prompts exatos que seus clientes reais já estão perguntando às plataformas de IA — sem adivinhação."
       },
       "step2": {
         "label": "Passo 2",
-        "title": "Consultamos Cada IA Principal",
-        "description": "O Ainalytics pergunta simultaneamente ao ChatGPT, Claude, Gemini, Grok, etc. Em segundos, você verá exatamente o que cada IA diz sobre você."
+        "title": "Consultamos 5 plataformas de IA simultaneamente",
+        "description": "O Ainalytics pergunta ao ChatGPT, Claude, Gemini, Grok e Perplexity as mesmas perguntas ao mesmo tempo. Leva cerca de 30 segundos."
       },
       "step3": {
         "label": "Passo 3",
-        "title": "Veja Onde Você Está Ausente",
-        "description": "Receba um relatório claro de visibilidade: quais IAs mencionam você, quais recomendam concorrentes no seu lugar, e onde você é completamente invisível. Então aja."
+        "title": "Veja exatamente onde você é invisível",
+        "description": "Seu relatório de visibilidade mostra quais IAs te mencionam, quais recomendam concorrentes no seu lugar e onde você simplesmente não existe. Depois é só agir."
       }
     },
     "preview": {
-      "title": "Visibilidade IA em Tempo Real,",
-      "titleHighlight": "Um Único Dashboard",
-      "subtitle": "Pare de adivinhar. Veja exatamente como cada plataforma de IA percebe sua marca — atualizado em tempo real."
+      "title": "Tudo em",
+      "titleHighlight": "um único dashboard",
+      "subtitle": "Chega de adivinhar. Veja exatamente o que cada plataforma de IA diz sobre sua marca — atualizado automaticamente."
     },
     "pricing": {
-      "title": "Quanto a Invisibilidade",
-      "titleHighlight": "Está Te Custando?",
-      "subtitle": "Cada dia que você não monitora, a IA está enviando seus clientes para outro lugar.",
+      "title": "Quanto a invisibilidade",
+      "titleHighlight": "está te custando?",
+      "subtitle": "Enquanto você lê isso, a IA está respondendo perguntas sobre seu mercado — e sua marca pode não estar nessas respostas.",
       "monthly": "/mês",
       "free": {
         "name": "Starter",
         "price": "$99",
-        "description": "Monitoramento essencial de IA para começar. Perfeito para freelancers e pequenas empresas.",
-        "cta": "Verificar Minha Visibilidade",
+        "description": "Veja como a IA fala sobre sua marca. O suficiente para saber se você tem um problema de visibilidade.",
+        "cta": "Comece grátis",
         "features": [
-          "3 prompts de IA",
-          "Atualização mensal",
+          "3 prompts de IA monitorados",
+          "Atualização mensal de visibilidade",
           "Até 3 plataformas IA",
           "Score básico de visibilidade",
           "Suporte da comunidade"
@@ -481,12 +481,12 @@
       "pro": {
         "name": "Growth",
         "price": "$189",
-        "description": "Escale seu monitoramento em todas as plataformas IA com insights semanais.",
-        "cta": "Começar a Monitorar",
+        "description": "Visibilidade completa em todas as 5 plataformas. Atualizações semanais para nada passar despercebido.",
+        "cta": "Começar a monitorar",
         "popular": "Mais Popular",
         "features": [
-          "10 prompts de IA",
-          "Atualização semanal",
+          "10 prompts de IA monitorados",
+          "Atualização semanal de visibilidade",
           "Todas as 5 plataformas IA",
           "Análise avançada e KPIs",
           "Verificação de busca web",
@@ -496,11 +496,11 @@
       "enterprise": {
         "name": "Business",
         "price": "$799",
-        "description": "Monitoramento completo em tempo real para marcas que exigem visibilidade.",
+        "description": "Monitoramento diário para marcas que não podem ser invisíveis nem por um dia.",
         "cta": "Ir para Business",
         "features": [
-          "40 prompts de IA",
-          "Atualização diária",
+          "40 prompts de IA monitorados",
+          "Atualização diária de visibilidade",
           "Todas as 5 plataformas IA",
           "Análise avançada e KPIs",
           "Verificação de busca web",
@@ -511,8 +511,8 @@
       "custom": {
         "name": "Custom",
         "price": "Vamos Conversar",
-        "description": "Soluções de monitoramento IA sob medida para agências e grandes organizações.",
-        "cta": "Fale Conosco",
+        "description": "Para agências e empresas que gerenciam 10+ marcas ou precisam de integrações personalizadas.",
+        "cta": "Fale conosco",
         "features": [
           "Prompts ilimitados",
           "Taxa de atualização personalizada",
@@ -526,18 +526,18 @@
       }
     },
     "cta": {
-      "title": "Seus Concorrentes Já Estão Monitorando Isso.",
-      "subtitle": "A cada hora que você espera, a IA está formando opiniões sobre sua marca sem você saber. As marcas que monitoram vencem. As que não monitoram, desaparecem.",
-      "button": "Verificar Minha Visibilidade IA — Grátis",
-      "noCard": "Não é necessário cartão de crédito · Configuração em 60 segundos"
+      "title": "Enquanto você pensa nisso, a IA já está respondendo.",
+      "subtitle": "Agora mesmo, alguém está perguntando a uma IA sobre seu mercado. Se sua marca não aparece, esse cliente vai para quem aparece. Isso se acumula a cada dia.",
+      "button": "Verificar minha visibilidade IA — grátis",
+      "noCard": "Sem cartão · Sem ligações · Resultados em 60 segundos"
     },
     "faq": {
-      "title": "Perguntas",
-      "titleHighlight": "Frequentes",
-      "subtitle": "Tudo que você precisa saber sobre monitoramento de visibilidade em IA."
+      "title": "Tem",
+      "titleHighlight": "dúvidas?",
+      "subtitle": "Tudo que você precisa saber antes de começar a monitorar sua visibilidade IA."
     },
     "footer": {
-      "description": "A plataforma de monitoramento de visibilidade IA. Saiba o que a IA diz sobre você antes dos seus clientes.",
+      "description": "Saiba o que a IA diz sobre sua marca — antes que seus clientes descubram primeiro.",
       "product": "Produto",
       "company": "Empresa",
       "support": "Suporte",
@@ -1142,74 +1142,75 @@
     }
   },
   "sales": {
-    "metaTitle": "Ainalytics — 60% OFF | Plataforma de Monitoramento de Visibilidade IA",
-    "metaDescription": "Oferta por tempo limitado: Monitore o que o ChatGPT, Gemini e Claude dizem sobre sua marca com 60% de desconto. Saiba o que a IA fala de você antes dos seus clientes.",
+    "metaTitle": "Ainalytics — 60% OFF | Veja o que a IA diz sobre sua marca",
+    "metaDescription": "Vagas limitadas: Monitore o que ChatGPT, Gemini, Claude, Grok e Perplexity dizem sobre sua marca — com 60% de desconto. Descubra seus pontos cegos antes que a concorrência explore.",
     "headerCta": "Garantir Minha Vaga",
-    "urgencyBar": "⚡ OFERTA RELÂMPAGO — Vagas limitadas com 60% OFF encerram em:",
+    "urgencyBar": "⚡ OFERTA RELÂMPAGO — 60% OFF acaba em:",
     "badge": "{{discount}}% OFF",
-    "badgeLimited": "Por Tempo Limitado",
-    "heroTitle1": "A IA Já Está Decidindo",
-    "heroTitle2": "Quem Seus Clientes Vão Escolher.",
-    "heroTitle3": "E Você Nem Sabe Disso.",
-    "heroSubtitle": "Enquanto você lê isso, o ChatGPT, Gemini e Claude estão recomendando seus concorrentes para milhões de pessoas. O Ainalytics mostra exatamente o que a IA diz sobre você — e o que você precisa mudar. Por tempo limitado: plano Starter anual com 60% de desconto.",
-    "heroCta": "Garantir Meu Desconto de 60%",
-    "painTitle": "Se Você Não Sabe o Que a IA Diz Sobre Você, Já Está Perdendo Clientes",
-    "pain1Title": "Invisibilidade Silenciosa",
-    "pain1Desc": "Seus clientes perguntam à IA 'qual o melhor X?' e a IA responde com seus concorrentes. Você nem fica sabendo que isso está acontecendo.",
-    "pain2Title": "Dados Zero Sobre IA",
-    "pain2Desc": "Você monitora Google, redes sociais, reviews... mas ninguém está monitorando o que o ChatGPT fala de você. É o maior ponto cego do seu marketing.",
-    "pain3Title": "Concorrentes na Frente",
-    "pain3Desc": "Enquanto você ignora esse canal, marcas inteligentes já estão otimizando sua presença para IA. Cada dia que passa, a distância aumenta.",
-    "bulletsTitle": "O Que Você Descobre Com o Ainalytics",
-    "bulletsSubtitle": "10 coisas que seus concorrentes provavelmente já sabem sobre a presença deles em IA — e você não.",
-    "bullet1": "Exatamente o que o ChatGPT, Claude e Gemini dizem quando perguntam sobre seu mercado",
-    "bullet2": "Quais concorrentes estão sendo recomendados no seu lugar (e por quê)",
-    "bullet3": "Se a IA está usando informações desatualizadas ou erradas sobre sua marca",
-    "bullet4": "Como sua visibilidade muda semana a semana com um score de acompanhamento",
-    "bullet5": "Quais páginas do seu site a IA realmente lê e cita nas respostas",
-    "bullet6": "Se o robots.txt do seu site está bloqueando crawlers de IA sem você saber",
-    "bullet7": "Qual versão do seu pitch a IA está propagando para milhões de usuários",
-    "bullet8": "Alertas quando uma plataforma para de mencionar você de repente",
-    "bullet9": "Como gerar um arquivo llm.txt que torna sua marca legível para qualquer IA",
-    "bullet10": "Comparação lado a lado: o que cada IA diz sobre você vs. concorrentes",
-    "testimonial1": "Descobrimos que o ChatGPT recomendava 3 concorrentes antes de nós. Em 2 semanas otimizando com o Ainalytics, passamos para o topo.",
+    "badgeLimited": "Vagas Limitadas",
+    "heroTitle1": "230 Milhões de Pessoas Perguntaram à IA",
+    "heroTitle2": "Sobre o Seu Mercado na Semana Passada.",
+    "heroTitle3": "Você Estava na Resposta?",
+    "heroSubtitle": "Agora mesmo, o ChatGPT está recomendando alguém no seu mercado. Se não é você, é um concorrente. O Ainalytics monitora 5 plataformas de IA e mostra exatamente quem elas recomendam — e onde você é invisível. Comece com 7 dias grátis, depois trave 60% de desconto para sempre.",
+    "heroCta": "Começar 7 Dias Grátis — Travar 60%",
+    "trialBadge": "7 Dias Grátis",
+    "painTitle": "Você Gasta com Marketing — Mas Ignora o Canal que Está Substituindo o Google",
+    "pain1Title": "Você é invisível e nem sabe",
+    "pain1Desc": "Alguém acabou de perguntar ao ChatGPT 'Qual o melhor [seu mercado]?' e recebeu o nome do seu concorrente. Você não faz ideia que isso aconteceu. E acontece centenas de vezes por dia.",
+    "pain2Title": "Seu maior ponto cego",
+    "pain2Desc": "Você monitora Google, redes sociais, reviews. Mas ninguém está olhando o que a IA diz sobre você. 40% das buscas já passam pela IA primeiro.",
+    "pain3Title": "A distância aumenta todo dia",
+    "pain3Desc": "Enquanto você lê isso, marcas inteligentes já estão otimizando sua presença na IA. Elas aparecem no ChatGPT, Gemini, Claude. Você não. Cada dia que espera, elas ficam mais na frente.",
+    "bulletsTitle": "10 Coisas que Seus Concorrentes Já Sabem Sobre a Presença Deles na IA",
+    "bulletsSubtitle": "E você não. Ainda.",
+    "bullet1": "As palavras exatas que o ChatGPT usa quando alguém pergunta sobre seu mercado — e se o seu nome está entre elas",
+    "bullet2": "Quais 3 concorrentes aparecem antes de você (e os prompts específicos que causam isso)",
+    "bullet3": "Se a IA está contando informações desatualizadas ou completamente erradas sobre sua marca",
+    "bullet4": "Seu score de visibilidade em 5 plataformas, rastreado semana a semana para você ver a tendência",
+    "bullet5": "Quais páginas do seu site a IA realmente lê e cita — e quais ela ignora completamente",
+    "bullet6": "Se o robots.txt do seu site está bloqueando crawlers de IA acidentalmente (provavelmente está)",
+    "bullet7": "A versão exata do seu pitch que a IA está espalhando para milhões de usuários agora mesmo",
+    "bullet8": "Alertas instantâneos no momento em que uma plataforma para de te recomendar",
+    "bullet9": "Como criar um arquivo llm.txt que torna sua marca 3x mais legível para toda IA",
+    "bullet10": "Comparação lado a lado: o que cada IA diz sobre você vs. seus principais concorrentes",
+    "testimonial1": "O ChatGPT recomendava 3 concorrentes antes de nós. Duas semanas otimizando com dados do Ainalytics e agora somos o primeiro nome que ele menciona.",
     "testimonialAuthor1": "— Diretor de Marketing, SaaS B2B",
-    "testimonial2": "Estávamos completamente invisíveis no Gemini. Sem o Ainalytics, nunca teríamos descoberto esse ponto cego.",
+    "testimonial2": "Estávamos completamente invisíveis no Gemini. 180 mil buscas mensais no nosso nicho e zero menções. Nunca teríamos descoberto sem o Ainalytics.",
     "testimonialAuthor2": "— Fundador, E-commerce",
-    "testimonial3": "A IA estava usando dados de 2022 sobre nossos produtos. Corrigimos isso em dias graças aos insights da plataforma.",
+    "testimonial3": "A IA estava usando preços de 2022 e o nome de um produto descontinuado. Nosso time corrigiu em 3 dias usando o rastreamento de fontes da plataforma.",
     "testimonialAuthor3": "— Head de Conteúdo, Fintech",
-    "offerTitle": "Sua Chance de Entrar Antes de Todo Mundo",
-    "offerSubtitle": "Plano Starter anual com 60% de desconto — oferta exclusiva por tempo limitado.",
+    "offerTitle": "Garanta o Menor Preço que Já Oferecemos",
+    "offerSubtitle": "Teste grátis por 7 dias. Se gostar, mantém 60% de desconto para sempre. Se não, cancele antes do dia 7 e não paga nada.",
     "priceWas": "De",
     "priceNow": "Por apenas",
     "perMonth": "mês",
     "perYear": "ano",
-    "billedAnnually": "* Cobrado anualmente. Valor total anual com desconto.",
+    "billedAnnually": "* Cobrado anualmente. O preço é garantido enquanto você mantiver a assinatura.",
     "includedTitle": "O que está incluído:",
-    "included1": "3 prompts de monitoramento de IA",
-    "included2": "Atualização mensal de resultados",
-    "included3": "Monitoramento em até 3 plataformas de IA",
-    "included4": "Score de visibilidade da sua marca",
-    "included5": "Suporte da comunidade",
-    "guaranteeTitle": "Garantia sem risco",
-    "guaranteeDesc": "Cancele a qualquer momento. Sem compromisso, sem multa, sem perguntas.",
-    "formTitle": "Crie sua conta e ative o desconto",
-    "formCta": "Ativar Meu Desconto de 60% →",
-    "faqTitle": "Perguntas Que Você Pode Ter",
-    "faq1Q": "Isso é real? O preço vai voltar ao normal?",
-    "faq1A": "Sim. Esta oferta é por tempo limitado. Quem entrar agora garante R$ 198,00/mês (cobrado anualmente) enquanto mantiver a assinatura ativa. O preço normal é R$ 495,00/mês.",
+    "included1": "3 prompts de monitoramento de IA rastreados nas plataformas",
+    "included2": "Relatório mensal de visibilidade com acompanhamento de score",
+    "included3": "Monitoramento em até 3 plataformas de IA (ChatGPT, Gemini, Claude)",
+    "included4": "Score de visibilidade da marca com comparação de concorrentes",
+    "included5": "Suporte da comunidade + base de conhecimento",
+    "guaranteeTitle": "Teste grátis, depois decida",
+    "guaranteeDesc": "Seus primeiros 7 dias são completamente grátis. Cancele com um clique antes do dia 7 e não paga nada. Ficando, seu desconto de 60% é travado para sempre.",
+    "formTitle": "Comece seu período grátis — o desconto trava na hora",
+    "formCta": "Começar Meus 7 Dias Grátis →",
+    "faqTitle": "Antes de Decidir",
+    "faq1Q": "Isso é real? O preço realmente vai subir?",
+    "faq1A": "Sim. Quando essas vagas forem preenchidas, o preço volta para R$ 495,00/mês. Se você se cadastrar agora, garante R$ 198,00/mês (cobrado anualmente) enquanto mantiver a assinatura. Não vamos aumentar seu preço.",
     "faq2Q": "Preciso de cartão de crédito?",
-    "faq2A": "Sim, o cartão de crédito é necessário para ativar o plano com desconto. Mas você pode cancelar a qualquer momento, sem multa.",
-    "faq3Q": "O que acontece se eu cancelar?",
-    "faq3A": "Você cancela quando quiser, sem multa. Se cancelar e quiser voltar depois, o preço será o valor normal de R$ 495,00/mês.",
-    "faq4Q": "Isso funciona para qualquer tipo de empresa?",
-    "faq4A": "Se seus clientes usam ChatGPT, Gemini, Claude ou qualquer IA para pesquisar antes de comprar, sim. Funciona para SaaS, e-commerce, serviços, agências, consultorias e qualquer marca que depende de ser encontrada.",
-    "faq5Q": "Por que o desconto é tão grande?",
-    "faq5A": "Queremos early adopters comprometidos que nos ajudem a validar e melhorar a plataforma. Em troca, você garante o melhor preço que ofereceremos.",
-    "finalCtaTitle": "Cada Hora Que Passa, a IA Forma Novas Opiniões Sobre Você",
-    "finalCtaDesc": "Você pode continuar ignorando o que o ChatGPT diz sobre sua marca. Ou pode estar entre os primeiros a monitorar, otimizar e dominar esse novo canal. A escolha é sua — mas o desconto de 60% não vai durar.",
-    "finalCtaButton": "Garantir Minha Vaga com 60% OFF",
-    "finalCtaNote": "Por tempo limitado · Oferta expira em breve · Garanta o melhor preço agora",
+    "faq2A": "Sim, para iniciar o período grátis e reservar o preço com desconto. Mas você não será cobrado por 7 dias. Cancele antes do dia 7 e não paga nada.",
+    "faq3Q": "E se eu cancelar?",
+    "faq3A": "Cancele quando quiser, sem multa. Mas se voltar depois, o preço será o valor normal de R$ 495,00/mês. O desconto de 60% é exclusivo desta oferta.",
+    "faq4Q": "Funciona para o meu tipo de empresa?",
+    "faq4A": "Se seus clientes usam ChatGPT, Gemini, Claude, Grok ou Perplexity para pesquisar antes de comprar — sim. Funciona para SaaS, e-commerce, agências, consultorias, negócios locais e qualquer marca que depende de ser encontrada.",
+    "faq5Q": "Por que o desconto é tão agressivo?",
+    "faq5A": "Queremos early adopters comprometidos que usem a plataforma intensamente e nos deem feedback. Em troca, você garante o menor preço que cobraremos. Quando as vagas acabarem, volta para R$ 495,00/mês.",
+    "finalCtaTitle": "Agora Mesmo, Alguém Está Perguntando à IA Sobre o Seu Mercado",
+    "finalCtaDesc": "Se sua marca não está na resposta, esse cliente vai para quem está. Isso acontece centenas de vezes por dia. Você pode continuar ignorando, ou pode ser dos primeiros a monitorar, otimizar e dominar esse canal. O desconto de 60% não vai durar.",
+    "finalCtaButton": "Começar 7 Dias Grátis →",
+    "finalCtaNote": "7 dias grátis · 60% off para sempre · Cancele quando quiser",
     "successTitle": "Verifique seu e-mail!",
     "successDesc": "Enviamos um link de confirmação. Verifique sua caixa de entrada (e spam) para ativar sua conta com o desconto exclusivo."
   }

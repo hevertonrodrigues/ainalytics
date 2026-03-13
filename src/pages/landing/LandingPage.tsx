@@ -11,6 +11,7 @@ import {
   Search,
   ChevronRight,
   ArrowRight,
+  X,
 } from 'lucide-react';
 import { Suspense, lazy } from 'react';
 
@@ -68,6 +69,8 @@ function useScrollReveal() {
 export function LandingPage() {
   const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  const [stickyCtaDismissed, setStickyCtaDismissed] = useState(false);
   const [interestModalOpen, setInterestModalOpen] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
@@ -137,10 +140,16 @@ export function LandingPage() {
   });
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 20);
+      // Show sticky CTA after scrolling past the hero (~500px)
+      if (!stickyCtaDismissed) {
+        setShowStickyCta(window.scrollY > 500);
+      }
+    };
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [stickyCtaDismissed]);
 
   return (
     <div className="landing-page" ref={revealRef}>
@@ -332,6 +341,21 @@ export function LandingPage() {
           onClose={() => setInterestModalOpen(false)}
         />
       </Suspense>
+
+      {/* Mobile Sticky CTA */}
+      <div className={`landing-sticky-cta ${showStickyCta && !stickyCtaDismissed ? 'visible' : ''}`}>
+        <Link to="/signup" className="btn btn-primary">
+          {t('landing.hero.cta')}
+          <ArrowRight className="w-4 h-4" />
+        </Link>
+        <button
+          className="landing-sticky-cta-dismiss"
+          onClick={() => setStickyCtaDismissed(true)}
+          aria-label="Dismiss"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }

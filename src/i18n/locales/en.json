@@ -389,90 +389,90 @@
       "howItWorks": "How It Works",
       "pricing": "Pricing",
       "signIn": "Sign In",
-      "getStarted": "Check Your AI Visibility",
+      "getStarted": "Check Your Visibility",
       "hello": "Hi, {{name}}",
       "dashboard": "Dashboard"
     },
     "hero": {
-      "title": "AI Is already talking",
-      "titleHighlight": "About",
-      "rotatingWords": ["YOU.", "YOUR COMPANY.", "YOUR BUSINESS.", "YOUR BRAND.", "YOUR PRODUCTS.", "YOUR COMPETITORS.", "YOUR MARKET."],
-      "titleEnd": "Do you know what it's saying?",
-      "subtitle": "Right now, millions of people are asking ChatGPT, Gemini, Grok, etc about your industry. If your brand isn't showing up in AI-generated answers — your competitors are taking your place.",
-      "cta": "Discover what AI says about you",
-      "ctaSecondary": "See a Live Demo",
-      "trustedBy": "Brands losing AI visibility can't get it back. Act now."
+      "title": "AI is talking",
+      "titleHighlight": "about",
+      "rotatingWords": ["YOU.", "YOUR BRAND.", "YOUR BUSINESS.", "YOUR PRODUCTS.", "YOUR COMPETITORS."],
+      "titleEnd": "Are you even listening?",
+      "subtitle": "230 million people asked ChatGPT a question last week. Many of them were asking about your industry. If your brand doesn't show up in those answers — someone else's does.",
+      "cta": "See what AI says about you",
+      "ctaSecondary": "Watch it work",
+      "trustedBy": "Free to start · No credit card · Results in 60 seconds"
     },
     "logos": {
-      "title": "Monitor how these AI platforms see your brand"
+      "title": "We monitor what these AI platforms say about you"
     },
     "features": {
-      "title": "Stop Being Invisible to",
-      "titleHighlight": "the AIs That Matter",
-      "subtitle": "Your customers are replacing Google with AI. If AI doesn't know you exist, neither do they.",
+      "title": "Your next customer will ask AI,",
+      "titleHighlight": "not Google",
+      "subtitle": "40% of search queries now go through AI first. If AI doesn't mention you, you've already lost that customer.",
       "multiModel": {
-        "title": "See What Every AI Says About You",
-        "description": "Ask the same question across ChatGPT, Claude, Gemini, Grok, etc. Find out which ones mention your brand — and which ones are sending customers to your competition."
+        "title": "One question. 5 AIs. 5 different answers.",
+        "description": "We ask ChatGPT, Claude, Gemini, Grok, and Perplexity the exact same question about your industry. You see which ones recommend you — and which ones are sending your customers to competitors."
       },
       "webSearch": {
-        "title": "Are AIs Actually Finding You?",
-        "description": "Some AI models claim to search the web but never surface your content. We verify which ones actually ground answers in real data — and which ones are leaving you out."
+        "title": "Some AIs pretend to find you",
+        "description": "Certain AI models claim they search the web — but never surface your content. We test which platforms actually pull real, up-to-date data and which ones quietly leave you out."
       },
       "topicOrg": {
-        "title": "Monitor Every Angle",
-        "description": "Track how AI responds to prompts about your brand, products, industry, and competitors. Organize by topic and watch your visibility shift over time."
+        "title": "Track every question that matters",
+        "description": "Monitor how AI answers questions about your brand, products, services, and competitors. Organize by topic, track changes week by week, and spot problems before they cost you customers."
       },
       "multiTenant": {
-        "title": "One Dashboard Per Client",
-        "description": "Agencies and consultants: run isolated monitoring for every client. Each brand gets their own workspace, prompts, and AI visibility reports."
+        "title": "Agencies: one dashboard per client",
+        "description": "Running monitoring for multiple brands? Each client gets their own isolated workspace with custom prompts, separate reports, and individual visibility scores. No crosstalk, no confusion."
       },
       "analytics": {
-        "title": "Visibility Scorecards",
-        "description": "Response quality scores, mention frequency, competitor comparisons, and anomaly alerts. Know the instant an AI stops recommending you."
+        "title": "Your AI visibility score, updated weekly",
+        "description": "Mention frequency, response quality, competitor comparisons, and anomaly alerts — all in one scorecard. The moment an AI stops recommending you, you'll know."
       },
       "i18n": {
-        "title": "AI Sees You Differently by Language",
-        "description": "Monitor how AI responds about your brand in English, Spanish, and Portuguese. Different languages, different visibility. Are you missing entire markets?"
+        "title": "Different language, different visibility",
+        "description": "Ask the same question in English, Spanish, and Portuguese — you'll get completely different answers. Are you visible in all the markets you serve, or invisible in some?"
       }
     },
     "howItWorks": {
-      "title": "Find Out in",
-      "titleHighlight": "Three Minutes",
-      "subtitle": "Don't wait weeks to discover you've been invisible to AI this whole time.",
+      "title": "Get your first report in",
+      "titleHighlight": "under 3 minutes",
+      "subtitle": "No setup calls. No onboarding. Just answers.",
       "step1": {
         "label": "Step 1",
-        "title": "Tell Us Your Brand & Topics",
-        "description": "Enter your brand name, products, and industry keywords. We'll create the prompts that real customers are already asking AI platforms."
+        "title": "Enter your brand name",
+        "description": "Tell us your brand, products, and industry. We'll generate the exact prompts real customers are already asking AI platforms — no guesswork needed."
       },
       "step2": {
         "label": "Step 2",
-        "title": "We Query Every Major AI",
-        "description": "Ainalytics simultaneously asks ChatGPT, Claude, Gemini, Grok, etc. In seconds, you'll see exactly what each AI tells people about you."
+        "title": "We query 5 AI platforms simultaneously",
+        "description": "Ainalytics asks ChatGPT, Claude, Gemini, Grok, and Perplexity the same questions at the same time. Takes about 30 seconds."
       },
       "step3": {
         "label": "Step 3",
-        "title": "See Where You're Missing",
-        "description": "Get a clear visibility report: which AIs mention you, which recommend competitors instead, and where you're completely invisible. Then take action."
+        "title": "See exactly where you're invisible",
+        "description": "Your visibility report shows which AIs mention you, which recommend competitors instead, and where you don't exist at all. Then you fix it."
       }
     },
     "preview": {
-      "title": "Real-Time AI Visibility,",
-      "titleHighlight": "One Dashboard",
-      "subtitle": "Stop guessing. See exactly how every major AI platform perceives your brand — updated in real time."
+      "title": "Everything in",
+      "titleHighlight": "one dashboard",
+      "subtitle": "No more guessing. See exactly what every major AI platform tells people about your brand — updated automatically."
     },
     "pricing": {
-      "title": "How Much Is",
-      "titleHighlight": "Invisibility Costing You?",
-      "subtitle": "Every day you're not monitoring, AI is sending your customers somewhere else.",
+      "title": "How much is",
+      "titleHighlight": "invisibility costing you?",
+      "subtitle": "While you're reading this, AI is answering questions about your industry — and your brand may not be in those answers.",
       "monthly": "/month",
       "free": {
         "name": "Starter",
         "price": "$99",
-        "description": "Essential AI monitoring to get started. Perfect for freelancers and small businesses.",
-        "cta": "Check My Visibility",
+        "description": "See how AI talks about your brand. Enough to know if you have a visibility problem.",
+        "cta": "Start for free",
         "features": [
-          "3 AI prompts",
-          "Monthly refresh",
+          "3 AI prompts monitored",
+          "Monthly visibility refresh",
           "Up to 3 AI platforms",
           "Basic visibility score",
           "Community support"
@@ -481,29 +481,29 @@
       "pro": {
         "name": "Growth",
         "price": "$189",
-        "description": "Scale your monitoring across all AI platforms with weekly insights.",
-        "cta": "Start Monitoring Now",
+        "description": "Full visibility across all 5 platforms. Weekly updates so nothing slips past you.",
+        "cta": "Start monitoring",
         "popular": "Most Popular",
         "features": [
-          "10 AI prompts",
-          "Weekly refresh",
+          "10 AI prompts monitored",
+          "Weekly visibility refresh",
           "All 5 AI platforms",
           "Advanced analytics & KPIs",
-          "Web search grounding",
+          "Web search grounding verification",
           "Priority support"
         ]
       },
       "enterprise": {
         "name": "Business",
         "price": "$799",
-        "description": "Full-power real-time monitoring for brands that demand visibility.",
+        "description": "Daily monitoring for brands that can't afford to be invisible for even a day.",
         "cta": "Go Business",
         "features": [
-          "40 AI prompts",
-          "Daily refresh",
+          "40 AI prompts monitored",
+          "Daily visibility refresh",
           "All 5 AI platforms",
           "Advanced analytics & KPIs",
-          "Web search grounding",
+          "Web search grounding verification",
           "Multi-tenant workspaces",
           "Dedicated support"
         ]
@@ -511,8 +511,8 @@
       "custom": {
         "name": "Custom",
         "price": "Let's Talk",
-        "description": "Tailored AI monitoring solutions for agencies and large organizations.",
-        "cta": "Contact Us",
+        "description": "For agencies and enterprises managing 10+ brands or needing custom integrations.",
+        "cta": "Talk to us",
         "features": [
           "Unlimited prompts",
           "Custom refresh rate",
@@ -526,18 +526,18 @@
       }
     },
     "cta": {
-      "title": "Your Competitors Are Already Monitoring This.",
-      "subtitle": "Every hour you wait, AI is shaping opinions about your brand without your knowledge. The brands that monitor win. The ones that don't disappear.",
-      "button": "Check My AI Visibility — Free",
-      "noCard": "No credit card required · Setup in 60 seconds"
+      "title": "While you're thinking about it, AI is already answering.",
+      "subtitle": "Right now, someone is asking an AI about your industry. If your brand doesn't show up, that customer goes to whoever does. This compounds every single day.",
+      "button": "Check my AI visibility — free",
+      "noCard": "No credit card · No setup calls · Results in 60 seconds"
     },
     "faq": {
-      "title": "Frequently Asked",
-      "titleHighlight": "Questions",
-      "subtitle": "Everything you need to know about AI visibility monitoring."
+      "title": "Got",
+      "titleHighlight": "questions?",
+      "subtitle": "Everything you need to know before you start monitoring your AI visibility."
     },
     "footer": {
-      "description": "The AI visibility monitoring platform. Know what AI says about you before your customers do.",
+      "description": "Know what AI says about your brand — before your customers hear it first.",
       "product": "Product",
       "company": "Company",
       "support": "Support",
@@ -1142,74 +1142,75 @@
     }
   },
   "sales": {
-    "metaTitle": "Ainalytics — 60% OFF | AI Visibility Monitoring Platform",
-    "metaDescription": "Limited-time offer: Monitor what ChatGPT, Gemini, and Claude say about your brand at 60% off. Know what AI says about you before your customers do.",
+    "metaTitle": "Ainalytics — 60% OFF | See What AI Says About Your Brand",
+    "metaDescription": "Limited spots: Monitor what ChatGPT, Gemini, Claude, Grok & Perplexity say about your brand — 60% off. See your blind spots before your competitors exploit them.",
     "headerCta": "Claim My Spot",
-    "urgencyBar": "⚡ FLASH SALE — Limited spots at 60% OFF end in:",
+    "urgencyBar": "⚡ FLASH SALE — 60% OFF ends in:",
     "badge": "{{discount}}% OFF",
     "badgeLimited": "Limited Spots",
-    "heroTitle1": "AI Is Already Deciding",
-    "heroTitle2": "Who Your Customers Will Choose.",
-    "heroTitle3": "And You Don't Even Know It.",
-    "heroSubtitle": "Right now, ChatGPT, Gemini, and Claude are recommending your competitors to millions of people. Ainalytics shows you exactly what AI says about you — and what to fix. For a limited time: annual Starter plan at 60% off.",
-    "heroCta": "Claim My 60% Discount",
-    "painTitle": "If You Don't Know What AI Says About You, You're Already Losing Customers",
-    "pain1Title": "Silent Invisibility",
-    "pain1Desc": "Your customers ask AI 'what's the best X?' and AI answers with your competitors. You don't even know it's happening.",
-    "pain2Title": "Zero AI Data",
-    "pain2Desc": "You track Google, social media, reviews... but nobody is monitoring what ChatGPT says about you. It's your marketing's biggest blind spot.",
-    "pain3Title": "Competitors Ahead",
-    "pain3Desc": "While you ignore this channel, smart brands are optimizing their AI presence. Every day that passes, the gap grows.",
-    "bulletsTitle": "What You'll Discover With Ainalytics",
-    "bulletsSubtitle": "10 things your competitors probably already know about their AI presence — and you don't.",
-    "bullet1": "Exactly what ChatGPT, Claude, and Gemini say when people ask about your industry",
-    "bullet2": "Which competitors are being recommended instead of you (and why)",
-    "bullet3": "Whether AI is using outdated or wrong information about your brand",
-    "bullet4": "How your visibility changes week by week with a tracking score",
-    "bullet5": "Which pages of your site AI actually reads and cites in its responses",
-    "bullet6": "Whether your robots.txt is blocking AI crawlers without you knowing",
-    "bullet7": "Which version of your pitch AI is spreading to millions of users",
-    "bullet8": "Alerts when a platform suddenly stops mentioning you",
-    "bullet9": "How to generate an llm.txt file that makes your brand readable by any AI",
-    "bullet10": "Side-by-side comparison: what each AI says about you vs. competitors",
-    "testimonial1": "We discovered ChatGPT was recommending 3 competitors before us. In 2 weeks optimizing with Ainalytics, we moved to the top.",
+    "heroTitle1": "230 Million People Asked AI",
+    "heroTitle2": "About Your Industry Last Week.",
+    "heroTitle3": "Were You in the Answer?",
+    "heroSubtitle": "Right now, ChatGPT is recommending someone in your market. If it's not you, it's a competitor. Ainalytics monitors 5 AI platforms and shows you exactly who they recommend — and where you're invisible. Start with 7 days free, then lock in 60% off forever.",
+    "heroCta": "Start 7 Days Free — Lock In 60%",
+    "trialBadge": "7 Days Free",
+    "painTitle": "You're Spending Money on Marketing — But Ignoring the Channel That's Replacing Google",
+    "pain1Title": "You're invisible and don't know it",
+    "pain1Desc": "Someone just asked ChatGPT 'What's the best [your industry]?' and got your competitor's name. You have no idea this happened. It happens hundreds of times a day.",
+    "pain2Title": "Your biggest blind spot",
+    "pain2Desc": "You track Google rankings, social media, reviews. But nobody is watching what AI tells people about you. 40% of searches now go through AI first.",
+    "pain3Title": "The gap grows every day",
+    "pain3Desc": "While you read this, smart brands are already optimizing their AI presence. They're showing up in ChatGPT, Gemini, Claude. You're not. Every day you wait, they pull further ahead.",
+    "bulletsTitle": "10 Things Your Competitors Already Know About Their AI Presence",
+    "bulletsSubtitle": "And you don't. Yet.",
+    "bullet1": "The exact words ChatGPT uses when someone asks about your industry — and whether your name is in them",
+    "bullet2": "Which 3 competitors show up before you (and the specific prompts that trigger it)",
+    "bullet3": "Whether AI is telling people outdated or flat-out wrong things about your brand",
+    "bullet4": "Your visibility score across 5 platforms, tracked week by week so you see the trend",
+    "bullet5": "Which pages of your site AI actually reads and cites — and which it ignores completely",
+    "bullet6": "Whether your robots.txt is accidentally blocking AI crawlers (it probably is)",
+    "bullet7": "The exact version of your pitch that AI is spreading to millions of users right now",
+    "bullet8": "Instant alerts the moment a platform drops you from its recommendations",
+    "bullet9": "How to create an llm.txt file that makes your brand 3x more readable to every AI",
+    "bullet10": "A side-by-side comparison: what each AI says about you vs. your top competitors",
+    "testimonial1": "ChatGPT was recommending 3 competitors before us. Two weeks of optimizing with Ainalytics data and we're now the first name it mentions.",
     "testimonialAuthor1": "— Marketing Director, B2B SaaS",
-    "testimonial2": "We were completely invisible on Gemini. Without Ainalytics, we'd never have discovered this blind spot.",
-    "testimonialAuthor2": "— Founder, E-commerce",
-    "testimonial3": "AI was using 2022 data about our products. We fixed it in days thanks to the platform's insights.",
-    "testimonialAuthor3": "— Head of Content, Fintech",
-    "offerTitle": "Your Chance to Get In Before Everyone Else",
-    "offerSubtitle": "Annual Starter plan at 60% off — exclusive limited-time offer.",
+    "testimonial2": "We were completely invisible on Gemini. 180,000 monthly searches in our niche and zero mentions. We would never have found this without Ainalytics.",
+    "testimonialAuthor2": "— Founder, E-commerce brand",
+    "testimonial3": "AI was using 2022 pricing and a discontinued product name. Our team fixed it in 3 days using the platform's source tracking.",
+    "testimonialAuthor3": "— Head of Content, Fintech startup",
+    "offerTitle": "Lock In the Lowest Price We'll Ever Offer",
+    "offerSubtitle": "Try it free for 7 days. If you love it, you keep 60% off forever. If not, cancel before day 7 and pay nothing.",
     "priceWas": "Was",
     "priceNow": "Now just",
     "perMonth": "month",
     "perYear": "year",
-    "billedAnnually": "* Billed annually. Discounted annual total.",
+    "billedAnnually": "* Billed annually. Price locks in as long as you stay subscribed.",
     "includedTitle": "What's included:",
-    "included1": "3 AI monitoring prompts",
-    "included2": "Monthly results update",
-    "included3": "Monitoring on up to 3 AI platforms",
-    "included4": "Brand visibility score",
-    "included5": "Community support",
-    "guaranteeTitle": "Risk-free guarantee",
-    "guaranteeDesc": "Cancel anytime. No commitment, no penalties, no questions asked.",
-    "formTitle": "Create your account and activate the discount",
-    "formCta": "Activate My 60% Discount →",
-    "faqTitle": "Questions You Might Have",
-    "faq1Q": "Is this real? Will the price go back to normal?",
-    "faq1A": "Yes. This offer has limited time and spots. Those who join now lock in $39.60/month (billed annually) as long as their subscription stays active. The regular price is $99/month.",
+    "included1": "3 AI monitoring prompts tracked across platforms",
+    "included2": "Monthly visibility report with score tracking",
+    "included3": "Monitoring on up to 3 AI platforms (ChatGPT, Gemini, Claude)",
+    "included4": "Brand visibility score with competitor comparison",
+    "included5": "Community support + knowledge base",
+    "guaranteeTitle": "Try it free, then decide",
+    "guaranteeDesc": "Your first 7 days are completely free. Cancel with one click before day 7 and you pay nothing. Stay and your 60% discount locks in for life.",
+    "formTitle": "Start your free trial — your discount locks in immediately",
+    "formCta": "Start My 7-Day Free Trial →",
+    "faqTitle": "Before You Decide",
+    "faq1Q": "Is this real? Will the price actually go back up?",
+    "faq1A": "Yes. When these spots are taken, the price goes back to $99/month. If you sign up now, you lock in $39.60/month (billed annually) for as long as you stay subscribed. We won't raise your price.",
     "faq2Q": "Do I need a credit card?",
-    "faq2A": "Yes, a credit card is required to activate the discounted plan. But you can cancel anytime with no penalties.",
-    "faq3Q": "What happens if I cancel?",
-    "faq3A": "You can cancel anytime with no penalties. If you cancel and want to come back later, the price will be the regular $99/month.",
-    "faq4Q": "Does this work for any type of business?",
-    "faq4A": "If your customers use ChatGPT, Gemini, Claude, or any AI to research before buying — yes. It works for SaaS, e-commerce, services, agencies, consultancies, and any brand that depends on being found.",
-    "faq5Q": "Why is the discount so big?",
-    "faq5A": "We want committed early adopters who help us validate and improve the platform. In return, you lock in the best price we'll ever offer.",
-    "finalCtaTitle": "Every Hour That Passes, AI Forms New Opinions About You",
-    "finalCtaDesc": "You can keep ignoring what ChatGPT says about your brand. Or you can be among the first to monitor, optimize, and dominate this new channel. The choice is yours — but the 60% discount won't last.",
-    "finalCtaButton": "Claim My Spot at 60% OFF",
-    "finalCtaNote": "Limited spots · Offer expires soon · Price locks in forever",
+    "faq2A": "Yes, to start your free trial and reserve the discounted price. But you won't be charged for 7 days. Cancel before day 7 and you pay nothing.",
+    "faq3Q": "What if I cancel?",
+    "faq3A": "Cancel anytime, no penalties. But if you come back later, the price will be the regular $99/month. The 60% discount only applies to this offer.",
+    "faq4Q": "Does this work for my type of business?",
+    "faq4A": "If your customers use ChatGPT, Gemini, Claude, Grok, or Perplexity to research before buying — yes. Works for SaaS, e-commerce, agencies, consultancies, local businesses, and any brand that depends on being found.",
+    "faq5Q": "Why is the discount so aggressive?",
+    "faq5A": "We want committed early adopters who'll use the platform hard and give us feedback. In return, you get the lowest price we'll ever charge. Once these spots are filled, it's $99/month.",
+    "finalCtaTitle": "Right Now, Someone Is Asking AI About Your Industry",
+    "finalCtaDesc": "If your brand isn't in the answer, they'll go to whoever is. This happens hundreds of times a day. You can keep ignoring it, or you can be among the first to monitor, optimize, and own this channel. The 60% discount won't last.",
+    "finalCtaButton": "Start 7 Days Free →",
+    "finalCtaNote": "7 days free · 60% off forever · Cancel anytime",
     "successTitle": "Check your email!",
     "successDesc": "We sent you a confirmation link. Check your inbox (and spam folder) to activate your account with the exclusive discount."
   }
