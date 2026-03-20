@@ -1,6 +1,7 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
+import { captureException } from '@/lib/sentry';
 
 interface Props {
   children?: ReactNode;
@@ -24,6 +25,7 @@ class ErrorBoundaryClass extends Component<Props & { t: any }, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
+    captureException(error, { componentStack: errorInfo.componentStack });
   }
 
   public render() {

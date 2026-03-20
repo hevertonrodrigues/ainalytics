@@ -1,4 +1,5 @@
 export const APP_NAME = import.meta.env.VITE_APP_NAME || 'Ainalytics';
+export const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN || '';
 
 export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'http://localhost:54321';
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';

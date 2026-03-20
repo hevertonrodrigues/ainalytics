@@ -38,6 +38,7 @@ export default defineConfig({
           'vendor-i18n': ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
           'vendor-markdown': ['react-markdown'],
           'vendor-ui': ['lucide-react', 'intl-tel-input'],
+          'vendor-sentry': ['@sentry/react'],
         },
       },
     },

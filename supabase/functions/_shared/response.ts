@@ -2,6 +2,14 @@
  * Standard API response builders.
  * Every Edge Function MUST use these — never raw `new Response()`.
  */
+import { reportError } from "./sentry.ts";
+
+interface ErrorContext {
+  tenantId?: string;
+  userId?: string;
+  functionName?: string;
+  error?: unknown;
+}
 
 const JSON_HEADERS = {
   "Content-Type": "application/json",
@@ -67,7 +75,17 @@ export function conflict(message: string): Response {
   );
 }
 
-export function serverError(message = "Internal server error"): Response {
+export function serverError(message = "Internal server error", context?: ErrorContext): Response {
+  // Fire-and-forget error report to Sentry
+  const err = context?.error instanceof Error
+    ? context.error
+    : new Error(message);
+  reportError(err, {
+    tenantId: context?.tenantId,
+    userId: context?.userId,
+    functionName: context?.functionName,
+  });
+
   return json(
     { success: false, error: { message, code: "INTERNAL_ERROR" } },
     500,
