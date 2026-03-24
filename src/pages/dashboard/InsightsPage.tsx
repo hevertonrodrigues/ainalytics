@@ -298,7 +298,7 @@ function GeneratingOverlay({ phase, t }: { phase: number; t: (k: string) => stri
             {t('insightsPage.overlay.title')}
           </h3>
           <p className="text-sm text-gray-300 transition-all duration-500" key={phase}>
-            {t(OVERLAY_PHASES[phase] || OVERLAY_PHASES[0])}
+            {t(OVERLAY_PHASES[phase] ?? OVERLAY_PHASES[0]!)}
           </p>
         </div>
 
@@ -322,7 +322,7 @@ function GeneratingOverlay({ phase, t }: { phase: number; t: (k: string) => stri
 }
 
 function HealthScoreCard({ insights, t }: { insights: InsightsData; t: (k: string) => string }) {
-  const healthStyle = HEALTH_STYLES[insights.overall_health] || HEALTH_STYLES.good;
+  const healthStyle = (HEALTH_STYLES[insights.overall_health] ?? HEALTH_STYLES.good)!;
   const healthLabel =
     insights.overall_health === 'good' ? t('insightsPage.healthGood')
     : insights.overall_health === 'warning' ? t('insightsPage.healthWarning')
@@ -366,7 +366,7 @@ function HighlightsSection({ highlights, t }: { highlights: InsightsHighlight[];
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         {highlights.map((h, i) => {
-          const config = HIGHLIGHT_CONFIG[h.type] || HIGHLIGHT_CONFIG.neutral;
+          const config = (HIGHLIGHT_CONFIG[h.type] ?? HIGHLIGHT_CONFIG.neutral)!;
           const Icon = config.icon;
           return (
             <div
@@ -413,9 +413,9 @@ function ChecksSection({ checks, t }: { checks: InsightsCheck[]; t: (k: string) 
 }
 
 function CheckCard({ check, t }: { check: InsightsCheck; t: (k: string) => string }) {
-  const statusStyle = STATUS_STYLES[check.status] || STATUS_STYLES.warning;
-  const StatusIcon = STATUS_ICONS[check.status] || AlertTriangle;
-  const catConfig = CATEGORY_CONFIG[check.category] || CATEGORY_CONFIG.visibility;
+  const statusStyle = (STATUS_STYLES[check.status] ?? STATUS_STYLES.warning)!;
+  const StatusIcon = (STATUS_ICONS[check.status] ?? AlertTriangle)!;
+  const catConfig = (CATEGORY_CONFIG[check.category] ?? CATEGORY_CONFIG.visibility)!;
   const CatIcon = catConfig.icon;
 
   const statusLabel =
@@ -480,7 +480,7 @@ function ActionItemsSection({ items, t }: { items: InsightsActionItem[]; t: (k: 
 
       <div className="space-y-3">
         {sorted.map((item, i) => {
-          const catConfig = CATEGORY_CONFIG[item.category] || CATEGORY_CONFIG.visibility;
+          const catConfig = (CATEGORY_CONFIG[item.category] ?? CATEGORY_CONFIG.visibility)!;
           const CatIcon = catConfig.icon;
           const impactColor = IMPACT_COLORS[item.impact] || '#6c757d';
           const effortColor = IMPACT_COLORS[item.effort] || '#6c757d';
