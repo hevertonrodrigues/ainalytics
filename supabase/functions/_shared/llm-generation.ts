@@ -177,7 +177,7 @@ export async function extractWebsiteInformation(companyId: string, dbClient?: an
 }
 
 /**
- * Generates the llm.txt content based on previously extracted website information.
+ * Generates the llms.txt content based on previously extracted website information.
  */
 export async function generateLlmText(companyId: string, dbClient?: any): Promise<string> {
   const sb = dbClient || createAdminClient();
@@ -188,12 +188,12 @@ export async function generateLlmText(companyId: string, dbClient?: any): Promis
     .single();
 
   if (cdErr || !companyData) throw new Error("Failed to load extracted data.");
-  if (!companyData.extracted_content) throw new Error("Cannot generate LLM.txt without extracting information first.");
+  if (!companyData.extracted_content) throw new Error("Cannot generate LLMs.txt without extracting information first.");
 
   let sitemapSection = "";
   if (companyData.sitemap_xml) {
     const truncatedSitemap = companyData.sitemap_xml.slice(0, 15000);
-    sitemapSection = `\nTo assist you, here is the generated sitemap.xml content for the website. Use the structure and paths provided here to understand the website's hierarchy, find key pages, and formulate the best llm_txt file!\n<sitemap_xml>\n${truncatedSitemap}\n</sitemap_xml>`;
+    sitemapSection = `\nTo assist you, here is the generated sitemap.xml content for the website. Use the structure and paths provided here to understand the website's hierarchy, find key pages, and formulate the best llms_txt file!\n<sitemap_xml>\n${truncatedSitemap}\n</sitemap_xml>`;
   }
 
   let prompt = replaceVars(GENERATE_LLM_TXT_PROMPT, {
@@ -250,7 +250,7 @@ export async function autoGenerateAllLlmData(companyId: string, dbClient?: any):
     await extractWebsiteInformation(companyId, sb);
     console.log(`[llm-generation] Extraction complete for company ${companyId}`);
     await generateLlmText(companyId, sb);
-    console.log(`[llm-generation] LLM.txt generation complete for company ${companyId}`);
+    console.log(`[llm-generation] LLMs.txt generation complete for company ${companyId}`);
   } catch (err) {
     console.error(`[llm-generation] Auto-generation failed for company ${companyId}:`, err);
   }

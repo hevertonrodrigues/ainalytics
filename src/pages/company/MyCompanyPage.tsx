@@ -148,6 +148,7 @@ export function MyCompanyPage() {
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [reAnalyzing, setReAnalyzing] = useState(false);
+  const [retrying, setRetrying] = useState(false);
   const [confirmReAnalyze, setConfirmReAnalyze] = useState(false);
   const [domain, setDomain] = useState('');
   const [description, setDescription] = useState('');
@@ -287,7 +288,8 @@ export function MyCompanyPage() {
   };
 
   const handleRetry = async () => {
-    if (!company) return;
+    if (!company || retrying) return;
+    setRetrying(true);
     const analysis = company.latest_analysis;
     try {
       // Determine what to retry based on progress and status
@@ -306,6 +308,8 @@ export function MyCompanyPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       showToast(err.message || t('company.statusError'), 'error');
+    } finally {
+      setRetrying(false);
     }
   };
 
@@ -488,7 +492,7 @@ export function MyCompanyPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             { step: 1, icon: Globe, titleKey: 'company.stepScanTitle', descKey: 'company.stepScanDesc', fIcon: Target, fLabel: t('company.geoScore'), fColor: 'text-success', fBg: 'bg-success/10' },
-            { step: 2, icon: Bot, titleKey: 'company.stepAnalyzeTitle', descKey: 'company.stepAnalyzeDesc', fIcon: FileText, fLabel: 'LLM.txt', fColor: 'text-brand-secondary', fBg: 'bg-brand-secondary/10' },
+            { step: 2, icon: Bot, titleKey: 'company.stepAnalyzeTitle', descKey: 'company.stepAnalyzeDesc', fIcon: FileText, fLabel: 'LLMs.txt', fColor: 'text-brand-secondary', fBg: 'bg-brand-secondary/10' },
             { step: 3, icon: BarChart3, titleKey: 'company.stepMonitorTitle', descKey: 'company.stepMonitorDesc', fIcon: Zap, fLabel: t('company.aiReadiness'), fColor: 'text-warning', fBg: 'bg-warning/10' },
           ].map(({ step, icon: StepIcon, titleKey, descKey, fIcon: FIcon, fLabel, fColor, fBg }) => (
             <div key={step} className="dashboard-card relative overflow-hidden group flex flex-col">
@@ -640,8 +644,8 @@ export function MyCompanyPage() {
 
           {analysisStatus === 'error' && (
             <div className="flex flex-col items-center gap-3 mt-6">
-              <button onClick={handleRetry} className="btn btn-primary">
-                <RefreshCw className="w-4 h-4" />
+              <button onClick={handleRetry} disabled={retrying} className="btn btn-primary">
+                {retrying ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                 {t('company.retryAnalysis')}
               </button>
               {profile?.is_sa && (

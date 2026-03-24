@@ -28,7 +28,7 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       }
       body.tools = [webSearchTool];
       body.tool_choice = "required";
-      body.include = ["web_search_call.action.sources"];
+      body.include = ["output_text.annotations", "web_search_call.action.sources"];
     }
 
     // Retry loop: some models reject certain params (e.g. tools/web_search).

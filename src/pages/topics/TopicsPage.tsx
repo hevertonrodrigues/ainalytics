@@ -30,6 +30,7 @@ export function TopicsPage() {
   const [saving, setSaving] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const loadTopics = useCallback(async () => {
     try {
@@ -120,6 +121,8 @@ export function TopicsPage() {
   };
 
   const handleToggleActive = async (topic: Topic) => {
+    if (togglingId) return;
+    setTogglingId(topic.id);
     try {
       await apiClient.put('/topics-prompts', {
         id: topic.id,
@@ -128,6 +131,8 @@ export function TopicsPage() {
       await loadTopics();
     } catch {
       setError(t('common.error'));
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -190,6 +195,7 @@ export function TopicsPage() {
                 onEdit={openEdit}
                 onDelete={handleDelete}
                 onToggleActive={handleToggleActive}
+                disabledId={togglingId}
               />
             ))}
           </div>

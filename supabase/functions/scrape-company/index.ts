@@ -875,7 +875,7 @@ serve(async (req: Request) => {
             if (pageSummaries) contentParts.push(`\nKey Pages:\n${pageSummaries}`);
             const extracted_content = contentParts.join('\n') || null;
 
-            // Build llm.txt markdown from all available data
+            // Build llms.txt markdown from all available data
             const llmParts: string[] = [];
             llmParts.push(`# ${enReport.company_name || company.website_title || company.domain}`);
             llmParts.push('');

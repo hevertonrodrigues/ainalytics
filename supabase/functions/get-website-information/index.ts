@@ -12,8 +12,8 @@ import { createRequestLogger } from "../_shared/logger.ts";
  * 
  * Actions:
  * - 'extract': Uses the company's domain to scrape and extract: website_title, metatags, extracted_content, sitemap_xml.
- * - 'generate': Uses the extracted data to generate the llm_txt document.
- * - 'verify': Checks the live /llm.txt against the stored version.
+ * - 'generate': Uses the extracted data to generate the llms_txt document.
+ * - 'verify': Checks the live /llms.txt against the stored version.
  * - 'suggest_topics': Uses OpenAI to suggest AI monitoring topics based on extracted data.
  *
  * Uses OpenAI gpt-4o with web search capability for extraction, and standard generations for llm_txt.
@@ -90,7 +90,7 @@ serve(async (req: Request) => {
       let status = 'missing';
       
       try {
-        const llmUrl = buildTenantHttpsUrl(domain, "/llm.txt");
+        const llmUrl = buildTenantHttpsUrl(domain, "/llms.txt");
         const res = await fetchWithTimeout(llmUrl, { method: "GET" });
         
         if (res.ok) {
@@ -173,7 +173,7 @@ serve(async (req: Request) => {
     if (action === 'generate') {
       try {
         const llmTxt = await generateLlmText(companyId, sb);
-        return logger.done(withCors(req, ok({ success: true, message: "LLM.txt generated successfully.", data: { llm_txt: llmTxt } })));
+        return logger.done(withCors(req, ok({ success: true, message: "LLMs.txt generated successfully.", data: { llm_txt: llmTxt } })));
       } catch (err: any) {
         return logger.done(withCors(req, serverError(err.message || "Failed to generate LLM text.")));
       }

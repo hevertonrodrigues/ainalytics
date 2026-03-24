@@ -30,6 +30,7 @@ export function PromptsPage() {
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     try {
@@ -109,6 +110,8 @@ export function PromptsPage() {
   };
 
   const handleToggleActive = async (prompt: Prompt) => {
+    if (togglingId) return;
+    setTogglingId(prompt.id);
     try {
       await apiClient.put('/topics-prompts/prompts', {
         id: prompt.id,
@@ -117,6 +120,8 @@ export function PromptsPage() {
       await loadAll();
     } catch {
       setError(t('common.error'));
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -170,6 +175,7 @@ export function PromptsPage() {
                 onOpenEdit={openEdit}
                 onDeletePrompt={handleDelete}
                 onTogglePromptActive={handleToggleActive}
+                togglingPromptId={togglingId}
                 formMode={formMode}
                 formTopicId={formTopicId}
                 editingPrompt={editingPrompt}

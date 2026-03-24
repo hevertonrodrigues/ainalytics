@@ -19,6 +19,7 @@ export function PlatformsPage() {
   const [modelsMap, setModelsMap] = useState<Record<string, Model[]>>({});
 
   const [syncing, setSyncing] = useState<string | null>(null);
+  const [selectingModel, setSelectingModel] = useState<string | null>(null);
 
   const loadPlatforms = useCallback(async () => {
     try {
@@ -72,6 +73,8 @@ export function PlatformsPage() {
   };
 
   const handleModelSelect = async (platform: Platform, modelId: string) => {
+    if (selectingModel) return;
+    setSelectingModel(platform.id);
     try {
       await apiClient.put('/platforms', {
         id: platform.id,
@@ -81,6 +84,8 @@ export function PlatformsPage() {
       await loadPlatforms();
     } catch {
       setError(t('common.error'));
+    } finally {
+      setSelectingModel(null);
     }
   };
 

@@ -8,6 +8,7 @@ interface TopicListItemProps {
   onEdit: (topic: Topic) => void;
   onDelete: (id: string) => void;
   onToggleActive: (topic: Topic) => void;
+  disabledId?: string | null;
 }
 
 export function TopicListItem({
@@ -15,6 +16,7 @@ export function TopicListItem({
   onEdit,
   onDelete,
   onToggleActive,
+  disabledId,
 }: TopicListItemProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -55,6 +57,7 @@ export function TopicListItem({
       >
         <button
           onClick={() => onToggleActive(topic)}
+          disabled={disabledId === topic.id}
           className={`text-xs px-2 py-1 rounded-xs font-medium transition-colors ${
             topic.is_active
               ? 'text-success bg-success/10 hover:bg-success/20'

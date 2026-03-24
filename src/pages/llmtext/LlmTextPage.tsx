@@ -83,14 +83,14 @@ export function LlmTextPage() {
       });
 
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error?.message || 'Failed to generate LLM.txt');
+      if (!data?.success) throw new Error(data?.error?.message || 'Failed to generate LLMs.txt');
 
-      showToast(t('llmText.generateSuccess', 'LLM.txt generated successfully!'), 'success');
+      showToast(t('llmText.generateSuccess', 'LLMs.txt generated successfully!'), 'success');
       await fetchCompany();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
-      showToast(err.message || t('llmText.generateError', 'An error occurred while generating LLM.txt'), 'error');
+      showToast(err.message || t('llmText.generateError', 'An error occurred while generating LLMs.txt'), 'error');
     } finally {
       setGenerating(false);
     }
@@ -138,14 +138,14 @@ export function LlmTextPage() {
       });
 
       if (error) throw error;
-      if (!data?.success) throw new Error(data?.error?.message || 'Failed to verify llm.txt');
+      if (!data?.success) throw new Error(data?.error?.message || 'Failed to verify llms.txt');
 
       showToast(t('llmText.verifySuccess', 'Status verified successfully!'), 'success');
       await fetchCompany();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
-      showToast(err.message || t('llmText.verifyError', 'An error occurred while verifying llm.txt'), 'error');
+      showToast(err.message || t('llmText.verifyError', 'An error occurred while verifying llms.txt'), 'error');
     } finally {
       setVerifying(false);
     }
@@ -158,7 +158,7 @@ export function LlmTextPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `llm.txt`;
+    a.download = `llms.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -212,7 +212,7 @@ export function LlmTextPage() {
         <div>
           <h1 className="text-2xl font-bold text-text-primary capitalize flex items-center gap-2">
             <FileText className="w-6 h-6 text-brand-primary" />
-            {t('nav.llmText', 'LLM.TXT Generator')}
+            {t('nav.llmText', 'LLMs.TXT Generator')}
           </h1>
           <p className="text-text-secondary mt-1">
             {t('llmText.description', 'Analyze your main domain to automatically generate context for AI models.')}
@@ -246,7 +246,7 @@ export function LlmTextPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-xs font-medium text-text-muted uppercase tracking-wider block">
-                      {t('llmText.llmTxtStatus', 'llm.txt Live Status')}
+                      {t('llmText.llmTxtStatus', 'llms.txt Live Status')}
                     </label>
                     <button 
                       onClick={() => setShowInfoModal(true)}
@@ -366,7 +366,7 @@ export function LlmTextPage() {
                   ) : (
                     <>
                       <FileText className="w-4 h-4" />
-                      {t('llmText.generateLlmTxt', 'Generate LLM.txt')}
+                      {t('llmText.generateLlmTxt', 'Generate LLMs.txt')}
                     </>
                   )}
                 </button>
@@ -424,7 +424,7 @@ export function LlmTextPage() {
                     ) : (
                       <>
                         <RefreshCw className="w-4 h-4" />
-                        {t('llmText.verifyLive', 'Verify Live llm.txt')}
+                        {t('llmText.verifyLive', 'Verify Live llms.txt')}
                       </>
                     )}
                   </button>
@@ -442,7 +442,7 @@ export function LlmTextPage() {
                     className="btn bg-bg-secondary hover:bg-glass-hover border border-glass-border text-text-primary w-full py-2 flex items-center justify-center gap-2"
                   >
                     <Download className="w-4 h-4" />
-                    {t('llmText.download', 'Download llm.txt')}
+                    {t('llmText.download', 'Download llms.txt')}
                   </button>
                 </div>
               )}
@@ -492,7 +492,7 @@ export function LlmTextPage() {
           <div className="card">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-text-primary">
-                {t('llmText.previewTitle', 'llm.txt Preview')}
+                {t('llmText.previewTitle', 'llms.txt Preview')}
               </h2>
             </div>
             
@@ -530,7 +530,7 @@ export function LlmTextPage() {
               ) : (
                 <div className="h-[200px] flex flex-col items-center justify-center text-text-muted p-4">
                   <FileText className="w-8 h-8 opacity-20 mb-2" />
-                  <p className="text-sm">{t('llmText.noPreview', 'Run extraction to generate llm.txt preview')}</p>
+                  <p className="text-sm">{t('llmText.noPreview', 'Run extraction to generate llms.txt preview')}</p>
                 </div>
               )}
             </div>
@@ -566,7 +566,7 @@ function DeploymentHelpModal({ onClose, domain }: { onClose: () => void; domain?
         <div className="flex items-center justify-between p-5 border-b border-white/10">
           <h3 className="text-lg font-semibold text-white flex items-center gap-2">
             <Globe className="w-5 h-5 text-brand-primary" />
-            {t('llmText.howToDeploy', 'How to Deploy llm.txt')}
+            {t('llmText.howToDeploy', 'How to Deploy llms.txt')}
           </h3>
           <button 
             onClick={onClose}
@@ -580,13 +580,13 @@ function DeploymentHelpModal({ onClose, domain }: { onClose: () => void; domain?
             {t('llmText.deployInstruction1', 'To make this file available to AI scrapers and search platforms, you must host it at the root of your main domain.')}
           </p>
           <div className="bg-bg-primary border border-white/5 rounded-lg p-3 font-mono text-xs text-brand-primary/80">
-            https://{domain}/llm.txt
+            https://{domain}/llms.txt
           </div>
           <ul className="list-disc pl-5 space-y-2">
-            <li>{t('llmText.deployStep1', 'Download the generated llm.txt file using the download button.')}</li>
+            <li>{t('llmText.deployStep1', 'Download the generated llms.txt file using the download button.')}</li>
             <li>{t('llmText.deployStep2', 'Upload the text file to the "public" folder (or root directory) of your hosting provider.')}</li>
             <li>{t('llmText.deployStep3', 'Ensure it is publicly accessible without authentication.')}</li>
-            <li>{t('llmText.deployStep4', 'Click "Verify Live llm.txt" to check if our servers can detect the correct version.')}</li>
+            <li>{t('llmText.deployStep4', 'Click "Verify Live llms.txt" to check if our servers can detect the correct version.')}</li>
           </ul>
         </div>
         <div className="p-5 border-t border-white/10 flex justify-end">

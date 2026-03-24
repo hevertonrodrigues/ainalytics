@@ -524,6 +524,46 @@ export interface CompanyAiAnalysis {
   updated_at: string;
 }
 
+// ────────────────────────────────────────────────────────────
+// Insights Reports (AI-generated account health analysis)
+// ────────────────────────────────────────────────────────────
+
+export interface InsightsCheck {
+  id: string;
+  category: 'visibility' | 'content' | 'technical' | 'monitoring' | 'competitive';
+  title: string;
+  status: 'pass' | 'warning' | 'fail';
+  detail: string;
+  recommendation: string;
+}
+
+export interface InsightsActionItem {
+  priority: number;
+  title: string;
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+  effort: 'high' | 'medium' | 'low';
+  category: string;
+}
+
+export interface InsightsHighlight {
+  type: 'positive' | 'negative' | 'neutral';
+  text: string;
+}
+
+export interface InsightsData {
+  id: string;
+  tenant_id: string;
+  overall_health: 'good' | 'warning' | 'critical';
+  health_score: number;
+  summary: string;
+  checks: InsightsCheck[];
+  action_items: InsightsActionItem[];
+  highlights: InsightsHighlight[];
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TenantCompany {
   id: string;
   tenant_id: string;

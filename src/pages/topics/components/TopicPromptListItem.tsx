@@ -8,6 +8,7 @@ interface TopicPromptListItemProps {
   onEdit: (prompt: Prompt) => void;
   onDelete: (id: string) => void;
   onToggleActive: (prompt: Prompt) => void;
+  disabledId?: string | null;
 }
 
 export function TopicPromptListItem({
@@ -15,6 +16,7 @@ export function TopicPromptListItem({
   onEdit,
   onDelete,
   onToggleActive,
+  disabledId,
 }: TopicPromptListItemProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -50,6 +52,7 @@ export function TopicPromptListItem({
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           onClick={() => onToggleActive(prompt)}
+          disabled={disabledId === prompt.id}
           className={`text-xs px-2 py-1 rounded-xs font-medium transition-colors ${
             prompt.is_active
               ? 'text-success bg-success/10 hover:bg-success/20'

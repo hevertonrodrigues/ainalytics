@@ -13,6 +13,7 @@ interface TopicPromptGroupProps {
   onOpenEdit: (prompt: Prompt) => void;
   onDeletePrompt: (id: string) => void;
   onTogglePromptActive: (prompt: Prompt) => void;
+  togglingPromptId?: string | null;
   formMode: FormMode;
   formTopicId: string | null;
   editingPrompt: Prompt | null;
@@ -28,6 +29,7 @@ export function TopicPromptGroup({
   onOpenEdit,
   onDeletePrompt,
   onTogglePromptActive,
+  togglingPromptId,
   formMode,
   formTopicId,
   editingPrompt,
@@ -95,6 +97,7 @@ export function TopicPromptGroup({
                 onEdit={onOpenEdit}
                 onDelete={onDeletePrompt}
                 onToggleActive={onTogglePromptActive}
+                disabledId={togglingPromptId}
               />
             ))
           )}

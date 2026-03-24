@@ -68,12 +68,12 @@ INSERT INTO faq (question_en, answer_en, question_pt, answer_pt, question_es, an
   'public', 2
 ),
 (
-  'What is the LLM.txt file?',
-  'LLM.txt is a specialized file you host on your website that provides AI scrapers with accurate, structured information about your business. It helps ensure AI platforms have the most up-to-date data about your brand.',
-  'O que é o arquivo LLM.txt?',
-  'LLM.txt é um arquivo especializado que você hospeda no seu site para fornecer aos scrapers de IA informações precisas e estruturadas sobre seu negócio. Ele garante que as plataformas de IA tenham os dados mais atualizados sobre sua marca.',
-  '¿Qué es el archivo LLM.txt?',
-  'LLM.txt es un archivo especializado que aloja en su sitio web y proporciona a los rastreadores de IA información precisa y estructurada sobre su negocio. Ayuda a garantizar que las plataformas de IA tengan los datos más actualizados sobre su marca.',
+  'What is the LLMs.txt file?',
+  'LLMs.txt is a specialized file you host on your website that provides AI scrapers with accurate, structured information about your business. It helps ensure AI platforms have the most up-to-date data about your brand.',
+  'O que é o arquivo LLMs.txt?',
+  'LLMs.txt é um arquivo especializado que você hospeda no seu site para fornecer aos scrapers de IA informações precisas e estruturadas sobre seu negócio. Ele garante que as plataformas de IA tenham os dados mais atualizados sobre sua marca.',
+  '¿Qué es el archivo LLMs.txt?',
+  'LLMs.txt es un archivo especializado que aloja en su sitio web y proporciona a los rastreadores de IA información precisa y estructurada sobre su negocio. Ayuda a garantizar que las plataformas de IA tengan los datos más actualizados sobre su marca.',
   'public', 3
 ),
 (

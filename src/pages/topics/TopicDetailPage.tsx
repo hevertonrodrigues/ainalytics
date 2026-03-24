@@ -30,6 +30,7 @@ export function TopicDetailPage() {
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!topicId) return;
@@ -97,6 +98,8 @@ export function TopicDetailPage() {
   };
 
   const handleToggleActive = async (prompt: Prompt) => {
+    if (togglingId) return;
+    setTogglingId(prompt.id);
     try {
       await apiClient.put('/topics-prompts/prompts', {
         id: prompt.id,
@@ -105,6 +108,8 @@ export function TopicDetailPage() {
       await loadData();
     } catch {
       setError(t('common.error'));
+    } finally {
+      setTogglingId(null);
     }
   };
 
@@ -167,6 +172,7 @@ export function TopicDetailPage() {
                 onEdit={openEdit}
                 onDelete={handleDelete}
                 onToggleActive={handleToggleActive}
+                disabledId={togglingId}
               />
             ))}
           </div>
