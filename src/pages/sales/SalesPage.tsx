@@ -13,9 +13,11 @@ import {
   Star,
   ChevronDown,
   X,
+  CalendarCheck,
 } from 'lucide-react';
 import { SignUpForm } from '@/components/SignUpForm';
 import { APP_NAME } from '@/lib/constants';
+import { trackCTAClick, trackBookCallClick } from '@/lib/analytics';
 
 
 
@@ -253,10 +255,20 @@ export function SalesPage() {
           </h1>
           <p className="sales-hero-subtitle">{t('sales.heroSubtitle')}</p>
           <div className="sales-hero-cta">
-            <button className="btn btn-primary btn-lg" onClick={scrollToForm}>
+            <button className="btn btn-primary btn-lg" onClick={() => { trackCTAClick('hero_signup', '/oferta-marco'); scrollToForm(); }}>
               {t('sales.heroCta')}
               <ArrowRight className="w-5 h-5" />
             </button>
+            <a
+              href="https://fantastical.app/nadai/ainalytics"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-ghost btn-lg btn-book-call"
+              onClick={() => trackBookCallClick('hero', '/oferta-marco')}
+            >
+              <CalendarCheck className="w-4 h-4" />
+              {t('sales.heroCtaBookCall')}
+            </a>
           </div>
         </div>
       </section>
@@ -406,17 +418,47 @@ export function SalesPage() {
         </div>
       </section>
 
+      {/* ══════════════ BOOK A CALL ══════════════ */}
+      <section className="sales-book-call sales-reveal">
+        <div className="sales-container sales-book-call-inner">
+          <CalendarCheck className="w-10 h-10" style={{ color: 'var(--brand-secondary)' }} />
+          <h2>{t('sales.bookCall.title')}</h2>
+          <p>{t('sales.bookCall.subtitle')}</p>
+          <a
+            href="https://fantastical.app/nadai/ainalytics"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary btn-lg btn-book-call"
+            onClick={() => trackBookCallClick('mid_section', '/oferta-marco')}
+          >
+            <CalendarCheck className="w-5 h-5" />
+            {t('sales.bookCall.cta')}
+          </a>
+          <span className="sales-book-call-note">{t('sales.bookCall.note')}</span>
+        </div>
+      </section>
+
       {/* ══════════════ FINAL CTA ══════════════ */}
       <section className="sales-final-cta sales-reveal">
         <div className="sales-container">
           <TrendingUp className="w-10 h-10 text-brand-secondary" />
           <h2>{t('sales.finalCtaTitle')}</h2>
           <p>{t('sales.finalCtaDesc')}</p>
-          <button className="btn btn-primary btn-lg" onClick={scrollToForm}>
+          <button className="btn btn-primary btn-lg" onClick={() => { trackCTAClick('final_cta_signup', '/oferta-marco'); scrollToForm(); }}>
             {t('sales.finalCtaButton')}
             <ArrowRight className="w-5 h-5" />
           </button>
           <span className="sales-final-note">{t('sales.finalCtaNote')}</span>
+          <a
+            href="https://fantastical.app/nadai/ainalytics"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sales-cta-book-call-alt"
+            onClick={() => trackBookCallClick('final_cta', '/oferta-marco')}
+          >
+            <CalendarCheck className="w-4 h-4" />
+            {t('sales.finalCtaBookCall')}
+          </a>
         </div>
       </section>
 
@@ -432,10 +474,19 @@ export function SalesPage() {
 
       {/* Mobile Sticky CTA */}
       <div className={`sales-sticky-cta ${showStickyCta && !stickyCtaDismissed ? 'visible' : ''}`}>
-        <button className="btn btn-primary" onClick={scrollToForm}>
+        <button className="btn btn-primary" onClick={() => { trackCTAClick('sticky_signup', '/oferta-marco'); scrollToForm(); }}>
           {t('sales.heroCta')}
           <ArrowRight className="w-4 h-4" />
         </button>
+        <a
+          href="https://fantastical.app/nadai/ainalytics"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-ghost btn-book-call-sticky"
+          onClick={() => trackBookCallClick('sticky', '/oferta-marco')}
+        >
+          <CalendarCheck className="w-4 h-4" />
+        </a>
         <button
           className="sales-sticky-cta-dismiss"
           onClick={() => setStickyCtaDismissed(true)}

@@ -401,7 +401,8 @@
       "subtitle": "230 milhões de pessoas fizeram uma pergunta ao ChatGPT na semana passada. Muitas delas perguntaram sobre o seu mercado. Se sua marca não aparece nessas respostas — a de outra pessoa aparece.",
       "cta": "Veja o que a IA diz sobre você",
       "ctaSecondary": "Veja funcionando",
-      "trustedBy": "Grátis para começar · Sem cartão · Resultados em 60 segundos"
+      "ctaBookCall": "Agendar uma Apresentação",
+      "trustedBy": "Comece grátis"
     },
     "logos": {
       "title": "Monitoramos o que estas plataformas de IA falam sobre você"
@@ -525,11 +526,18 @@
         ]
       }
     },
+    "bookCall": {
+      "title": "Prefere uma Demonstração ao Vivo?",
+      "subtitle": "Agende uma reunião de 15 minutos com nosso especialista. Vamos analisar sua marca ao vivo e mostrar exatamente onde a IA te menciona — e onde você é invisível.",
+      "cta": "Agendar Reunião Gratuita",
+      "note": "15 min · Sem compromisso · Análise ao vivo da sua marca"
+    },
     "cta": {
       "title": "Enquanto você pensa nisso, a IA já está respondendo.",
       "subtitle": "Agora mesmo, alguém está perguntando a uma IA sobre seu mercado. Se sua marca não aparece, esse cliente vai para quem aparece. Isso se acumula a cada dia.",
       "button": "Verificar minha visibilidade IA — grátis",
-      "noCard": "Sem cartão · Sem ligações · Resultados em 60 segundos"
+      "noCard": "Comece grátis",
+      "bookCall": "ou agende uma demonstração"
     },
     "faq": {
       "title": "Tem",
@@ -1153,6 +1161,7 @@
     "heroTitle3": "Você Estava na Resposta?",
     "heroSubtitle": "Agora mesmo, o ChatGPT está recomendando alguém no seu mercado. Se não é você, é um concorrente. O Ainalytics monitora 5 plataformas de IA e mostra exatamente quem elas recomendam — e onde você é invisível. Comece com 7 dias grátis, depois trave 60% de desconto para sempre.",
     "heroCta": "Começar 7 Dias Grátis — Travar 60%",
+    "heroCtaBookCall": "Agendar Apresentação Gratuita",
     "trialBadge": "7 Dias Grátis",
     "painTitle": "Você Gasta com Marketing — Mas Ignora o Canal que Está Substituindo o Google",
     "pain1Title": "Você é invisível e nem sabe",
@@ -1207,10 +1216,17 @@
     "faq4A": "Se seus clientes usam ChatGPT, Gemini, Claude, Grok ou Perplexity para pesquisar antes de comprar — sim. Funciona para SaaS, e-commerce, agências, consultorias, negócios locais e qualquer marca que depende de ser encontrada.",
     "faq5Q": "Por que o desconto é tão agressivo?",
     "faq5A": "Queremos early adopters comprometidos que usem a plataforma intensamente e nos deem feedback. Em troca, você garante o menor preço que cobraremos. Quando as vagas acabarem, volta para R$ 495,00/mês.",
+    "bookCall": {
+      "title": "Quer ver o Ainalytics funcionando ao vivo?",
+      "subtitle": "Agende uma demonstração gratuita de 15 minutos. Mostramos como sua marca aparece nas 5 plataformas de IA — na hora, usando seus próprios dados.",
+      "cta": "Agendar Demonstração Gratuita",
+      "note": "15 min · Sem compromisso · Ao vivo com seus dados"
+    },
     "finalCtaTitle": "Agora Mesmo, Alguém Está Perguntando à IA Sobre o Seu Mercado",
     "finalCtaDesc": "Se sua marca não está na resposta, esse cliente vai para quem está. Isso acontece centenas de vezes por dia. Você pode continuar ignorando, ou pode ser dos primeiros a monitorar, otimizar e dominar esse canal. O desconto de 60% não vai durar.",
     "finalCtaButton": "Começar 7 Dias Grátis →",
     "finalCtaNote": "7 dias grátis · 60% off para sempre · Cancele quando quiser",
+    "finalCtaBookCall": "ou agende uma demonstração",
     "successTitle": "Verifique seu e-mail!",
     "successDesc": "Enviamos um link de confirmação. Verifique sua caixa de entrada (e spam) para ativar sua conta com o desconto exclusivo."
   }

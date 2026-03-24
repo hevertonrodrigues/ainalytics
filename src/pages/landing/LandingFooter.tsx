@@ -1,13 +1,15 @@
 import { useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Instagram } from 'lucide-react';
+import { Instagram, Sun, Moon } from 'lucide-react';
 import { APP_NAME, LOCALES } from '@/lib/constants';
+import { useTheme } from '@/contexts/ThemeContext';
 
 const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT' };
 
 export function LandingFooter() {
   const { t, i18n } = useTranslation();
+  const { theme, toggleTheme } = useTheme();
 
   const changeLang = useCallback(
     (lng: string) => { i18n.changeLanguage(lng); },
@@ -69,6 +71,9 @@ export function LandingFooter() {
               </button>
             ))}
           </div>
+          <button onClick={toggleTheme} className="icon-btn" aria-label="Toggle theme">
+            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
         </div>
       </div>
     </footer>

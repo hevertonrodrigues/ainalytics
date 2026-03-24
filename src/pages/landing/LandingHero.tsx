@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, CalendarCheck } from 'lucide-react';
+import { trackCTAClick, trackBookCallClick } from '@/lib/analytics';
 
 function RotatingText({ words }: { words: string[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -69,12 +70,22 @@ export function LandingHero() {
         </h1>
         <p className="landing-hero-subtitle">{t('landing.hero.subtitle')}</p>
         <div className="landing-hero-cta">
-          <Link to="/signup" className="btn btn-primary btn-lg">
+          <Link to="/signup" className="btn btn-primary btn-lg" onClick={() => trackCTAClick('hero_signup', '/landing')}>
             {t('landing.hero.cta')}
             <ArrowRight className="w-4 h-4" />
           </Link>
-          <a href="#preview" className="btn btn-secondary btn-lg">
+          <a href="#preview" className="btn btn-secondary btn-lg" onClick={() => trackCTAClick('hero_watch_demo', '/landing')}>
             {t('landing.hero.ctaSecondary')}
+          </a>
+          <a
+            href="https://fantastical.app/nadai/ainalytics"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-ghost btn-lg btn-book-call"
+            onClick={() => trackBookCallClick('hero', '/landing')}
+          >
+            <CalendarCheck className="w-4 h-4" />
+            {t('landing.hero.ctaBookCall')}
           </a>
         </div>
         <p className="landing-hero-trust">{t('landing.hero.trustedBy')}</p>

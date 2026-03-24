@@ -27,7 +27,7 @@ import { runDeepAnalyze } from "../_shared/deep-analyze-core.ts";
 
 // ─── Helpers ────────────────────────────────────────────────
 
-import { fetchSafe, fetchWithRedirectChain, extractLinksFromHtml, MAX_PAGES_TO_SCRAPE } from "./fetch-utils.ts";
+import { fetchSafe, fetchWithRedirectChain, extractLinksFromHtml, selectDiversePages, MAX_PAGES_TO_SCRAPE } from "./fetch-utils.ts";
 
 // extractLinksFromHtml is imported from fetch-utils.ts
 
@@ -316,8 +316,18 @@ serve(async (req: Request) => {
       // Start with sitemap URLs — capped at MAX_PAGES_TO_SCRAPE
       if (sitemapXml) {
         const allSitemapUrls = extractUrlsFromSitemap(sitemapXml);
-        pageUrls = allSitemapUrls.slice(0, MAX_PAGES_TO_SCRAPE);
-        console.log(`[scrape] Extracted ${allSitemapUrls.length} URLs from sitemap, using ${pageUrls.length} (max ${MAX_PAGES_TO_SCRAPE})`);
+        pageUrls = selectDiversePages(allSitemapUrls, MAX_PAGES_TO_SCRAPE);
+        // Log group distribution for debugging
+        const groups = new Map<string, number>();
+        for (const u of pageUrls) {
+          try {
+            const segs = new URL(u).pathname.split("/").filter(Boolean);
+            const g = segs.length > 0 ? segs[0] : "_root";
+            groups.set(g, (groups.get(g) || 0) + 1);
+          } catch { /* skip */ }
+        }
+        const distrib = Array.from(groups.entries()).map(([k, v]) => `${k}:${v}`).join(", ");
+        console.log(`[scrape] Extracted ${allSitemapUrls.length} URLs from sitemap, selected ${pageUrls.length} diverse pages (${distrib})`);
       }
       // Ensure homepage is first
       if (

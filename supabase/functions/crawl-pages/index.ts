@@ -3,7 +3,7 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { ok, serverError, unauthorized } from "../_shared/response.ts";
 import { extractFromHtml } from "../scrape-company/geo-extract.ts";
-import { fetchWithRedirectChain, extractLinksFromHtml, MAX_PAGES_TO_SCRAPE } from "../scrape-company/fetch-utils.ts";
+import { fetchWithRedirectChain, extractLinksFromHtml, selectDiversePages, MAX_PAGES_TO_SCRAPE } from "../scrape-company/fetch-utils.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
@@ -223,14 +223,24 @@ serve(async (req: Request) => {
 
       const newRows: { analysis_id: string; url: string; status: string; page_order: number }[] = [];
 
+      // Collect all discovered links, deduplicate, then pick diverse subset
+      let allDiscovered: string[] = [];
       for (const crawled of crawledPages) {
-        if (!crawled.html || totalNow + newRows.length >= MAX_PAGES_TO_SCRAPE) break;
+        if (!crawled.html) continue;
         const discovered = extractLinksFromHtml(crawled.html, crawled.url);
         for (const link of discovered) {
-          if (totalNow + newRows.length >= MAX_PAGES_TO_SCRAPE) break;
           const clean = link.replace(/\/$/, "");
-          if (existingUrls.has(clean)) continue;
-          existingUrls.add(clean);
+          if (!existingUrls.has(clean)) {
+            allDiscovered.push(link);
+            existingUrls.add(clean);
+          }
+        }
+      }
+
+      const remaining = MAX_PAGES_TO_SCRAPE - totalNow;
+      if (remaining > 0 && allDiscovered.length > 0) {
+        const selected = selectDiversePages(allDiscovered, remaining);
+        for (const link of selected) {
           newRows.push({
             analysis_id: analysisId,
             url: link,

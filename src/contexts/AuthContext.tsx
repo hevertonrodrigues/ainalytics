@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import { supabase } from '@/lib/supabase';
 import { apiClient } from '@/lib/api';
 import { STORAGE_KEYS } from '@/lib/constants';
+import { setUserContext, clearUserContext } from '@/lib/sentry';
 import type { Profile, Tenant } from '@/types';
 
 interface AuthState {
@@ -41,6 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       apiClient
         .get<{ profile: Profile; tenants: Tenant[] }>('/users-me')
         .then((res) => {
+          if (res.data.profile) {
+            setUserContext(res.data.profile.id, res.data.profile.email);
+          }
           setState({
             profile: res.data.profile,
             tenants: res.data.tenants,
@@ -49,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
         })
         .catch(() => {
+          clearUserContext();
           localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
           localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
           setState({ profile: null, tenants: [], loading: false, initialized: true });
@@ -76,6 +81,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
 
     const res = await apiClient.get<{ profile: Profile; tenants: Tenant[] }>('/users-me');
+
+    if (res.data?.profile) {
+      setUserContext(res.data.profile.id, res.data.profile.email);
+    }
 
     const firstTenant = res.data?.tenants?.[0];
     if (firstTenant) {
@@ -137,6 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    clearUserContext();
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.CURRENT_TENANT_ID);

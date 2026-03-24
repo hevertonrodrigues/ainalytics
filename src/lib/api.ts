@@ -1,6 +1,7 @@
 import { EDGE_FUNCTION_BASE, SUPABASE_ANON_KEY, STORAGE_KEYS } from './constants';
 import type { ApiResponse, ApiSuccessResponse } from '@/types';
 import { supabase } from './supabase';
+import { captureException } from './sentry';
 
 /**
  * API client for calling Supabase Edge Functions.
@@ -101,6 +102,17 @@ async function request<T>(
     const err = new Error(msg) as Error & { code?: string; status?: number };
     err.code = json.error?.code;
     err.status = res.status;
+
+    // Report non-auth API errors to Sentry
+    if (res.status !== 401) {
+      captureException(err, {
+        method,
+        path: cleanPath,
+        statusCode: res.status,
+        errorCode: json.error?.code,
+      });
+    }
+
     throw err;
   }
 

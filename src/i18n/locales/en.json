@@ -401,7 +401,8 @@
       "subtitle": "230 million people asked ChatGPT a question last week. Many of them were asking about your industry. If your brand doesn't show up in those answers — someone else's does.",
       "cta": "See what AI says about you",
       "ctaSecondary": "Watch it work",
-      "trustedBy": "Free to start · No credit card · Results in 60 seconds"
+      "ctaBookCall": "Book a Presentation",
+      "trustedBy": "Start for free"
     },
     "logos": {
       "title": "We monitor what these AI platforms say about you"
@@ -525,11 +526,18 @@
         ]
       }
     },
+    "bookCall": {
+      "title": "Prefer a Live Walkthrough?",
+      "subtitle": "Book a 15-minute meeting with our specialist. We'll analyze your brand live and show you exactly where AI mentions you — and where you're invisible.",
+      "cta": "Book a Free Meeting",
+      "note": "15 min · No commitment · Live brand analysis"
+    },
     "cta": {
       "title": "While you're thinking about it, AI is already answering.",
       "subtitle": "Right now, someone is asking an AI about your industry. If your brand doesn't show up, that customer goes to whoever does. This compounds every single day.",
       "button": "Check my AI visibility — free",
-      "noCard": "No credit card · No setup calls · Results in 60 seconds"
+      "noCard": "Start for free",
+      "bookCall": "or book a demo"
     },
     "faq": {
       "title": "Got",
@@ -1153,6 +1161,7 @@
     "heroTitle3": "Were You in the Answer?",
     "heroSubtitle": "Right now, ChatGPT is recommending someone in your market. If it's not you, it's a competitor. Ainalytics monitors 5 AI platforms and shows you exactly who they recommend — and where you're invisible. Start with 7 days free, then lock in 60% off forever.",
     "heroCta": "Start 7 Days Free — Lock In 60%",
+    "heroCtaBookCall": "Book a Free Presentation",
     "trialBadge": "7 Days Free",
     "painTitle": "You're Spending Money on Marketing — But Ignoring the Channel That's Replacing Google",
     "pain1Title": "You're invisible and don't know it",
@@ -1207,10 +1216,17 @@
     "faq4A": "If your customers use ChatGPT, Gemini, Claude, Grok, or Perplexity to research before buying — yes. Works for SaaS, e-commerce, agencies, consultancies, local businesses, and any brand that depends on being found.",
     "faq5Q": "Why is the discount so aggressive?",
     "faq5A": "We want committed early adopters who'll use the platform hard and give us feedback. In return, you get the lowest price we'll ever charge. Once these spots are filled, it's $99/month.",
+    "bookCall": {
+      "title": "Want to see Ainalytics live?",
+      "subtitle": "Book a free 15-minute demo. We'll show you how your brand appears across all 5 AI platforms — live, using your own data.",
+      "cta": "Book a Free Demo",
+      "note": "15 min · No commitment · Live with your data"
+    },
     "finalCtaTitle": "Right Now, Someone Is Asking AI About Your Industry",
     "finalCtaDesc": "If your brand isn't in the answer, they'll go to whoever is. This happens hundreds of times a day. You can keep ignoring it, or you can be among the first to monitor, optimize, and own this channel. The 60% discount won't last.",
     "finalCtaButton": "Start 7 Days Free →",
     "finalCtaNote": "7 days free · 60% off forever · Cancel anytime",
+    "finalCtaBookCall": "or book a demo",
     "successTitle": "Check your email!",
     "successDesc": "We sent you a confirmation link. Check your inbox (and spam folder) to activate your account with the exclusive discount."
   }

@@ -12,8 +12,10 @@ import {
   ChevronRight,
   ArrowRight,
   X,
+  CalendarCheck,
 } from 'lucide-react';
 import { Suspense, lazy } from 'react';
+import { trackCTAClick, trackBookCallClick } from '@/lib/analytics';
 
 const PricingPlans = lazy(() => import('@/components/PricingPlans').then(m => ({ default: m.PricingPlans })));
 const InterestFormModal = lazy(() => import('@/components/InterestFormModal').then(m => ({ default: m.InterestFormModal })));
@@ -312,16 +314,46 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ─── Book a Call ─── */}
+      <section className="landing-book-call landing-reveal">
+        <div className="landing-container landing-book-call-inner">
+          <CalendarCheck className="w-10 h-10" style={{ color: 'var(--brand-secondary)' }} />
+          <h2>{t('landing.bookCall.title')}</h2>
+          <p>{t('landing.bookCall.subtitle')}</p>
+          <a
+            href="https://fantastical.app/nadai/ainalytics"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary btn-lg btn-book-call"
+            onClick={() => trackBookCallClick('mid_section', '/landing')}
+          >
+            <CalendarCheck className="w-5 h-5" />
+            {t('landing.bookCall.cta')}
+          </a>
+          <span className="landing-book-call-note">{t('landing.bookCall.note')}</span>
+        </div>
+      </section>
+
       {/* ─── Final CTA ─── */}
       <section className="landing-final-cta landing-reveal">
         <div className="landing-container landing-final-cta-inner">
           <h2>{t('landing.cta.title')}</h2>
           <p>{t('landing.cta.subtitle')}</p>
-          <Link to="/signup" className="btn btn-primary btn-lg">
+          <Link to="/signup" className="btn btn-primary btn-lg" onClick={() => trackCTAClick('final_cta_signup', '/landing')}>
             {t('landing.cta.button')}
             <ArrowRight className="w-4 h-4" />
           </Link>
           <span className="landing-no-card">{t('landing.cta.noCard')}</span>
+          <a
+            href="https://fantastical.app/nadai/ainalytics"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="landing-cta-book-call-alt"
+            onClick={() => trackBookCallClick('final_cta', '/landing')}
+          >
+            <CalendarCheck className="w-4 h-4" />
+            {t('landing.cta.bookCall')}
+          </a>
         </div>
       </section>
 
@@ -344,10 +376,19 @@ export function LandingPage() {
 
       {/* Mobile Sticky CTA */}
       <div className={`landing-sticky-cta ${showStickyCta && !stickyCtaDismissed ? 'visible' : ''}`}>
-        <Link to="/signup" className="btn btn-primary">
+        <Link to="/signup" className="btn btn-primary" onClick={() => trackCTAClick('sticky_signup', '/landing')}>
           {t('landing.hero.cta')}
           <ArrowRight className="w-4 h-4" />
         </Link>
+        <a
+          href="https://fantastical.app/nadai/ainalytics"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-ghost btn-book-call-sticky"
+          onClick={() => trackBookCallClick('sticky', '/landing')}
+        >
+          <CalendarCheck className="w-4 h-4" />
+        </a>
         <button
           className="landing-sticky-cta-dismiss"
           onClick={() => setStickyCtaDismissed(true)}

@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { sentryVitePlugin } from '@sentry/vite-plugin';
 
 const deferCssPlugin = () => ({
   name: 'defer-css',
@@ -15,7 +16,23 @@ const deferCssPlugin = () => ({
 });
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), visualizer({ open: false, filename: 'dist/stats.html' }), deferCssPlugin()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    visualizer({ open: false, filename: 'dist/stats.html' }),
+    deferCssPlugin(),
+    // Upload source maps to Sentry on production builds
+    sentryVitePlugin({
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      authToken: process.env.SENTRY_AUTH_TOKEN,
+      sourcemaps: {
+        filesToDeleteAfterUpload: ['./dist/**/*.map'],
+      },
+      // Only upload when all env vars are present (CI/Vercel builds)
+      disable: !process.env.SENTRY_AUTH_TOKEN,
+    }),
+  ],
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
@@ -27,6 +44,7 @@ export default defineConfig({
   },
   build: {
     target: 'es2020',
+    sourcemap: true,
     modulePreload: false,
     rollupOptions: {
       output: {

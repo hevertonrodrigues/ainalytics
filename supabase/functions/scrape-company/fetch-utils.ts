@@ -4,7 +4,7 @@
  */
 
 const SCRAPE_TIMEOUT_MS = 8000;
-export const MAX_PAGES_TO_SCRAPE = 100;
+export const MAX_PAGES_TO_SCRAPE = 30;
 
 export async function fetchSafe(
   url: string,
@@ -119,4 +119,53 @@ export function extractAllLinks(html: string, baseUrl: string): { internal: stri
     } catch { /* skip */ }
   }
   return { internal: Array.from(internal), external: Array.from(external) };
+}
+
+/**
+ * Select a diverse set of pages from a URL list by grouping URLs by their
+ * first path segment (e.g., /blog/*, /docs/*, /pricing) and round-robining
+ * across groups. This ensures broad site coverage instead of over-sampling
+ * a single section.
+ */
+export function selectDiversePages(urls: string[], max: number): string[] {
+  if (urls.length <= max) return urls;
+
+  // Group URLs by first path segment
+  const groups = new Map<string, string[]>();
+  for (const url of urls) {
+    try {
+      const path = new URL(url).pathname;
+      const segments = path.split("/").filter(Boolean);
+      const group = segments.length > 0 ? segments[0].toLowerCase() : "_root";
+      if (!groups.has(group)) groups.set(group, []);
+      groups.get(group)!.push(url);
+    } catch {
+      const fallback = groups.get("_other") || [];
+      fallback.push(url);
+      groups.set("_other", fallback);
+    }
+  }
+
+  // Round-robin pick across groups
+  const result: string[] = [];
+  const groupEntries = Array.from(groups.entries());
+  const indices = new Map<string, number>();
+  for (const [key] of groupEntries) indices.set(key, 0);
+
+  let exhausted = 0;
+  while (result.length < max && exhausted < groupEntries.length) {
+    exhausted = 0;
+    for (const [key, groupUrls] of groupEntries) {
+      if (result.length >= max) break;
+      const idx = indices.get(key)!;
+      if (idx < groupUrls.length) {
+        result.push(groupUrls[idx]);
+        indices.set(key, idx + 1);
+      } else {
+        exhausted++;
+      }
+    }
+  }
+
+  return result;
 }
