@@ -114,7 +114,7 @@
     "categoryMonitoring": "Monitoring",
     "categoryCompetitive": "Competitive",
     "overlay": {
-      "title": "Generating AI Insights",
+      "title": "Generating Insights",
       "analyzing": "Analyzing your account data...",
       "aggregating": "Aggregating monitoring data...",
       "scoring": "Computing health scores...",
