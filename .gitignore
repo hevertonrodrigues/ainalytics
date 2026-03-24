@@ -10,6 +10,10 @@ dist/
 .env.local
 .env.*.local
 
+# AI tooling
+.gemini/
+agents/*
+
 # IDE
 .vscode/
 .idea/

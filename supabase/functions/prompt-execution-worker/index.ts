@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { badRequest, ok, serverError, unauthorized } from "../_shared/response.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 import {
   executeAndStorePromptAnswer,
   getErrorMessage,
@@ -28,11 +29,12 @@ function getRpcRow<T>(data: T | T[] | null): T | null {
 }
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("prompt-execution-worker", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
     if (req.method !== "POST") {
-      return withCors(req, badRequest(`Method ${req.method} not allowed`));
+      return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)));
     }
 
     const cronSecret = Deno.env.get("CRON_SECRET");
@@ -44,12 +46,12 @@ serve(async (req: Request) => {
     const isCronAuth = !!cronSecret && incomingSecret === cronSecret;
 
     if (!isServiceRole && !isCronAuth) {
-      return withCors(req, unauthorized("Invalid authorization"));
+      return logger.done(withCors(req, unauthorized("Invalid authorization")));
     }
 
     const body = (await req.json()) as WorkerBody;
     if (!body.run_id || !body.dispatch_token) {
-      return withCors(req, badRequest("run_id and dispatch_token are required"));
+      return logger.done(withCors(req, badRequest("run_id and dispatch_token are required")));
     }
 
     const db = createAdminClient();
@@ -61,7 +63,7 @@ serve(async (req: Request) => {
     const startedRun = getRpcRow(startedRunData as StartedRun | StartedRun[] | null);
 
     if (startError || !startedRun) {
-      return withCors(req, badRequest(startError?.message || "Run not claimable"));
+      return logger.done(withCors(req, badRequest(startError?.message || "Run not claimable")));
     }
 
     try {
@@ -91,13 +93,13 @@ serve(async (req: Request) => {
         throw new Error(finalizeError.message);
       }
 
-      return withCors(req, ok({
+      return logger.done(withCors(req, ok({
         run_id: startedRun.id,
         prompt_answer_id: outcome.promptAnswerId,
         status: outcome.finalStatus,
         retry_scheduled: shouldRetry && outcome.finalStatus === "failed",
         latency_ms: outcome.latencyMs,
-      }));
+      })));
     } catch (error) {
       const message = getErrorMessage(error);
 
@@ -120,6 +122,6 @@ serve(async (req: Request) => {
     }
   } catch (error) {
     console.error("[prompt-execution-worker]", error);
-    return withCors(req, serverError(getErrorMessage(error)));
+    return logger.done(withCors(req, serverError(getErrorMessage(error))));
   }
 });

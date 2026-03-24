@@ -3,31 +3,33 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, forbidden, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("plans", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
     switch (req.method) {
       case "GET":
-        return withCors(req, await handleGet(req));
+        return logger.done(withCors(req, await handleGet(req)));
       case "PUT":
-        return withCors(req, await handleSelectPlan(req));
+        return logger.done(withCors(req, await handleSelectPlan(req)));
       default:
-        return withCors(req, badRequest(`Method ${req.method} not allowed`));
+        return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)));
     }
   } catch (err: any) {
     console.error("[plans]", err);
     if (err.status) {
-      return withCors(
+      return logger.done(withCors(
         req,
         new Response(
           JSON.stringify({ success: false, error: { message: err.message, code: err.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN" } }),
           { status: err.status, headers: { "Content-Type": "application/json" } },
         ),
-      );
+      ));
     }
-    return withCors(req, serverError(err.message || "Internal server error"));
+    return logger.done(withCors(req, serverError(err.message || "Internal server error")));
   }
 });
 

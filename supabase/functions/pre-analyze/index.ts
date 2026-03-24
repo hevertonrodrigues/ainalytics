@@ -16,6 +16,7 @@ import {
 } from "../scrape-company/geo-scoring.ts";
 import { fetchSafe, fetchWithRedirectChain } from "../scrape-company/fetch-utils.ts";
 import { generateAiSuggestions, generateAlgorithmicSuggestions } from "../_shared/suggest-topics.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * Pre-Analyze Edge Function
@@ -25,14 +26,17 @@ import { generateAiSuggestions, generateAlgorithmicSuggestions } from "../_share
  */
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("pre-analyze", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
+  let authCtx: { tenant_id?: string; user_id?: string } = {};
   try {
     const { tenantId, user } = await verifyAuth(req);
+    authCtx = { tenant_id: tenantId, user_id: user.id };
     const db = createAdminClient();
 
     if (req.method !== "POST") {
-      return withCors(req, badRequest(`Method ${req.method} not allowed`));
+      return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
 
     // Verify tenant membership + role
@@ -44,14 +48,14 @@ serve(async (req: Request) => {
       .single();
 
     if (tuErr || !tenantUser) {
-      return withCors(req, badRequest("User not found in tenant."));
+      return logger.done(withCors(req, badRequest("User not found in tenant.")), authCtx);
     }
 
     if (tenantUser.role !== "owner" && tenantUser.role !== "admin") {
-      return withCors(
+      return logger.done(withCors(
         req,
         badRequest("Only owners and admins can perform this action."),
-      );
+      ), authCtx);
     }
 
     // Find company belonging to tenant
@@ -62,7 +66,7 @@ serve(async (req: Request) => {
       .single();
 
     if (cErr || !company) {
-      return withCors(req, badRequest("No company linked to this tenant."));
+      return logger.done(withCors(req, badRequest("No company linked to this tenant.")), authCtx);
     }
 
     const body = await req.json().catch(() => ({}));
@@ -70,7 +74,7 @@ serve(async (req: Request) => {
     const language = body.language || "en";
 
     if (!domain) {
-      return withCors(req, badRequest("Domain is required."));
+      return logger.done(withCors(req, badRequest("Domain is required.")), authCtx);
     }
 
     const baseUrl = `https://${domain}`;
@@ -194,7 +198,7 @@ serve(async (req: Request) => {
 
     console.log(`[pre-analyze] ✓ Quick analysis complete. GEO Score: ${compositeResult.composite}/100, ${suggestedTopics.length} topics generated`);
 
-    return withCors(
+    return logger.done(withCors(
       req,
       ok({
         domain,
@@ -217,9 +221,9 @@ serve(async (req: Request) => {
         suggested_topics: suggestedTopics,
         suggested_prompts: suggestedPrompts,
       }),
-    );
+    ), authCtx);
   } catch (err) {
     console.error("[pre-analyze]", err);
-    return withCors(req, serverError((err as any).message || "Internal server error"));
+    return logger.done(withCors(req, serverError((err as any).message || "Internal server error")), authCtx);
   }
 });

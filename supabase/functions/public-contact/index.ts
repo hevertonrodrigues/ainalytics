@@ -3,6 +3,7 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { created, badRequest, forbidden, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { verifyRecaptcha } from "../_shared/verify-recaptcha.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * public-contact — Unauthenticated endpoint.
@@ -21,47 +22,47 @@ const VALID_SUBJECTS = [
 ];
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("public-contact", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
     if (req.method !== "POST") {
-      return withCors(req, badRequest(`Method ${req.method} not allowed`));
+      return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)));
     }
 
+    const db = createAdminClient();
     const body = await req.json();
 
     // ── Validate required fields ──
     if (!body.name || typeof body.name !== "string" || !body.name.trim()) {
-      return withCors(req, badRequest("name is required"));
+      return logger.done(withCors(req, badRequest("name is required")));
     }
     if (
       !body.email ||
       typeof body.email !== "string" ||
       !EMAIL_REGEX.test(body.email.trim())
     ) {
-      return withCors(req, badRequest("A valid email is required"));
+      return logger.done(withCors(req, badRequest("A valid email is required")));
     }
     if (!body.subject || !VALID_SUBJECTS.includes(body.subject)) {
-      return withCors(req, badRequest("subject is required"));
+      return logger.done(withCors(req, badRequest("subject is required")));
     }
     if (
       !body.message ||
       typeof body.message !== "string" ||
       !body.message.trim()
     ) {
-      return withCors(req, badRequest("message is required"));
+      return logger.done(withCors(req, badRequest("message is required")));
     }
 
     // ── Verify reCAPTCHA ──
     const recaptcha = await verifyRecaptcha(body.recaptcha_token, "public_contact");
     if (!recaptcha.valid) {
       console.warn("[public-contact] reCAPTCHA rejected — score:", recaptcha.score);
-      return withCors(req, forbidden("Security verification failed"));
+      return logger.done(withCors(req, forbidden("Security verification failed")));
     }
 
     // ── Insert contact message (no tenant, no user) ──
-    const db = createAdminClient();
-
     const { data, error: dbError } = await db
       .from("contact_messages")
       .insert({
@@ -77,17 +78,17 @@ serve(async (req: Request) => {
 
     if (dbError) {
       console.error("[public-contact] DB error:", dbError);
-      return withCors(req, serverError("Failed to save your message"));
+      return logger.done(withCors(req, serverError("Failed to save your message")));
     }
 
     console.log("[public-contact] Message saved:", data.id);
-    return withCors(req, created(data));
+    return logger.done(withCors(req, created(data)));
   } catch (err: unknown) {
     console.error("[public-contact]", err);
     const e = err as { status?: number; message?: string };
     if (e.status) {
-      return withCors(req, serverError(e.message || "Internal server error"));
+      return logger.done(withCors(req, serverError(e.message || "Internal server error")));
     }
-    return withCors(req, serverError("Internal server error"));
+    return logger.done(withCors(req, serverError("Internal server error")));
   }
 });

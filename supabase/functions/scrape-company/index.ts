@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
@@ -102,14 +103,17 @@ async function getLatestAnalysis(
 // ─── Main Handler ───────────────────────────────────────────
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("scrape-company", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
+  let authCtx: { tenant_id?: string; user_id?: string } = {};
   try {
     const { tenantId, user } = await verifyAuth(req);
+    authCtx = { tenant_id: tenantId, user_id: user.id };
     const db = createAdminClient();
 
     if (req.method !== "POST") {
-      return withCors(req, badRequest(`Method ${req.method} not allowed`));
+      return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
 
     // Verify tenant membership + role
@@ -121,14 +125,14 @@ serve(async (req: Request) => {
       .single();
 
     if (tuErr || !tenantUser) {
-      return withCors(req, badRequest("User not found in tenant."));
+      return logger.done(withCors(req, badRequest("User not found in tenant.")), authCtx);
     }
 
     if (tenantUser.role !== "owner" && tenantUser.role !== "admin") {
-      return withCors(
+      return logger.done(withCors(
         req,
         badRequest("Only owners and admins can perform this action."),
-      );
+      ), authCtx);
     }
 
     // Find company belonging to tenant
@@ -139,17 +143,17 @@ serve(async (req: Request) => {
       .single();
 
     if (cErr || !company) {
-      return withCors(req, badRequest("No company linked to this tenant."));
+      return logger.done(withCors(req, badRequest("No company linked to this tenant.")), authCtx);
     }
 
     const body = await req.json().catch(() => ({ action: "scrape" }));
     const { action } = body;
 
     if (action !== "scrape" && action !== "analyze" && action !== "reset") {
-      return withCors(
+      return logger.done(withCors(
         req,
         badRequest("Invalid action. Must be 'scrape', 'analyze', or 'reset'."),
-      );
+      ), authCtx);
     }
 
     const domain = company.domain;
@@ -177,13 +181,13 @@ serve(async (req: Request) => {
       // Create a fresh analysis record
       await createAnalysis(db, company.id);
 
-      return withCors(
+      return logger.done(withCors(
         req,
         ok({
           success: true,
           message: "Company data reset successfully. Ready for re-analysis.",
         }),
-      );
+      ), authCtx);
     }
 
     // ─── ACTION: SCRAPE ───────────────────────────────────
@@ -211,10 +215,10 @@ serve(async (req: Request) => {
         const daysSinceAnalysis = msSinceAnalysis / (1000 * 60 * 60 * 24);
         
         if (daysSinceAnalysis < 7 && !isSuperadmin) {
-          return withCors(
+          return logger.done(withCors(
             req,
             badRequest("Please wait at least 7 days between analyses.")
-          );
+          ), authCtx);
         }
       }
 
@@ -492,14 +496,14 @@ serve(async (req: Request) => {
         });
       }
 
-      return withCors(
+      return logger.done(withCors(
         req,
         ok({
           success: true,
           message: `Homepage analyzed. ${totalPages - 1} pages queued for background crawling.`,
           data: { total_pages: totalPages, pages_scraped: 1 },
         }),
-      );
+      ), authCtx);
     }
 
     // ─── ACTION: ANALYZE ──────────────────────────────────
@@ -508,7 +512,7 @@ serve(async (req: Request) => {
       // Find the latest analysis record
       const analysis = await getLatestAnalysis(db, company.id);
       if (!analysis) {
-        return withCors(req, badRequest("No analysis record found. Run 'scrape' first."));
+        return logger.done(withCors(req, badRequest("No analysis record found. Run 'scrape' first.")), authCtx);
       }
 
       // Allow retry from 'error' or stale 'analyzing' (edge function timeout)
@@ -517,12 +521,12 @@ serve(async (req: Request) => {
         analysis.status !== "error" &&
         analysis.status !== "analyzing"
       ) {
-        return withCors(
+        return logger.done(withCors(
           req,
           badRequest(
             "Analysis must be in 'scraping_done' or 'error' status to analyze.",
           ),
-        );
+        ), authCtx);
       }
 
       const analysisId = analysis.id;
@@ -534,10 +538,10 @@ serve(async (req: Request) => {
         const cp = crawlProgress[0];
         if (cp.pending > 0) {
           console.warn(`[analyze] Analysis ${analysisId}: ${cp.pending} pages still pending/crawling. Rejecting analyze request.`);
-          return withCors(
+          return logger.done(withCors(
             req,
             badRequest(`Pages are still being crawled (${cp.pending} remaining). Please wait for all pages to complete.`),
-          );
+          ), authCtx);
         }
       }
 
@@ -643,7 +647,7 @@ serve(async (req: Request) => {
             status: "error",
             error_message: "AI analysis failed",
           });
-          return withCors(req, serverError(aiResult.error || "AI analysis failed."));
+          return logger.done(withCors(req, serverError(aiResult.error || "AI analysis failed.")), authCtx);
         }
 
         const assistantMsg = aiResult.text;
@@ -666,10 +670,10 @@ serve(async (req: Request) => {
               status: "error",
               error_message: "AI produced invalid JSON",
             });
-            return withCors(
+            return logger.done(withCors(
               req,
               serverError("AI produced invalid JSON output."),
-            );
+            ), authCtx);
           }
         }
 
@@ -942,14 +946,14 @@ serve(async (req: Request) => {
           tags: enReport.tags || [],
         });
 
-        return withCors(
+        return logger.done(withCors(
           req,
           ok({
             success: true,
             message: "AI analysis completed successfully.",
             data: bilingualReport,
           }),
-        );
+        ), authCtx);
       } catch (err) {
         console.error("[scrape-company] AI analysis error:", err);
         // Fallback: save algorithmic scores even if AI fails
@@ -1020,11 +1024,11 @@ serve(async (req: Request) => {
             }
           }
 
-          return withCors(req, ok({
+          return logger.done(withCors(req, ok({
             success: true,
             message: "Analysis completed with algorithmic scores (AI timed out).",
             data: fallbackReport,
-          }));
+          })), authCtx);
         } catch (fallbackErr) {
           console.error("[analyze] Fallback save also failed:", fallbackErr);
         }
@@ -1032,17 +1036,17 @@ serve(async (req: Request) => {
           status: "error",
           error_message: "Analysis failed unexpectedly",
         });
-        return withCors(
+        return logger.done(withCors(
           req,
           serverError("Analysis failed unexpectedly."),
-        );
+        ), authCtx);
       }
     }
   } catch (err: unknown) {
     console.error("[scrape-company]", err);
     const e = err as { status?: number; message?: string };
     if (e.status) {
-      return withCors(
+      return logger.done(withCors(
         req,
         new Response(
           JSON.stringify({
@@ -1058,11 +1062,11 @@ serve(async (req: Request) => {
             headers: { "Content-Type": "application/json" },
           },
         ),
-      );
+      ), authCtx);
     }
-    return withCors(
+    return logger.done(withCors(
       req,
       serverError(e.message || "Internal server error"),
-    );
+    ), authCtx);
   }
 });

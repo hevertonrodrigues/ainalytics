@@ -3,6 +3,7 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { badRequest, ok, serverError } from "../_shared/response.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 import {
   executeAndStorePromptAnswer,
   getErrorMessage,
@@ -212,10 +213,13 @@ async function finalizeInteractiveRun(
 }
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("prompt-search", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
+  let authCtx: { tenant_id?: string; user_id?: string } = {};
   try {
     const { tenantId, user } = await verifyAuth(req);
+    authCtx = { tenant_id: tenantId, user_id: user.id };
     const url = new URL(req.url);
     const subPath = url.pathname.split("/prompt-search").pop() || "";
 
@@ -224,22 +228,22 @@ serve(async (req: Request) => {
     }
 
     if (req.method === "POST" && subPath.startsWith("/retry")) {
-      return withCors(req, await handleRetry(tenantId, req));
+      return logger.done(withCors(req, await handleRetry(tenantId, req)), authCtx);
     }
 
     switch (req.method) {
       case "POST":
-        return withCors(req, await handleSearch(tenantId, req));
+        return logger.done(withCors(req, await handleSearch(tenantId, req)), authCtx);
       case "GET":
-        return withCors(req, await handleGetAnswers(tenantId, req));
+        return logger.done(withCors(req, await handleGetAnswers(tenantId, req)), authCtx);
       default:
-        return withCors(req, badRequest(`Method ${req.method} not allowed`));
+        return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
   } catch (error: unknown) {
     console.error("[prompt-search]", error);
     const err = error as { status?: number; message?: string };
     if (err.status) {
-      return withCors(
+      return logger.done(withCors(
         req,
         new Response(
           JSON.stringify({
@@ -254,9 +258,9 @@ serve(async (req: Request) => {
             headers: { "Content-Type": "application/json" },
           },
         ),
-      );
+      ), authCtx);
     }
-    return withCors(req, serverError(getErrorMessage(error)));
+    return logger.done(withCors(req, serverError(getErrorMessage(error))), authCtx);
   }
 });
 

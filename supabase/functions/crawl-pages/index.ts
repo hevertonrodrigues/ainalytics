@@ -4,6 +4,7 @@ import { createAdminClient } from "../_shared/supabase.ts";
 import { ok, serverError, unauthorized } from "../_shared/response.ts";
 import { extractFromHtml } from "../scrape-company/geo-extract.ts";
 import { fetchWithRedirectChain, extractLinksFromHtml, MAX_PAGES_TO_SCRAPE } from "../scrape-company/fetch-utils.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * Crawl Pages Worker Edge Function
@@ -29,6 +30,7 @@ const CRAWL_DELAY_MS = 200;
 const STALE_CRAWLING_MINUTES = 2;
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("crawl-pages", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
@@ -45,7 +47,7 @@ serve(async (req: Request) => {
     const isLocal = !cronSecret;
 
     if (!isServiceRole && !isCronAuth && !isLocal) {
-      return withCors(req, unauthorized("Invalid authorization"));
+      return logger.done(withCors(req, unauthorized("Invalid authorization")));
     }
 
     const db = createAdminClient();
@@ -77,11 +79,11 @@ serve(async (req: Request) => {
 
     if (fetchErr) {
       console.error("[crawl-pages] Error fetching active analyses:", fetchErr);
-      return withCors(req, serverError(fetchErr.message));
+      return logger.done(withCors(req, serverError(fetchErr.message)));
     }
 
     if (!activeAnalyses || activeAnalyses.length === 0) {
-      return withCors(req, ok({ message: "No active analyses", processed: 0 }));
+      return logger.done(withCors(req, ok({ message: "No active analyses", processed: 0 })));
     }
 
     const analysis = activeAnalyses[0];
@@ -96,7 +98,7 @@ serve(async (req: Request) => {
 
     if (checkoutErr) {
       console.error(`[crawl-pages] Checkout error for ${analysisId}:`, checkoutErr);
-      return withCors(req, ok({ message: "Checkout error", processed: 0 }));
+      return logger.done(withCors(req, ok({ message: "Checkout error", processed: 0 })));
     }
 
     if (!pages || pages.length === 0) {
@@ -115,7 +117,7 @@ serve(async (req: Request) => {
           console.log(`[crawl-pages] Analysis ${analysisId}: ${p.pending} pages still pending (likely being crawled by another invocation)`);
         }
       }
-      return withCors(req, ok({ message: "No pages to process", processed: 0 }));
+      return logger.done(withCors(req, ok({ message: "No pages to process", processed: 0 })));
     }
 
     console.log(`[crawl-pages] Analysis ${analysisId}: Processing ${pages.length} pages`);
@@ -283,15 +285,15 @@ serve(async (req: Request) => {
       }
     }
 
-    return withCors(req, ok({
+    return logger.done(withCors(req, ok({
       message: `Processed ${pages.length} pages for analysis ${analysisId}`,
       processed: pages.length,
-    }));
+    })));
 
   } catch (err: unknown) {
     console.error("[crawl-pages] Fatal error:", err);
     const e = err as { message?: string };
-    return withCors(req, serverError(e.message || "Internal server error"));
+    return logger.done(withCors(req, serverError(e.message || "Internal server error")));
   }
 });
 

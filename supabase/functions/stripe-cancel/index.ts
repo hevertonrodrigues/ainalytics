@@ -3,18 +3,22 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, forbidden, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") || "";
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("stripe-cancel", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   if (req.method !== "POST") {
-    return withCors(req, badRequest("Method not allowed"));
+    return logger.done(withCors(req, badRequest("Method not allowed")));
   }
 
+  let authCtx: { tenant_id?: string; user_id?: string } = {};
   try {
     const auth = await verifyAuth(req);
+    authCtx = { tenant_id: auth.tenantId, user_id: auth.user.id };
     const db = createAdminClient();
 
     // Parse optional CSAT data
@@ -36,7 +40,7 @@ serve(async (req: Request) => {
       .single();
 
     if (!membership || membership.role !== "owner") {
-      return withCors(req, forbidden("Only tenant owners can cancel subscriptions"));
+      return logger.done(withCors(req, forbidden("Only tenant owners can cancel subscriptions")), authCtx);
     }
 
     // Find the active subscription
@@ -50,7 +54,7 @@ serve(async (req: Request) => {
       .single();
 
     if (!subscription) {
-      return withCors(req, badRequest("No active subscription found"));
+      return logger.done(withCors(req, badRequest("No active subscription found")), authCtx);
     }
 
     // If it's a Stripe subscription, cancel it via Stripe API
@@ -68,7 +72,7 @@ serve(async (req: Request) => {
 
       if (!res.ok) {
         console.error("[stripe-cancel] Stripe API error:", stripeData);
-        return withCors(req, serverError(stripeData.error?.message || "Failed to cancel on Stripe"));
+        return logger.done(withCors(req, serverError(stripeData.error?.message || "Failed to cancel on Stripe")), authCtx);
       }
     }
 
@@ -86,10 +90,10 @@ serve(async (req: Request) => {
 
     console.log(`[stripe-cancel] Subscription ${subscription.id} canceled for tenant ${auth.tenantId}`);
 
-    return withCors(req, ok({ canceled: true }));
+    return logger.done(withCors(req, ok({ canceled: true })), authCtx);
   } catch (err: unknown) {
     console.error("[stripe-cancel]", err);
     const message = err instanceof Error ? err.message : "Internal server error";
-    return withCors(req, serverError(message));
+    return logger.done(withCors(req, serverError(message)));
   }
 });

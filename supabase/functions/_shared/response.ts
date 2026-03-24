@@ -75,6 +75,7 @@ export function conflict(message: string): Response {
   );
 }
 
+
 export function serverError(message = "Internal server error", context?: ErrorContext): Response {
   // Fire-and-forget error report to Sentry
   const err = context?.error instanceof Error

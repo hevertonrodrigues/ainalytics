@@ -4,6 +4,7 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { runDeepAnalyze } from "../_shared/deep-analyze-core.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * Deep Analyze Edge Function
@@ -14,10 +15,12 @@ import { runDeepAnalyze } from "../_shared/deep-analyze-core.ts";
  */
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("deep-analyze", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
-    const { tenantId } = await verifyAuth(req);
+    const { tenantId, user } = await verifyAuth(req);
+    const authCtx = { tenant_id: tenantId, user_id: user.id };
     const db = createAdminClient();
 
     // ─── GET: Fetch analyses ────────────────────────────────
@@ -34,9 +37,9 @@ serve(async (req: Request) => {
           .single();
 
         if (dbErr || !data) {
-          return withCors(req, badRequest("Analysis not found."));
+          return logger.done(withCors(req, badRequest("Analysis not found.")), authCtx);
         }
-        return withCors(req, ok(data));
+        return logger.done(withCors(req, ok(data)), authCtx);
       }
 
       // List all analyses for tenant
@@ -48,7 +51,7 @@ serve(async (req: Request) => {
         .limit(50);
 
       if (dbErr) throw dbErr;
-      return withCors(req, ok(data || []));
+      return logger.done(withCors(req, ok(data || [])), authCtx);
     }
 
     // ─── POST: Create new analysis ──────────────────────────
@@ -60,7 +63,7 @@ serve(async (req: Request) => {
       const inputLang = ((body as any).language || "en").trim();
 
       if (!inputUrl) {
-        return withCors(req, badRequest("URL is required."));
+        return logger.done(withCors(req, badRequest("URL is required.")), authCtx);
       }
 
       console.log(`[deep-analyze] ▶ Starting analysis for ${inputUrl} (tenant: ${tenantId})`);
@@ -102,17 +105,17 @@ serve(async (req: Request) => {
       }
 
       console.log(`[deep-analyze] ✓ Analysis complete for ${result.url}. Score: ${result.final_score}`);
-      return withCors(req, ok(completed));
+      return logger.done(withCors(req, ok(completed)), authCtx);
     }
 
-    return withCors(req, badRequest(`Method ${req.method} not allowed`));
+    return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
 
   } catch (err) {
     console.error("[deep-analyze]", err);
     // deno-lint-ignore no-explicit-any
     if ((err as any).status) {
-      return withCors(req, serverError((err as Error).message));
+      return logger.done(withCors(req, serverError((err as Error).message)));
     }
-    return withCors(req, serverError("Internal server error"));
+    return logger.done(withCors(req, serverError("Internal server error")));
   }
 });

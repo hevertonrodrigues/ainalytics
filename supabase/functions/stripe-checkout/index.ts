@@ -3,6 +3,7 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, forbidden, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") || "";
 const SITE_URL = Deno.env.get("SITE_URL") || "http://localhost:5173";
@@ -68,12 +69,15 @@ function flattenObject(
 }
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("stripe-checkout", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
+  let authCtx: { tenant_id?: string; user_id?: string } = {};
   try {
     // ─── PATCH: cancel the latest pending payment attempt ──
     if (req.method === "PATCH") {
       const auth = await verifyAuth(req);
+      authCtx = { tenant_id: auth.tenantId, user_id: auth.user.id };
       const db = createAdminClient();
 
       // Find the most recent pending payment attempt for this tenant
@@ -94,26 +98,27 @@ serve(async (req: Request) => {
 
         if (updateErr) {
           console.error("[stripe-checkout] Error canceling payment_attempt:", updateErr);
-          return withCors(req, serverError("Failed to cancel payment attempt"));
+          return logger.done(withCors(req, serverError("Failed to cancel payment attempt")), authCtx);
         }
       }
 
-      return withCors(req, ok({ canceled: true }));
+      return logger.done(withCors(req, ok({ canceled: true })), authCtx);
     }
 
     if (req.method !== "POST") {
-      return withCors(req, badRequest(`Method ${req.method} not allowed`));
+      return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)));
     }
 
     const auth = await verifyAuth(req);
+    authCtx = { tenant_id: auth.tenantId, user_id: auth.user.id };
     const body: CheckoutBody = await req.json();
 
     // Validate input
     if (!body.plan_id) {
-      return withCors(req, badRequest("plan_id is required"));
+      return logger.done(withCors(req, badRequest("plan_id is required")), authCtx);
     }
     if (!body.billing_interval || !["monthly", "yearly"].includes(body.billing_interval)) {
-      return withCors(req, badRequest("billing_interval must be 'monthly' or 'yearly'"));
+      return logger.done(withCors(req, badRequest("billing_interval must be 'monthly' or 'yearly'")), authCtx);
     }
 
     const db = createAdminClient();
@@ -128,7 +133,7 @@ serve(async (req: Request) => {
       .single();
 
     if (!membership || membership.role !== "owner") {
-      return withCors(req, forbidden("Only tenant owners can subscribe to a plan"));
+      return logger.done(withCors(req, forbidden("Only tenant owners can subscribe to a plan")), authCtx);
     }
 
     // Fetch plan
@@ -140,12 +145,12 @@ serve(async (req: Request) => {
       .single();
 
     if (planError || !plan) {
-      return withCors(req, badRequest("Invalid or inactive plan"));
+      return logger.done(withCors(req, badRequest("Invalid or inactive plan")), authCtx);
     }
 
     // Check for custom pricing plans — those should go through contact sales
     if (plan.settings?.custom_pricing) {
-      return withCors(req, badRequest("This plan requires contacting sales"));
+      return logger.done(withCors(req, badRequest("This plan requires contacting sales")), authCtx);
     }
 
     // Determine currency from user locale
@@ -202,7 +207,7 @@ serve(async (req: Request) => {
     }
 
     if (unitAmountSmallest <= 0) {
-      return withCors(req, badRequest("Free plans do not require checkout"));
+      return logger.done(withCors(req, badRequest("Free plans do not require checkout")), authCtx);
     }
 
     // Fetch tenant info for the session
@@ -306,12 +311,12 @@ serve(async (req: Request) => {
       console.error("[stripe-checkout] Error creating payment_attempt:", paError);
     }
 
-    return withCors(req, ok({ url: session.url }));
+    return logger.done(withCors(req, ok({ url: session.url })), authCtx);
   } catch (err: unknown) {
     console.error("[stripe-checkout]", err);
     const error = err as Record<string, unknown>;
     if (error.status) {
-      return withCors(
+      return logger.done(withCors(
         req,
         new Response(
           JSON.stringify({
@@ -323,8 +328,8 @@ serve(async (req: Request) => {
           }),
           { status: error.status as number, headers: { "Content-Type": "application/json" } }
         )
-      );
+      ));
     }
-    return withCors(req, serverError((error.message as string) || "Internal server error"));
+    return logger.done(withCors(req, serverError((error.message as string) || "Internal server error")));
   }
 });

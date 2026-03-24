@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") || "";
 const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") || "";
@@ -405,9 +406,11 @@ async function handleSubscriptionDeleted(event: any) {
 // ────────────────────────────────────────────────────────────
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("stripe-webhook", req);
+
   // Only accept POST
   if (req.method !== "POST") {
-    return webhookResponse({ error: "Method not allowed" }, 405);
+    return logger.done(webhookResponse({ error: "Method not allowed" }, 405));
   }
 
   try {
@@ -415,7 +418,7 @@ serve(async (req: Request) => {
     const sigHeader = req.headers.get("stripe-signature");
 
     if (!sigHeader) {
-      return webhookResponse({ error: "Missing stripe-signature header" }, 400);
+      return logger.done(webhookResponse({ error: "Missing stripe-signature header" }, 400));
     }
 
     // Verify webhook signature
@@ -423,7 +426,7 @@ serve(async (req: Request) => {
       const isValid = await verifyStripeSignature(body, sigHeader, STRIPE_WEBHOOK_SECRET);
       if (!isValid) {
         console.error("[stripe-webhook] Invalid signature");
-        return webhookResponse({ error: "Invalid signature" }, 400);
+        return logger.done(webhookResponse({ error: "Invalid signature" }, 400));
       }
     }
 
@@ -450,9 +453,9 @@ serve(async (req: Request) => {
         console.log(`[stripe-webhook] Unhandled event type: ${event.type}`);
     }
 
-    return webhookResponse({ received: true });
+    return logger.done(webhookResponse({ received: true }));
   } catch (err) {
     console.error("[stripe-webhook] Error:", err);
-    return webhookResponse({ error: "Webhook handler failed" }, 500);
+    return logger.done(webhookResponse({ error: "Webhook handler failed" }, 500));
   }
 });

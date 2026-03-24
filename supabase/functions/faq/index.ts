@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * GET /faq?lang=en
@@ -15,10 +16,11 @@ import { createAdminClient } from "../_shared/supabase.ts";
  *   lang — "en" | "pt" | "es" (default: "en")
  */
 serve(async (req: Request) => {
+  const logger = createRequestLogger("faq", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   if (req.method !== "GET") {
-    return withCors(req, badRequest(`Method ${req.method} not allowed`));
+    return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)));
   }
 
   try {
@@ -62,10 +64,10 @@ serve(async (req: Request) => {
       status: row.status,
     }));
 
-    return withCors(req, ok(items));
+    return logger.done(withCors(req, ok(items)));
   } catch (err: unknown) {
     console.error("[faq]", err);
     const message = err instanceof Error ? err.message : "Internal server error";
-    return withCors(req, serverError(message));
+    return logger.done(withCors(req, serverError(message)));
   }
 });

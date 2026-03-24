@@ -11,8 +11,10 @@ import {
   serverError,
 } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("topics-prompts", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
@@ -22,31 +24,32 @@ serve(async (req: Request) => {
     const isPromptRoute = segments.length >= 2 && segments[segments.length - 1] === "prompts";
 
     if (isPromptRoute) {
-      return withCors(req, await handlePrompts(req));
+      return logger.done(withCors(req, await handlePrompts(req)));
     } else {
-      return withCors(req, await handleTopics(req));
+      return logger.done(withCors(req, await handleTopics(req)));
     }
-  } catch (err) {
+  } catch (err: unknown) {
     console.error("[topics-prompts]", err);
-    if (err.status) {
-      return withCors(
+    const e = err as { status?: number; message?: string };
+    if (e.status) {
+      return logger.done(withCors(
         req,
         new Response(
           JSON.stringify({
             success: false,
             error: {
-              message: err.message,
-              code: err.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
+              message: e.message,
+              code: e.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
             },
           }),
           {
-            status: err.status,
+            status: e.status,
             headers: { "Content-Type": "application/json" },
           },
         ),
-      );
+      ));
     }
-    return withCors(req, serverError(err.message || "Internal server error"));
+    return logger.done(withCors(req, serverError(e.message || "Internal server error")));
   }
 });
 

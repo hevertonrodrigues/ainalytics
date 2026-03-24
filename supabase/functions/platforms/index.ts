@@ -4,6 +4,7 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { fetchModelsForPlatform, supportsModelListing } from "../_shared/ai-providers/model-fetcher.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * Platforms Edge Function
@@ -19,58 +20,59 @@ import { fetchModelsForPlatform, supportsModelListing } from "../_shared/ai-prov
  */
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("platforms", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
+  let authCtx: { tenant_id?: string; user_id?: string } = {};
   try {
     const { tenantId, user } = await verifyAuth(req);
+    authCtx = { tenant_id: tenantId, user_id: user.id };
     const url = new URL(req.url);
     const subPath = url.pathname.split("/platforms").pop() || "";
 
     // ── Preferences routes (tenant-specific) ──
     if (subPath.startsWith("/preferences")) {
       switch (req.method) {
-        case "GET":    return withCors(req, await handleGetPreferences(tenantId));
-        case "POST":   return withCors(req, await handleSetPreference(req, tenantId));
-        case "DELETE": return withCors(req, await handleDeletePreference(req, tenantId));
-        default:       return withCors(req, badRequest("Method not allowed"));
+        case "GET":    return logger.done(withCors(req, await handleGetPreferences(tenantId)), authCtx);
+        case "POST":   return logger.done(withCors(req, await handleSetPreference(req, tenantId)), authCtx);
+        case "DELETE": return logger.done(withCors(req, await handleDeletePreference(req, tenantId)), authCtx);
+        default:       return logger.done(withCors(req, badRequest("Method not allowed")), authCtx);
       }
     }
 
     // ── Models route ──
     if (subPath.startsWith("/models")) {
-      if (req.method === "GET") return withCors(req, await handleGetModels(req));
-      return withCors(req, badRequest("Method not allowed"));
+      if (req.method === "GET") return logger.done(withCors(req, await handleGetModels(req)), authCtx);
+      return logger.done(withCors(req, badRequest("Method not allowed")), authCtx);
     }
-
-
 
     // ── Sync route ──
     if (subPath.startsWith("/sync") && req.method === "POST") {
       await requireSuperAdmin(user.id, tenantId);
-      return withCors(req, await handleSync(req));
+      return logger.done(withCors(req, await handleSync(req)), authCtx);
     }
 
     // ── Base platform routes ──
     switch (req.method) {
-      case "GET":  return withCors(req, await handleList());
+      case "GET":  return logger.done(withCors(req, await handleList()), authCtx);
       case "PUT":
         await requireSuperAdmin(user.id, tenantId);
-        return withCors(req, await handleUpdate(req));
-      default:     return withCors(req, badRequest(`Method ${req.method} not allowed`));
+        return logger.done(withCors(req, await handleUpdate(req)), authCtx);
+      default:     return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
   } catch (err: unknown) {
     console.error("[platforms]", err);
     const e = err as { status?: number; message?: string };
     if (e.status) {
-      return withCors(
+      return logger.done(withCors(
         req,
         new Response(
           JSON.stringify({ success: false, error: { message: e.message, code: e.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN" } }),
           { status: e.status, headers: { "Content-Type": "application/json" } },
         ),
-      );
+      ), authCtx);
     }
-    return withCors(req, serverError(e.message || "Internal server error"));
+    return logger.done(withCors(req, serverError(e.message || "Internal server error")), authCtx);
   }
 });
 

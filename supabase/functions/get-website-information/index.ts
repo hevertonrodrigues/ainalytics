@@ -5,6 +5,7 @@ import { createAdminClient } from "../_shared/supabase.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { extractWebsiteInformation, generateLlmText, normalizeTenantHost, buildTenantHttpsUrl, fetchWithTimeout } from "../_shared/llm-generation.ts";
 import { generateAiSuggestions } from "../_shared/suggest-topics.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * Get Website Information Edge Function
@@ -18,10 +19,12 @@ import { generateAiSuggestions } from "../_shared/suggest-topics.ts";
  * Uses OpenAI gpt-4o with web search capability for extraction, and standard generations for llm_txt.
  */
 serve(async (req: Request) => {
+  const logger = createRequestLogger("get-website-information", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
     const { tenantId, user } = await verifyAuth(req);
+    const authCtx = { tenant_id: tenantId, user_id: user.id };
     const sb = createAdminClient();
 
     // 1. Verify access to tenant
@@ -33,18 +36,18 @@ serve(async (req: Request) => {
       .single();
 
     if (tuErr || !tenantUser) {
-      return withCors(req, badRequest("User not found in tenant."));
+      return logger.done(withCors(req, badRequest("User not found in tenant.")));
     }
 
     if (tenantUser.role !== 'owner' && tenantUser.role !== 'admin') {
-      return withCors(req, badRequest("Only owners and admins can perform this action."));
+      return logger.done(withCors(req, badRequest("Only owners and admins can perform this action.")));
     }
 
     const body = await req.json().catch(() => ({ action: 'extract' }));
     const { action, language = 'en' } = body;
     
     if (action !== 'extract' && action !== 'generate' && action !== 'verify' && action !== 'suggest_topics') {
-       return withCors(req, badRequest("Invalid action. Must be 'extract', 'generate', 'verify', or 'suggest_topics'."));
+       return logger.done(withCors(req, badRequest("Invalid action. Must be 'extract', 'generate', 'verify', or 'suggest_topics'.")));
     }
 
     // 2. Find company belonging to tenant
@@ -55,13 +58,13 @@ serve(async (req: Request) => {
       .single();
 
     if (cErr || !company) {
-      return withCors(req, badRequest("No company linked to this tenant."));
+      return logger.done(withCors(req, badRequest("No company linked to this tenant.")));
     }
 
     const companyId = company.id;
 
     if (!company.domain) {
-      return withCors(req, badRequest("The company does not have a domain configured."));
+      return logger.done(withCors(req, badRequest("The company does not have a domain configured.")));
     }
 
     let domain: string;
@@ -69,16 +72,16 @@ serve(async (req: Request) => {
       domain = normalizeTenantHost(company.domain);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Invalid company domain";
-      return withCors(req, badRequest(msg));
+      return logger.done(withCors(req, badRequest(msg)));
     }
 
     // --- ACTION: EXTRACT ---
     if (action === 'extract') {
       try {
         const parsedResult = await extractWebsiteInformation(companyId, sb);
-        return withCors(req, ok({ success: true, message: "Information extracted and saved successfully.", data: parsedResult }));
+        return logger.done(withCors(req, ok({ success: true, message: "Information extracted and saved successfully.", data: parsedResult })));
       } catch (err: any) {
-        return withCors(req, serverError(err.message || "Failed to extract information."));
+        return logger.done(withCors(req, serverError(err.message || "Failed to extract information.")));
       }
     }
 
@@ -115,15 +118,15 @@ serve(async (req: Request) => {
         })
         .eq("id", companyId);
         
-      if (updateErr) return withCors(req, serverError("Failed to save verification status to database."));
+      if (updateErr) return logger.done(withCors(req, serverError("Failed to save verification status to database.")));
 
-      return withCors(req, ok({ success: true, message: `Status verified as ${status}`, data: { status } }));
+      return logger.done(withCors(req, ok({ success: true, message: `Status verified as ${status}`, data: { status } })));
     }
 
     // --- ACTION: SUGGEST TOPICS ---
     if (action === 'suggest_topics') {
       if (!company.extracted_content) {
-        return withCors(req, badRequest("Cannot generate suggestions without extracting information first."));
+        return logger.done(withCors(req, badRequest("Cannot generate suggestions without extracting information first.")));
       }
 
       // Fetch sitemap_xml from the latest analysis if available
@@ -160,9 +163,9 @@ serve(async (req: Request) => {
           language,
           existingTopics,
         });
-        return withCors(req, ok(result));
+        return logger.done(withCors(req, ok(result)));
       } catch (err: any) {
-        return withCors(req, serverError(err.message || "Failed to generate suggestions."));
+        return logger.done(withCors(req, serverError(err.message || "Failed to generate suggestions.")));
       }
     }
 
@@ -170,9 +173,9 @@ serve(async (req: Request) => {
     if (action === 'generate') {
       try {
         const llmTxt = await generateLlmText(companyId, sb);
-        return withCors(req, ok({ success: true, message: "LLM.txt generated successfully.", data: { llm_txt: llmTxt } }));
+        return logger.done(withCors(req, ok({ success: true, message: "LLM.txt generated successfully.", data: { llm_txt: llmTxt } })));
       } catch (err: any) {
-        return withCors(req, serverError(err.message || "Failed to generate LLM text."));
+        return logger.done(withCors(req, serverError(err.message || "Failed to generate LLM text.")));
       }
     }
 
@@ -182,14 +185,14 @@ serve(async (req: Request) => {
     console.error("[get-website-information]", err);
     const e = err as { status?: number; message?: string };
     if (e.status) {
-      return withCors(
+      return logger.done(withCors(
         req,
         new Response(
           JSON.stringify({ success: false, error: { message: e.message, code: e.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN" } }),
           { status: e.status, headers: { "Content-Type": "application/json" } },
         ),
-      );
+      ));
     }
-    return withCors(req, serverError(e.message || "Internal server error"));
+    return logger.done(withCors(req, serverError(e.message || "Internal server error")));
   }
 });

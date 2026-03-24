@@ -3,6 +3,7 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { ok, created, badRequest, serverError, conflict } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * Company Edge Function
@@ -11,10 +12,12 @@ import { createAdminClient } from "../_shared/supabase.ts";
  */
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("company", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
     const { tenantId, user } = await verifyAuth(req);
+    const authCtx = { tenant_id: tenantId, user_id: user.id };
     const db = createAdminClient();
 
     // Verify tenant membership
@@ -26,7 +29,7 @@ serve(async (req: Request) => {
       .single();
 
     if (tuErr || !tenantUser) {
-      return withCors(req, badRequest("User not found in tenant."));
+      return logger.done(withCors(req, badRequest("User not found in tenant.")), authCtx);
     }
 
     switch (req.method) {
@@ -39,7 +42,7 @@ serve(async (req: Request) => {
           .single();
 
         if (cErr || !company) {
-          return withCors(req, ok(null));
+          return logger.done(withCors(req, ok(null)), authCtx);
         }
 
         // Fetch latest analysis for this company
@@ -51,16 +54,16 @@ serve(async (req: Request) => {
           .limit(1)
           .single();
 
-        return withCors(req, ok({
+        return logger.done(withCors(req, ok({
           ...company,
           latest_analysis: latestAnalysis || null,
-        }));
+        })), authCtx);
       }
 
       case "POST": {
         // Only owners and admins can create a company
         if (tenantUser.role !== "owner" && tenantUser.role !== "admin") {
-          return withCors(req, badRequest("Only owners and admins can create a company."));
+          return logger.done(withCors(req, badRequest("Only owners and admins can create a company.")), authCtx);
         }
 
         // Check if tenant already has a company
@@ -71,14 +74,14 @@ serve(async (req: Request) => {
           .single();
 
         if (existingCompany) {
-          return withCors(req, conflict("This tenant already has a company linked."));
+          return logger.done(withCors(req, conflict("This tenant already has a company linked.")), authCtx);
         }
 
         const body = await req.json();
         const { domain, description, target_language, company_name } = body;
 
         if (!domain || typeof domain !== "string" || domain.trim().length === 0) {
-          return withCors(req, badRequest("Domain is required."));
+          return logger.done(withCors(req, badRequest("Domain is required.")), authCtx);
         }
 
         // Normalize domain
@@ -88,7 +91,7 @@ serve(async (req: Request) => {
             const parsed = new URL(normalizedDomain);
             normalizedDomain = parsed.hostname.toLowerCase();
           } catch {
-            return withCors(req, badRequest("Invalid domain URL."));
+            return logger.done(withCors(req, badRequest("Invalid domain URL.")), authCtx);
           }
         }
 
@@ -103,7 +106,7 @@ serve(async (req: Request) => {
           normalizedDomain.length > 253 ||
           /[^a-z0-9.-]/.test(normalizedDomain)
         ) {
-          return withCors(req, badRequest("Invalid domain format."));
+          return logger.done(withCors(req, badRequest("Invalid domain format.")), authCtx);
         }
 
         // Create company
@@ -121,7 +124,7 @@ serve(async (req: Request) => {
 
         if (createErr || !company) {
           console.error("[company] Failed to create company:", createErr);
-          return withCors(req, serverError("Failed to create company."));
+          return logger.done(withCors(req, serverError("Failed to create company.")), authCtx);
         }
 
 
@@ -146,13 +149,13 @@ serve(async (req: Request) => {
           }
         }
 
-        return withCors(req, created(company));
+        return logger.done(withCors(req, created(company)), authCtx);
       }
 
       case "PATCH": {
         // Only owners and admins can edit a company
         if (tenantUser.role !== "owner" && tenantUser.role !== "admin") {
-          return withCors(req, badRequest("Only owners and admins can edit a company."));
+          return logger.done(withCors(req, badRequest("Only owners and admins can edit a company.")), authCtx);
         }
 
         // Find company belonging to tenant
@@ -163,7 +166,7 @@ serve(async (req: Request) => {
           .single();
 
         if (!patchCompany) {
-          return withCors(req, badRequest("No company linked to this tenant."));
+          return logger.done(withCors(req, badRequest("No company linked to this tenant.")), authCtx);
         }
 
         const patchBody = await req.json();
@@ -188,7 +191,7 @@ serve(async (req: Request) => {
         }
 
         if (Object.keys(updates).length === 0) {
-          return withCors(req, badRequest("No valid fields to update."));
+          return logger.done(withCors(req, badRequest("No valid fields to update.")), authCtx);
         }
 
         updates.updated_at = new Date().toISOString();
@@ -202,7 +205,7 @@ serve(async (req: Request) => {
 
         if (updateErr || !updatedCompany) {
           console.error("[company] Failed to update company:", updateErr);
-          return withCors(req, serverError("Failed to update company."));
+          return logger.done(withCors(req, serverError("Failed to update company.")), authCtx);
         }
 
         // Update tenant if name or domain changed
@@ -223,24 +226,24 @@ serve(async (req: Request) => {
            }
         }
 
-        return withCors(req, ok(updatedCompany));
+        return logger.done(withCors(req, ok(updatedCompany)), authCtx);
       }
 
       default:
-        return withCors(req, badRequest(`Method ${req.method} not allowed`));
+        return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
   } catch (err: unknown) {
     console.error("[company]", err);
     const e = err as { status?: number; message?: string };
     if (e.status) {
-      return withCors(
+      return logger.done(withCors(
         req,
         new Response(
           JSON.stringify({ success: false, error: { message: e.message, code: e.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN" } }),
           { status: e.status, headers: { "Content-Type": "application/json" } },
         ),
-      );
+      ));
     }
-    return withCors(req, serverError(e.message || "Internal server error"));
+    return logger.done(withCors(req, serverError(e.message || "Internal server error")));
   }
 });

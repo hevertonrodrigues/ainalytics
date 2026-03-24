@@ -3,6 +3,7 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { created, badRequest, forbidden, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { verifyRecaptcha } from "../_shared/verify-recaptcha.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * interest-leads — PUBLIC endpoint (no auth required).
@@ -12,32 +13,34 @@ import { verifyRecaptcha } from "../_shared/verify-recaptcha.ts";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("interest-leads", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
     if (req.method !== "POST") {
-      return withCors(req, badRequest(`Method ${req.method} not allowed`));
+      return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)));
     }
 
+    const db = createAdminClient();
     const body = await req.json();
 
     // ── Validate required fields ──
     if (!body.name || typeof body.name !== "string" || !body.name.trim()) {
-      return withCors(req, badRequest("name is required"));
+      return logger.done(withCors(req, badRequest("name is required")));
     }
     if (!body.email || typeof body.email !== "string" || !EMAIL_REGEX.test(body.email.trim())) {
-      return withCors(req, badRequest("A valid email is required"));
+      return logger.done(withCors(req, badRequest("A valid email is required")));
     }
     const phoneDigits = (body.phone || "").replace(/\D/g, "");
     if (!body.phone || phoneDigits.length < 10) {
-      return withCors(req, badRequest("Phone is required (min 10 digits)"));
+      return logger.done(withCors(req, badRequest("Phone is required (min 10 digits)")));
     }
 
     // ── Verify reCAPTCHA ──
     const recaptcha = await verifyRecaptcha(body.recaptcha_token, "interest_lead");
     if (!recaptcha.valid) {
       console.warn("[interest-leads] reCAPTCHA rejected — score:", recaptcha.score);
-      return withCors(req, forbidden("Security verification failed"));
+      return logger.done(withCors(req, forbidden("Security verification failed")));
     }
 
     // ── Extract metadata from headers ──
@@ -52,8 +55,6 @@ serve(async (req: Request) => {
     const language = req.headers.get("accept-language") || null;
 
     // ── Insert lead ──
-    const db = createAdminClient();
-
     const { data, error: dbError } = await db
       .from("interest_leads")
       .insert({
@@ -75,12 +76,12 @@ serve(async (req: Request) => {
 
     if (dbError) {
       console.error("[interest-leads] DB error:", dbError);
-      return withCors(req, serverError("Failed to save your request"));
+      return logger.done(withCors(req, serverError("Failed to save your request")));
     }
 
-    return withCors(req, created(data));
+    return logger.done(withCors(req, created(data)));
   } catch (err) {
     console.error("[interest-leads]", err);
-    return withCors(req, serverError("Internal server error"));
+    return logger.done(withCors(req, serverError("Internal server error")));
   }
 });

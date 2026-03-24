@@ -3,15 +3,19 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("sources-summary", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
+  let authCtx: { tenant_id?: string; user_id?: string } = {};
   try {
     const auth = await verifyAuth(req);
+    authCtx = { tenant_id: auth.tenantId, user_id: auth.user.id };
 
     if (req.method !== "GET") {
-      return withCors(req, badRequest(`Method ${req.method} not allowed`));
+      return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
 
     const db = createAdminClient();
@@ -162,27 +166,28 @@ serve(async (req: Request) => {
     // Sort by score descending
     enriched.sort((a: any, b: any) => b.score - a.score);
 
-    return withCors(req, ok(enriched));
-  } catch (err) {
+    return logger.done(withCors(req, ok(enriched)), authCtx);
+  } catch (err: unknown) {
     console.error("[sources-summary]", err);
-    if (err.status) {
-      return withCors(
+    const e = err as { status?: number; message?: string };
+    if (e.status) {
+      return logger.done(withCors(
         req,
         new Response(
           JSON.stringify({
             success: false,
             error: {
-              message: err.message,
-              code: err.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
+              message: e.message,
+              code: e.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
             },
           }),
           {
-            status: err.status,
+            status: e.status,
             headers: { "Content-Type": "application/json" },
           },
         ),
-      );
+      ));
     }
-    return withCors(req, serverError(err.message || "Internal server error"));
+    return logger.done(withCors(req, serverError(e.message || "Internal server error")));
   }
 });

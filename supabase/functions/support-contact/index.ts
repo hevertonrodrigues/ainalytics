@@ -3,6 +3,7 @@ import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { created, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
+import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
  * support-contact — Authenticated endpoint.
@@ -13,28 +14,31 @@ import { createAdminClient } from "../_shared/supabase.ts";
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 serve(async (req: Request) => {
+  const logger = createRequestLogger("support-contact", req);
   if (req.method === "OPTIONS") return handleCors(req);
 
+  let authCtx: { tenant_id?: string; user_id?: string } = {};
   try {
     if (req.method !== "POST") {
-      return withCors(req, badRequest(`Method ${req.method} not allowed`));
+      return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)));
     }
 
     // Verify authentication
     const auth = await verifyAuth(req);
+    authCtx = { tenant_id: auth.tenantId, user_id: auth.user.id };
 
     const body = await req.json();
 
     // ── Validate required fields ──
     if (!body.name || typeof body.name !== "string" || !body.name.trim()) {
-      return withCors(req, badRequest("name is required"));
+      return logger.done(withCors(req, badRequest("name is required")), authCtx);
     }
     if (
       !body.email ||
       typeof body.email !== "string" ||
       !EMAIL_REGEX.test(body.email.trim())
     ) {
-      return withCors(req, badRequest("A valid email is required"));
+      return logger.done(withCors(req, badRequest("A valid email is required")), authCtx);
     }
 
     const VALID_SUBJECTS = [
@@ -46,7 +50,7 @@ serve(async (req: Request) => {
       "other",
     ];
     if (!body.subject || !VALID_SUBJECTS.includes(body.subject)) {
-      return withCors(req, badRequest("subject is required"));
+      return logger.done(withCors(req, badRequest("subject is required")), authCtx);
     }
 
     if (
@@ -54,7 +58,7 @@ serve(async (req: Request) => {
       typeof body.message !== "string" ||
       !body.message.trim()
     ) {
-      return withCors(req, badRequest("message is required"));
+      return logger.done(withCors(req, badRequest("message is required")), authCtx);
     }
 
     // Optional attachments (array of storage paths)
@@ -81,17 +85,17 @@ serve(async (req: Request) => {
 
     if (dbError) {
       console.error("[support-contact] DB error:", dbError);
-      return withCors(req, serverError("Failed to save your message"));
+      return logger.done(withCors(req, serverError("Failed to save your message")), authCtx);
     }
 
     console.log("[support-contact] Message saved:", data.id);
-    return withCors(req, created(data));
+    return logger.done(withCors(req, created(data)), authCtx);
   } catch (err: unknown) {
     console.error("[support-contact]", err);
     const e = err as { status?: number; message?: string };
     if (e.status) {
-      return withCors(req, serverError(e.message || "Internal server error"));
+      return logger.done(withCors(req, serverError(e.message || "Internal server error")));
     }
-    return withCors(req, serverError("Internal server error"));
+    return logger.done(withCors(req, serverError("Internal server error")));
   }
 });
