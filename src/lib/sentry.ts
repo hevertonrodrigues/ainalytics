@@ -10,23 +10,15 @@ export function initSentry() {
     release: import.meta.env.VITE_APP_VERSION || undefined,
     integrations: [
       Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration({
-        // Mask all text and block all media by default for privacy
-        maskAllText: false,
-        blockAllMedia: false,
-      }),
       Sentry.globalHandlersIntegration({
         onerror: true,
         onunhandledrejection: true,
       }),
     ],
-    // Only send errors in production
-    enabled: import.meta.env.PROD,
+    // TODO: revert to `import.meta.env.PROD` after Sentry test
+    enabled: true,
     // Performance monitoring: sample 10% of transactions
     tracesSampleRate: import.meta.env.PROD ? 0.1 : 0,
-    // Session Replay: capture 10% of sessions, 100% on error
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1.0,
   });
 }
 

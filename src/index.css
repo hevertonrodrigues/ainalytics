@@ -887,6 +887,25 @@ h6 {
   min-height: 100vh;
 }
 
+[data-theme="light"] .auth-page {
+  background: var(--color-bg-primary);
+}
+
+[data-theme="light"] .auth-decor {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(108, 92, 231, 0.06) 0%,
+      rgba(253, 121, 168, 0.04) 100%
+    ),
+    var(--color-bg-tertiary);
+  border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .auth-form-side {
+  background: var(--color-bg-primary);
+}
+
 /* ─── Decorative Panel ─── */
 .auth-decor {
   display: none;
