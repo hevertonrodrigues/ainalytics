@@ -272,14 +272,6 @@ export function Sidebar() {
                   <HelpCircle className="nav-link-icon" />
                   <span>{t('nav.support')}</span>
                 </NavLink>
-                {/* TODO: Remove after Sentry test */}
-                <button
-                  onClick={() => { throw new Error('This is your first error!'); }}
-                  className="sidebar-action sidebar-action-danger"
-                >
-                  <span className="nav-link-icon">🔥</span>
-                  <span>Sentry Test</span>
-                </button>
                 <button onClick={handleSignOut} className="sidebar-action sidebar-action-danger">
                   <LogOut className="nav-link-icon" />
                   <span>{t('auth.signOut')}</span>

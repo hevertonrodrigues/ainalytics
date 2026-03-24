@@ -25,6 +25,9 @@ interface TrackEventParams {
 }
 
 export function trackEvent({ event, label, page, ...extra }: TrackEventParams) {
+  // Skip all analytics in non-production environments
+  if (!import.meta.env.PROD) return;
+
   const payload = {
     event,
     event_label: label,

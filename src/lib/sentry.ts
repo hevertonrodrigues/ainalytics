@@ -15,8 +15,7 @@ export function initSentry() {
         onunhandledrejection: true,
       }),
     ],
-    // TODO: revert to `import.meta.env.PROD` after Sentry test
-    enabled: true,
+    enabled: import.meta.env.PROD,
     // Performance monitoring: sample 10% of transactions
     tracesSampleRate: import.meta.env.PROD ? 0.1 : 0,
   });
