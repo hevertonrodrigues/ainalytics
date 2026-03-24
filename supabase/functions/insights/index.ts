@@ -137,7 +137,7 @@ serve(async (req: Request) => {
       const insertData = {
         tenant_id: tenantId,
         overall_health: parsed.overall_health || "good",
-        health_score: parsed.health_score ?? null,
+        health_score: parsed.health_score != null ? Math.round(parsed.health_score) : null,
         summary: parsed.summary || null,
         checks: parsed.checks || [],
         action_items: parsed.action_items || [],
@@ -145,19 +145,22 @@ serve(async (req: Request) => {
         raw_response: aiResult.raw_response ?? null,
       };
 
-      const { data: saved, error: insertErr } = await db
+      const { error: insertErr } = await db
         .from("insights_reports")
-        .insert(insertData)
-        .select()
-        .single();
+        .insert(insertData);
 
-      if (insertErr || !saved) {
-        console.error("[insights] Insert error:", insertErr);
-        throw new Error("Failed to save insights.");
+      if (insertErr) {
+        console.error("[insights] Insert error:", JSON.stringify(insertErr, null, 2));
+        throw new Error(`Failed to save insights: ${insertErr.message || insertErr.code || "unknown"}`);
       }
 
       console.log(`[insights] ✓ Insights generated for tenant ${tenantId}. Health: ${parsed.overall_health}, Score: ${parsed.health_score}`);
-      return logger.done(withCors(req, ok(saved)), authCtx);
+
+      // Return the parsed insights data (no need to re-fetch from DB)
+      return logger.done(withCors(req, ok({
+        ...insertData,
+        created_at: new Date().toISOString(),
+      })), authCtx);
     }
 
     return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
