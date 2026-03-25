@@ -102,7 +102,7 @@ async function resolveTenantId(sb: ReturnType<typeof createAdminClient>, company
 /**
  * Extracts website information using OpenAI with web search via the adapter layer.
  */
-export async function extractWebsiteInformation(companyId: string, dbClient?: ReturnType<typeof createAdminClient>, tenantId?: string): Promise<ReturnType<typeof JSON.parse>> {
+export async function extractWebsiteInformation(companyId: string, dbClient?: ReturnType<typeof createAdminClient>, tenantId?: string, userId?: string): Promise<ReturnType<typeof JSON.parse>> {
   const sb = dbClient || createAdminClient();
   const { data: company, error: cErr } = await sb
     .from("companies")
@@ -172,6 +172,7 @@ export async function extractWebsiteInformation(companyId: string, dbClient?: Re
   if (resolvedTenantId) {
     await logAiUsage(sb, {
       tenantId: resolvedTenantId,
+      userId,
       callSite: "llm_extract_website",
       platformSlug: model.platformSlug,
       modelSlug: model.slug,
@@ -198,7 +199,7 @@ export async function extractWebsiteInformation(companyId: string, dbClient?: Re
 /**
  * Generates the llms.txt content using OpenAI via the adapter layer.
  */
-export async function generateLlmText(companyId: string, dbClient?: ReturnType<typeof createAdminClient>, tenantId?: string): Promise<string> {
+export async function generateLlmText(companyId: string, dbClient?: ReturnType<typeof createAdminClient>, tenantId?: string, userId?: string): Promise<string> {
   const sb = dbClient || createAdminClient();
   const { data: companyData, error: cdErr } = await sb
     .from("companies")
@@ -253,6 +254,7 @@ export async function generateLlmText(companyId: string, dbClient?: ReturnType<t
   if (resolvedTenantId) {
     await logAiUsage(sb, {
       tenantId: resolvedTenantId,
+      userId,
       callSite: "llm_generate_text",
       platformSlug: model2.platformSlug,
       modelSlug: model2.slug,
@@ -277,13 +279,13 @@ export async function generateLlmText(companyId: string, dbClient?: ReturnType<t
 /**
  * Runs both extraction and generation sequentially.
  */
-export async function autoGenerateAllLlmData(companyId: string, dbClient?: ReturnType<typeof createAdminClient>, tenantId?: string): Promise<void> {
+export async function autoGenerateAllLlmData(companyId: string, dbClient?: ReturnType<typeof createAdminClient>, tenantId?: string, userId?: string): Promise<void> {
   try {
     const sb = dbClient || createAdminClient();
     console.log(`[llm-generation] Starting auto-generation for company ${companyId}`);
-    await extractWebsiteInformation(companyId, sb, tenantId);
+    await extractWebsiteInformation(companyId, sb, tenantId, userId);
     console.log(`[llm-generation] Extraction complete for company ${companyId}`);
-    await generateLlmText(companyId, sb, tenantId);
+    await generateLlmText(companyId, sb, tenantId, userId);
     console.log(`[llm-generation] LLMs.txt generation complete for company ${companyId}`);
   } catch (err) {
     console.error(`[llm-generation] Auto-generation failed for company ${companyId}:`, err);

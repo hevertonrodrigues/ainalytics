@@ -129,8 +129,9 @@ interface AiSuggestionsInput {
   sitemapXml: string | null;
   language: string;
   existingTopics?: ExistingTopic[];
-  // Optional: provide tenantId and db for usage logging
+  // Optional: provide tenantId, userId and db for usage logging
   tenantId?: string;
+  userId?: string;
   db?: SupabaseClient;
 }
 
@@ -144,7 +145,7 @@ interface RawTopic {
 export async function generateAiSuggestions(
   input: AiSuggestionsInput,
 ): Promise<TopicSuggestionResult & { raw_topics: RawTopic[] }> {
-  const { websiteTitle, metatags, extractedContent, sitemapXml, language, existingTopics, tenantId, db } = input;
+  const { websiteTitle, metatags, extractedContent, sitemapXml, language, existingTopics, tenantId, userId, db } = input;
 
   if (!extractedContent) {
     throw new Error("Cannot generate suggestions without extracted content.");
@@ -231,6 +232,7 @@ ${truncatedSitemap}
   if (tenantId && db) {
     await logAiUsage(db, {
       tenantId,
+      userId,
       callSite: "suggest_topics",
       platformSlug: model.platformSlug,
       modelSlug: model.slug,

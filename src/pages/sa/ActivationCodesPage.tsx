@@ -127,7 +127,16 @@ export function ActivationCodesPage() {
                         </button>
                       </div>
                     </td>
-                    <td className="!font-body">{c.plan_name || <span className="text-text-secondary italic">—</span>}</td>
+                    <td className="!font-body" onClick={e => e.stopPropagation()}>
+                      <select
+                        value={c.plan_id || ''}
+                        onChange={e => update(c.id, { plan_id: e.target.value || null } as unknown as Partial<ActivationCode>)}
+                        className="input-field !py-1 !px-2 !text-sm !bg-transparent !border-transparent hover:!border-border-primary focus:!border-brand-primary transition-colors cursor-pointer w-full max-w-[200px]"
+                      >
+                        <option value="">{t('sa.noPlanAssigned')}</option>
+                        {plans.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      </select>
+                    </td>
                     <td className="!font-body">{c.tenant_name || <span className="text-text-secondary italic">{t('sa.unclaimed')}</span>}</td>
                     <td className="text-center">
                       <button onClick={(e) => { e.stopPropagation(); update(c.id, { is_active: !c.is_active } as unknown as Partial<ActivationCode>); }}

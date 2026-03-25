@@ -50,6 +50,7 @@ function toLanguageIso(raw: string | null | undefined): string | undefined {
 
 export interface PromptExecutionContext {
   tenantId: string;
+  userId?: string;
   promptId: string;
   promptText: string;
   platformId: string;
@@ -275,6 +276,7 @@ export async function executeAndStorePromptAnswer(
     const tokens = result.tokens as { input?: number; output?: number } | null;
     await logAiUsage(db, {
       tenantId: context.tenantId,
+      userId: context.userId,
       callSite: "prompt_execution",
       platformSlug: context.platformSlug,
       modelSlug: context.modelSlug,

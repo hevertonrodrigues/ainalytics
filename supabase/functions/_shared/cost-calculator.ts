@@ -79,20 +79,35 @@ let cacheLoaded = false;
 async function ensureModelCache(db: SupabaseClient): Promise<void> {
   if (cacheLoaded) return;
 
-  const { data: models, error } = await db
-    .from("models")
-    .select("id, slug, platform_id, price_per_input_token, price_per_output_token, platforms!inner(slug)")
-    .order("slug");
+  // Use two simple queries instead of PostgREST join (which can fail
+  // if PostgREST's schema cache hasn't picked up the FK yet).
+  const [modelsRes, platformsRes] = await Promise.all([
+    db.from("models")
+      .select("id, slug, platform_id, price_per_input_token, price_per_output_token")
+      .order("slug"),
+    db.from("platforms")
+      .select("id, slug"),
+  ]);
 
-  if (error) {
-    console.error("[cost-calculator] Failed to load model pricing:", error.message);
-    cacheLoaded = true; // Don't retry on every call
+  if (modelsRes.error) {
+    console.error("[cost-calculator] Failed to load models:", modelsRes.error.message);
+    cacheLoaded = true;
+    return;
+  }
+  if (platformsRes.error) {
+    console.error("[cost-calculator] Failed to load platforms:", platformsRes.error.message);
+    cacheLoaded = true;
     return;
   }
 
-  for (const m of (models || [])) {
-    // deno-lint-ignore no-explicit-any
-    const platformSlug = (m as any).platforms?.slug;
+  // Build platform lookup map
+  const platformMap = new Map<string, string>();
+  for (const p of (platformsRes.data || [])) {
+    platformMap.set(p.id, p.slug);
+  }
+
+  for (const m of (modelsRes.data || [])) {
+    const platformSlug = platformMap.get(m.platform_id);
     if (!platformSlug) continue;
 
     const key = `${platformSlug}:${m.slug}`;

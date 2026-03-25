@@ -181,6 +181,7 @@ serve(async (req: Request) => {
         sitemapXml: sitemapXml,
         language,
         tenantId,
+        userId: user.id,
         db,
       });
       suggestedTopics = aiResult.suggested_topics;

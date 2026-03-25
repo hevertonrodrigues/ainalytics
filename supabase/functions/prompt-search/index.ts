@@ -228,12 +228,12 @@ serve(async (req: Request) => {
     }
 
     if (req.method === "POST" && subPath.startsWith("/retry")) {
-      return logger.done(withCors(req, await handleRetry(tenantId, req)), authCtx);
+      return logger.done(withCors(req, await handleRetry(tenantId, user.id, req)), authCtx);
     }
 
     switch (req.method) {
       case "POST":
-        return logger.done(withCors(req, await handleSearch(tenantId, req)), authCtx);
+        return logger.done(withCors(req, await handleSearch(tenantId, user.id, req)), authCtx);
       case "GET":
         return logger.done(withCors(req, await handleGetAnswers(tenantId, req)), authCtx);
       default:
@@ -264,7 +264,7 @@ serve(async (req: Request) => {
   }
 });
 
-async function handleSearch(tenantId: string, req: Request): Promise<Response> {
+async function handleSearch(tenantId: string, userId: string, req: Request): Promise<Response> {
   const body = await req.json();
   const promptId = typeof body.prompt_id === "string" ? body.prompt_id : "";
 
@@ -306,6 +306,7 @@ async function handleSearch(tenantId: string, req: Request): Promise<Response> {
     .filter((entry) => entry.platform && entry.model)
     .map((entry) => ({
       tenantId,
+      userId,
       promptId: typedPrompt.id,
       promptText: typedPrompt.text,
       platformId: entry.platform_id,
@@ -361,7 +362,7 @@ async function handleSearch(tenantId: string, req: Request): Promise<Response> {
   return ok(filtered);
 }
 
-async function handleRetry(tenantId: string, req: Request): Promise<Response> {
+async function handleRetry(tenantId: string, userId: string, req: Request): Promise<Response> {
   const body = await req.json();
   const answerId = typeof body.answer_id === "string" ? body.answer_id : "";
 
@@ -398,6 +399,7 @@ async function handleRetry(tenantId: string, req: Request): Promise<Response> {
       typedAnswer.platform_id,
       typedAnswer.model_id,
     );
+    context.userId = userId;
   } catch (error) {
     return badRequest(getErrorMessage(error));
   }
