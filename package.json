@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:all": "node scripts/dev-all.js",
+    "dev:all:cron": "node scripts/dev-all.js --with-cron",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

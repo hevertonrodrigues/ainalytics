@@ -11,7 +11,16 @@ const ProtectedRoute = lazy(() => import('@/components/guards/ProtectedRoute').t
 const GuestRoute = lazy(() => import('@/components/guards/GuestRoute').then(m => ({ default: m.GuestRoute })));
 const FlowGate = lazy(() => import('@/components/guards/FlowGate').then(m => ({ default: m.FlowGate })));
 const SuperAdminGate = lazy(() => import('@/components/guards/SuperAdminGate').then(m => ({ default: m.SuperAdminGate })));
+const SuperAdminRoute = lazy(() => import('@/components/guards/SuperAdminRoute').then(m => ({ default: m.SuperAdminRoute })));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout').then(m => ({ default: m.AppLayout })));
+const SALayout = lazy(() => import('@/pages/sa/SALayout').then(m => ({ default: m.SALayout })));
+const CRMPipelinePage = lazy(() => import('@/pages/sa/CRMPipelinePage').then(m => ({ default: m.CRMPipelinePage })));
+const UserDetailPage = lazy(() => import('@/pages/sa/UserDetailPage').then(m => ({ default: m.UserDetailPage })));
+const ActiveUsersPage = lazy(() => import('@/pages/sa/ActiveUsersPage').then(m => ({ default: m.ActiveUsersPage })));
+const SAPlansPage = lazy(() => import('@/pages/sa/PlansPage').then(m => ({ default: m.PlansPage })));
+const SAActivationCodesPage = lazy(() => import('@/pages/sa/ActivationCodesPage').then(m => ({ default: m.ActivationCodesPage })));
+const SAPlatformsPage = lazy(() => import('@/pages/sa/PlatformsPage').then(m => ({ default: m.PlatformsPage })));
+const SAModelsPage = lazy(() => import('@/pages/sa/ModelsPage').then(m => ({ default: m.ModelsPage })));
 const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 
 // Lazy-loaded page components (route-level code splitting)
@@ -96,6 +105,17 @@ export function App() {
             <Route path="/oferta-marco" element={<GuestRoute><SalesPage /></GuestRoute>} />
             <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
             <Route path="/reset-password" element={<ResetPassword />} />
+
+            {/* Super Admin management area */}
+            <Route path="/sa" element={<SuperAdminRoute><SALayout /></SuperAdminRoute>}>
+              <Route index element={<CRMPipelinePage />} />
+              <Route path="active" element={<ActiveUsersPage />} />
+              <Route path="plans" element={<SAPlansPage />} />
+              <Route path="activation-codes" element={<SAActivationCodesPage />} />
+              <Route path="platforms" element={<SAPlatformsPage />} />
+              <Route path="models" element={<SAModelsPage />} />
+              <Route path="users/:userId" element={<UserDetailPage />} />
+            </Route>
 
             {/* Protected routes with app shell */}
             <Route path="/dashboard" element={<ProtectedRoute><TenantProvider><AppLayout /></TenantProvider></ProtectedRoute>}>
