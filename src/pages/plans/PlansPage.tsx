@@ -30,7 +30,7 @@ const ACTIVATION_ERROR_MAP: Record<string, string> = {
 
 export function PlansPage() {
   const { t, i18n } = useTranslation();
-  const { currentTenant, refreshTenant } = useTenant();
+  const { currentTenant, refreshTenant, refreshSetup } = useTenant();
   const { formatPrice: formatCurrency } = useCurrency();
   const navigate = useNavigate();
 
@@ -131,6 +131,7 @@ export function PlansPage() {
     try {
       await apiClient.put('/plans', { activation_code: activationCode.trim() });
       closeCodeModal();
+      refreshSetup();
       showSuccess(t('plans.planSelected'));
       loadPlans();
     } catch (err) {

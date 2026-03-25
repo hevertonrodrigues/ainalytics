@@ -64,7 +64,7 @@ const SA_PLATFORMS_NAV: NavItem = { key: 'nav.platforms', path: '/dashboard/plat
 export function Sidebar() {
   const { t } = useTranslation();
   const { signOut, profile } = useAuth();
-  const { currentTenant, tenants, switchTenant, hasCompany, hasModels, isFullySetup } = useTenant();
+  const { currentTenant, tenants, switchTenant, hasCompany, hasModels, isFullySetup, refreshSetup } = useTenant();
   const { theme, toggleTheme } = useTheme();
   const { layoutMode, toggleLayoutMode, isSidebarOpen, setSidebarOpen } = useLayout();
   const navigate = useNavigate();
@@ -75,6 +75,11 @@ export function Sidebar() {
   useEffect(() => {
     setSidebarOpen(false);
   }, [location.pathname, setSidebarOpen]);
+
+  // Re-validate setup status (company + models) on every route change
+  useEffect(() => {
+    refreshSetup();
+  }, [location.pathname, refreshSetup]);
 
   const hasPlan = !!currentTenant?.active_plan_id;
 

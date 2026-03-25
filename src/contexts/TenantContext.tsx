@@ -1,7 +1,7 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { STORAGE_KEYS } from '@/lib/constants';
 import { useAuth } from './AuthContext';
-import { apiClient } from '@/lib/api';
+import { useTenantSetup } from '@/hooks/useTenantSetup';
 import type { Tenant } from '@/types';
 
 interface TenantContextValue {
@@ -12,23 +12,20 @@ interface TenantContextValue {
   setHasCompany: (v: boolean) => void;
   /** Whether the tenant has at least one active model preference */
   hasModels: boolean;
-  setHasModels: (v: boolean) => void;
   /** True when plan + company + models are all set up */
   isFullySetup: boolean;
   /** True while tenant-related data (company, models) is being fetched */
   tenantLoading: boolean;
   switchTenant: (tenantId: string) => void;
   refreshTenant: () => Promise<void>;
+  /** Re-fetch company + models setup status from the API */
+  refreshSetup: () => Promise<void>;
 }
 
 const TenantContext = createContext<TenantContextValue | null>(null);
 
 export function TenantProvider({ children }: { children: ReactNode }) {
   const { tenants: authTenants, refreshAuth } = useAuth();
-
-  const [hasCompany, setHasCompany] = useState(false);
-  const [hasModels, setHasModels] = useState(false);
-  const [tenantLoading, setTenantLoading] = useState(true);
 
   const [currentTenantId, setCurrentTenantId] = useState<string>(() =>
     localStorage.getItem(STORAGE_KEYS.CURRENT_TENANT_ID) || '',
@@ -37,37 +34,12 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const tenants: Tenant[] = authTenants;
   const currentTenant = tenants.find((t) => t.id === currentTenantId) || tenants[0] || null;
   const hasPlan = !!currentTenant?.active_plan_id;
+
+  // Delegate setup checks to the dedicated hook
+  const { hasCompany, setHasCompany, hasModels, loading: tenantLoading, refreshSetup } =
+    useTenantSetup(currentTenant?.id);
+
   const isFullySetup = hasPlan && hasCompany && hasModels;
-
-  // Fetch company + models existence when tenant changes
-  useEffect(() => {
-    if (!currentTenant?.id) {
-      setHasCompany(false);
-      setHasModels(false);
-      setTenantLoading(false);
-      return;
-    }
-    let cancelled = false;
-    setTenantLoading(true);
-
-    // Fetch company and models in parallel, then mark loading done
-    Promise.all([
-      apiClient
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .get<any>('/company')
-        .then((res) => { if (!cancelled) setHasCompany(!!res.data); })
-        .catch(() => { if (!cancelled) setHasCompany(false); }),
-      apiClient
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .get<any[]>('/platforms/preferences')
-        .then((res) => { if (!cancelled) setHasModels(Array.isArray(res.data) && res.data.length > 0); })
-        .catch(() => { if (!cancelled) setHasModels(false); }),
-    ]).finally(() => {
-      if (!cancelled) setTenantLoading(false);
-    });
-
-    return () => { cancelled = true; };
-  }, [currentTenant?.id]);
 
   const switchTenant = useCallback((tenantId: string) => {
     localStorage.setItem(STORAGE_KEYS.CURRENT_TENANT_ID, tenantId);
@@ -86,11 +58,11 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         hasCompany,
         setHasCompany,
         hasModels,
-        setHasModels,
         isFullySetup,
         tenantLoading,
         switchTenant,
         refreshTenant,
+        refreshSetup,
       }}
     >
       {children}
@@ -104,3 +76,4 @@ export function useTenant(): TenantContextValue {
   if (!ctx) throw new Error('useTenant must be used within TenantProvider');
   return ctx;
 }
+

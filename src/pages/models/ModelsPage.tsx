@@ -19,7 +19,7 @@ export function ModelsPage() {
   const { t } = useTranslation();
   const { showToast } = useToast();
   const { profile } = useAuth();
-  const { setHasModels } = useTenant();
+  const { refreshSetup } = useTenant();
   const isSA = !!profile?.is_sa;
 
   const [platforms, setPlatforms] = useState<Platform[]>([]);
@@ -101,7 +101,7 @@ export function ModelsPage() {
       setAddingPlatformId(null);
       setAddingModelId(null);
       await loadAll();
-      setHasModels(true);
+      refreshSetup();
     } catch {
       setError(t('common.error'));
     } finally {
@@ -134,9 +134,7 @@ export function ModelsPage() {
       await apiClient.delete(`/platforms/preferences?id=${pref.id}`);
       showToast(t('models.removed'));
       await loadAll();
-      // Check if any preferences remain
-      const remaining = preferences.filter((p) => p.id !== pref.id);
-      setHasModels(remaining.length > 0);
+      refreshSetup();
     } catch {
       setError(t('common.error'));
     } finally {

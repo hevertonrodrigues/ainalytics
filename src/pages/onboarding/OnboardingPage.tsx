@@ -53,7 +53,7 @@ function getEmailDomain(email: string | undefined): string | null {
 export function OnboardingPage() {
   const { t, i18n } = useTranslation();
   const { profile, refreshAuth } = useAuth();
-  const { currentTenant, setHasCompany } = useTenant();
+  const { currentTenant, setHasCompany, refreshSetup } = useTenant();
   const { formatPrice: formatCurrency } = useCurrency();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -393,6 +393,7 @@ export function OnboardingPage() {
         activation_code: activationCode.trim(),
       });
       closeCodeModal();
+      refreshSetup();
       try { await apiClient.put('/users-me', { has_seen_onboarding: true }); await refreshAuth(); } catch { /* ignore */ }
       navigate('/dashboard/company', { replace: true });
     } catch (err) {
