@@ -14,39 +14,43 @@
 ## 2. Technology Stack
 
 ### 2.1 Frontend
-| Technology | Version | Purpose |
-|---|---|---|
-| React | 19.x | UI framework |
-| Vite | 6.2.x | Build tool and dev server |
-| Tailwind CSS | 4.x | Utility-first CSS (v4, NOT v3) |
-| React Router DOM | 7.2.x | Client-side routing |
+
+| Technology              | Version     | Purpose                              |
+| ----------------------- | ----------- | ------------------------------------ |
+| React                   | 19.x        | UI framework                         |
+| Vite                    | 6.2.x       | Build tool and dev server            |
+| Tailwind CSS            | 4.x         | Utility-first CSS (v4, NOT v3)       |
+| React Router DOM        | 7.2.x       | Client-side routing                  |
 | react-i18next / i18next | 15.x / 24.x | Internationalization (en, es, pt-br) |
-| Lucide React | 0.575.x | Icon library |
-| Supabase JS | 2.49.x | Supabase client (SELECT/auth only) |
-| Stripe JS | 8.9.x | Stripe payment integration |
-| jsPDF | 4.2.x | PDF report generation |
-| html2canvas | 1.4.x | Screenshot capture for PDFs |
-| intl-tel-input | 26.7.x | International phone input |
-| react-markdown | 10.1.x | Markdown rendering |
+| Lucide React            | 0.575.x     | Icon library                         |
+| Supabase JS             | 2.49.x      | Supabase client (SELECT/auth only)   |
+| Stripe JS               | 8.9.x       | Stripe payment integration           |
+| jsPDF                   | 4.2.x       | PDF report generation                |
+| html2canvas             | 1.4.x       | Screenshot capture for PDFs          |
+| intl-tel-input          | 26.7.x      | International phone input            |
+| react-markdown          | 10.1.x      | Markdown rendering                   |
 
 ### 2.2 Backend & Infrastructure
-| Technology | Purpose |
-|---|---|
-| Supabase | BaaS (Database, Auth, Edge Functions, Storage) |
-| PostgreSQL | Relational database with RLS |
-| Supabase Edge Functions (Deno/TypeScript) | Serverless API layer |
-| Supabase Auth | JWT-based authentication |
-| pg_cron | Scheduled background jobs |
-| Stripe | Payment processing |
-| SendGrid | Transactional email |
-| Google reCAPTCHA v3 | Bot protection |
+
+| Technology                                | Purpose                                        |
+| ----------------------------------------- | ---------------------------------------------- |
+| Supabase                                  | BaaS (Database, Auth, Edge Functions, Storage) |
+| PostgreSQL                                | Relational database with RLS                   |
+| Supabase Edge Functions (Deno/TypeScript) | Serverless API layer                           |
+| Supabase Auth                             | JWT-based authentication                       |
+| pg_cron                                   | Scheduled background jobs                      |
+| Stripe                                    | Payment processing                             |
+| SendGrid                                  | Transactional email                            |
+| Google reCAPTCHA v3                       | Bot protection                                 |
 
 ### 2.3 Analytics & Tracking
+
 - Google Tag Manager (GTM-K4HQB33N)
 - Meta Pixel (Facebook)
 - Microsoft Clarity (vtprlhr5j6)
 
 ### 2.4 Fonts
+
 - **Outfit** (headings): weights 300–800
 - **Plus Jakarta Sans** (body): weights 300–700
 - **JetBrains Mono** (code): weights 400–600
@@ -60,6 +64,7 @@
 Every data table includes a `tenant_id` column referencing the `tenants` table. Row Level Security (RLS) policies enforce data isolation at the database level. The frontend sends `x-tenant-id` header with every API request.
 
 **Tenant hierarchy:**
+
 ```
 tenants (root)
   └── tenant_users (join: user ↔ tenant, with role)
@@ -79,6 +84,7 @@ Frontend (React)
 ```
 
 **CRITICAL RULE:** The frontend Supabase client is ONLY used for:
+
 - `SELECT` queries (reads)
 - Auth operations (signIn, signUp, signOut, resetPassword)
 - NEVER for `.insert()`, `.update()`, `.delete()`, `.upsert()`
@@ -88,6 +94,7 @@ All mutations MUST go through the `apiClient` which calls Edge Functions. Edge F
 ### 3.3 API Client Pattern
 
 The `apiClient` in `src/lib/api.ts`:
+
 - Base URL: `{SUPABASE_URL}/functions/v1`
 - Auto-attaches JWT from localStorage
 - Auto-attaches `x-tenant-id` header
@@ -247,6 +254,7 @@ ainalytics/
 ## 5. Environment Variables
 
 ### 5.1 Frontend (Vite — `VITE_` prefix required)
+
 ```
 VITE_SUPABASE_URL=https://kjfvhiffsusdqphgjsdz.supabase.co
 VITE_SUPABASE_ANON_KEY=<anon-key>
@@ -256,6 +264,7 @@ VITE_STRIPE_PUBLISHABLE_KEY=<stripe-publishable-key>
 ```
 
 ### 5.2 Backend (Edge Functions — Deno.env.get())
+
 ```
 SUPABASE_URL=<project-url>
 SUPABASE_ANON_KEY=<anon-key>
@@ -298,7 +307,7 @@ All routes are defined in `src/App.tsx` with lazy-loaded components and `Suspens
 
 **Protected Routes (require authentication + TenantProvider + AppLayout):**
 
-*Always accessible (no gate):*
+_Always accessible (no gate):_
 | Path | Component | Description |
 |---|---|---|
 | `/dashboard/onboarding` | OnboardingPage | First-time setup wizard |
@@ -306,7 +315,7 @@ All routes are defined in `src/App.tsx` with lazy-loaded components and `Suspens
 | `/dashboard/profile` | ProfilePage | User profile settings |
 | `/dashboard/support` | SupportPage | Help & support |
 
-*Flow-gated (sequential setup required):*
+_Flow-gated (sequential setup required):_
 | Path | Component | Gate Level |
 |---|---|---|
 | `/dashboard/company` | MyCompanyPage | Requires: plan |
@@ -324,7 +333,7 @@ All routes are defined in `src/App.tsx` with lazy-loaded components and `Suspens
 | `/dashboard/sources/:id` | SourceDetailPage | Requires: all setup |
 | `/dashboard/llmtext` | LlmTextPage | Requires: all setup |
 
-*SuperAdmin-only:*
+_SuperAdmin-only:_
 | Path | Component | Description |
 |---|---|---|
 | `/dashboard/deep-analyze` | DeepAnalyzePage | AI deep analysis tool |
@@ -364,6 +373,7 @@ ThemeProvider
 ## 7. React Contexts
 
 ### 7.1 AuthContext (`src/contexts/AuthContext.tsx`)
+
 - **State:** `profile: Profile | null`, `tenants: Tenant[]`, `loading`, `initialized`
 - **Methods:** `signIn`, `signUp`, `signOut`, `forgotPassword`, `resetPassword`, `refreshAuth`
 - **Behavior:**
@@ -373,6 +383,7 @@ ThemeProvider
   - Token stored in localStorage keys: `access_token`, `refresh_token`, `current_tenant_id`
 
 ### 7.2 TenantContext (`src/contexts/TenantContext.tsx`)
+
 - **State:** `currentTenant`, `tenants`, `hasCompany`, `hasModels`, `isFullySetup`, `tenantLoading`
 - **Methods:** `switchTenant`, `refreshTenant`, `setHasCompany`, `setHasModels`
 - **Behavior:**
@@ -380,18 +391,21 @@ ThemeProvider
   - `isFullySetup = hasPlan && hasCompany && hasModels`
 
 ### 7.3 ThemeContext (`src/contexts/ThemeContext.tsx`)
+
 - Supports `light` and `dark` themes
 - Persisted via `localStorage` key `ainalytics-theme`
 - Sets `data-theme` attribute on `<html>` element
 - Defaults to OS preference via `prefers-color-scheme`
 
 ### 7.4 ToastContext (`src/contexts/ToastContext.tsx`)
+
 - Variants: `success`, `error`, `info`
 - Auto-dismiss after 8 seconds
 - Fixed position bottom-right
 - Uses Lucide icons (CheckCircle, AlertCircle, Info)
 
 ### 7.5 LayoutContext (`src/contexts/LayoutContext.tsx`)
+
 - Layout modes: `centered` (default) and `expanded`
 - Controls sidebar open/close state
 - Persisted via localStorage key `ainalytics_layout_mode`
@@ -402,16 +416,19 @@ ThemeProvider
 ## 8. Custom Hooks
 
 ### 8.1 `useCurrency` (`src/hooks/useCurrency.ts`)
+
 - Fetches exchange rates from `general_settings` table (keys: `USD_BRL`, `USD_EUR`)
 - `formatPrice(usdPrice)`: converts to locale-appropriate currency format
   - `pt-*` → R$ (BRL), `es-*` → € (EUR), default → $ (USD)
 
 ### 8.2 `useTutorial` (`src/hooks/useTutorial.ts`)
+
 - Tracks page-specific tutorials via `profile.tutorial_views` JSONB field
 - Path-to-key mapping: topics, prompts, sources, llmText, insights, models
 - `dismissTutorial()`: updates profile via `/users-me` PUT
 
 ### 8.3 `useScrollLock` (`src/hooks/useScrollLock.ts`)
+
 - Locks body scroll when modals are open
 
 ---
@@ -419,37 +436,40 @@ ThemeProvider
 ## 9. Type System (`src/types/index.ts`)
 
 ### 9.1 Base Entity
+
 Every tenant-scoped table includes: `id`, `tenant_id`, `created_at`, `updated_at`
 
 ### 9.2 Core Types
 
-| Type | Description |
-|---|---|
-| `Plan` | Subscription plan (global, no tenant_id) |
-| `Tenant` | Organization with `name`, `slug`, `active_plan_id`, `main_domain` |
-| `Profile` | User profile with `user_id`, `full_name`, `email`, `locale`, `is_sa`, `has_seen_onboarding`, `tutorial_views` |
-| `TenantUser` | Join table: `user_id`, `role` (owner/admin/member), `is_active` |
-| `Topic` | Prompt grouping: `name`, `description`, `is_active`, virtual `prompt_count` |
-| `Prompt` | AI query: `topic_id`, `text` (max 500 chars), `description`, `is_active` |
-| `Platform` | AI provider: `slug`, `name`, `is_active`, `default_model_id` |
-| `Model` | AI model: `platform_id`, `slug`, `name`, `is_active`, `web_search_active` |
-| `TenantPlatformModel` | Tenant's selected models: `platform_id`, `model_id`, `is_active` |
-| `PromptAnswer` | AI response: `prompt_id`, `platform_slug`, `model_id`, `answer_text`, `tokens_used`, `latency_ms`, `raw_request`, `raw_response`, `web_search_enabled`, `annotations`, `sources` |
-| `Source` | Citation source: `domain`, `name`, `mentions_count` |
-| `PromptAnswerSource` | Join: answer ↔ source with `url`, `title`, `annotation` |
-| `Company` | Company profile: `domain`, website metadata, `llm_txt`, `llm_txt_status`, `latest_analysis` |
-| `GeoAnalysis` | GEO analysis results: `status`, `crawled_pages`, `ai_report`, `geo_score`, `readiness_level`, deep analyze data |
-| `CompanyAiAnalysis` | Deep AI analysis: `final_score`, category scores, `reasoning`, `high_probability_prompts`, `improvements` |
+| Type                  | Description                                                                                                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Plan`                | Subscription plan (global, no tenant_id)                                                                                                                                         |
+| `Tenant`              | Organization with `name`, `slug`, `active_plan_id`, `main_domain`                                                                                                                |
+| `Profile`             | User profile with `user_id`, `full_name`, `email`, `locale`, `is_sa`, `has_seen_onboarding`, `tutorial_views`                                                                    |
+| `TenantUser`          | Join table: `user_id`, `role` (owner/admin/member), `is_active`                                                                                                                  |
+| `Topic`               | Prompt grouping: `name`, `description`, `is_active`, virtual `prompt_count`                                                                                                      |
+| `Prompt`              | AI query: `topic_id`, `text` (max 500 chars), `description`, `is_active`                                                                                                         |
+| `Platform`            | AI provider: `slug`, `name`, `is_active`, `default_model_id`                                                                                                                     |
+| `Model`               | AI model: `platform_id`, `slug`, `name`, `is_active`, `web_search_active`                                                                                                        |
+| `TenantPlatformModel` | Tenant's selected models: `platform_id`, `model_id`, `is_active`                                                                                                                 |
+| `PromptAnswer`        | AI response: `prompt_id`, `platform_slug`, `model_id`, `answer_text`, `tokens_used`, `latency_ms`, `raw_request`, `raw_response`, `web_search_enabled`, `annotations`, `sources` |
+| `Source`              | Citation source: `domain`, `name`, `mentions_count`                                                                                                                              |
+| `PromptAnswerSource`  | Join: answer ↔ source with `url`, `title`, `annotation`                                                                                                                          |
+| `Company`             | Company profile: `domain`, website metadata, `llm_txt`, `llm_txt_status`, `latest_analysis`                                                                                      |
+| `GeoAnalysis`         | GEO analysis results: `status`, `crawled_pages`, `ai_report`, `geo_score`, `readiness_level`, deep analyze data                                                                  |
+| `CompanyAiAnalysis`   | Deep AI analysis: `final_score`, category scores, `reasoning`, `high_probability_prompts`, `improvements`                                                                        |
 
 ### 9.3 GEO Analysis Types
 
 The GEO (Generative Engine Optimization) system has extensive types:
+
 - `CompanyPage`: Detailed page analysis (headings, schema, semantic HTML, links, images, OG tags, tables, lists, paragraphs, security)
 - `GeoFactorScore`: 25 scoring factors across 4 categories (Technical, Content, Authority, Semantic)
 - `GeoReadinessLevel`: 0–5 scale (AI Invisible → AI Authority)
 - `AiReport`: Company analysis including competitors, strengths, weaknesses, products/services
 
 ### 9.4 API Response Types
+
 - `ApiSuccessResponse<T>`: `{ success: true, data: T, meta? }`
 - `ApiErrorResponse`: `{ success: false, error: { message, code, details? } }`
 - `ApiResponse<T>`: Union of success and error
@@ -460,35 +480,36 @@ The GEO (Generative Engine Optimization) system has extensive types:
 
 ### 10.1 Shared Modules (`supabase/functions/_shared/`)
 
-| File | Purpose |
-|---|---|
-| `auth.ts` | JWT verification + tenant resolution from `x-tenant-id` header or first active membership |
-| `cors.ts` | CORS headers, preflight handler, `withCors` wrapper. Allowed origin from `SITE_URL` env var |
-| `response.ts` | Standard response builders: `ok`, `created`, `noContent`, `badRequest`, `unauthorized`, `forbidden`, `notFound`, `conflict`, `serverError` |
-| `supabase.ts` | `createAdminClient()` (service_role, bypasses RLS) and `createUserClient(token)` (user JWT, RLS-scoped) |
-| `verify-recaptcha.ts` | Server-side reCAPTCHA v3 token verification |
-| `prompt-execution.ts` | Core prompt execution logic for running prompts against AI models |
-| `llm-generation.ts` | LLM text generation utilities |
-| `suggest-topics.ts` | AI-powered topic/prompt suggestion generation |
-| `deep-analyze-core.ts` | Deep analysis core logic |
+| File                   | Purpose                                                                                                                                    |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `auth.ts`              | JWT verification + tenant resolution from `x-tenant-id` header or first active membership                                                  |
+| `cors.ts`              | CORS headers, preflight handler, `withCors` wrapper. Allowed origin from `SITE_URL` env var                                                |
+| `response.ts`          | Standard response builders: `ok`, `created`, `noContent`, `badRequest`, `unauthorized`, `forbidden`, `notFound`, `conflict`, `serverError` |
+| `supabase.ts`          | `createAdminClient()` (service_role, bypasses RLS) and `createUserClient(token)` (user JWT, RLS-scoped)                                    |
+| `verify-recaptcha.ts`  | Server-side reCAPTCHA v3 token verification                                                                                                |
+| `prompt-execution.ts`  | Core prompt execution logic for running prompts against AI models                                                                          |
+| `llm-generation.ts`    | LLM text generation utilities                                                                                                              |
+| `suggest-topics.ts`    | AI-powered topic/prompt suggestion generation                                                                                              |
+| `deep-analyze-core.ts` | Deep analysis core logic                                                                                                                   |
 
 ### 10.2 AI Provider Adapters (`supabase/functions/_shared/ai-providers/`)
 
 Extensible adapter pattern for AI platforms:
 
-| File | Platform | Env Var |
-|---|---|---|
-| `openai.ts` | OpenAI (GPT models) | `OPENAI_API_KEY` |
-| `anthropic.ts` | Anthropic (Claude models) | `ANTHROPIC_API_KEY` |
-| `gemini.ts` | Google Gemini | `GEMINI_API_KEY` |
-| `grok.ts` | xAI Grok | `XAI_API_KEY` |
-| `perplexity.ts` | Perplexity | `PERPLEXITY_API_KEY` |
-| `index.ts` | Registry: `getAdapter`, `executePrompt`, `executePromptMulti` | — |
-| `types.ts` | `AiRequest`, `AiResponse`, `NormalizedAnnotation`, `NormalizedSource`, `AiAdapter` | — |
-| `normalize.ts` | Response normalization utilities | — |
-| `model-fetcher.ts` | Model fetching utilities | — |
+| File               | Platform                                                                           | Env Var              |
+| ------------------ | ---------------------------------------------------------------------------------- | -------------------- |
+| `openai.ts`        | OpenAI (GPT models)                                                                | `OPENAI_API_KEY`     |
+| `anthropic.ts`     | Anthropic (Claude models)                                                          | `ANTHROPIC_API_KEY`  |
+| `gemini.ts`        | Google Gemini                                                                      | `GEMINI_API_KEY`     |
+| `grok.ts`          | xAI Grok                                                                           | `XAI_API_KEY`        |
+| `perplexity.ts`    | Perplexity                                                                         | `PERPLEXITY_API_KEY` |
+| `index.ts`         | Registry: `getAdapter`, `executePrompt`, `executePromptMulti`                      | —                    |
+| `types.ts`         | `AiRequest`, `AiResponse`, `NormalizedAnnotation`, `NormalizedSource`, `AiAdapter` | —                    |
+| `normalize.ts`     | Response normalization utilities                                                   | —                    |
+| `model-fetcher.ts` | Model fetching utilities                                                           | —                    |
 
 **AiRequest interface:**
+
 ```typescript
 {
   prompt: string;
@@ -501,6 +522,7 @@ Extensible adapter pattern for AI platforms:
 ```
 
 **AiResponse interface:**
+
 ```typescript
 {
   text: string | null;
@@ -518,40 +540,40 @@ Extensible adapter pattern for AI platforms:
 
 ### 10.3 Prompt Templates (`supabase/functions/_shared/prompts/`)
 
-| File | Purpose |
-|---|---|
-| `deep-analyze.ts` | Deep analysis prompt templates |
-| `extract-website-info.ts` | Website information extraction prompts |
-| `generate-llm-txt.ts` | llms.txt file generation prompts |
-| `load.ts` | Prompt loading utilities |
-| `scrape-company-analyze.ts` | Company scraping + analysis prompts |
+| File                        | Purpose                                |
+| --------------------------- | -------------------------------------- |
+| `deep-analyze.ts`           | Deep analysis prompt templates         |
+| `extract-website-info.ts`   | Website information extraction prompts |
+| `generate-llm-txt.ts`       | llms.txt file generation prompts       |
+| `load.ts`                   | Prompt loading utilities               |
+| `scrape-company-analyze.ts` | Company scraping + analysis prompts    |
 
 ### 10.4 Edge Functions List
 
-| Function | Description |
-|---|---|
-| `analyses-data` | Fetch analysis data |
-| `company` | Company CRUD operations |
-| `crawl-pages` | Website page crawling |
-| `deep-analyze` | AI deep analysis (SuperAdmin) |
-| `faq` | FAQ management |
-| `get-website-information` | Website metadata extraction |
-| `interest-leads` | Interest/lead capture |
-| `plans` | Plan listing/management |
-| `platforms` | Platform & model management, preferences |
-| `pre-analyze` | GEO pre-analysis |
-| `prompt-execution-worker` | Background prompt execution worker |
-| `prompt-search` | Execute prompts against AI models |
-| `prompt-search-sources` | Source extraction from AI responses |
-| `public-contact` | Public contact form handler |
-| `scrape-company` | Company website scraping |
-| `sources-summary` | Source aggregation and summaries |
-| `stripe-cancel` | Stripe subscription cancellation |
-| `stripe-checkout` | Stripe checkout session creation |
-| `stripe-webhook` | Stripe webhook handler |
-| `support-contact` | Support ticket creation |
-| `topics-prompts` | Topics & prompts CRUD |
-| `users-me` | User profile & tenant data |
+| Function                  | Description                              |
+| ------------------------- | ---------------------------------------- |
+| `analyses-data`           | Fetch analysis data                      |
+| `company`                 | Company CRUD operations                  |
+| `crawl-pages`             | Website page crawling                    |
+| `deep-analyze`            | AI deep analysis (SuperAdmin)            |
+| `faq`                     | FAQ management                           |
+| `get-website-information` | Website metadata extraction              |
+| `interest-leads`          | Interest/lead capture                    |
+| `plans`                   | Plan listing/management                  |
+| `platforms`               | Platform & model management, preferences |
+| `pre-analyze`             | GEO pre-analysis                         |
+| `prompt-execution-worker` | Background prompt execution worker       |
+| `prompt-search`           | Execute prompts against AI models        |
+| `prompt-search-sources`   | Source extraction from AI responses      |
+| `public-contact`          | Public contact form handler              |
+| `scrape-company`          | Company website scraping                 |
+| `sources-summary`         | Source aggregation and summaries         |
+| `stripe-cancel`           | Stripe subscription cancellation         |
+| `stripe-checkout`         | Stripe checkout session creation         |
+| `stripe-webhook`          | Stripe webhook handler                   |
+| `support-contact`         | Support ticket creation                  |
+| `topics-prompts`          | Topics & prompts CRUD                    |
+| `users-me`                | User profile & tenant data               |
 
 ### 10.5 Edge Function Pattern
 
@@ -568,8 +590,8 @@ serve(async (req: Request) => {
   if (req.method === "OPTIONS") return handleCors(req);
 
   try {
-    const auth = await verifyAuth(req);  // Extracts user + tenantId from JWT
-    const db = createAdminClient();       // Admin client bypasses RLS
+    const auth = await verifyAuth(req); // Extracts user + tenantId from JWT
+    const db = createAdminClient(); // Admin client bypasses RLS
 
     switch (req.method) {
       case "GET": {
@@ -587,7 +609,8 @@ serve(async (req: Request) => {
         const { data, error } = await db
           .from("table_name")
           .insert({ tenant_id: auth.tenantId, ...body })
-          .select().single();
+          .select()
+          .single();
         if (error) return withCors(req, serverError(error.message));
         return withCors(req, created(data));
       }
@@ -596,10 +619,22 @@ serve(async (req: Request) => {
     }
   } catch (err) {
     if (err.status) {
-      return withCors(req, new Response(JSON.stringify({
-        success: false,
-        error: { message: err.message, code: err.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN" }
-      }), { status: err.status, headers: { "Content-Type": "application/json" } }));
+      return withCors(
+        req,
+        new Response(
+          JSON.stringify({
+            success: false,
+            error: {
+              message: err.message,
+              code: err.status === 401 ? "UNAUTHORIZED" : "FORBIDDEN",
+            },
+          }),
+          {
+            status: err.status,
+            headers: { "Content-Type": "application/json" },
+          },
+        ),
+      );
     }
     return withCors(req, serverError(err.message || "Internal server error"));
   }
@@ -607,6 +642,7 @@ serve(async (req: Request) => {
 ```
 
 **Key rules:**
+
 - Always handle CORS preflight (`OPTIONS`)
 - Always use `withCors(req, response)` to wrap responses
 - Always use `verifyAuth(req)` for authenticated endpoints
@@ -636,56 +672,57 @@ serve(async (req: Request) => {
 
 ### 11.2 Core Tables
 
-| Table | Scope | Description |
-|---|---|---|
-| `tenants` | Global | Organizations (root table) |
-| `profiles` | Tenant | User profiles linked to auth.users |
-| `tenant_users` | Tenant | User ↔ tenant membership with roles |
-| `plans` | Global | Subscription plans |
-| `activation_plans` | Global | Activation codes |
+| Table              | Scope  | Description                               |
+| ------------------ | ------ | ----------------------------------------- |
+| `tenants`          | Global | Organizations (root table)                |
+| `profiles`         | Tenant | User profiles linked to auth.users        |
+| `tenant_users`     | Tenant | User ↔ tenant membership with roles       |
+| `plans`            | Global | Subscription plans                        |
+| `activation_plans` | Global | Activation codes                          |
 | `general_settings` | Global | Key-value settings (exchange rates, etc.) |
 
 ### 11.3 AI Monitoring Tables
 
-| Table | Scope | Description |
-|---|---|---|
-| `topics` | Tenant | Prompt groupings |
-| `prompts` | Tenant | AI queries (max 500 chars) |
-| `platforms` | Global | AI providers (openai, anthropic, gemini, grok) |
-| `models` | Global | AI models per platform with `web_search_active` flag |
-| `tenant_platform_models` | Tenant | Tenant's selected models |
-| `prompt_answers` | Tenant | AI responses with metadata |
-| `sources` | Tenant | Citation source domains |
-| `prompt_answer_sources` | Tenant | Join: answers ↔ sources |
-| `prompt_execution_queue` | Tenant | Background execution queue |
+| Table                    | Scope  | Description                                          |
+| ------------------------ | ------ | ---------------------------------------------------- |
+| `topics`                 | Tenant | Prompt groupings                                     |
+| `prompts`                | Tenant | AI queries (max 500 chars)                           |
+| `platforms`              | Global | AI providers (openai, anthropic, gemini, grok)       |
+| `models`                 | Global | AI models per platform with `web_search_active` flag |
+| `tenant_platform_models` | Tenant | Tenant's selected models                             |
+| `prompt_answers`         | Tenant | AI responses with metadata                           |
+| `sources`                | Tenant | Citation source domains                              |
+| `prompt_answer_sources`  | Tenant | Join: answers ↔ sources                              |
+| `prompt_execution_queue` | Tenant | Background execution queue                           |
 
 ### 11.4 Company & GEO Tables
 
-| Table | Scope | Description |
-|---|---|---|
-| `companies` | Tenant | Company profiles with domain, metadata |
-| `geo_analyses` | Tenant | GEO analysis results |
-| `geo_analyses_pages` | Tenant | Individual page analysis data |
-| `company_ai_analyses` | Tenant | Deep AI analysis results |
+| Table                 | Scope  | Description                            |
+| --------------------- | ------ | -------------------------------------- |
+| `companies`           | Tenant | Company profiles with domain, metadata |
+| `geo_analyses`        | Tenant | GEO analysis results                   |
+| `geo_analyses_pages`  | Tenant | Individual page analysis data          |
+| `company_ai_analyses` | Tenant | Deep AI analysis results               |
 
 ### 11.5 Billing Tables
 
-| Table | Scope | Description |
-|---|---|---|
-| `subscriptions` | Tenant | Active subscriptions |
-| `payment_attempts` | Tenant | Payment history |
+| Table              | Scope  | Description          |
+| ------------------ | ------ | -------------------- |
+| `subscriptions`    | Tenant | Active subscriptions |
+| `payment_attempts` | Tenant | Payment history      |
 
 ### 11.6 Support Tables
 
-| Table | Scope | Description |
-|---|---|---|
-| `contact_messages` | Global | Contact form submissions |
-| `faq` | Global | FAQ entries with status enum |
-| `interest_leads` | Global | Lead capture data |
+| Table              | Scope  | Description                  |
+| ------------------ | ------ | ---------------------------- |
+| `contact_messages` | Global | Contact form submissions     |
+| `faq`              | Global | FAQ entries with status enum |
+| `interest_leads`   | Global | Lead capture data            |
 
 ### 11.7 Seeded Data
 
 The `seed.sql` file populates:
+
 - **4 platforms:** OpenAI, Anthropic, Gemini, Grok (Perplexity commented out)
 - **10 models:** GPT-5.2 Pro, GPT-4.1, GPT-4.1 Mini, Claude Sonnet 4.5, Claude Opus 4.6, Claude Haiku 4.5, Gemini 2.5 Pro, Gemini 2.5 Flash-Lite, Grok 4.1 Fast, Grok 4
 - **Default models** set per platform
@@ -694,6 +731,7 @@ The `seed.sql` file populates:
 ### 11.8 Background Jobs (pg_cron)
 
 The system uses `pg_cron` for scheduled tasks:
+
 - Prompt execution scheduling (v2 scheduler with 10x per cycle)
 - Stale crawling page cleanup
 - Source summary materialized view refresh
@@ -703,6 +741,7 @@ The system uses `pg_cron` for scheduled tasks:
 ## 12. Internationalization (i18n)
 
 ### 12.1 Configuration
+
 - Library: `i18next` + `react-i18next` + `i18next-browser-languagedetector`
 - Supported languages: `en`, `es`, `pt-br`
 - Fallback: `en`
@@ -711,6 +750,7 @@ The system uses `pg_cron` for scheduled tasks:
 - Translation files: `src/i18n/locales/{en,es,pt-br}.json` (~65-71KB each)
 
 ### 12.2 Rules
+
 - **No hardcoded strings** — all UI text must use `t()` function
 - **All three locale files** must be updated when adding new strings
 - Landing page supports `/:lang` URL prefix for localized versions
@@ -730,28 +770,31 @@ GEO (Generative Engine Optimization) analyzes how well a website is optimized fo
 
 ### 13.2 GEO Readiness Levels (0–5)
 
-| Level | Label | Threshold | Color |
-|---|---|---|---|
-| 0 | AI Invisible | 0 | #DC3545 (red) |
-| 1 | AI Hostile | 20 | #E67C00 (orange) |
-| 2 | AI Unaware | 40 | #FFC107 (yellow) |
-| 3 | AI Emerging | 60 | #8BC34A (light green) |
-| 4 | AI Optimized | 75 | #28A745 (green) |
-| 5 | AI Authority | 90 | #1B5E20 (dark green) |
+| Level | Label        | Threshold | Color                 |
+| ----- | ------------ | --------- | --------------------- |
+| 0     | AI Invisible | 0         | #DC3545 (red)         |
+| 1     | AI Hostile   | 20        | #E67C00 (orange)      |
+| 2     | AI Unaware   | 40        | #FFC107 (yellow)      |
+| 3     | AI Emerging  | 60        | #8BC34A (light green) |
+| 4     | AI Optimized | 75        | #28A745 (green)       |
+| 5     | AI Authority | 90        | #1B5E20 (dark green)  |
 
 ### 13.3 GEO Factor Categories
+
 - **Technical:** Infrastructure, crawlability, performance
 - **Content:** Quality, structure, freshness
 - **Authority:** Citations, backlinks, trust signals
 - **Semantic:** Schema markup, structured data, HTML semantics
 
 ### 13.4 Factor Status Thresholds
+
 - **Excellent:** 90–100 (color: #00cec9)
 - **Good:** 70–89 (color: #28A745)
 - **Warning:** 40–69 (color: #FFC107)
 - **Critical:** 0–39 (color: #DC3545)
 
 ### 13.5 Shared Config
+
 GEO readiness levels and factor statuses are defined in `shared/geo-config.json` and consumed by both frontend (`src/config/geo-readiness.ts`) and backend. **Only edit `shared/geo-config.json`** to change these values.
 
 ---
@@ -760,13 +803,12 @@ GEO readiness levels and factor statuses are defined in `shared/geo-config.json`
 
 Defined in `src/types/dashboard.ts`:
 
-| Platform | Label | Color | Gradient | Syncable |
-|---|---|---|---|---|
-| `openai` | OpenAI | emerald-500 | emerald→green | Yes |
-| `anthropic` | Anthropic | orange-500 | orange→amber | Yes |
-| `gemini` | Gemini | blue-500 | blue→indigo | Yes |
-| `grok` | Grok | slate-600 | slate→slate | Yes |
-| `perplexity` | Perplexity | cyan-500 | cyan→teal | No |
+| Platform    | Label     | Color       | Gradient      | Syncable |
+| ----------- | --------- | ----------- | ------------- | -------- |
+| `openai`    | OpenAI    | emerald-500 | emerald→green | Yes      |
+| `anthropic` | Anthropic | orange-500  | orange→amber  | Yes      |
+| `gemini`    | Gemini    | blue-500    | blue→indigo   | Yes      |
+| `grok`      | Grok      | slate-600   | slate→slate   | Yes      |
 
 ---
 
@@ -795,6 +837,7 @@ Defined in `src/types/dashboard.ts`:
 - **Deploy command:** `npx supabase functions deploy --no-verify-jwt && npx supabase db push`
 
 ### 15.3 NPM Scripts
+
 ```json
 {
   "dev": "vite",
@@ -811,6 +854,7 @@ Defined in `src/types/dashboard.ts`:
 ## 16. Authentication Flow
 
 ### 16.1 Sign Up
+
 1. User submits: email, password, full_name, tenant_name, phone, main_domain, optional activation code
 2. `supabase.auth.signUp()` creates auth.users record with metadata
 3. **Database trigger** (`handle_new_user`) automatically creates:
@@ -821,11 +865,13 @@ Defined in `src/types/dashboard.ts`:
 5. First tenant ID saved to localStorage
 
 ### 16.2 Sign In
+
 1. `supabase.auth.signInWithPassword()` authenticates
 2. Calls `/users-me` edge function to get profile + tenants
 3. Saves tenant ID to localStorage
 
 ### 16.3 Token Management
+
 - Access token stored in `localStorage.access_token`
 - Refresh token stored in `localStorage.refresh_token`
 - Supabase `onAuthStateChange` listener auto-updates tokens
@@ -837,10 +883,12 @@ Defined in `src/types/dashboard.ts`:
 ## 17. Stripe Integration
 
 ### 17.1 Frontend
+
 - `src/lib/stripe.ts`: Lazy-loads Stripe.js via `loadStripe()`
 - Plans displayed via `PricingPlans` component with currency conversion
 
 ### 17.2 Edge Functions
+
 - `stripe-checkout`: Creates Stripe checkout sessions
 - `stripe-webhook`: Handles Stripe webhook events (payment success, subscription changes)
 - `stripe-cancel`: Handles subscription cancellations
@@ -860,23 +908,28 @@ Defined in `src/types/dashboard.ts`:
 ## 19. Security
 
 ### 19.1 Row Level Security (RLS)
+
 - All tenant-scoped tables have RLS enabled
 - SELECT policies allow authenticated users to read their tenant's data
 - No INSERT/UPDATE/DELETE policies (mutations via admin client in Edge Functions)
 - Infinite recursion fix applied for self-referencing policies
 
 ### 19.2 reCAPTCHA v3
+
 - Frontend: lazy-loaded script (`src/lib/recaptcha.ts`)
 - Backend: server-side verification (`_shared/verify-recaptcha.ts`)
 - Used in public forms (contact, sign up)
 
 ### 19.3 CORS
+
 - Dynamic origin matching against `SITE_URL` env var
 - Default: `http://localhost:5173` for local dev
 - Custom headers allowed: `authorization`, `x-client-info`, `apikey`, `content-type`, `x-tenant-id`
 
 ### 19.4 Security Headers
+
 All API responses include:
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 
@@ -885,6 +938,7 @@ All API responses include:
 ## 20. Styling & Design System
 
 ### 20.1 CSS Architecture
+
 - Single `src/index.css` file (~92KB) containing the entire design system
 - Uses Tailwind CSS v4 (NOT v3 — import syntax, no `tailwind.config.js`)
 - CSS custom properties for theming
@@ -892,12 +946,14 @@ All API responses include:
 - `data-layout` attribute for centered/expanded layout
 
 ### 20.2 Theme Colors
+
 - Primary brand: `#6c5ce7` (purple)
 - Gradient accent: `#a29bfe` → `#fd79a8` (purple to pink)
 - Dark background: `#0a0a0f`
 - Text muted: `#9898b0`
 
 ### 20.3 Critical CSS
+
 Inlined in `index.html` for above-the-fold landing page rendering (no FOUC)
 
 ---
@@ -905,15 +961,19 @@ Inlined in `index.html` for above-the-fold landing page rendering (no FOUC)
 ## 21. Workflows (`.agents/workflows/`)
 
 ### 21.1 `/new-edge-function`
-Creates a new Supabase Edge Function with the standard template (imports _shared modules, CORS, auth, method routing).
+
+Creates a new Supabase Edge Function with the standard template (imports \_shared modules, CORS, auth, method routing).
 
 ### 21.2 `/new-migration`
+
 Generates a migration file with required columns (id, tenant_id, timestamps), RLS, and indexes.
 
 ### 21.3 `/new-page`
+
 Creates a new React page with i18n, route registration, sidebar navigation, and responsive design.
 
 ### 21.4 `/start-dev`
+
 Starts the full local development stack: Supabase, migrations, Vite dev server, Edge Functions.
 
 ---
@@ -921,12 +981,15 @@ Starts the full local development stack: Supabase, migrations, Vite dev server, 
 ## 22. Skills (`.agents/skills/`)
 
 ### 22.1 `database-migration`
+
 Skill for creating Supabase database migrations with tenant_id enforcement, RLS policies, and proper indexes.
 
 ### 22.2 `edge-function-dev`
+
 Skill for building Supabase Edge Functions with consistent patterns, auth, validation, and error handling.
 
 ### 22.3 `frontend-design`
+
 Skill for creating distinctive, production-grade frontend interfaces with high design quality.
 
 ---
@@ -934,6 +997,7 @@ Skill for creating distinctive, production-grade frontend interfaces with high d
 ## 23. Testing
 
 ### 23.1 Structure
+
 ```
 tests/
 ├── e2e/        # End-to-end tests
@@ -969,6 +1033,7 @@ tests/
 ## 25. Development Guide
 
 ### 25.1 Local Setup
+
 ```bash
 npm install
 npx supabase start
@@ -979,10 +1044,12 @@ npx supabase functions serve --no-verify-jwt --env-file supabase/.env.local
 ```
 
 ### 25.2 Access Points
+
 - Frontend: http://localhost:5173
 - Supabase Studio: http://localhost:54323
 
 ### 25.3 Adding a New Feature Checklist
+
 - [ ] Define types in `src/types/index.ts`
 - [ ] Create Edge Function in `supabase/functions/`
 - [ ] Create migration if new tables needed

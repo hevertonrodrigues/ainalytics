@@ -11,7 +11,11 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "functions": "npx supabase functions serve --no-verify-jwt --env-file supabase/.env.local",
-    "deploy": "npx supabase functions deploy --no-verify-jwt && npx supabase db push"
+    "test": "deno test supabase/functions/ --allow-env --allow-net --no-check",
+    "test:unit": "deno test supabase/functions/_shared/ai-providers/__tests__/ supabase/functions/__tests__/shared.test.ts supabase/functions/__tests__/logic.test.ts --allow-env --no-check",
+    "test:live": "deno test supabase/functions/__tests__/edge-functions-live.test.ts --allow-env --allow-net --no-check",
+    "deploy": "npx supabase functions deploy --no-verify-jwt && npx supabase db push",
+    "prepare": "husky"
   },
   "dependencies": {
     "@sentry/react": "^10.45.0",
@@ -41,6 +45,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "husky": "^9.1.7",
     "rollup-plugin-visualizer": "^7.0.1",
     "tailwindcss": "^4.0.7",
     "typescript": "~5.7.2",
