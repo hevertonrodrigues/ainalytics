@@ -17,6 +17,7 @@ import {
   Globe,
   Cpu,
   DollarSign,
+  BarChart3,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -38,6 +39,7 @@ const SA_NAV: NavItem[] = [
   { key: 'sa.platformsTitle', path: '/sa/platforms', icon: Globe },
   { key: 'sa.modelsTitle', path: '/sa/models', icon: Cpu },
   { key: 'sa.costs.title', path: '/sa/costs', icon: DollarSign },
+  { key: 'timeline.title', path: '/sa/monitoring', icon: BarChart3 },
 ];
 
 export function SASidebar() {
