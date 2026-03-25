@@ -1,5 +1,7 @@
 import { createAdminClient } from "./supabase.ts";
 import { EXTRACT_WEBSITE_INFO_PROMPT, GENERATE_LLM_TXT_PROMPT, replaceVars } from "./prompts/load.ts";
+import { executePrompt } from "./ai-providers/index.ts";
+import { logAiUsage } from "./cost-calculator.ts";
 
 const TENANT_FETCH_TIMEOUT_MS = 10_000;
 
@@ -86,9 +88,21 @@ export async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs
 }
 
 /**
- * Extracts website information using GPT-4o search and updates the company record.
+ * Resolves tenant_id from a company_id.
  */
-export async function extractWebsiteInformation(companyId: string, dbClient?: any): Promise<any> {
+async function resolveTenantId(sb: ReturnType<typeof createAdminClient>, companyId: string): Promise<string | null> {
+  const { data } = await sb
+    .from("companies")
+    .select("tenant_id")
+    .eq("id", companyId)
+    .single();
+  return data?.tenant_id || null;
+}
+
+/**
+ * Extracts website information using OpenAI with web search via the adapter layer.
+ */
+export async function extractWebsiteInformation(companyId: string, dbClient?: ReturnType<typeof createAdminClient>, tenantId?: string): Promise<ReturnType<typeof JSON.parse>> {
   const sb = dbClient || createAdminClient();
   const { data: company, error: cErr } = await sb
     .from("companies")
@@ -121,41 +135,20 @@ export async function extractWebsiteInformation(companyId: string, dbClient?: an
     DOMAIN: domain,
   });
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
-
-  const body = {
+  // Use adapter layer instead of direct fetch
+  const aiResult = await executePrompt("openai", {
+    prompt,
     model: "gpt-4o",
-    input: prompt,
-    tools: [{ type: "web_search" }],
-    tool_choice: "required"
-  };
-
-  const res = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    webSearchEnabled: true,
   });
 
-  if (!res.ok) throw new Error("Failed to fetch information from AI provider.");
-  
-  const data = await res.json();
-  let answerText: string | null = null;
-  for (const item of (data.output ?? [])) {
-    if (item.type === "message" && Array.isArray(item.content)) {
-      for (const block of item.content) {
-        if (block.type === "output_text") {
-          if (!answerText && block.text) answerText = block.text;
-        }
-      }
-    }
+  if (aiResult.error || !aiResult.text) {
+    throw new Error(aiResult.error || "Failed to fetch information from AI provider.");
   }
-
-  if (!answerText) throw new Error("AI provider returned an empty response.");
 
   let parsedResult;
   try {
-    parsedResult = JSON.parse(answerText.trim());
+    parsedResult = JSON.parse(aiResult.text.trim());
   } catch {
     throw new Error("AI produced invalid JSON output.");
   }
@@ -173,13 +166,38 @@ export async function extractWebsiteInformation(companyId: string, dbClient?: an
 
   if (updateErr) throw new Error("Failed to save the extracted information to the database.");
 
+  // Log AI usage
+  const resolvedTenantId = tenantId || await resolveTenantId(sb, companyId);
+  if (resolvedTenantId) {
+    await logAiUsage(sb, {
+      tenantId: resolvedTenantId,
+      callSite: "llm_extract_website",
+      platformSlug: "openai",
+      modelSlug: aiResult.model || "gpt-4o",
+      promptText: prompt,
+      requestParams: { webSearchEnabled: true },
+      rawRequest: aiResult.raw_request,
+      answerText: aiResult.text,
+      annotations: aiResult.annotations,
+      sources: aiResult.sources,
+      responseParams: { model: aiResult.model, web_search_enabled: aiResult.web_search_enabled },
+      rawResponse: aiResult.raw_response,
+      error: aiResult.error,
+      tokensInput: aiResult.tokens?.input ?? 0,
+      tokensOutput: aiResult.tokens?.output ?? 0,
+      latencyMs: aiResult.latency_ms,
+      webSearchEnabled: aiResult.web_search_enabled,
+      metadata: { company_id: companyId },
+    });
+  }
+
   return parsedResult;
 }
 
 /**
- * Generates the llms.txt content based on previously extracted website information.
+ * Generates the llms.txt content using OpenAI via the adapter layer.
  */
-export async function generateLlmText(companyId: string, dbClient?: any): Promise<string> {
+export async function generateLlmText(companyId: string, dbClient?: ReturnType<typeof createAdminClient>, tenantId?: string): Promise<string> {
   const sb = dbClient || createAdminClient();
   const { data: companyData, error: cdErr } = await sb
     .from("companies")
@@ -196,35 +214,26 @@ export async function generateLlmText(companyId: string, dbClient?: any): Promis
     sitemapSection = `\nTo assist you, here is the generated sitemap.xml content for the website. Use the structure and paths provided here to understand the website's hierarchy, find key pages, and formulate the best llms_txt file!\n<sitemap_xml>\n${truncatedSitemap}\n</sitemap_xml>`;
   }
 
-  let prompt = replaceVars(GENERATE_LLM_TXT_PROMPT, {
+  const prompt = replaceVars(GENERATE_LLM_TXT_PROMPT, {
     WEBSITE_TITLE: companyData.website_title,
     METATAGS: companyData.metatags,
     EXTRACTED_CONTENT: companyData.extracted_content,
     SITEMAP_SECTION: sitemapSection,
   });
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
-
-  const genBody = {
+  // Use adapter layer instead of direct fetch
+  const aiResult = await executePrompt("openai", {
+    prompt,
     model: "gpt-4o",
-    messages: [{ role: "user", content: prompt }],
-  };
-
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify(genBody),
+    webSearchEnabled: false,
   });
 
-  if (!res.ok) throw new Error("Failed to generate LLM txt from AI provider.");
-  
-  const data = await res.json();
-  let llmTxt = data.choices[0]?.message?.content;
-
-  if (!llmTxt) throw new Error("AI provider returned an empty response.");
+  if (aiResult.error || !aiResult.text) {
+    throw new Error(aiResult.error || "Failed to generate LLM txt from AI provider.");
+  }
 
   // Strip markdown fences
+  let llmTxt = aiResult.text;
   llmTxt = llmTxt.replace(/^```markdown\n?/gi, '').replace(/^```\n?/g, '').replace(/\n?```$/g, '');
 
   const { error: updateErr } = await sb
@@ -237,19 +246,42 @@ export async function generateLlmText(companyId: string, dbClient?: any): Promis
 
   if (updateErr) throw new Error("Failed to save the generated LLM text to the database.");
 
+  // Log AI usage
+  const resolvedTenantId = tenantId || await resolveTenantId(sb, companyId);
+  if (resolvedTenantId) {
+    await logAiUsage(sb, {
+      tenantId: resolvedTenantId,
+      callSite: "llm_generate_text",
+      platformSlug: "openai",
+      modelSlug: aiResult.model || "gpt-4o",
+      promptText: prompt,
+      requestParams: { webSearchEnabled: false },
+      rawRequest: aiResult.raw_request,
+      answerText: aiResult.text,
+      responseParams: { model: aiResult.model },
+      rawResponse: aiResult.raw_response,
+      error: aiResult.error,
+      tokensInput: aiResult.tokens?.input ?? 0,
+      tokensOutput: aiResult.tokens?.output ?? 0,
+      latencyMs: aiResult.latency_ms,
+      webSearchEnabled: false,
+      metadata: { company_id: companyId },
+    });
+  }
+
   return llmTxt;
 }
 
 /**
  * Runs both extraction and generation sequentially.
  */
-export async function autoGenerateAllLlmData(companyId: string, dbClient?: any): Promise<void> {
+export async function autoGenerateAllLlmData(companyId: string, dbClient?: ReturnType<typeof createAdminClient>, tenantId?: string): Promise<void> {
   try {
     const sb = dbClient || createAdminClient();
     console.log(`[llm-generation] Starting auto-generation for company ${companyId}`);
-    await extractWebsiteInformation(companyId, sb);
+    await extractWebsiteInformation(companyId, sb, tenantId);
     console.log(`[llm-generation] Extraction complete for company ${companyId}`);
-    await generateLlmText(companyId, sb);
+    await generateLlmText(companyId, sb, tenantId);
     console.log(`[llm-generation] LLMs.txt generation complete for company ${companyId}`);
   } catch (err) {
     console.error(`[llm-generation] Auto-generation failed for company ${companyId}:`, err);

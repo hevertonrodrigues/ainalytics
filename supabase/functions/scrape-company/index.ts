@@ -23,6 +23,7 @@ import {
 import { SCRAPE_COMPANY_ANALYZE_PROMPT, replaceVars } from "../_shared/prompts/load.ts";
 import { executePrompt } from "../_shared/ai-providers/index.ts";
 import { runDeepAnalyze } from "../_shared/deep-analyze-core.ts";
+import { logAiUsage } from "../_shared/cost-calculator.ts";
 
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -668,6 +669,27 @@ serve(async (req: Request) => {
         });
         console.log(`[analyze] AI response received, parsing…`);
 
+        // Log AI usage for the Anthropic analyze call
+        await logAiUsage(db, {
+          tenantId,
+          userId: user.id,
+          callSite: "scrape_analyze",
+          platformSlug: "anthropic",
+          modelSlug: aiResult.model || "claude-sonnet-4-20250514",
+          promptText: prompt,
+          requestParams: { webSearchEnabled: false },
+          rawRequest: aiResult.raw_request,
+          answerText: aiResult.text,
+          responseParams: { model: aiResult.model },
+          rawResponse: aiResult.raw_response,
+          error: aiResult.error,
+          tokensInput: aiResult.tokens?.input ?? 0,
+          tokensOutput: aiResult.tokens?.output ?? 0,
+          latencyMs: aiResult.latency_ms,
+          webSearchEnabled: false,
+          metadata: { analysis_id: analysisId, company_id: company.id },
+        });
+
         let bilingualReport: any;
         try {
           bilingualReport = JSON.parse(assistantMsg.trim());
@@ -723,6 +745,26 @@ serve(async (req: Request) => {
             targetLang,
           );
           console.log(`[analyze] Deep-analyze complete. Score: ${deepResult.final_score}`);
+
+          // Log AI usage for the deep-analyze call
+          await logAiUsage(db, {
+            tenantId,
+            userId: user.id,
+            callSite: "scrape_deep_analyze",
+            platformSlug: deepResult.platform_slug,
+            modelSlug: deepResult.model_slug,
+            promptText: deepResult.prompt_text,
+            requestParams: { webSearchEnabled: true },
+            rawRequest: deepResult.raw_request,
+            answerText: null,
+            responseParams: { model: deepResult.model_slug },
+            rawResponse: deepResult.raw_response,
+            tokensInput: deepResult.tokens?.input ?? 0,
+            tokensOutput: deepResult.tokens?.output ?? 0,
+            latencyMs: deepResult.latency_ms,
+            webSearchEnabled: true,
+            metadata: { analysis_id: analysisId, company_id: company.id },
+          });
 
           // Save to company_ai_analyses table and get the ID
           const { data: deepRow, error: deepInsErr } = await db

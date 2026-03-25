@@ -4,6 +4,7 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { runDeepAnalyze } from "../_shared/deep-analyze-core.ts";
+import { logAiUsage } from "../_shared/cost-calculator.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 
 /**
@@ -70,6 +71,28 @@ serve(async (req: Request) => {
 
       // Run the shared deep-analyze core
       const result = await runDeepAnalyze(inputUrl, inputLang);
+
+      // Log AI usage for cost tracking
+      await logAiUsage(db, {
+        tenantId,
+        userId: user.id,
+        callSite: "deep_analyze",
+        platformSlug: result.platform_slug,
+        modelSlug: result.model_slug,
+        promptText: result.prompt_text,
+        requestParams: { webSearchEnabled: true, language: inputLang },
+        rawRequest: result.raw_request,
+        answerText: null,
+        annotations: result.annotations,
+        sources: result.sources,
+        responseParams: { model: result.model_slug },
+        rawResponse: result.raw_response,
+        tokensInput: result.tokens?.input ?? 0,
+        tokensOutput: result.tokens?.output ?? 0,
+        latencyMs: result.latency_ms,
+        webSearchEnabled: true,
+        metadata: { url: inputUrl },
+      });
 
       // Save to database
       const insertData = {

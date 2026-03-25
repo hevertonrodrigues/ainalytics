@@ -36,6 +36,15 @@ export interface DeepAnalyzeResult {
   improvements: unknown[];
   confidence: number | null;
   raw_response: unknown | null;
+  // ── Token tracking (for cost logging by callers) ────────
+  tokens: { input: number; output: number } | null;
+  latency_ms: number;
+  platform_slug: string;
+  model_slug: string;
+  prompt_text: string;
+  raw_request: unknown | null;
+  annotations: unknown | null;
+  sources: unknown | null;
 }
 
 /**
@@ -103,5 +112,14 @@ export async function runDeepAnalyze(
     improvements: parsed.improvements || [],
     confidence: parsed.confidence ?? null,
     raw_response: aiResult.raw_response ?? null,
+    // Token tracking for callers to log usage
+    tokens: aiResult.tokens,
+    latency_ms: aiResult.latency_ms,
+    platform_slug: "openai",
+    model_slug: aiResult.model || MODEL,
+    prompt_text: prompt,
+    raw_request: aiResult.raw_request ?? null,
+    annotations: aiResult.annotations,
+    sources: aiResult.sources,
   };
 }

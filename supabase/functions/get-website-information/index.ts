@@ -78,7 +78,7 @@ serve(async (req: Request) => {
     // --- ACTION: EXTRACT ---
     if (action === 'extract') {
       try {
-        const parsedResult = await extractWebsiteInformation(companyId, sb);
+        const parsedResult = await extractWebsiteInformation(companyId, sb, tenantId);
         return logger.done(withCors(req, ok({ success: true, message: "Information extracted and saved successfully.", data: parsedResult })));
       } catch (err: any) {
         return logger.done(withCors(req, serverError(err.message || "Failed to extract information.")));
@@ -162,6 +162,8 @@ serve(async (req: Request) => {
           sitemapXml,
           language,
           existingTopics,
+          tenantId,
+          db: sb,
         });
         return logger.done(withCors(req, ok(result)));
       } catch (err: any) {
@@ -172,7 +174,7 @@ serve(async (req: Request) => {
     // --- ACTION: GENERATE ---
     if (action === 'generate') {
       try {
-        const llmTxt = await generateLlmText(companyId, sb);
+        const llmTxt = await generateLlmText(companyId, sb, tenantId);
         return logger.done(withCors(req, ok({ success: true, message: "LLMs.txt generated successfully.", data: { llm_txt: llmTxt } })));
       } catch (err: any) {
         return logger.done(withCors(req, serverError(err.message || "Failed to generate LLM text.")));

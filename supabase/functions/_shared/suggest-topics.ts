@@ -3,10 +3,14 @@
  *
  * Two modes of generating topic/prompt suggestions:
  * 1. Algorithmic — based on GEO category scores (fast, no API call)
- * 2. AI-powered — uses OpenAI GPT-4o from extracted website data
+ * 2. AI-powered — uses OpenAI via the adapter layer from extracted website data
  *
  * Both return the same output shape for consistent frontend consumption.
  */
+
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { executePrompt } from "./ai-providers/index.ts";
+import { logAiUsage } from "./cost-calculator.ts";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -111,7 +115,7 @@ export function generateAlgorithmicSuggestions(
 }
 
 // ─── AI-powered suggestions (from extracted website data) ────
-// Uses OpenAI GPT-4o. Returns topics/prompts in the requested language.
+// Uses OpenAI via the adapter layer.
 
 interface ExistingTopic {
   name: string;
@@ -125,6 +129,9 @@ interface AiSuggestionsInput {
   sitemapXml: string | null;
   language: string;
   existingTopics?: ExistingTopic[];
+  // Optional: provide tenantId and db for usage logging
+  tenantId?: string;
+  db?: SupabaseClient;
 }
 
 interface RawTopic {
@@ -137,7 +144,7 @@ interface RawTopic {
 export async function generateAiSuggestions(
   input: AiSuggestionsInput,
 ): Promise<TopicSuggestionResult & { raw_topics: RawTopic[] }> {
-  const { websiteTitle, metatags, extractedContent, sitemapXml, language, existingTopics } = input;
+  const { websiteTitle, metatags, extractedContent, sitemapXml, language, existingTopics, tenantId, db } = input;
 
   if (!extractedContent) {
     throw new Error("Cannot generate suggestions without extracted content.");
@@ -208,47 +215,46 @@ ${truncatedSitemap}
 </sitemap_xml>`;
   }
 
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!apiKey) {
-    console.error("[suggest-topics] OPENAI_API_KEY is not set in environment");
-    throw new Error("OPENAI_API_KEY is not configured");
-  }
-  console.log(`[suggest-topics] Using OPENAI_API_KEY: ${apiKey.slice(0, 8)}...${apiKey.slice(-4)} (${apiKey.length} chars)`);
-
-  const chatBody = {
+  // Use adapter layer instead of direct fetch
+  const aiResult = await executePrompt("openai", {
+    prompt,
     model: "gpt-4o",
-    messages: [{ role: "user", content: prompt }],
-    response_format: { type: "json_object" },
-  };
-
-  console.log(`[suggest-topics] Sending request to OpenAI (model: gpt-4o, prompt length: ${prompt.length} chars)`);
-
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(chatBody),
+    webSearchEnabled: false,
   });
 
-  if (!res.ok) {
-    const errorBody = await res.text().catch(() => "Could not read body");
-    console.error(`[suggest-topics] OpenAI API error: HTTP ${res.status} ${res.statusText}`);
-    console.error(`[suggest-topics] Error body: ${errorBody}`);
-    throw new Error(`OpenAI API error: HTTP ${res.status} — ${errorBody.slice(0, 200)}`);
+  if (aiResult.error || !aiResult.text) {
+    throw new Error(aiResult.error || "AI provider returned an empty response.");
   }
 
-  const data = await res.json();
-  const suggestionsJson = data.choices[0]?.message?.content;
-
-  if (!suggestionsJson) {
-    throw new Error("AI provider returned an empty response.");
+  // Log AI usage if tenantId and db are provided
+  if (tenantId && db) {
+    await logAiUsage(db, {
+      tenantId,
+      callSite: "suggest_topics",
+      platformSlug: "openai",
+      modelSlug: aiResult.model || "gpt-4o",
+      promptText: prompt,
+      requestParams: { webSearchEnabled: false, language },
+      rawRequest: aiResult.raw_request,
+      answerText: aiResult.text,
+      responseParams: { model: aiResult.model },
+      rawResponse: aiResult.raw_response,
+      error: aiResult.error,
+      tokensInput: aiResult.tokens?.input ?? 0,
+      tokensOutput: aiResult.tokens?.output ?? 0,
+      latencyMs: aiResult.latency_ms,
+      webSearchEnabled: false,
+      metadata: { websiteTitle },
+    });
   }
+
+  // Parse JSON response — strip markdown fences if present
+  let suggestionsJson = aiResult.text.trim();
+  suggestionsJson = suggestionsJson.replace(/^```(?:json)?\n?/gi, "").replace(/\n?```$/g, "");
 
   let parsedResult: { topics: Array<{ name: string; description?: string; is_existing?: boolean; prompts: Array<{ text: string; description?: string }> }> };
   try {
-    parsedResult = JSON.parse(suggestionsJson.trim());
+    parsedResult = JSON.parse(suggestionsJson);
   } catch {
     throw new Error("AI produced invalid JSON output.");
   }

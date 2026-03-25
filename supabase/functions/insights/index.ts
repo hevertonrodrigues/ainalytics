@@ -5,6 +5,7 @@ import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 import { executePrompt } from "../_shared/ai-providers/index.ts";
+import { logAiUsage } from "../_shared/cost-calculator.ts";
 import { INSIGHTS_PROMPT, replaceVars } from "../_shared/prompts/load.ts";
 
 /**
@@ -153,6 +154,26 @@ serve(async (req: Request) => {
         console.error("[insights] Insert error:", JSON.stringify(insertErr, null, 2));
         throw new Error(`Failed to save insights: ${insertErr.message || insertErr.code || "unknown"}`);
       }
+
+      // Log AI usage for cost tracking
+      await logAiUsage(db, {
+        tenantId,
+        userId: user.id,
+        callSite: "insights",
+        platformSlug: "anthropic",
+        modelSlug: aiResult.model || "claude-sonnet-4-20250514",
+        promptText: prompt,
+        requestParams: { webSearchEnabled: false, language },
+        rawRequest: aiResult.raw_request,
+        answerText: aiResult.text,
+        responseParams: { model: aiResult.model },
+        rawResponse: aiResult.raw_response,
+        error: aiResult.error,
+        tokensInput: aiResult.tokens?.input ?? 0,
+        tokensOutput: aiResult.tokens?.output ?? 0,
+        latencyMs: aiResult.latency_ms,
+        webSearchEnabled: false,
+      });
 
       console.log(`[insights] ✓ Insights generated for tenant ${tenantId}. Health: ${parsed.overall_health}, Score: ${parsed.health_score}`);
 

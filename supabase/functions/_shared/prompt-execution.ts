@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { executePromptMulti } from "./ai-providers/index.ts";
+import { logAiUsage } from "./cost-calculator.ts";
 
 const PER_PROMPT_TIMEOUT_MS = 120_000;
 const MAX_RAW_BYTES = 10_000;
@@ -270,6 +271,38 @@ export async function executeAndStorePromptAnswer(
 
   if (error || !data) {
     throw new Error(error?.message || "Failed to insert prompt answer");
+  }
+
+  // Log AI usage for cost tracking
+  try {
+    const tokens = result.tokens as { input?: number; output?: number } | null;
+    await logAiUsage(db, {
+      tenantId: context.tenantId,
+      callSite: "prompt_execution",
+      platformSlug: context.platformSlug,
+      modelSlug: context.modelSlug,
+      promptText: context.promptText,
+      requestParams: {
+        webSearchEnabled: context.webSearchEnabled,
+        country: context.country,
+        language: context.language,
+      },
+      rawRequest: result.raw_request,
+      answerText: result.text,
+      annotations: result.annotations,
+      sources: result.sources,
+      responseParams: { model: result.slug, web_search_enabled: result.web_search_enabled },
+      rawResponse: result.raw_response,
+      error: result.error,
+      tokensInput: tokens?.input ?? 0,
+      tokensOutput: tokens?.output ?? 0,
+      latencyMs: result.latency_ms,
+      webSearchEnabled: result.web_search_enabled ?? context.webSearchEnabled,
+      promptAnswerId: data.id as string,
+      metadata: { prompt_id: context.promptId },
+    });
+  } catch (logErr) {
+    console.error("[prompt-execution] Failed to log AI usage (non-fatal):", logErr);
   }
 
   return {

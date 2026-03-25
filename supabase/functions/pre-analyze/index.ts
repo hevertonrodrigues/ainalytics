@@ -180,6 +180,8 @@ serve(async (req: Request) => {
         extractedContent: extractedOverview || null,
         sitemapXml: sitemapXml,
         language,
+        tenantId,
+        db,
       });
       suggestedTopics = aiResult.suggested_topics;
       suggestedPrompts = aiResult.suggested_prompts;
