@@ -18,52 +18,39 @@ serve(async (req: Request) => {
       return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
 
+    // ── Parse pagination & search params ────────────────────
+    const url = new URL(req.url);
+    const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
+    const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("per_page") || "50", 10)));
+    const search = url.searchParams.get("search") || null;
+
     const db = createAdminClient();
 
-    // Query the materialized view filtered by tenant_id
+    // ── Call paginated RPC ───────────────────────────────────
     const { data, error } = await db.rpc("get_sources_summary", {
       p_tenant_id: auth.tenantId,
+      p_page: page,
+      p_per_page: perPage,
+      p_search: search,
     });
 
     if (error) throw error;
 
-    // Get all non-deleted answers for this tenant
-    const { count: totalAnswers, error: countErr } = await db
-      .from("prompt_answers")
-      .select("*", { count: "exact", head: true })
-      .eq("tenant_id", auth.tenantId)
-      .eq("deleted", false);
-
-    if (countErr) throw countErr;
-
-    // Get total active prompts for this tenant
-    const { count: totalPrompts, error: promptErr } = await db
-      .from("prompts")
-      .select("*", { count: "exact", head: true })
-      .eq("tenant_id", auth.tenantId)
-      .eq("is_active", true);
-
-    if (promptErr) throw promptErr;
-
-    // Get total unique active platforms for this tenant
-    const { data: tenantPlatformModels, error: modelErr } = await db
-      .from("tenant_platform_models")
-      .select("platform_id")
-      .eq("tenant_id", auth.tenantId)
-      .eq("is_active", true);
-
-    if (modelErr) throw modelErr;
-
-    const uniquePlatformIds = new Set(
-      (tenantPlatformModels || [])
-        .map((tpm: any) => tpm.platform_id)
-        .filter(Boolean)
-    );
-    const totalPlatforms = uniquePlatformIds.size;
-
-    const total = totalAnswers ?? 0;
-    const prompts = totalPrompts ?? 0;
     const sources = data || [];
+
+    // Extract metadata from the first row (same for all rows)
+    const meta = sources.length > 0
+      ? {
+          total_count: sources[0].meta_total_count ?? 0,
+          total_answers: sources[0].meta_total_answers ?? 0,
+          total_prompts: sources[0].meta_total_prompts ?? 0,
+          total_platforms: sources[0].meta_total_platforms ?? 0,
+        }
+      : { total_count: 0, total_answers: 0, total_prompts: 0, total_platforms: 0 };
+
+    const total = meta.total_answers;
+    const prompts = meta.total_prompts;
+    const totalPlatforms = meta.total_platforms;
 
     // Pre-compute max mention percent for relative scoring
     const maxPercent = sources.reduce((max: number, s: any) => {
@@ -149,7 +136,10 @@ serve(async (req: Request) => {
       ) / 10;
 
       return {
-        ...source,
+        id: source.id,
+        tenant_id: source.tenant_id,
+        domain: source.domain,
+        total: sourceTotal,
         percent: sourcePercent,
         score,
         score_breakdown: {
@@ -166,7 +156,18 @@ serve(async (req: Request) => {
     // Sort by score descending
     enriched.sort((a: any, b: any) => b.score - a.score);
 
-    return logger.done(withCors(req, ok(enriched)), authCtx);
+    const totalPages = Math.ceil(meta.total_count / perPage);
+
+    return logger.done(withCors(req, ok({
+      items: enriched,
+      meta: {
+        page,
+        per_page: perPage,
+        total_count: meta.total_count,
+        total_pages: totalPages,
+        has_more: page < totalPages,
+      },
+    })), authCtx);
   } catch (err: unknown) {
     console.error("[sources-summary]", err);
     const e = err as { status?: number; message?: string };

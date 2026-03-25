@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Globe, ChevronDown, ChevronUp, MessageSquare, Building2, TrendingUp } from 'lucide-react';
+import { Search, Globe, ChevronDown, ChevronUp, MessageSquare, Building2, TrendingUp, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/contexts/TenantContext';
@@ -27,6 +27,16 @@ interface SourceSummary {
   total_by_model: Array<{ model_id: string; model_name: string; model_slug: string; count: number }>;
 }
 
+interface PaginationMeta {
+  page: number;
+  per_page: number;
+  total_count: number;
+  total_pages: number;
+  has_more: boolean;
+}
+
+const PER_PAGE = 50;
+
 export function SourcesPage() {
   const { t } = useTranslation();
   const { currentTenant } = useTenant();
@@ -34,10 +44,14 @@ export function SourcesPage() {
 
   const [sources, setSources] = useState<SourceSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
   
   const [expandedSources, setExpandedSources] = useState<Set<string>>(new Set());
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const toggleExpand = (id: string) => {
     setExpandedSources(prev => {
@@ -48,52 +62,95 @@ export function SourcesPage() {
     });
   };
 
-  const loadSources = useCallback(async () => {
+  const loadSources = useCallback(async (page: number, search: string, append = false) => {
     try {
-      setLoading(true);
-      
-      const { data, error: fetchErr } = await supabase.functions.invoke('sources-summary', {
-        method: 'GET',
-        headers: {
-          'x-tenant-id': localStorage.getItem('current_tenant_id') || '',
-        },
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+
+      const params = new URLSearchParams({
+        page: String(page),
+        per_page: String(PER_PAGE),
       });
+      if (search) params.set('search', search);
+      
+      const { data, error: fetchErr } = await supabase.functions.invoke(
+        `sources-summary?${params.toString()}`,
+        {
+          method: 'GET',
+          headers: {
+            'x-tenant-id': localStorage.getItem('current_tenant_id') || '',
+          },
+        },
+      );
         
       if (fetchErr) throw fetchErr;
       
-      // Edge function returns data sorted by score, with pre-computed percentages
-      const items: SourceSummary[] = data?.data || [];
+      const items: SourceSummary[] = data?.data?.items || [];
+      const paginationMeta: PaginationMeta = data?.data?.meta || {
+        page: 1,
+        per_page: PER_PAGE,
+        total_count: 0,
+        total_pages: 0,
+        has_more: false,
+      };
       
-      setSources(items);
+      if (append) {
+        setSources(prev => [...prev, ...items]);
+      } else {
+        setSources(items);
+      }
+      setMeta(paginationMeta);
+      setCurrentPage(page);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.error(err);
       setError(t('common.error'));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, [t]);
 
+  // Initial load
   useEffect(() => {
-    loadSources();
+    loadSources(1, '');
   }, [loadSources]);
 
-  const filteredSources = useMemo(() => {
-    const filtered = sources.filter(
-      (s) => s.domain.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  // Debounced search
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSources([]);
+      setExpandedSources(new Set());
+      loadSources(1, value);
+    }, 400);
+  }, [loadSources]);
 
-    // Separate own source (matching company domain) from others
-    const ownIdx = filtered.findIndex(
+  const handleLoadMore = useCallback(() => {
+    if (meta?.has_more && !loadingMore) {
+      loadSources(currentPage + 1, searchTerm, true);
+    }
+  }, [meta, loadingMore, currentPage, searchTerm, loadSources]);
+
+  // Put own domain first in the displayed list
+  const displayedSources = useMemo(() => {
+    if (!companyDomain || currentPage > 1) return sources;
+
+    const copy = [...sources];
+    const ownIdx = copy.findIndex(
       (s) => companyDomain && s.domain.toLowerCase() === companyDomain
     );
     if (ownIdx > 0) {
-      const own = filtered.splice(ownIdx, 1)[0] as SourceSummary;
-      filtered.unshift(own);
+      const own = copy.splice(ownIdx, 1)[0] as SourceSummary;
+      copy.unshift(own);
     }
 
-    return filtered;
-  }, [sources, searchTerm, companyDomain]);
+    return copy;
+  }, [sources, companyDomain, currentPage]);
 
 
   return (
@@ -106,6 +163,11 @@ export function SourcesPage() {
           </h1>
           <p className="text-sm text-text-secondary mt-1">
             {t('sources.description')}
+            {meta && meta.total_count > 0 && (
+              <span className="ml-2 text-text-muted">
+                ({meta.total_count} {t('common.total', { defaultValue: 'total' })})
+              </span>
+            )}
           </p>
         </div>
       </div>
@@ -120,7 +182,7 @@ export function SourcesPage() {
             type="text"
             placeholder={t('common.search') + '...'}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="input pl-9 w-full"
           />
         </div>
@@ -142,14 +204,14 @@ export function SourcesPage() {
             </div>
           ))}
         </div>
-      ) : filteredSources.length === 0 ? (
+      ) : displayedSources.length === 0 ? (
         <div className="dashboard-card p-12 text-center">
           <Globe className="w-12 h-12 text-brand-primary/20 mx-auto mb-3" />
           <p className="text-text-muted text-sm">{searchTerm ? t('common.noResults') : t('common.noResults')}</p>
         </div>
       ) : (
         <div className="flex flex-col space-y-3">
-          {filteredSources.map((source) => {
+          {displayedSources.map((source) => {
             const isExpanded = expandedSources.has(source.id);
             const isOwnSource = companyDomain && source.domain.toLowerCase() === companyDomain;
             
@@ -284,6 +346,31 @@ export function SourcesPage() {
               </div>
             );
           })}
+
+          {/* Load more button */}
+          {meta?.has_more && (
+            <div className="flex justify-center pt-2">
+              <button
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+                className="btn btn-secondary px-6 py-2.5 flex items-center gap-2"
+              >
+                {loadingMore ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t('common.loading', { defaultValue: 'Loading...' })}
+                  </>
+                ) : (
+                  <>
+                    {t('common.loadMore', { defaultValue: 'Load more' })}
+                    <span className="text-text-muted text-xs">
+                      ({sources.length} / {meta.total_count})
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
