@@ -16,6 +16,7 @@ import {
   Key,
   Globe,
   Cpu,
+  DollarSign,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -36,6 +37,7 @@ const SA_NAV: NavItem[] = [
   { key: 'sa.activationTitle', path: '/sa/activation-codes', icon: Key },
   { key: 'sa.platformsTitle', path: '/sa/platforms', icon: Globe },
   { key: 'sa.modelsTitle', path: '/sa/models', icon: Cpu },
+  { key: 'sa.costs.title', path: '/sa/costs', icon: DollarSign },
 ];
 
 export function SASidebar() {

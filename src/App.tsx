@@ -21,6 +21,7 @@ const SAPlansPage = lazy(() => import('@/pages/sa/PlansPage').then(m => ({ defau
 const SAActivationCodesPage = lazy(() => import('@/pages/sa/ActivationCodesPage').then(m => ({ default: m.ActivationCodesPage })));
 const SAPlatformsPage = lazy(() => import('@/pages/sa/PlatformsPage').then(m => ({ default: m.PlatformsPage })));
 const SAModelsPage = lazy(() => import('@/pages/sa/ModelsPage').then(m => ({ default: m.ModelsPage })));
+const SAAICostsPage = lazy(() => import('@/pages/sa/AICostsPage').then(m => ({ default: m.AICostsPage })));
 const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 
 // Lazy-loaded page components (route-level code splitting)
@@ -114,6 +115,7 @@ export function App() {
               <Route path="activation-codes" element={<SAActivationCodesPage />} />
               <Route path="platforms" element={<SAPlatformsPage />} />
               <Route path="models" element={<SAModelsPage />} />
+              <Route path="costs" element={<SAAICostsPage />} />
               <Route path="users/:userId" element={<UserDetailPage />} />
             </Route>
 
