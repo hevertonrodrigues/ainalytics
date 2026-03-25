@@ -749,6 +749,7 @@
     "prompts": "Prompts",
     "answers": "Respuestas",
     "geoScore": "GEO",
+    "activeModels": "Modelos",
     "stepCompany": "Empresa",
     "stepAnalysis": "Análisis",
     "stepPrompts": "Prompts",

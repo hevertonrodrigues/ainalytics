@@ -13,8 +13,17 @@ import {
   Mail,
   ChevronDown,
   ChevronUp,
+  Cpu,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+
+interface ActiveModelInfo {
+  model_slug: string;
+  model_name: string;
+  platform_slug: string;
+  platform_name: string;
+  web_search_active: boolean;
+}
 
 interface ActiveUser {
   user_id: string;
@@ -45,6 +54,9 @@ interface ActiveUser {
   // Answers
   has_answers: boolean;
   total_answers: number;
+  // Models
+  active_models: ActiveModelInfo[];
+  active_models_count: number;
   // Progress
   progress_percent: number;
 }
@@ -181,12 +193,13 @@ export function ActiveUsersPage() {
                 <th className="px-4 py-3 font-medium cursor-pointer hover:text-text-primary transition-colors text-center" onClick={() => handleSort('progress_percent')}>{t('sa.progress')} {getSortIcon('progress_percent')}</th>
                 <th className="px-4 py-3 font-medium cursor-pointer hover:text-text-primary transition-colors text-center" onClick={() => handleSort('active_prompts')}>{t('sa.prompts')} {getSortIcon('active_prompts')}</th>
                 <th className="px-4 py-3 font-medium cursor-pointer hover:text-text-primary transition-colors text-center" onClick={() => handleSort('total_answers')}>{t('sa.answers')} {getSortIcon('total_answers')}</th>
+                <th className="px-4 py-3 font-medium text-center"><Cpu className="w-3 h-3 inline-block mr-1" />{t('sa.activeModels')}</th>
                 <th className="px-4 py-3 font-medium cursor-pointer hover:text-text-primary transition-colors text-center" onClick={() => handleSort('best_geo_score')}>{t('sa.geoScore')} {getSortIcon('best_geo_score')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-glass-border">
               {filteredUsers.length === 0 ? (
-                <tr><td colSpan={6} className="px-4 py-8 text-center text-text-muted">{t('sa.noUsersFound')}</td></tr>
+                <tr><td colSpan={7} className="px-4 py-8 text-center text-text-muted">{t('sa.noUsersFound')}</td></tr>
               ) : (
                 filteredUsers.map(user => (
                   <tr key={user.user_id} className="hover:bg-glass-hover transition-colors cursor-pointer" onClick={() => navigate(`/sa/users/${user.user_id}`)}>
@@ -247,6 +260,22 @@ export function ActiveUsersPage() {
                       {user.total_answers > 0 ? (
                         <span className="font-medium text-text-primary">{user.total_answers}</span>
                       ) : <span className="text-text-muted">—</span>}
+                    </td>
+
+                    {/* Active Models */}
+                    <td className="px-4 py-3">
+                      {user.active_models_count > 0 ? (
+                        <div className="flex flex-wrap gap-1 justify-center max-w-[200px]">
+                          {user.active_models.map((m) => (
+                            <span key={m.model_slug}
+                              className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-brand-primary/10 text-brand-primary border border-brand-primary/20"
+                              title={`${m.platform_name} — ${m.model_name}`}
+                            >
+                              {m.model_slug}
+                            </span>
+                          ))}
+                        </div>
+                      ) : <span className="text-text-muted text-center block">—</span>}
                     </td>
 
                     {/* GEO Score */}
