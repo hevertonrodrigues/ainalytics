@@ -90,7 +90,7 @@ serve(async (req: Request) => {
         .eq("is_active", true),
 
       // 9. Sources summary (RPC)
-      db.rpc("get_sources_summary", { p_tenant_id: tenantId }),
+      db.rpc("get_sources_summary_full", { p_tenant_id: tenantId }),
 
       // 10. Recent prompts (last 5)
       db.from("prompts")

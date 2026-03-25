@@ -285,7 +285,7 @@ async function aggregateTenantData(db: any, tenantId: string) {
     .eq("is_active", true);
 
   // 6. Sources summary (top sources)
-  const { data: sourcesSummaryData } = await db.rpc("get_sources_summary", {
+  const { data: sourcesSummaryData } = await db.rpc("get_sources_summary_full", {
     p_tenant_id: tenantId,
   });
 

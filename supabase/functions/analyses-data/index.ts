@@ -59,7 +59,7 @@ serve(async (req: Request) => {
     );
 
     // ── 2. Sources summary (the heart of the dashboard) ───────
-    const { data: sourcesSummaryData } = await db.rpc("get_sources_summary", {
+    const { data: sourcesSummaryData } = await db.rpc("get_sources_summary_full", {
       p_tenant_id: tenantId,
     });
 

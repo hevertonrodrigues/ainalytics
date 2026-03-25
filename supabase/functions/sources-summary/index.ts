@@ -4,6 +4,10 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import {
+  mentionRateScore, platformBreadthScore, promptCoverageScore,
+  distributionScore, computeCompositeScore,
+} from "../_shared/scoring.ts";
 
 serve(async (req: Request) => {
   const logger = createRequestLogger("sources-summary", req);
@@ -18,129 +22,171 @@ serve(async (req: Request) => {
       return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
 
-    // ── Parse pagination & search params ────────────────────
+    // ── Parse params ────────────────────────────────────────
     const url = new URL(req.url);
     const page = Math.max(1, parseInt(url.searchParams.get("page") || "1", 10));
     const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get("per_page") || "50", 10)));
-    const search = url.searchParams.get("search") || null;
+    const search = url.searchParams.get("search")?.trim() || null;
 
     const db = createAdminClient();
+    const tenantId = auth.tenantId;
 
-    // ── Call paginated RPC ───────────────────────────────────
-    const { data, error } = await db.rpc("get_sources_summary", {
-      p_tenant_id: auth.tenantId,
-      p_page: page,
-      p_per_page: perPage,
-      p_search: search,
-    });
+    // ── 1. Parallel data fetch ──────────────────────────────
+    const [answersRes, promptsRes, platformsRes, mentionsRes, sourcesRes] = await Promise.all([
+      // Total non-deleted answers (the denominator for %)
+      db.from("prompt_answers")
+        .select("*", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
+        .eq("deleted", false),
 
-    if (error) throw error;
+      // Total active prompts
+      db.from("prompts")
+        .select("*", { count: "exact", head: true })
+        .eq("tenant_id", tenantId)
+        .eq("is_active", true),
 
-    const sources = data || [];
+      // Active platform IDs
+      db.from("tenant_platform_models")
+        .select("platform_id")
+        .eq("tenant_id", tenantId)
+        .eq("is_active", true),
 
-    // Extract metadata from the first row (same for all rows)
-    const meta = sources.length > 0
-      ? {
-          total_count: sources[0].meta_total_count ?? 0,
-          total_answers: sources[0].meta_total_answers ?? 0,
-          total_prompts: sources[0].meta_total_prompts ?? 0,
-          total_platforms: sources[0].meta_total_platforms ?? 0,
-        }
-      : { total_count: 0, total_answers: 0, total_prompts: 0, total_platforms: 0 };
+      // Mention counts from view (distinct answers per source)
+      db.from("source_mention_counts")
+        .select("source_id, mention_count")
+        .eq("tenant_id", tenantId),
 
-    const total = meta.total_answers;
-    const prompts = meta.total_prompts;
-    const totalPlatforms = meta.total_platforms;
+      // Source domains
+      db.from("sources")
+        .select("id, domain")
+        .eq("tenant_id", tenantId),
+    ]);
 
-    // Pre-compute max mention percent for relative scoring
-    const maxPercent = sources.reduce((max: number, s: any) => {
-      const pct = total > 0 ? (s.total || 0) / total : 0;
-      return Math.max(max, pct);
-    }, 0);
+    const totalAnswers = answersRes.count ?? 0;
+    const totalPrompts = promptsRes.count ?? 0;
+    const totalPlatforms = new Set(
+      (platformsRes.data || []).map((p: any) => p.platform_id).filter(Boolean),
+    ).size;
 
-    // ── Scoring helpers ──────────────────────────────────────────
-    function mentionRateScore(sourceTotal: number): number {
-      if (total === 0 || maxPercent === 0) return 0;
-      const pct = sourceTotal / total;
-      // Log-scaled relative to top source
-      return Math.min(100, (Math.log(1 + pct) / Math.log(1 + maxPercent)) * 100);
+    // ── 2. Join sources + mention counts ────────────────────
+    const mentionMap = new Map<string, number>();
+    for (const m of (mentionsRes.data || [])) {
+      mentionMap.set(m.source_id, m.mention_count);
     }
 
-    function platformBreadthScore(platformCount: number): number {
-      if (totalPlatforms === 0) return 0;
-      return (platformCount / totalPlatforms) * 100;
+    let allSources = (sourcesRes.data || [])
+      .filter((s: any) => mentionMap.has(s.id))
+      .map((s: any) => {
+        const mc = mentionMap.get(s.id) || 0;
+        return {
+          id: s.id,
+          domain: s.domain,
+          mention_count: mc,
+          percent: totalAnswers > 0
+            ? Math.round((mc / totalAnswers) * 100 * 100) / 100
+            : 0,
+        };
+      });
+
+    // ── 3. Search filter (in memory) ────────────────────────
+    if (search) {
+      const lower = search.toLowerCase();
+      allSources = allSources.filter((s: any) =>
+        s.domain.toLowerCase().includes(lower),
+      );
     }
 
-    function promptCoverageScore(promptCount: number): number {
-      if (prompts === 0) return 0;
-      return (promptCount / prompts) * 100;
+    // ── 4. Sort by % mentions descending ────────────────────
+    allSources.sort(
+      (a: any, b: any) => b.percent - a.percent || a.domain.localeCompare(b.domain),
+    );
+
+    const totalCount = allSources.length;
+    const totalPages = Math.ceil(totalCount / perPage);
+
+    // ── 5. Paginate ─────────────────────────────────────────
+    const start = (page - 1) * perPage;
+    const pageSources = allSources.slice(start, start + perPage);
+
+    if (pageSources.length === 0) {
+      return logger.done(withCors(req, ok({
+        items: [],
+        meta: { page, per_page: perPage, total_count: totalCount, total_pages: totalPages, has_more: false },
+      })), authCtx);
     }
 
-    function distributionScore(platformCounts: any[]): number {
-      if (!platformCounts || platformCounts.length <= 1) return 0;
-      const counts = platformCounts.map((p: any) => p.count || 0);
-      const totalCounts = counts.reduce((s: number, c: number) => s + c, 0);
-      if (totalCounts === 0) return 0;
+    // ── 6. Fetch breakdowns for this page's sources ─────────
+    const pageSourceIds = pageSources.map((s: any) => s.id);
 
-      // Shannon entropy
-      let entropy = 0;
-      for (const c of counts) {
-        if (c > 0) {
-          const p = c / totalCounts;
-          entropy -= p * Math.log(p);
-        }
-      }
-      // Normalize by max possible entropy (uniform distribution)
-      const maxEntropy = Math.log(platformCounts.length);
-      return maxEntropy > 0 ? (entropy / maxEntropy) * 100 : 0;
+    const [promptBkRes, platformBkRes] = await Promise.all([
+      db.from("source_prompt_counts")
+        .select("source_id, prompt_id, prompt_text, cnt")
+        .eq("tenant_id", tenantId)
+        .in("source_id", pageSourceIds),
+
+      db.from("source_platform_counts")
+        .select("source_id, platform_id, platform_name, platform_slug, cnt")
+        .eq("tenant_id", tenantId)
+        .in("source_id", pageSourceIds),
+    ]);
+
+    // Index breakdowns by source_id
+    const promptsBySource = new Map<string, any[]>();
+    for (const row of (promptBkRes.data || [])) {
+      if (!promptsBySource.has(row.source_id)) promptsBySource.set(row.source_id, []);
+      promptsBySource.get(row.source_id)!.push(row);
     }
 
-    // ── Weights ──────────────────────────────────────────────────
-    const W_MENTION   = 0.35;
-    const W_PLATFORM  = 0.25;
-    const W_PROMPT    = 0.20;
-    const W_DISTRIB   = 0.20;
+    const platformsBySource = new Map<string, any[]>();
+    for (const row of (platformBkRes.data || [])) {
+      if (!platformsBySource.has(row.source_id)) platformsBySource.set(row.source_id, []);
+      platformsBySource.get(row.source_id)!.push(row);
+    }
 
-    // ── Enrich each source ───────────────────────────────────────
-    const enriched = sources.map((source: any) => {
-      const sourceTotal = source.total || 0;
-      const sourcePercent = total > 0
-        ? Math.round((sourceTotal / total) * 100 * 100) / 100
-        : 0;
+    // ── 7. Score + enrich ───────────────────────────────────
+    const maxPercent = pageSources.reduce(
+      (max: number, s: any) => Math.max(max, s.percent),
+      0,
+    );
 
-      const platforms = source.total_by_platform || [];
-      const promptsList = source.total_by_prompt || [];
+    const enriched = pageSources.map((source: any) => {
+      const platforms = platformsBySource.get(source.id) || [];
+      const promptsList = promptsBySource.get(source.id) || [];
+
+      const totalCitations = platforms.reduce((s: number, p: any) => s + (p.cnt || 0), 0);
 
       const platformsWithPct = platforms.map((p: any) => ({
-        ...p,
-        percent: total > 0
-          ? Math.round((p.count / total) * 100 * 100) / 100
+        platform_id: p.platform_id,
+        platform_name: p.platform_name,
+        platform_slug: p.platform_slug,
+        count: p.cnt,
+        percent: totalCitations > 0
+          ? Math.round((p.cnt / totalCitations) * 100 * 100) / 100
           : 0,
       }));
 
       const promptsWithPct = promptsList.map((p: any) => ({
-        ...p,
-        percent: sourceTotal > 0
-          ? Math.round((p.count / sourceTotal) * 100 * 100) / 100
+        prompt_id: p.prompt_id,
+        prompt_text: p.prompt_text,
+        count: p.cnt,
+        percent: source.mention_count > 0
+          ? Math.round((p.cnt / source.mention_count) * 100 * 100) / 100
           : 0,
       }));
 
-      // Compute component scores
-      const mention  = Math.round(mentionRateScore(sourceTotal) * 10) / 10;
-      const breadth  = Math.round(platformBreadthScore(platforms.length) * 10) / 10;
-      const coverage = Math.round(promptCoverageScore(promptsList.length) * 10) / 10;
-      const distrib  = Math.round(distributionScore(platforms) * 10) / 10;
+      const mention = Math.round(mentionRateScore(source.percent, maxPercent) * 10) / 10;
+      const breadth = Math.round(platformBreadthScore(platforms.length, totalPlatforms) * 10) / 10;
+      const coverage = Math.round(promptCoverageScore(promptsList.length, totalPrompts) * 10) / 10;
+      const distrib = Math.round(distributionScore(platforms) * 10) / 10;
 
-      const score = Math.round(
-        (mention * W_MENTION + breadth * W_PLATFORM + coverage * W_PROMPT + distrib * W_DISTRIB) * 10
-      ) / 10;
+      const score = computeCompositeScore(mention, breadth, coverage, distrib);
 
       return {
         id: source.id,
-        tenant_id: source.tenant_id,
+        tenant_id: tenantId,
         domain: source.domain,
-        total: sourceTotal,
-        percent: sourcePercent,
+        total: source.mention_count,
+        percent: source.percent,
         score,
         score_breakdown: {
           mention_rate: mention,
@@ -153,17 +199,13 @@ serve(async (req: Request) => {
       };
     });
 
-    // Sort by score descending
-    enriched.sort((a: any, b: any) => b.score - a.score);
-
-    const totalPages = Math.ceil(meta.total_count / perPage);
-
+    // ── 8. Return ───────────────────────────────────────────
     return logger.done(withCors(req, ok({
       items: enriched,
       meta: {
         page,
         per_page: perPage,
-        total_count: meta.total_count,
+        total_count: totalCount,
         total_pages: totalPages,
         has_more: page < totalPages,
       },
