@@ -129,12 +129,16 @@ serve(async (req: Request) => {
       }
 
       if (entity === "models") {
-        const { platform_id, slug, name, is_default, web_search_active } = body;
+        const { platform_id, slug, name, is_default, web_search_active, price_per_input_token, price_per_output_token } = body;
         if (!platform_id || !slug || !name) return logger.done(withCors(req, badRequest("platform_id, slug, name required")), authCtx);
-        const { data, error } = await db.from("models").insert({
+        const insertData: Record<string, unknown> = {
           platform_id, slug, name, is_default: is_default ?? false,
           web_search_active: web_search_active ?? false,
-        }).select().single();
+        };
+        if (price_per_input_token !== undefined) insertData.price_per_input_token = price_per_input_token;
+        if (price_per_output_token !== undefined) insertData.price_per_output_token = price_per_output_token;
+        if (price_per_input_token !== undefined || price_per_output_token !== undefined) insertData.pricing_updated_at = new Date().toISOString();
+        const { data, error } = await db.from("models").insert(insertData).select().single();
         if (error) throw error;
         return logger.done(withCors(req, ok(data)), authCtx);
       }
@@ -167,8 +171,12 @@ serve(async (req: Request) => {
       }
 
       if (entity === "models") {
-        const { platform_id, slug, name, is_default, web_search_active, is_active } = body;
-        const { data, error } = await db.from("models").update({ platform_id, slug, name, is_default, web_search_active, is_active }).eq("id", id).select().single();
+        const { platform_id, slug, name, is_default, web_search_active, is_active, price_per_input_token, price_per_output_token } = body;
+        const updateData: Record<string, unknown> = { platform_id, slug, name, is_default, web_search_active, is_active };
+        if (price_per_input_token !== undefined) updateData.price_per_input_token = price_per_input_token;
+        if (price_per_output_token !== undefined) updateData.price_per_output_token = price_per_output_token;
+        if (price_per_input_token !== undefined || price_per_output_token !== undefined) updateData.pricing_updated_at = new Date().toISOString();
+        const { data, error } = await db.from("models").update(updateData).eq("id", id).select().single();
         if (error) throw error;
         return logger.done(withCors(req, ok(data)), authCtx);
       }

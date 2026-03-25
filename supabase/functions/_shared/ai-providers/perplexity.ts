@@ -15,7 +15,7 @@ export const perplexityAdapter: AiAdapter = async (req: AiRequest): Promise<AiRe
 
   try {
     const body: Record<string, unknown> = {
-      model: req.model,
+      model: req.model.slug,
       input: req.prompt,
       stream: false,
     };
@@ -87,7 +87,7 @@ export const perplexityAdapter: AiAdapter = async (req: AiRequest): Promise<AiRe
 
     return buildSuccessResponse({
       text: data.output_text ?? null,
-      model: data.model ?? req.model,
+      model: data.model ?? req.model.slug,
       tokens: data.usage ? { input: data.usage.input_tokens ?? 0, output: data.usage.output_tokens ?? 0 } : null,
       latency_ms,
       raw_request: body,

@@ -12,11 +12,21 @@
  */
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import type { ModelRecord } from "./ai-providers/types.ts";
 
 // ── Types ────────────────────────────────────────────────────
 
 export interface ModelPricing {
   modelId: string | null;
+  pricePerInputToken: number;
+  pricePerOutputToken: number;
+}
+
+/** Resolved model info from the DB `models` table. */
+export interface ModelInfo {
+  id: string;
+  slug: string;
+  platformSlug: string;
   pricePerInputToken: number;
   pricePerOutputToken: number;
 }
@@ -56,16 +66,17 @@ export interface AiUsageLogParams {
   metadata?: Record<string, unknown>;
 }
 
-// ── In-memory pricing cache ──────────────────────────────────
+// ── In-memory model cache ────────────────────────────────────
 
 const pricingCache = new Map<string, ModelPricing>();
+const modelInfoCache = new Map<string, ModelInfo>();
 let cacheLoaded = false;
 
 /**
  * Load all model pricing into memory (once per invocation).
  * Caches by `platform_slug:model_slug` key.
  */
-async function ensurePricingCache(db: SupabaseClient): Promise<void> {
+async function ensureModelCache(db: SupabaseClient): Promise<void> {
   if (cacheLoaded) return;
 
   const { data: models, error } = await db
@@ -90,6 +101,13 @@ async function ensurePricingCache(db: SupabaseClient): Promise<void> {
       pricePerInputToken: Number(m.price_per_input_token) || 0,
       pricePerOutputToken: Number(m.price_per_output_token) || 0,
     });
+    modelInfoCache.set(key, {
+      id: m.id,
+      slug: m.slug,
+      platformSlug,
+      pricePerInputToken: Number(m.price_per_input_token) || 0,
+      pricePerOutputToken: Number(m.price_per_output_token) || 0,
+    });
   }
 
   cacheLoaded = true;
@@ -97,6 +115,61 @@ async function ensurePricingCache(db: SupabaseClient): Promise<void> {
 }
 
 // ── Public API ───────────────────────────────────────────────
+
+/**
+ * Resolve a model from the DB by platform slug and model slug.
+ * Returns the model info including its UUID, slug, and pricing.
+ * Throws if the model is not found — fail-fast to prevent silent zero-cost logs.
+ */
+export async function getModelBySlug(
+  db: SupabaseClient,
+  platformSlug: string,
+  modelSlug: string,
+): Promise<ModelInfo> {
+  await ensureModelCache(db);
+
+  const key = `${platformSlug}:${modelSlug}`;
+  const cached = modelInfoCache.get(key);
+  if (cached) return cached;
+
+  // Fallback: try finding by model slug across all platforms
+  for (const [k, v] of modelInfoCache.entries()) {
+    if (k.endsWith(`:${modelSlug}`)) return v;
+  }
+
+  // List available slugs for the platform to help debug
+  const available = Array.from(modelInfoCache.keys())
+    .filter(k => k.startsWith(`${platformSlug}:`))
+    .map(k => k.split(":")[1]);
+  throw new Error(
+    `[cost-calculator] Model "${modelSlug}" not found for platform "${platformSlug}". ` +
+    `Available: [${available.join(", ")}]`
+  );
+}
+
+/**
+ * Resolve a model from the DB by slug alone (no platform needed).
+ * Returns a `ModelRecord` compatible with `AiRequest.model`.
+ * Throws if the model is not found in the models table.
+ */
+export async function resolveModel(
+  db: SupabaseClient,
+  modelSlug: string,
+): Promise<ModelRecord> {
+  await ensureModelCache(db);
+
+  // Search across all platforms for a matching slug
+  for (const [, v] of modelInfoCache.entries()) {
+    if (v.slug === modelSlug) {
+      return { id: v.id, slug: v.slug, platformSlug: v.platformSlug };
+    }
+  }
+
+  const available = Array.from(modelInfoCache.values()).map(v => v.slug);
+  throw new Error(
+    `[cost-calculator] Model "${modelSlug}" not found. Available: [${available.join(", ")}]`
+  );
+}
 
 /**
  * Look up pricing for a specific model.
@@ -107,13 +180,20 @@ export async function lookupModelPricing(
   platformSlug: string,
   modelSlug: string,
 ): Promise<ModelPricing> {
-  await ensurePricingCache(db);
+  await ensureModelCache(db);
 
   const key = `${platformSlug}:${modelSlug}`;
   const cached = pricingCache.get(key);
   if (cached) return cached;
 
-  // Try partial match (e.g. "claude-sonnet-4-20250514" may match "claude-sonnet*")
+  // Try stripping version date suffix (e.g. "gpt-4o-2024-08-06" → "gpt-4o")
+  const baseSlug = modelSlug.replace(/-\d{4}-\d{2}-\d{2}$/, "");
+  if (baseSlug !== modelSlug) {
+    const baseKey = `${platformSlug}:${baseSlug}`;
+    const baseCached = pricingCache.get(baseKey);
+    if (baseCached) return baseCached;
+  }
+
   // Fallback: try finding by model slug only across all platforms
   for (const [k, v] of pricingCache.entries()) {
     if (k.endsWith(`:${modelSlug}`)) return v;

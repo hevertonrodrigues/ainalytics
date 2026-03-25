@@ -30,7 +30,7 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       body.tools = [{ google_search: {} }];
     }
 
-    const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${req.model}:generateContent?key=${apiKey}`;
+    const baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${req.model.slug}:generateContent?key=${apiKey}`;
 
     // Retry loop: if model doesn't support grounding, retry without tools
     let res: Response | null = null;
@@ -50,7 +50,7 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       const isUnsupported = errText.includes("not supported") || errText.includes("is not available") || errText.includes("INVALID_ARGUMENT");
       const mentionsGrounding = errText.includes("google_search") || errText.includes("grounding") || errText.includes("tools");
       if (isUnsupported && mentionsGrounding) {
-        console.warn(`[gemini] google_search not supported for ${req.model}, retrying without it`);
+        console.warn(`[gemini] google_search not supported for ${req.model.slug}, retrying without it`);
         webSearchEnabled = false;
         delete body.tools;
         continue;
@@ -125,11 +125,11 @@ export const geminiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       }
     }
 
-    webSearchEnabled = verifyWebSearchResults("gemini", req.model, webSearchEnabled, annotations, sourcesMap);
+    webSearchEnabled = verifyWebSearchResults("gemini", req.model.slug, webSearchEnabled, annotations, sourcesMap);
 
     return buildSuccessResponse({
       text: answerText,
-      model: req.model,
+      model: req.model.slug,
       tokens: usage ? { input: usage.promptTokenCount ?? 0, output: usage.candidatesTokenCount ?? 0 } : null,
       latency_ms,
       raw_request: body,

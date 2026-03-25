@@ -202,38 +202,84 @@ async function handleSync(req: Request) {
     return ok({ synced: 0, message: `${platform.name} does not support model listing API` });
   }
 
-  // Fetch models from the platform's API
+  // Fetch models from the platform's API (now includes pricing)
   const fetched = await fetchModelsForPlatform(platform.slug);
   if (fetched.length === 0) {
     return ok({ synced: 0, message: "No models returned — check API key" });
   }
 
-  // Get existing models for this platform
+  // Get existing models for this platform (include pricing columns)
   const { data: existing } = await sb
     .from("models")
-    .select("slug")
+    .select("slug, price_per_input_token, price_per_output_token")
     .eq("platform_id", platformId);
 
-  const existingSlugs = new Set((existing || []).map((m: { slug: string }) => m.slug));
+  const existingMap = new Map<string, { input: number | null; output: number | null }>(
+    (existing || []).map((m: { slug: string; price_per_input_token: number | null; price_per_output_token: number | null }) =>
+      [m.slug, { input: m.price_per_input_token, output: m.price_per_output_token }] as [string, { input: number | null; output: number | null }]
+    ),
+  );
 
-  // Only insert new models (don't delete existing ones)
-  const newModels = fetched.filter((m) => !existingSlugs.has(m.slug));
+  // Insert NEW models (with pricing)
+  const newModels = fetched.filter((m) => !existingMap.has(m.slug));
+  let insertedCount = 0;
 
-  if (newModels.length === 0) {
-    return ok({ synced: 0, total: fetched.length, message: "All models already synced" });
+  if (newModels.length > 0) {
+    const rows = newModels.map((m) => ({
+      platform_id: platformId,
+      slug: m.slug,
+      name: m.name,
+      is_active: false,
+      price_per_input_token: m.pricePerInputToken || null,
+      price_per_output_token: m.pricePerOutputToken || null,
+      pricing_updated_at: m.pricePerInputToken > 0 ? new Date().toISOString() : null,
+    }));
+
+    const { error: iErr } = await sb.from("models").insert(rows);
+    if (iErr) return serverError(iErr.message);
+    insertedCount = newModels.length;
   }
 
-  const rows = newModels.map((m) => ({
-    platform_id: platformId,
-    slug: m.slug,
-    name: m.name,
-    is_active: false,
-  }));
+  // Update EXISTING models that have zero/null pricing but we now have pricing data
+  let pricingUpdated = 0;
+  const updates: Promise<unknown>[] = [];
 
-  const { error: iErr } = await sb.from("models").insert(rows);
-  if (iErr) return serverError(iErr.message);
+  for (const m of fetched) {
+    if (!existingMap.has(m.slug)) continue; // already inserted above
+    if (m.pricePerInputToken <= 0 && m.pricePerOutputToken <= 0) continue; // no pricing to set
 
-  return ok({ synced: newModels.length, total: fetched.length, new_models: newModels.map((m) => m.slug) });
+    const current = existingMap.get(m.slug)!;
+    const hasNoPricing = (!current.input || Number(current.input) === 0)
+                      && (!current.output || Number(current.output) === 0);
+
+    if (hasNoPricing) {
+      updates.push(
+        sb.from("models")
+          .update({
+            price_per_input_token: m.pricePerInputToken,
+            price_per_output_token: m.pricePerOutputToken,
+            pricing_updated_at: new Date().toISOString(),
+          })
+          .eq("platform_id", platformId)
+          .eq("slug", m.slug)
+      );
+      pricingUpdated++;
+    }
+  }
+
+  if (updates.length > 0) {
+    await Promise.all(updates);
+  }
+
+  return ok({
+    synced: insertedCount,
+    pricing_updated: pricingUpdated,
+    total: fetched.length,
+    new_models: newModels.map((m) => m.slug),
+    message: insertedCount === 0 && pricingUpdated === 0
+      ? "All models already synced with pricing"
+      : undefined,
+  });
 }
 
 // ── Tenant Preferences: GET ──

@@ -70,7 +70,7 @@ serve(async (req: Request) => {
       console.log(`[deep-analyze] ▶ Starting analysis for ${inputUrl} (tenant: ${tenantId})`);
 
       // Run the shared deep-analyze core
-      const result = await runDeepAnalyze(inputUrl, inputLang);
+      const result = await runDeepAnalyze(db, inputUrl, inputLang);
 
       // Log AI usage for cost tracking
       await logAiUsage(db, {

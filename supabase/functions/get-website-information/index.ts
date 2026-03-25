@@ -16,7 +16,7 @@ import { createRequestLogger } from "../_shared/logger.ts";
  * - 'verify': Checks the live /llms.txt against the stored version.
  * - 'suggest_topics': Uses OpenAI to suggest AI monitoring topics based on extracted data.
  *
- * Uses OpenAI gpt-4o with web search capability for extraction, and standard generations for llm_txt.
+ * Uses OpenAI gpt-4.1-mini with web search capability for extraction, and standard generations for llm_txt.
  */
 serve(async (req: Request) => {
   const logger = createRequestLogger("get-website-information", req);

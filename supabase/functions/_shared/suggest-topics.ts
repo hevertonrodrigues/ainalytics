@@ -10,7 +10,7 @@
 
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import { executePrompt } from "./ai-providers/index.ts";
-import { logAiUsage } from "./cost-calculator.ts";
+import { logAiUsage, resolveModel } from "./cost-calculator.ts";
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -215,10 +215,11 @@ ${truncatedSitemap}
 </sitemap_xml>`;
   }
 
-  // Use adapter layer instead of direct fetch
-  const aiResult = await executePrompt("openai", {
+  // Use adapter layer — model must exist in the `models` table
+  const model = await resolveModel(db, "gpt-4.1-mini");
+  const aiResult = await executePrompt({
     prompt,
-    model: "gpt-4o",
+    model,
     webSearchEnabled: false,
   });
 
@@ -231,8 +232,8 @@ ${truncatedSitemap}
     await logAiUsage(db, {
       tenantId,
       callSite: "suggest_topics",
-      platformSlug: "openai",
-      modelSlug: aiResult.model || "gpt-4o",
+      platformSlug: model.platformSlug,
+      modelSlug: model.slug,
       promptText: prompt,
       requestParams: { webSearchEnabled: false, language },
       rawRequest: aiResult.raw_request,

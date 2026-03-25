@@ -7,7 +7,7 @@
  * 3. Add the corresponding API key env var to .env
  */
 
-import type { AiAdapter, AiRequest, AiResponse, PlatformRegistryEntry } from "./types.ts";
+import type { AiAdapter, AiRequest, AiResponse, ModelRecord, PlatformRegistryEntry } from "./types.ts";
 import { openaiAdapter } from "./openai.ts";
 import { anthropicAdapter } from "./anthropic.ts";
 import { geminiAdapter } from "./gemini.ts";
@@ -45,38 +45,56 @@ export function isPlatformConfigured(slug: string): boolean {
 
 /**
  * Execute a prompt against a specific platform.
+ * The model's platformSlug is used to route to the correct adapter.
  */
-export async function executePrompt(slug: string, req: AiRequest): Promise<AiResponse> {
-  const adapter = getAdapter(slug);
+export async function executePrompt(req: AiRequest): Promise<AiResponse> {
+  const adapter = getAdapter(req.model.platformSlug);
   if (!adapter) {
-    return { text: null, model: req.model, tokens: null, latency_ms: 0, error: `Unknown platform: ${slug}`, web_search_enabled: false, annotations: null, sources: null };
+    return {
+      text: null,
+      model: req.model.slug,
+      tokens: null,
+      latency_ms: 0,
+      error: `Unknown platform: ${req.model.platformSlug}`,
+      web_search_enabled: false,
+      annotations: null,
+      sources: null,
+    };
   }
   return adapter(req);
 }
 
 /**
- * Execute a prompt against multiple platforms in parallel.
+ * Execute a prompt against multiple models/platforms in parallel.
  */
 export async function executePromptMulti(
-  platforms: Array<{ slug: string; model: string; webSearchEnabled?: boolean }>,
+  models: ModelRecord[],
   prompt: string,
   systemInstruction?: string,
+  webSearchEnabled?: boolean,
   country?: string,
   language?: string,
 ): Promise<Array<{ slug: string } & AiResponse>> {
   const results = await Promise.allSettled(
-    platforms.map(async ({ slug, model, webSearchEnabled }) => {
-      const res = await executePrompt(slug, { prompt, model, systemInstruction, webSearchEnabled, country, language });
-      return { slug, ...res };
+    models.map(async (model) => {
+      const res = await executePrompt({
+        prompt,
+        model,
+        systemInstruction,
+        webSearchEnabled,
+        country,
+        language,
+      });
+      return { slug: model.platformSlug, ...res };
     }),
   );
 
   return results.map((r, i) => {
     if (r.status === "fulfilled") return r.value;
     return {
-      slug: platforms[i].slug,
+      slug: models[i].platformSlug,
       text: null,
-      model: platforms[i].model,
+      model: models[i].slug,
       tokens: null,
       latency_ms: 0,
       error: String(r.reason),
@@ -88,4 +106,4 @@ export async function executePromptMulti(
 }
 
 // Re-export types
-export type { AiRequest, AiResponse, PlatformRegistryEntry, NormalizedAnnotation, NormalizedSource } from "./types.ts";
+export type { AiRequest, AiResponse, ModelRecord, PlatformRegistryEntry, NormalizedAnnotation, NormalizedSource } from "./types.ts";

@@ -14,7 +14,7 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
 
   try {
     const body: Record<string, unknown> = {
-      model: req.model,
+      model: req.model.slug,
       input: req.prompt,
     };
     if (req.systemInstruction) body.instructions = req.systemInstruction;
@@ -50,7 +50,7 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
 
       if (errText.includes("not supported") || errText.includes("Unsupported parameter")) {
         if (errText.includes("web_search") || errText.includes("tools") || errText.includes("include")) {
-          console.warn(`[openai] web_search not supported for ${req.model}, retrying without it`);
+          console.warn(`[openai] web_search not supported for ${req.model.slug}, retrying without it`);
           webSearchEnabled = false;
           delete body.tools;
           delete body.tool_choice;
@@ -116,11 +116,11 @@ export const openaiAdapter: AiAdapter = async (req: AiRequest): Promise<AiRespon
       }
     }
 
-    webSearchEnabled = verifyWebSearchResults("openai", req.model, webSearchEnabled, annotations, sourcesMap);
+    webSearchEnabled = verifyWebSearchResults("openai", req.model.slug, webSearchEnabled, annotations, sourcesMap);
 
     return buildSuccessResponse({
       text: data.output_text ?? answerText,
-      model: data.model ?? req.model,
+      model: data.model ?? req.model.slug,
       tokens: data.usage ? { input: data.usage.input_tokens ?? 0, output: data.usage.output_tokens ?? 0 } : null,
       latency_ms,
       raw_request: body,

@@ -1,7 +1,7 @@
 import { createAdminClient } from "./supabase.ts";
 import { EXTRACT_WEBSITE_INFO_PROMPT, GENERATE_LLM_TXT_PROMPT, replaceVars } from "./prompts/load.ts";
 import { executePrompt } from "./ai-providers/index.ts";
-import { logAiUsage } from "./cost-calculator.ts";
+import { logAiUsage, resolveModel } from "./cost-calculator.ts";
 
 const TENANT_FETCH_TIMEOUT_MS = 10_000;
 
@@ -135,10 +135,11 @@ export async function extractWebsiteInformation(companyId: string, dbClient?: Re
     DOMAIN: domain,
   });
 
-  // Use adapter layer instead of direct fetch
-  const aiResult = await executePrompt("openai", {
+  // Use adapter layer — model must exist in the `models` table
+  const model = await resolveModel(sb, "gpt-4.1-mini");
+  const aiResult = await executePrompt({
     prompt,
-    model: "gpt-4o",
+    model,
     webSearchEnabled: true,
   });
 
@@ -172,8 +173,8 @@ export async function extractWebsiteInformation(companyId: string, dbClient?: Re
     await logAiUsage(sb, {
       tenantId: resolvedTenantId,
       callSite: "llm_extract_website",
-      platformSlug: "openai",
-      modelSlug: aiResult.model || "gpt-4o",
+      platformSlug: model.platformSlug,
+      modelSlug: model.slug,
       promptText: prompt,
       requestParams: { webSearchEnabled: true },
       rawRequest: aiResult.raw_request,
@@ -221,10 +222,11 @@ export async function generateLlmText(companyId: string, dbClient?: ReturnType<t
     SITEMAP_SECTION: sitemapSection,
   });
 
-  // Use adapter layer instead of direct fetch
-  const aiResult = await executePrompt("openai", {
+  // Use adapter layer — model must exist in the `models` table
+  const model2 = await resolveModel(sb, "gpt-4.1-mini");
+  const aiResult = await executePrompt({
     prompt,
-    model: "gpt-4o",
+    model: model2,
     webSearchEnabled: false,
   });
 
@@ -252,8 +254,8 @@ export async function generateLlmText(companyId: string, dbClient?: ReturnType<t
     await logAiUsage(sb, {
       tenantId: resolvedTenantId,
       callSite: "llm_generate_text",
-      platformSlug: "openai",
-      modelSlug: aiResult.model || "gpt-4o",
+      platformSlug: model2.platformSlug,
+      modelSlug: model2.slug,
       promptText: prompt,
       requestParams: { webSearchEnabled: false },
       rawRequest: aiResult.raw_request,

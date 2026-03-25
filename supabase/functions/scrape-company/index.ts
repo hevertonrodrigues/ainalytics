@@ -23,7 +23,7 @@ import {
 import { SCRAPE_COMPANY_ANALYZE_PROMPT, replaceVars } from "../_shared/prompts/load.ts";
 import { executePrompt } from "../_shared/ai-providers/index.ts";
 import { runDeepAnalyze } from "../_shared/deep-analyze-core.ts";
-import { logAiUsage } from "../_shared/cost-calculator.ts";
+import { logAiUsage, resolveModel } from "../_shared/cost-calculator.ts";
 
 
 // ─── Helpers ────────────────────────────────────────────────
@@ -646,9 +646,10 @@ serve(async (req: Request) => {
       console.log(`[analyze] Sending prompt via ai-providers (anthropic)…`);
 
       try {
-        const aiResult = await executePrompt("anthropic", {
+        const scrapeModel = await resolveModel(db, "claude-sonnet-4-5-20250929");
+        const aiResult = await executePrompt({
           prompt,
-          model: "claude-sonnet-4-20250514",
+          model: scrapeModel,
           webSearchEnabled: false,
         });
 
@@ -674,8 +675,8 @@ serve(async (req: Request) => {
           tenantId,
           userId: user.id,
           callSite: "scrape_analyze",
-          platformSlug: "anthropic",
-          modelSlug: aiResult.model || "claude-sonnet-4-20250514",
+          platformSlug: scrapeModel.platformSlug,
+          modelSlug: scrapeModel.slug,
           promptText: prompt,
           requestParams: { webSearchEnabled: false },
           rawRequest: aiResult.raw_request,
@@ -741,6 +742,7 @@ serve(async (req: Request) => {
         let deepAnalyzeId: string | null = null;
         try {
           deepResult = await runDeepAnalyze(
+            db,
             `https://${domain}`,
             targetLang,
           );

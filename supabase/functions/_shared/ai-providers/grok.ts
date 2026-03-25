@@ -19,7 +19,7 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
 
   try {
     const body: Record<string, unknown> = {
-      model: req.model,
+      model: req.model.slug,
       input: [{ role: "user", content: req.prompt }],
     };
     if (req.systemInstruction) body.instructions = req.systemInstruction;
@@ -56,7 +56,7 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
       const isUnsupported = errText.includes("not supported") || errText.includes("Unsupported parameter");
       const mentionsWebSearch = errText.includes("web_search");
       if (isUnsupported && mentionsWebSearch) {
-        console.warn(`[grok] web_search not supported for ${req.model}, retrying without it`);
+        console.warn(`[grok] web_search not supported for ${req.model.slug}, retrying without it`);
         webSearchEnabled = false;
         delete body.tools;
         delete body.tool_choice;
@@ -142,11 +142,11 @@ export const grokAdapter: AiAdapter = async (req: AiRequest): Promise<AiResponse
       }
     }
 
-    webSearchEnabled = verifyWebSearchResults("grok", req.model, webSearchEnabled, annotations, sourcesMap);
+    webSearchEnabled = verifyWebSearchResults("grok", req.model.slug, webSearchEnabled, annotations, sourcesMap);
 
     return buildSuccessResponse({
       text,
-      model: data.model ?? req.model,
+      model: data.model ?? req.model.slug,
       tokens: data.usage ? { input: data.usage.input_tokens ?? 0, output: data.usage.output_tokens ?? 0 } : null,
       latency_ms,
       raw_request: body,

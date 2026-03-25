@@ -5,7 +5,7 @@ import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 import { executePrompt } from "../_shared/ai-providers/index.ts";
-import { logAiUsage } from "../_shared/cost-calculator.ts";
+import { logAiUsage, resolveModel } from "../_shared/cost-calculator.ts";
 import { INSIGHTS_PROMPT, replaceVars } from "../_shared/prompts/load.ts";
 
 /**
@@ -110,9 +110,10 @@ serve(async (req: Request) => {
       });
 
       // ── Call Claude AI ────────────────────────────────────
-      const aiResult = await executePrompt("anthropic", {
+      const insightsModel = await resolveModel(db, "claude-sonnet-4-5-20250929");
+      const aiResult = await executePrompt({
         prompt,
-        model: "claude-sonnet-4-20250514",
+        model: insightsModel,
         webSearchEnabled: false,
       });
 
@@ -160,8 +161,8 @@ serve(async (req: Request) => {
         tenantId,
         userId: user.id,
         callSite: "insights",
-        platformSlug: "anthropic",
-        modelSlug: aiResult.model || "claude-sonnet-4-20250514",
+        platformSlug: insightsModel.platformSlug,
+        modelSlug: insightsModel.slug,
         promptText: prompt,
         requestParams: { webSearchEnabled: false, language },
         rawRequest: aiResult.raw_request,

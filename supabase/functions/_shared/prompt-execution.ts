@@ -205,7 +205,7 @@ export async function executeAndStorePromptAnswer(
         latency_ms: number;
         raw_request?: unknown;
         raw_response?: unknown;
-        error: string | null;
+        error?: string;
         web_search_enabled?: boolean;
         annotations?: unknown;
         sources?: unknown;
@@ -215,13 +215,10 @@ export async function executeAndStorePromptAnswer(
   try {
     const results = await Promise.race([
       executePromptMulti(
-        [{
-          slug: context.platformSlug,
-          model: context.modelSlug,
-          webSearchEnabled: context.webSearchEnabled,
-        }],
+        [{ id: context.modelId, slug: context.modelSlug, platformSlug: context.platformSlug }],
         context.promptText,
         undefined,
+        context.webSearchEnabled,
         context.country,
         context.language,
       ),

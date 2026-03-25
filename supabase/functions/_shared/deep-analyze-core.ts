@@ -7,9 +7,11 @@
  */
 
 import { executePrompt } from "./ai-providers/index.ts";
+import { resolveModel } from "./cost-calculator.ts";
 import { DEEP_ANALYZE_PROMPT, replaceVars } from "./prompts/load.ts";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
-const MODEL = "gpt-5.4";
+const MODEL_SLUG = "gpt-5.2-pro";
 
 // ─── Language → Country mapping ─────────────────────────────
 const LANG_MAP: Record<string, { language: string; country: string }> = {
@@ -52,6 +54,7 @@ export interface DeepAnalyzeResult {
  * Does NOT save to the database — callers are responsible for persistence.
  */
 export async function runDeepAnalyze(
+  db: SupabaseClient,
   url: string,
   language: string,
 ): Promise<DeepAnalyzeResult> {
@@ -72,11 +75,14 @@ export async function runDeepAnalyze(
     TARGET_COUNTRY: langConfig.country,
   });
 
+  const modelRecord = await resolveModel(db, MODEL_SLUG);
+
   // Call AI
-  const aiResult = await executePrompt("openai", {
+  const aiResult = await executePrompt({
     prompt,
-    model: MODEL,
+    model: modelRecord,
     webSearchEnabled: true,
+    country: langConfig.country,
   });
 
   if (aiResult.error || !aiResult.text) {
@@ -115,8 +121,8 @@ export async function runDeepAnalyze(
     // Token tracking for callers to log usage
     tokens: aiResult.tokens,
     latency_ms: aiResult.latency_ms,
-    platform_slug: "openai",
-    model_slug: aiResult.model || MODEL,
+    platform_slug: modelRecord.platformSlug,
+    model_slug: MODEL_SLUG,
     prompt_text: prompt,
     raw_request: aiResult.raw_request ?? null,
     annotations: aiResult.annotations,

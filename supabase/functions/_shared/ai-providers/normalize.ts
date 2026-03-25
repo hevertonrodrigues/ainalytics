@@ -25,7 +25,7 @@ export function buildErrorResponse(
 ): AiResponse {
   return {
     text: null,
-    model: req.model,
+    model: req.model.slug,
     tokens: null,
     latency_ms: Date.now() - start,
     raw_request: rawReq,

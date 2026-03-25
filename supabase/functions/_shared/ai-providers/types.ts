@@ -3,9 +3,23 @@
  * All adapters implement the same interface for consistency.
  */
 
+/**
+ * Represents a model record from the `models` DB table.
+ * All AI calls must reference models that exist in the database.
+ */
+export interface ModelRecord {
+  /** UUID from the models table */
+  id: string;
+  /** API-compatible slug, e.g. "gpt-4.1-mini" */
+  slug: string;
+  /** Platform slug (from the joined platforms table), e.g. "openai" */
+  platformSlug: string;
+}
+
 export interface AiRequest {
   prompt: string;
-  model: string;
+  /** Must be a resolved ModelRecord from the DB — use resolveModel() to obtain. */
+  model: ModelRecord;
   systemInstruction?: string;
   /** Whether web search should be enabled for this request (from models.web_search_active) */
   webSearchEnabled?: boolean;

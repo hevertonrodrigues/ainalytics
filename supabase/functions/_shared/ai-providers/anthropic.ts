@@ -14,7 +14,7 @@ export const anthropicAdapter: AiAdapter = async (req: AiRequest): Promise<AiRes
 
   try {
     const body: Record<string, unknown> = {
-      model: req.model,
+      model: req.model.slug,
       max_tokens: 16384,
       messages: [{ role: "user", content: req.prompt }],
     };
@@ -55,7 +55,7 @@ export const anthropicAdapter: AiAdapter = async (req: AiRequest): Promise<AiRes
         (errText.includes("tool_type") && errText.includes("not supported"));
 
       if (isWebSearchUnsupported) {
-        console.warn(`[anthropic] web_search not supported for ${req.model}, retrying without it`);
+        console.warn(`[anthropic] web_search not supported for ${req.model.slug}, retrying without it`);
         webSearchEnabled = false;
         delete body.tools;
         continue;
@@ -105,11 +105,11 @@ export const anthropicAdapter: AiAdapter = async (req: AiRequest): Promise<AiRes
       }
     }
 
-    webSearchEnabled = verifyWebSearchResults("anthropic", req.model, webSearchEnabled, annotations, sourcesMap);
+    webSearchEnabled = verifyWebSearchResults("anthropic", req.model.slug, webSearchEnabled, annotations, sourcesMap);
 
     return buildSuccessResponse({
       text: answerText || null,
-      model: data.model ?? req.model,
+      model: data.model ?? req.model.slug,
       tokens: data.usage ? { input: data.usage.input_tokens ?? 0, output: data.usage.output_tokens ?? 0 } : null,
       latency_ms,
       raw_request: body,
