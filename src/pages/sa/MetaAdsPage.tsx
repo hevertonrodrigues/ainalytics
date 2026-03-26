@@ -70,16 +70,28 @@ interface ROIData {
   ltv_estimate: number;
   ltv_cac_ratio: number;
   payback_months: number;
+  currency?: string;
 }
 
 type TabId = 'overview' | 'campaigns' | 'roi' | 'settings';
 
 // ─── Helpers ───────────────────────────────────────────────
 
-function fmtCurrency(v: number, currency = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
+function getLocaleForCurrency(currency: string): string {
+  const map: Record<string, string> = {
+    BRL: 'pt-BR', USD: 'en-US', EUR: 'de-DE', GBP: 'en-GB',
+    ARS: 'es-AR', MXN: 'es-MX', CLP: 'es-CL', COP: 'es-CO',
+    JPY: 'ja-JP', CAD: 'en-CA', AUD: 'en-AU',
+  };
+  return map[currency.toUpperCase()] || 'en-US';
+}
+
+function fmtCurrency(v: number, currency = 'BRL'): string {
+  const cur = currency.toUpperCase();
+  const locale = getLocaleForCurrency(cur);
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency,
+    currency: cur,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(v);
@@ -128,7 +140,7 @@ function KpiCard({ icon: Icon, label, value, sub, accent, trend }: {
 
 // ─── Spend (Mini Chart) ────────────────────────────────────
 
-function SpendChart({ data }: { data: DailyRow[] }) {
+function SpendChart({ data, currency }: { data: DailyRow[]; currency: string }) {
   if (data.length === 0) return <div className="text-sm text-text-muted text-center py-8">No data for this period</div>;
 
   const maxSpend = Math.max(...data.map(d => d.spend), 0.01);
@@ -144,7 +156,7 @@ function SpendChart({ data }: { data: DailyRow[] }) {
               style={{ height: `${Math.max(h, 2)}%` }}
             />
             <div className="absolute -top-10 bg-bg-elevated border border-glass-border rounded-md px-2 py-1 text-[0.6rem] text-text-primary opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
-              {d.day} · {fmtCurrency(d.spend)} · {fmtNumber(d.clicks)} clicks
+              {d.day} · {fmtCurrency(d.spend, currency)} · {fmtNumber(d.clicks)} clicks
             </div>
             {(i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2)) && (
               <span className="text-[0.55rem] text-text-muted mt-1 truncate w-full text-center">
@@ -172,6 +184,7 @@ export function MetaAdsPage() {
   const [dailyData, setDailyData] = useState<DailyRow[]>([]);
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
   const [roiData, setRoiData] = useState<ROIData | null>(null);
+  const [adCurrency, setAdCurrency] = useState('BRL');
 
   // Settings form
   const [formAccountId, setFormAccountId] = useState('');
@@ -195,6 +208,7 @@ export function MetaAdsPage() {
         setOverview(overviewRes.data);
         setDailyData(dailyRes.data || []);
         setConfig(configRes.data);
+        if (overviewRes.data?.currency) setAdCurrency(overviewRes.data.currency);
       } else if (tab === 'campaigns') {
         const res = await apiClient.get<CampaignRow[]>(`/admin-meta-ads?view=campaigns&months=${months}`);
         setCampaigns(res.data || []);
@@ -361,14 +375,14 @@ export function MetaAdsPage() {
             <div className="space-y-6">
               {/* KPI Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
-                <KpiCard icon={DollarSign} label={t('sa.metaAds.totalSpend')} value={fmtCurrency(overview.total_spend)} accent="bg-brand-accent/10 text-brand-accent" />
+                <KpiCard icon={DollarSign} label={t('sa.metaAds.totalSpend')} value={fmtCurrency(overview.total_spend, adCurrency)} accent="bg-brand-accent/10 text-brand-accent" />
                 <KpiCard icon={Eye} label={t('sa.metaAds.impressions')} value={fmtNumber(overview.total_impressions)} />
                 <KpiCard icon={MousePointerClick} label={t('sa.metaAds.clicks')} value={fmtNumber(overview.total_clicks)} />
                 <KpiCard icon={Activity} label={t('sa.metaAds.ctr')} value={fmtPct(overview.avg_ctr)} />
-                <KpiCard icon={DollarSign} label={t('sa.metaAds.avgCPC')} value={fmtCurrency(overview.avg_cpc)} />
-                <KpiCard icon={DollarSign} label={t('sa.metaAds.cpm')} value={fmtCurrency(overview.avg_cpm)} />
+                <KpiCard icon={DollarSign} label={t('sa.metaAds.avgCPC')} value={fmtCurrency(overview.avg_cpc, adCurrency)} />
+                <KpiCard icon={DollarSign} label={t('sa.metaAds.cpm')} value={fmtCurrency(overview.avg_cpm, adCurrency)} />
                 <KpiCard icon={Target} label={t('sa.metaAds.conversions')} value={fmtNumber(overview.total_conversions)} accent="bg-success/10 text-success" />
-                <KpiCard icon={Target} label={t('sa.metaAds.costPerConversion')} value={fmtCurrency(overview.avg_cost_per_conversion)} />
+                <KpiCard icon={Target} label={t('sa.metaAds.costPerConversion')} value={fmtCurrency(overview.avg_cost_per_conversion, adCurrency)} />
               </div>
 
               {/* Daily Spend Chart */}
@@ -380,7 +394,7 @@ export function MetaAdsPage() {
                   </h3>
                   <span className="text-xs text-text-muted">{dailyData.length} {t('sa.metaAds.days')}</span>
                 </div>
-                <SpendChart data={dailyData} />
+                <SpendChart data={dailyData} currency={adCurrency} />
               </div>
             </div>
           )}
@@ -425,14 +439,14 @@ export function MetaAdsPage() {
                         </div>
                       </td>
                       <td className="text-right">
-                        <span className="font-mono font-semibold text-brand-accent text-sm">{fmtCurrency(c.total_spend)}</span>
+                        <span className="font-mono font-semibold text-brand-accent text-sm">{fmtCurrency(c.total_spend, adCurrency)}</span>
                       </td>
                       <td className="text-right font-mono text-sm hidden md:table-cell">{fmtNumber(c.total_impressions)}</td>
                       <td className="text-right font-mono text-sm hidden md:table-cell">{fmtNumber(c.total_clicks)}</td>
                       <td className="text-right text-sm">{fmtPct(c.avg_ctr)}</td>
-                      <td className="text-right font-mono text-sm text-text-secondary hidden md:table-cell">{fmtCurrency(c.avg_cpc)}</td>
+                      <td className="text-right font-mono text-sm text-text-secondary hidden md:table-cell">{fmtCurrency(c.avg_cpc, adCurrency)}</td>
                       <td className="text-right font-mono text-sm font-semibold text-success">{c.total_conversions}</td>
-                      <td className="text-right font-mono text-sm">{c.total_conversions > 0 ? fmtCurrency(c.cost_per_conversion) : '—'}</td>
+                      <td className="text-right font-mono text-sm">{c.total_conversions > 0 ? fmtCurrency(c.cost_per_conversion, adCurrency) : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -440,7 +454,7 @@ export function MetaAdsPage() {
                   <tfoot>
                     <tr className="border-t border-glass-border">
                       <td className="!font-body font-semibold text-text-primary">{t('sa.metaAds.total')}</td>
-                      <td className="text-right font-mono font-bold text-brand-accent">{fmtCurrency(campaigns.reduce((s, c) => s + c.total_spend, 0))}</td>
+                      <td className="text-right font-mono font-bold text-brand-accent">{fmtCurrency(campaigns.reduce((s, c) => s + c.total_spend, 0), adCurrency)}</td>
                       <td className="text-right font-mono font-semibold text-text-primary hidden md:table-cell">{fmtNumber(campaigns.reduce((s, c) => s + c.total_impressions, 0))}</td>
                       <td className="text-right font-mono font-semibold text-text-primary hidden md:table-cell">{fmtNumber(campaigns.reduce((s, c) => s + c.total_clicks, 0))}</td>
                       <td />
@@ -462,13 +476,13 @@ export function MetaAdsPage() {
                 <KpiCard
                   icon={DollarSign}
                   label={t('sa.metaAds.totalAdSpend')}
-                  value={fmtCurrency(roiData.total_ad_spend)}
+                  value={fmtCurrency(roiData.total_ad_spend, adCurrency)}
                   accent="bg-brand-accent/10 text-brand-accent"
                 />
                 <KpiCard
                   icon={Target}
                   label={t('sa.metaAds.cac')}
-                  value={roiData.cac > 0 ? fmtCurrency(roiData.cac) : '—'}
+                  value={roiData.cac > 0 ? fmtCurrency(roiData.cac, adCurrency) : '—'}
                   sub={t('sa.metaAds.cacDescription')}
                   accent="bg-warning/10 text-warning"
                 />
@@ -514,7 +528,7 @@ export function MetaAdsPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-text-secondary">{t('sa.metaAds.totalAdSpend')}</span>
-                      <span className="font-mono font-semibold text-brand-accent">{fmtCurrency(roiData.total_ad_spend)}</span>
+                      <span className="font-mono font-semibold text-brand-accent">{fmtCurrency(roiData.total_ad_spend, adCurrency)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-text-secondary">{t('sa.metaAds.newSubscriptions')}</span>
@@ -522,12 +536,12 @@ export function MetaAdsPage() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-text-secondary">{t('sa.metaAds.newMRR')}</span>
-                      <span className="font-mono font-semibold text-success">{fmtCurrency(roiData.new_mrr)}</span>
+                      <span className="font-mono font-semibold text-success">{fmtCurrency(roiData.new_mrr, adCurrency)}</span>
                     </div>
                     <div className="border-t border-glass-border pt-3 flex justify-between items-center">
                       <span className="text-sm font-medium text-text-primary">{t('sa.metaAds.netReturn')}</span>
                       <span className={`font-mono font-bold ${(roiData.new_mrr - roiData.total_ad_spend) >= 0 ? 'text-success' : 'text-error'}`}>
-                        {fmtCurrency(roiData.new_mrr - roiData.total_ad_spend)}
+                        {fmtCurrency(roiData.new_mrr - roiData.total_ad_spend, adCurrency)}
                       </span>
                     </div>
                   </div>
@@ -546,15 +560,15 @@ export function MetaAdsPage() {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-text-secondary">{t('sa.metaAds.totalActiveMRR')}</span>
-                      <span className="font-mono font-semibold text-success">{fmtCurrency(roiData.total_active_mrr)}</span>
+                      <span className="font-mono font-semibold text-success">{fmtCurrency(roiData.total_active_mrr, adCurrency)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-text-secondary">{t('sa.metaAds.avgRevenuePerSub')}</span>
-                      <span className="font-mono font-semibold text-text-primary">{fmtCurrency(roiData.avg_revenue_per_sub)}</span>
+                      <span className="font-mono font-semibold text-text-primary">{fmtCurrency(roiData.avg_revenue_per_sub, adCurrency)}</span>
                     </div>
                     <div className="border-t border-glass-border pt-3 flex justify-between items-center">
                       <span className="text-sm font-medium text-text-primary">{t('sa.metaAds.estimatedLTV')}</span>
-                      <span className="font-mono font-bold text-brand-primary">{fmtCurrency(roiData.ltv_estimate)}</span>
+                      <span className="font-mono font-bold text-brand-primary">{fmtCurrency(roiData.ltv_estimate, adCurrency)}</span>
                     </div>
                   </div>
                 </div>
@@ -584,8 +598,8 @@ export function MetaAdsPage() {
                       </h4>
                       <p className="text-xs text-text-secondary mt-1">
                         {t('sa.metaAds.unitEconomicsExplanation', {
-                          ltv: fmtCurrency(roiData.ltv_estimate),
-                          cac: fmtCurrency(roiData.cac),
+                          ltv: fmtCurrency(roiData.ltv_estimate, adCurrency),
+                          cac: fmtCurrency(roiData.cac, adCurrency),
                           ratio: roiData.ltv_cac_ratio.toFixed(1),
                           payback: roiData.payback_months,
                         })}
