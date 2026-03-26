@@ -1694,7 +1694,8 @@
       "acceptConfirm": "Confirmar",
       "acceptError": "Algo salió mal. Por favor intente nuevamente.",
       "acceptEmailMismatch": "Este email no coincide con nuestros registros. Utilice el email asociado a esta propuesta.",
-      "acceptedStatus": "✓ ¡Pago confirmado! Su suscripción está activa. Nuestro equipo se pondrá en contacto pronto."
+      "acceptedStatus": "✓ ¡Pago confirmado! Su suscripción está activa. Nuestro equipo se pondrá en contacto pronto.",
+      "completePayment": "Completar Pago"
     },
     "full": {
       "backToSimple": "Vista rápida",

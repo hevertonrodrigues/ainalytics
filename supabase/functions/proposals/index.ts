@@ -281,9 +281,9 @@ serve(async (req: Request) => {
         return logger.done(withCors(req, notFound("Proposal not found")));
       }
 
-      // Only allow acceptance for sent/viewed proposals (prevent re-acceptance)
-      if (!["sent", "viewed"].includes(proposal.status)) {
-        if (proposal.status === "pending_payment" || proposal.status === "accepted") {
+      // Allow sent, viewed, or pending_payment (user came back without paying)
+      if (!["sent", "viewed", "pending_payment"].includes(proposal.status)) {
+        if (proposal.status === "accepted") {
           return logger.done(withCors(req, badRequest("This proposal has already been accepted")));
         }
         return logger.done(withCors(req, badRequest("This proposal cannot be accepted in its current status")));
@@ -336,19 +336,9 @@ serve(async (req: Request) => {
         .eq("id", proposal.tenant_id)
         .single();
 
-      // Fetch plan trial days if available
-      let trialDays = 0;
-      if (proposal.plan_id) {
-        const { data: plan } = await db
-          .from("plans")
-          .select("trial")
-          .eq("id", proposal.plan_id)
-          .single();
-        if (plan?.trial) trialDays = plan.trial;
-      }
-
       const productName = proposal.custom_plan_name || "Custom Plan";
 
+      // Proposals are post-trial offers — never include trial_period_days
       const session = await stripeRequest("/checkout/sessions", {
         mode: "subscription",
         customer_email: submittedEmail,
@@ -383,7 +373,6 @@ serve(async (req: Request) => {
             proposal_id: proposal.id,
             billing_interval: proposal.billing_interval || "monthly",
           },
-          ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
         },
       });
 

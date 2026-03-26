@@ -84,7 +84,8 @@ export function ProposalFullPage() {
 
   const isExpired = proposal.status === 'expired';
   const checkoutResult = new URLSearchParams(window.location.search).get('checkout');
-  const isAccepted = accepted || proposal.status === 'accepted' || proposal.status === 'pending_payment' || checkoutResult === 'success';
+  const isPendingPayment = proposal.status === 'pending_payment' && checkoutResult !== 'success';
+  const isFullyAccepted = accepted || proposal.status === 'accepted' || checkoutResult === 'success';
   const defaultLang = proposal.default_lang || 'en';
   const features = proposal.custom_features[defaultLang] || proposal.custom_features['en'] || [];
   const description = proposal.custom_description[defaultLang] || proposal.custom_description['en'] || '';
@@ -307,9 +308,20 @@ export function ProposalFullPage() {
                 <p className="text-sm font-medium" style={{ color: c.errorText }}>{t('proposal.public.expired')}</p>
                 <p className="text-xs mt-1" style={{ color: c.textMuted }}>{t('proposal.public.expiredDesc')}</p>
               </div>
-            ) : isAccepted ? (
+            ) : isFullyAccepted ? (
               <div className="text-center py-4">
                 <p className="text-sm font-medium" style={{ color: c.successText }}>{t('proposal.public.acceptedStatus')}</p>
+              </div>
+            ) : isPendingPayment ? (
+              <div className="text-center py-4 space-y-4">
+                <p className="text-sm font-medium" style={{ color: c.successText }}>{t('proposal.public.acceptedStatus')}</p>
+                <button
+                  onClick={() => setShowAcceptModal(true)}
+                  className="px-8 py-4 rounded-xl text-white font-semibold text-sm transition-all active:scale-[0.98] cursor-pointer"
+                  style={{ background: c.btnGradient }}
+                >
+                  {t('proposal.public.completePayment')}
+                </button>
               </div>
             ) : (
               <>

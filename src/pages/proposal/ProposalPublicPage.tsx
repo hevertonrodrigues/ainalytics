@@ -74,7 +74,8 @@ export function ProposalPublicPage() {
 
   const isExpired = proposal.status === 'expired';
   const checkoutResult = new URLSearchParams(window.location.search).get('checkout');
-  const isAccepted = accepted || proposal.status === 'accepted' || proposal.status === 'pending_payment' || checkoutResult === 'success';
+  const isPendingPayment = proposal.status === 'pending_payment' && checkoutResult !== 'success';
+  const isFullyAccepted = accepted || proposal.status === 'accepted' || checkoutResult === 'success';
   const defaultLang = proposal.default_lang || 'en';
   const features = proposal.custom_features[defaultLang] || proposal.custom_features['en'] || [];
   const contactEmail = 'contato@ainalytics.tech';
@@ -172,9 +173,20 @@ export function ProposalPublicPage() {
                 <p className="text-sm font-medium" style={{ color: c.errorText }}>{t('proposal.public.expired')}</p>
                 <p className="text-xs mt-1" style={{ color: c.textMuted }}>{t('proposal.public.expiredDesc')}</p>
               </div>
-            ) : isAccepted ? (
+            ) : isFullyAccepted ? (
               <div className="text-center py-2">
                 <p className="text-sm font-medium" style={{ color: c.successText }}>{t('proposal.public.acceptedStatus')}</p>
+              </div>
+            ) : isPendingPayment ? (
+              <div className="text-center py-2 space-y-3">
+                <p className="text-sm font-medium" style={{ color: c.successText }}>{t('proposal.public.acceptedStatus')}</p>
+                <button
+                  onClick={() => setShowAcceptModal(true)}
+                  className="block w-full text-center py-3.5 rounded-xl text-white font-semibold text-sm transition-all active:scale-[0.98] cursor-pointer"
+                  style={{ background: c.btnGradient }}
+                >
+                  {t('proposal.public.completePayment')}
+                </button>
               </div>
             ) : (
               <>
@@ -203,7 +215,7 @@ export function ProposalPublicPage() {
         </div>
 
         {/* Link to full presentation */}
-        {!isExpired && !isAccepted && (
+        {!isExpired && !isFullyAccepted && (
           <Link
             to={`/proposal/${slug}/full`}
             className="mt-8 flex items-center justify-center gap-2 text-sm transition-colors group"
