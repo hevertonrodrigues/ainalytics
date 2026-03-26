@@ -993,7 +993,12 @@
       "metaConversions": "Conv. Meta",
       "costPerLead": "Costo/Lead",
       "noAttributionData": "Sin datos de atribución para este período",
-      "acquiredSubscriptions": "Suscripciones Adquiridas"
+      "acquiredSubscriptions": "Suscripciones Adquiridas",
+      "dailyPerformance": "Rendimiento Diario",
+      "efficiencyTrends": "Tendencia de Eficiencia",
+      "efficiencyAvg": "prom",
+      "spendVsConversions": "Gasto vs Conversiones",
+      "noConversionsYet": "Sin conversiones en el período seleccionado"
     }
   },
   "timeline": {

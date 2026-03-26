@@ -805,7 +805,30 @@ export function MetaAdsPage() {
                 <KpiCard icon={Target} label={t('sa.metaAds.costPerConversion')} value={fmtCurrency(overview.avg_cost_per_conversion, adCurrency)} />
               </div>
 
+              {/* Daily Performance Chart */}
+              <div className="dashboard-card p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-brand-accent" />
+                    {t('sa.metaAds.dailyPerformance')}
+                  </h3>
+                  <span className="text-xs text-text-muted">{dailyData.length} {t('sa.metaAds.days')}</span>
+                </div>
+                <DailyPerformanceChart data={dailyData} currency={adCurrency} t={t} />
+              </div>
 
+              {/* Efficiency Trends */}
+              <div>
+                <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2 mb-3">
+                  <Activity className="w-4 h-4 text-success" />
+                  {t('sa.metaAds.efficiencyTrends')}
+                </h3>
+                <EfficiencyTrendsChart data={dailyData} currency={adCurrency} t={t} />
+              </div>
+
+              {/* Spend vs Conversions */}
+              <SpendConversionsChart data={dailyData} currency={adCurrency} t={t} />
+            </div>
           )}
 
           {/* No overview data */}
