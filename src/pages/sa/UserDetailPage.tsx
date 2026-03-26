@@ -30,6 +30,8 @@ import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser } from './types';
 import { CreateProposalModal } from './CreateProposalModal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { generateProposalPdf } from '@/lib/pdfProposal';
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/constants';
 
 interface ProposalItem {
   id: string;
@@ -137,6 +139,25 @@ export function UserDetailPage() {
       fetchProposals();
     } catch { /* ignore */ }
     finally { setDeleteTarget(null); }
+  }
+
+  async function downloadProposalPdf(slug: string) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/proposals/public/${slug}`, {
+        headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      });
+      const json = await res.json();
+      if (!json.success || !json.data) return;
+      const blob = generateProposalPdf(json.data, t, json.data.default_lang || 'en');
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `proposal-${slug}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch { /* ignore */ }
   }
 
   async function updateProposalStatus(id: string, status: string) {
@@ -494,10 +515,7 @@ export function UserDetailPage() {
                     {copiedSlug === `${p.slug}-full` ? <Check className="w-3.5 h-3.5 text-success" /> : <ExternalLink className="w-3.5 h-3.5" />}
                   </button>
                   <button
-                    onClick={() => {
-                      const url = `${window.location.origin}/proposal/${p.slug}/full?print=1`;
-                      window.open(url, '_blank');
-                    }}
+                    onClick={() => downloadProposalPdf(p.slug)}
                     className="p-1.5 rounded-md hover:bg-bg-elevated transition-colors text-text-muted hover:text-brand-primary"
                     title={t('proposal.downloadPdf')}
                   >
