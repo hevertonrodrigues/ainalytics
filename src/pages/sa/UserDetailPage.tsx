@@ -148,7 +148,7 @@ export function UserDetailPage() {
       });
       const json = await res.json();
       if (!json.success || !json.data) return;
-      const blob = generateProposalPdf(json.data, t, json.data.default_lang || 'en');
+      const blob = await generateProposalPdf(json.data, t, json.data.default_lang || 'en');
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
