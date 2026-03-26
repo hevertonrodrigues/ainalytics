@@ -11,6 +11,7 @@ import {
   X,
   Shield,
   LayoutDashboard,
+  Kanban,
   Activity,
   Package,
   Key,
@@ -32,7 +33,8 @@ interface NavItem {
 }
 
 const SA_NAV: NavItem[] = [
-  { key: 'sa.crmPipeline', path: '/sa', icon: Shield },
+  { key: 'sa.dashboard', path: '/sa', icon: LayoutDashboard },
+  { key: 'sa.crmPipeline', path: '/sa/crm', icon: Kanban },
   { key: 'sa.activeUsers', path: '/sa/active', icon: Activity },
   { key: 'sa.plansTitle', path: '/sa/plans', icon: Package },
   { key: 'sa.activationTitle', path: '/sa/activation-codes', icon: Key },

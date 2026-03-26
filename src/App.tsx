@@ -14,6 +14,7 @@ const SuperAdminGate = lazy(() => import('@/components/guards/SuperAdminGate').t
 const SuperAdminRoute = lazy(() => import('@/components/guards/SuperAdminRoute').then(m => ({ default: m.SuperAdminRoute })));
 const AppLayout = lazy(() => import('@/components/layout/AppLayout').then(m => ({ default: m.AppLayout })));
 const SALayout = lazy(() => import('@/pages/sa/SALayout').then(m => ({ default: m.SALayout })));
+const SADashboardPage = lazy(() => import('@/pages/sa/SADashboardPage').then(m => ({ default: m.SADashboardPage })));
 const CRMPipelinePage = lazy(() => import('@/pages/sa/CRMPipelinePage').then(m => ({ default: m.CRMPipelinePage })));
 const UserDetailPage = lazy(() => import('@/pages/sa/UserDetailPage').then(m => ({ default: m.UserDetailPage })));
 const ActiveUsersPage = lazy(() => import('@/pages/sa/ActiveUsersPage').then(m => ({ default: m.ActiveUsersPage })));
@@ -117,7 +118,8 @@ export function App() {
 
             {/* Super Admin management area */}
             <Route path="/sa" element={<SuperAdminRoute><SALayout /></SuperAdminRoute>}>
-              <Route index element={<CRMPipelinePage />} />
+              <Route index element={<SADashboardPage />} />
+              <Route path="crm" element={<CRMPipelinePage />} />
               <Route path="active" element={<ActiveUsersPage />} />
               <Route path="plans" element={<SAPlansPage />} />
               <Route path="activation-codes" element={<SAActivationCodesPage />} />
