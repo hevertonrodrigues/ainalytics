@@ -115,7 +115,8 @@ export function UserDetailPage() {
   useEffect(() => { fetchProposals(); }, [fetchProposals]);
 
   async function copyProposalLink(slug: string, variant: 'simple' | 'full' = 'simple') {
-    const url = `${window.location.origin}/proposal/${slug}${variant === 'full' ? '/full' : ''}`;
+    const ogBase = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proposals/public/${slug}/og`;
+    const url = variant === 'full' ? `${ogBase}?v=full` : ogBase;
     await navigator.clipboard.writeText(url);
     setCopiedSlug(`${slug}-${variant}`);
     setTimeout(() => setCopiedSlug(null), 2000);

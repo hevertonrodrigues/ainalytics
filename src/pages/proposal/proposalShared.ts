@@ -122,6 +122,7 @@ export function useProposalData() {
     fetchProposal();
   }, [slug]);
 
+  // Page title
   useEffect(() => {
     document.title = proposal
       ? `${proposal.custom_plan_name} — ${APP_NAME}`
@@ -130,6 +131,57 @@ export function useProposalData() {
 
   const theme: ProposalTheme = proposal?.theme || 'dark';
   const c = themeColors(theme);
+
+  // Sync body background + meta theme-color for mobile safe-area / notch
+  useEffect(() => {
+    const prevBg = document.body.style.backgroundColor;
+    document.body.style.backgroundColor = c.bg;
+
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    const prevThemeColor = themeColorMeta?.getAttribute('content') || '';
+    if (themeColorMeta) themeColorMeta.setAttribute('content', c.bg);
+
+    return () => {
+      document.body.style.backgroundColor = prevBg;
+      if (themeColorMeta) themeColorMeta.setAttribute('content', prevThemeColor);
+    };
+  }, [c.bg]);
+
+  // Dynamic OG meta tags for social sharing
+  useEffect(() => {
+    if (!proposal) return;
+
+    const metas: Record<string, string> = {
+      'og:title': `${proposal.custom_plan_name} — ${APP_NAME}`,
+      'og:description': proposal.client_name
+        ? `Custom proposal for ${proposal.client_name}${proposal.company_name ? ` at ${proposal.company_name}` : ''}`
+        : `Custom proposal${proposal.company_name ? ` for ${proposal.company_name}` : ''}`,
+      'og:type': 'website',
+      'og:url': window.location.href,
+      'og:image': `https://api.dicebear.com/9.x/shapes/svg?seed=${proposal.slug}&backgroundColor=4f46e5&size=1200`,
+      'twitter:card': 'summary_large_image',
+      'twitter:title': `${proposal.custom_plan_name} — ${APP_NAME}`,
+      'twitter:description': proposal.client_name
+        ? `Proposal for ${proposal.client_name}`
+        : 'Custom Proposal',
+      'twitter:image': `https://api.dicebear.com/9.x/shapes/svg?seed=${proposal.slug}&backgroundColor=4f46e5&size=1200`,
+    };
+
+    const created: HTMLMetaElement[] = [];
+    for (const [key, value] of Object.entries(metas)) {
+      const attr = key.startsWith('og:') ? 'property' : 'name';
+      let el = document.querySelector(`meta[${attr}="${key}"]`) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement('meta');
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+        created.push(el);
+      }
+      el.setAttribute('content', value);
+    }
+
+    return () => { created.forEach(el => el.remove()); };
+  }, [proposal]);
 
   return { proposal, loading, notFound, lang, setLang, slug, theme, c };
 }

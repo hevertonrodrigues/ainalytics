@@ -96,7 +96,10 @@ export function App() {
         <Routes>
           {/* Public landing page — no auth provider needed */}
           <Route index element={<LandingPage />} />
-          <Route path="/:lang" element={<LandingWithLang />} />
+          {/* Localized landing pages — explicit lang paths to avoid catching /proposal */}
+          {Array.from(SUPPORTED_LANGS).map(l => (
+            <Route key={l} path={`/${l}`} element={<LandingWithLang />} />
+          ))}
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/terms" element={<LegalPage />} />
           <Route path="/privacy" element={<LegalPage />} />

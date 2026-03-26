@@ -15,6 +15,11 @@ function generateSlug(): string {
   return `prop-${id}`;
 }
 
+/** Escape HTML for safe embedding in meta tags */
+function esc(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 serve(async (req: Request) => {
   const logger = createRequestLogger("proposals", req);
   if (req.method === "OPTIONS") return handleCors(req);
@@ -25,6 +30,92 @@ serve(async (req: Request) => {
     // segments: ["proposals"] or ["proposals", "public", ":slug"] or ["proposals", ":id"]
 
     const db = createAdminClient();
+
+    // ── Public route: GET /proposals/public/:slug/og — SSR HTML for social sharing ──
+    if (segments[1] === "public" && segments[2] && segments[3] === "og" && req.method === "GET") {
+      const slug = segments[2];
+      const variant = url.searchParams.get("v") || ""; // "full" for full presentation page
+
+      const { data: proposal } = await db
+        .from("proposals")
+        .select("custom_plan_name, status, theme, slug, user_id, tenant_id, client_name")
+        .eq("slug", slug)
+        .neq("status", "draft")
+        .single();
+
+      if (!proposal) {
+        return logger.done(withCors(req, notFound("Proposal not found")));
+      }
+
+      // Fetch company name for richer OG description
+      let companyName = "";
+      if (proposal.tenant_id) {
+        const { data: company } = await db
+          .from("companies")
+          .select("company_name")
+          .eq("tenant_id", proposal.tenant_id)
+          .limit(1)
+          .single();
+        if (company) companyName = company.company_name || "";
+      }
+
+      const clientName = proposal.client_name || "";
+      const planName = proposal.custom_plan_name || "Custom Proposal";
+      const title = `${planName} — Ainalytics`;
+      const desc = clientName
+        ? `Custom proposal for ${clientName}${companyName ? ` at ${companyName}` : ""}`
+        : `Custom proposal${companyName ? ` for ${companyName}` : ""}`;
+      const ogImage = `https://api.dicebear.com/9.x/shapes/svg?seed=${slug}&backgroundColor=4f46e5&size=1200`;
+      const isDark = (proposal.theme || "dark") === "dark";
+      const bgColor = isDark ? "#0a0a0f" : "#f8f9fc";
+      const textColor = isDark ? "#ffffff" : "#1a1a2e";
+
+      // Canonical SPA URL
+      const siteUrl = "https://ainalytics.tech";
+      const spaPath = variant === "full" ? `/proposal/${slug}/full` : `/proposal/${slug}`;
+      const canonicalUrl = `${siteUrl}${spaPath}`;
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>${esc(title)}</title>
+  <meta name="description" content="${esc(desc)}" />
+  <meta name="theme-color" content="${bgColor}" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="${esc(canonicalUrl)}" />
+  <meta property="og:title" content="${esc(title)}" />
+  <meta property="og:description" content="${esc(desc)}" />
+  <meta property="og:image" content="${esc(ogImage)}" />
+  <meta property="og:site_name" content="Ainalytics" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${esc(title)}" />
+  <meta name="twitter:description" content="${esc(desc)}" />
+  <meta name="twitter:image" content="${esc(ogImage)}" />
+
+  <link rel="canonical" href="${esc(canonicalUrl)}" />
+  <meta http-equiv="refresh" content="0;url=${esc(canonicalUrl)}" />
+  <style>
+    body{margin:0;padding:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:${bgColor};color:${textColor}}
+    a{color:#6366f1;text-decoration:none}
+  </style>
+</head>
+<body>
+  <p>Redirecting to <a href="${esc(canonicalUrl)}">${esc(planName)}</a>…</p>
+  <script>window.location.replace(${JSON.stringify(canonicalUrl)})</script>
+</body>
+</html>`;
+
+      return logger.done(new Response(html, {
+        status: 200,
+        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600" },
+      }));
+    }
 
     // ── Public route: GET /proposals/public/:slug ──
     if (segments[1] === "public" && segments[2] && req.method === "GET") {

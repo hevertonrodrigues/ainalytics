@@ -186,8 +186,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   }
 
   function getPublicUrl(slug: string) {
-    const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    return `${siteUrl}/proposal/${slug}`;
+    return `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proposals/public/${slug}/og`;
   }
 
 
@@ -214,7 +213,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   // ── Success state ──
   if (createdSlug) {
     const simpleUrl = getPublicUrl(createdSlug);
-    const fullUrl = `${simpleUrl}/full`;
+    const fullUrl = `${simpleUrl}?v=full`;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={resetAndClose}>
         <div
