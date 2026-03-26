@@ -1581,6 +1581,8 @@
   },
   "proposal": {
     "createProposal": "Crear Propuesta",
+    "saveDraft": "Guardar Borrador",
+    "finishGenerate": "Finalizar y Generar",
     "proposals": "Propuestas",
     "newProposal": "Nueva Propuesta",
     "editProposal": "Editar Propuesta",

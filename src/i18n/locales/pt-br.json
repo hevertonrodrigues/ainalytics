@@ -1579,6 +1579,8 @@
   },
   "proposal": {
     "createProposal": "Criar Proposta",
+    "saveDraft": "Salvar Rascunho",
+    "finishGenerate": "Finalizar e Gerar",
     "proposals": "Propostas",
     "newProposal": "Nova Proposta",
     "editProposal": "Editar Proposta",

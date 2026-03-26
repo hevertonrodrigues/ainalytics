@@ -23,9 +23,26 @@ interface CreateProposalModalProps {
 
 const LANGS = ['en', 'es', 'pt-br'] as const;
 
-/* Shared input class — solid bg that works in both themes */
-const inputCls =
-  'w-full bg-bg-tertiary border border-glass-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary transition-colors';
+/* Shared input classes — solid bg that works in both themes */
+const inputBase =
+  'bg-bg-tertiary border border-glass-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary/40 focus:border-brand-primary transition-colors';
+const inputCls = `w-full ${inputBase}`;
+
+const CURRENCY_CONFIG: Record<string, { locale: string; currency: string; symbol: string }> = {
+  usd: { locale: 'en-US', currency: 'USD', symbol: '$' },
+  brl: { locale: 'pt-BR', currency: 'BRL', symbol: 'R$' },
+  eur: { locale: 'de-DE', currency: 'EUR', symbol: '€' },
+};
+
+function formatCurrency(value: number, currencyCode: string): string {
+  const cfg = CURRENCY_CONFIG[currencyCode] ?? CURRENCY_CONFIG['usd']!;
+  return new Intl.NumberFormat(cfg.locale, {
+    style: 'currency',
+    currency: cfg.currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
 
 export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenantId, userName }: CreateProposalModalProps) {
   const { t, i18n } = useTranslation();
@@ -52,7 +69,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
     if (!isOpen) return;
     async function fetchPlans() {
       try {
-        const res = await apiClient.get<Plan[]>('/admin-settings?resource=plans');
+        const res = await apiClient.get<Plan[]>('/admin-settings?entity=plans');
         setPlans(res.data || []);
       } catch { /* ignore */ }
     }
@@ -100,8 +117,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
     }));
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(submitStatus: 'draft' | 'sent') {
     if (!planName || !price) return;
     setIsSubmitting(true);
 
@@ -118,10 +134,14 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
         custom_description: description,
         notes: notes || null,
         valid_until: validUntil || null,
-        status: 'draft',
+        status: submitStatus,
       });
 
-      setCreatedSlug(res.data.slug);
+      if (submitStatus === 'sent') {
+        setCreatedSlug(res.data.slug);
+      } else {
+        resetAndClose();
+      }
       onCreated();
     } catch {
       // TODO: toast
@@ -211,7 +231,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={e => e.preventDefault()} className="space-y-5">
           {/* Base plan selector */}
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.basePlan')}</label>
@@ -222,7 +242,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
             >
               <option value="">{t('proposal.selectPlan')}</option>
               {plans.map(p => (
-                <option key={p.id} value={p.id}>{p.name} — ${p.price}</option>
+                <option key={p.id} value={p.id}>{p.name} — {formatCurrency(p.price, currency)}</option>
               ))}
             </select>
           </div>
@@ -330,7 +350,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
                   onChange={e => setNewFeature(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addFeature(); } }}
                   placeholder={t('proposal.featuresPlaceholder')}
-                  className={`flex-1 ${inputCls}`}
+                  className={`flex-1 ${inputBase}`}
                 />
                 <button type="button" onClick={addFeature} className="px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors text-sm flex items-center gap-1 shrink-0">
                   <Plus className="w-3.5 h-3.5" /> {t('proposal.addFeature')}
@@ -369,12 +389,22 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
               {t('sa.cancel')}
             </button>
             <button
-              type="submit"
+              type="button"
               disabled={isSubmitting || !planName || !price}
-              className="btn-primary flex items-center gap-2 disabled:opacity-50"
+              onClick={() => handleSubmit('draft')}
+              className="px-4 py-2 rounded-lg border border-glass-border bg-bg-tertiary text-text-secondary hover:text-text-primary text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               <FileText className="w-4 h-4" />
-              {isSubmitting ? t('proposal.creating') : t('proposal.createProposal')}
+              {isSubmitting ? t('proposal.creating') : t('proposal.saveDraft')}
+            </button>
+            <button
+              type="button"
+              disabled={isSubmitting || !planName || !price}
+              onClick={() => handleSubmit('sent')}
+              className="btn-primary flex items-center gap-2 disabled:opacity-50"
+            >
+              <Check className="w-4 h-4" />
+              {isSubmitting ? t('proposal.creating') : t('proposal.finishGenerate')}
             </button>
           </div>
         </form>

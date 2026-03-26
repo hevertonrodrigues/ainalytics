@@ -84,9 +84,9 @@ export function UserDetailPage() {
     } catch { /* ignore */ }
   }
 
-  async function markAsSent(id: string) {
+  async function updateProposalStatus(id: string, status: string) {
     try {
-      await apiClient.put(`/proposals/${id}`, { status: 'sent' });
+      await apiClient.put(`/proposals/${id}`, { status });
       fetchProposals();
     } catch { /* ignore */ }
   }
@@ -317,7 +317,7 @@ export function UserDetailPage() {
         {proposals.length > 0 ? (
           <div className="space-y-3">
             {proposals.map((p: any) => (
-              <div key={p.id} className="flex items-center justify-between gap-4 bg-glass-element rounded-lg px-4 py-3 border border-glass-border">
+              <div key={p.id} className="flex items-center justify-between gap-4 bg-bg-tertiary rounded-lg px-4 py-3 border border-glass-border">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium text-sm text-text-primary truncate">{p.custom_plan_name}</span>
@@ -336,17 +336,20 @@ export function UserDetailPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {p.status === 'draft' && (
-                    <button
-                      onClick={() => markAsSent(p.id)}
-                      className="px-2 py-1 rounded-md bg-chart-cyan/10 text-chart-cyan hover:bg-chart-cyan/20 text-xs font-medium transition-colors"
-                    >
-                      {t('proposal.markAsSent')}
-                    </button>
-                  )}
+                  <select
+                    value={p.status}
+                    onChange={(e) => updateProposalStatus(p.id, e.target.value)}
+                    className="bg-bg-tertiary border border-glass-border rounded-md px-2 py-1 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer"
+                  >
+                    <option value="draft">{t('proposal.statusDraft')}</option>
+                    <option value="sent">{t('proposal.statusSent')}</option>
+                    <option value="viewed">{t('proposal.statusViewed')}</option>
+                    <option value="accepted">{t('proposal.statusAccepted')}</option>
+                    <option value="expired">{t('proposal.statusExpired')}</option>
+                  </select>
                   <button
                     onClick={() => copyProposalLink(p.slug)}
-                    className="p-1.5 rounded-md hover:bg-glass-element transition-colors text-text-muted hover:text-brand-primary"
+                    className="p-1.5 rounded-md hover:bg-bg-elevated transition-colors text-text-muted hover:text-brand-primary"
                     title={t('proposal.copyLink')}
                   >
                     {copiedSlug === p.slug ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
