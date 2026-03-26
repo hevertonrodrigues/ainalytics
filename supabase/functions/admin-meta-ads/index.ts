@@ -427,42 +427,59 @@ serve(async (req: Request) => {
         endDateObj.setDate(endDateObj.getDate() + 1);
         const endISO = endDateObj.toISOString();
 
+        // ★ Fetch ALL subscriptions (active + trialing) with plan info
         const { data: subsData, error: subsErr } = await db
           .from("subscriptions")
-          .select("created_at, status, billing_interval, paid_amount")
+          .select("created_at, status, billing_interval, paid_amount, plans!inner(price)")
           .in("status", ["active", "trialing"]);
         if (subsErr) throw subsErr;
 
-        let new_subscriptions = 0;
+        let new_paid_subscriptions = 0;
         let new_mrr = 0;
         let total_active_mrr = 0;
-        const active_sub_count = subsData?.length || 0;
+        let paid_sub_count = 0;
+        let trial_sub_count = 0;
 
         for (const sub of subsData || []) {
+          // deno-lint-ignore no-explicit-any
+          const planPrice = Number((sub.plans as any)?.price || 0);
           const mrr = sub.billing_interval === 'monthly' ? Number(sub.paid_amount || 0) : (sub.billing_interval === 'yearly' ? Number(sub.paid_amount || 0) / 12 : 0);
-          total_active_mrr += mrr;
 
-          if (sub.created_at >= new Date(startDateStr).toISOString() && sub.created_at < endISO) {
-            new_subscriptions++;
-            new_mrr += mrr;
+          // ★ Only count PAID ACTIVE subscriptions (not trialing, not $0 plans)
+          if (sub.status === 'active' && planPrice > 0) {
+            paid_sub_count++;
+            total_active_mrr += mrr;
+
+            if (sub.created_at >= new Date(startDateStr).toISOString() && sub.created_at < endISO) {
+              new_paid_subscriptions++;
+              new_mrr += mrr;
+            }
+          } else if (sub.status === 'trialing') {
+            trial_sub_count++;
           }
         }
 
         const result = {
           total_ad_spend,
-          new_subscriptions,
+          new_paid_subscriptions,
           new_mrr,
-          cac: new_subscriptions > 0 ? Number((total_ad_spend / new_subscriptions).toFixed(2)) : 0,
+          cac: new_paid_subscriptions > 0 ? Number((total_ad_spend / new_paid_subscriptions).toFixed(2)) : 0,
           roas: total_ad_spend > 0 ? Number((new_mrr / total_ad_spend).toFixed(4)) : 0,
           roi_pct: total_ad_spend > 0 ? Number(((new_mrr - total_ad_spend) / total_ad_spend * 100).toFixed(2)) : 0,
           total_active_mrr,
-          active_sub_count,
-          avg_revenue_per_sub: active_sub_count > 0 ? Number((total_active_mrr / active_sub_count).toFixed(2)) : 0,
-          ltv_estimate: active_sub_count > 0 ? Number((total_active_mrr / active_sub_count * 12).toFixed(2)) : 0,
-          ltv_cac_ratio: new_subscriptions > 0 && total_ad_spend > 0 && active_sub_count > 0 ? 
-            Number(((total_active_mrr / active_sub_count * 12) / (total_ad_spend / new_subscriptions)).toFixed(2)) : 0,
-          payback_months: new_subscriptions > 0 && new_mrr > 0 ? 
-            Number(((total_ad_spend / new_subscriptions) / (new_mrr / new_subscriptions)).toFixed(1)) : 0
+          // ★ Split counts
+          paid_sub_count,
+          trial_sub_count,
+          total_sub_count: paid_sub_count + trial_sub_count,
+          avg_revenue_per_sub: paid_sub_count > 0 ? Number((total_active_mrr / paid_sub_count).toFixed(2)) : 0,
+          ltv_estimate: paid_sub_count > 0 ? Number((total_active_mrr / paid_sub_count * 12).toFixed(2)) : 0,
+          ltv_cac_ratio: new_paid_subscriptions > 0 && total_ad_spend > 0 && paid_sub_count > 0 ?
+            Number(((total_active_mrr / paid_sub_count * 12) / (total_ad_spend / new_paid_subscriptions)).toFixed(2)) : 0,
+          payback_months: new_paid_subscriptions > 0 && new_mrr > 0 ?
+            Number(((total_ad_spend / new_paid_subscriptions) / (new_mrr / new_paid_subscriptions)).toFixed(1)) : 0,
+          // ★ New: trial conversion rate
+          trial_to_paid_rate: (paid_sub_count + trial_sub_count) > 0
+            ? Number((paid_sub_count / (paid_sub_count + trial_sub_count) * 100).toFixed(2)) : 0,
         };
 
         return logger.done(withCors(req, ok(result)), authCtx);

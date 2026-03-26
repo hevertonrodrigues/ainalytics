@@ -190,19 +190,43 @@ serve(async (req: Request) => {
       const authUser = authUserMap.get(profile.user_id);
       const activation = tenantId ? activationByTenant.get(tenantId) : null;
 
-      // Determine Kanban stage
+      // Determine Kanban stage + classification
       const emailConfirmed = !!authUser?.email_confirmed_at;
       const subStatus = subscription?.status;
       const hasStripe = !!subscription?.stripe_subscription_id;
       const hasActivation = !!activation;
+      const planPrice = Number(plan?.price || 0);
+      const isPaidPlan = planPrice > 0;
+
+      // Check if this tenant ever had a paid active subscription (for churn type)
+      // deno-lint-ignore no-explicit-any
+      const allTenantSubs = tenantId ? subscriptions.filter((s: any) => s.tenant_id === tenantId) : [];
+      // deno-lint-ignore no-explicit-any
+      const wasEverPaid = allTenantSubs.some((s: any) => {
+        const sp = s.plan_id ? planMap.get(s.plan_id) : null;
+        return s.status === 'active' && Number(sp?.price || 0) > 0;
+      });
 
       let stage = "registered";
+      let userClassification = "registered";
+
       if (subStatus === "canceled") {
-        stage = "cancelled";
+        if (wasEverPaid || isPaidPlan) {
+          stage = "churned_from_paid";
+          userClassification = "churned_paid";
+        } else {
+          stage = "churned_from_trial";
+          userClassification = "churned_trial";
+        }
       } else if (subStatus === "trialing") {
-        stage = hasStripe ? "trial_stripe" : "trial_activation";
-      } else if (subStatus === "active") {
-        stage = hasStripe ? "active_stripe" : "active_activation";
+        stage = hasStripe ? "trial_stripe" : (hasActivation ? "trial_activation" : "trial_other");
+        userClassification = "trial";
+      } else if (subStatus === "active" && isPaidPlan) {
+        stage = hasStripe ? "active_stripe" : (hasActivation ? "active_activation" : "active_other");
+        userClassification = "paid";
+      } else if (subStatus === "active" && !isPaidPlan) {
+        stage = "free_user";
+        userClassification = "free";
       } else if (emailConfirmed && acceptedProposalUserIds.has(profile.user_id)) {
         stage = "proposal_accepted";
       } else if (emailConfirmed) {
@@ -237,7 +261,7 @@ serve(async (req: Request) => {
         // Plan & Subscription
         subscription_plan_id: subscription?.plan_id || null,
         plan_name: plan?.name || null,
-        plan_price: plan?.price || 0,
+        plan_price: planPrice,
         subscription_status: subStatus || null,
         billing_interval: subscription?.billing_interval || null,
         paid_amount: subscription?.paid_amount || 0,
@@ -255,8 +279,10 @@ serve(async (req: Request) => {
         last_payment_at: lastPayment?.created_at || null,
         last_payment_amount: lastPayment?.amount || 0,
         total_payment_attempts: tenantPayments.length,
-        // Kanban stage
+        // ★ Updated: Kanban stage + classification
         stage,
+        user_classification: userClassification,
+        is_paid_user: userClassification === "paid",
       };
     });
 

@@ -159,34 +159,427 @@ function KpiCard({ icon: Icon, label, value, sub, accent, trend }: {
   );
 }
 
-// ─── Spend (Mini Chart) ────────────────────────────────────
+// ─── Metric configs ────────────────────────────────────────
 
-function SpendChart({ data, currency }: { data: DailyRow[]; currency: string }) {
-  if (data.length === 0) return <div className="text-sm text-text-muted text-center py-8">No data for this period</div>;
+type MetricKey = 'spend' | 'clicks' | 'impressions' | 'conversions';
 
-  const maxSpend = Math.max(...data.map(d => d.spend), 0.01);
+const METRIC_COLORS: Record<MetricKey, string> = {
+  spend: '#fd79a8',
+  clicks: '#6c5ce7',
+  impressions: '#00cec9',
+  conversions: '#fdcb6e',
+};
+
+
+
+// ─── Daily Performance Chart (SVG) ─────────────────────────
+
+function DailyPerformanceChart({ data, currency, t }: {
+  data: DailyRow[];
+  currency: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
+}) {
+  const [activeMetrics, setActiveMetrics] = useState<Set<MetricKey>>(new Set(['spend']));
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
+
+  if (data.length === 0) return <div className="text-sm text-text-muted text-center py-8">{t('sa.metaAds.noData')}</div>;
+
+  const toggleMetric = (key: MetricKey) => {
+    setActiveMetrics(prev => {
+      const next = new Set(prev);
+      if (key === 'spend') return next; // Spend always on
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const W = 800;
+  const H = 220;
+  const PAD = { top: 20, right: 60, bottom: 40, left: 70 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+
+  // Compute scales
+  const getMax = (key: MetricKey) => Math.max(...data.map(d => d[key]), 0.01);
+
+  // Left axis = spend (currency), right axis = count metrics
+  const maxSpend = getMax('spend');
+  const countMetrics = (['clicks', 'impressions', 'conversions'] as MetricKey[]).filter(m => activeMetrics.has(m));
+  const maxCount = countMetrics.length > 0
+    ? Math.max(...countMetrics.map(m => getMax(m)))
+    : 100;
+
+  const xScale = (i: number) => PAD.left + (i / Math.max(data.length - 1, 1)) * chartW;
+  const yScaleSpend = (v: number) => PAD.top + chartH - (v / (maxSpend * 1.1)) * chartH;
+  const yScaleCount = (v: number) => PAD.top + chartH - (v / (maxCount * 1.1)) * chartH;
+
+  const buildPath = (key: MetricKey): string => {
+    const yFn = key === 'spend' ? yScaleSpend : yScaleCount;
+    return data.map((d, i) => `${i === 0 ? 'M' : 'L'}${xScale(i).toFixed(1)},${yFn(d[key]).toFixed(1)}`).join(' ');
+  };
+
+  const buildAreaPath = (key: MetricKey): string => {
+    const yFn = key === 'spend' ? yScaleSpend : yScaleCount;
+    const linePart = data.map((d, i) => `${i === 0 ? 'M' : 'L'}${xScale(i).toFixed(1)},${yFn(d[key]).toFixed(1)}`).join(' ');
+    return `${linePart} L${xScale(data.length - 1).toFixed(1)},${(PAD.top + chartH).toFixed(1)} L${xScale(0).toFixed(1)},${(PAD.top + chartH).toFixed(1)} Z`;
+  };
+
+  // Smart date labels
+  const labelInterval = data.length <= 10 ? 1 : data.length <= 20 ? 2 : Math.ceil(data.length / 10);
+
+  // Y-axis ticks (left - spend)
+  const spendTicks = Array.from({ length: 5 }, (_, i) => (maxSpend * 1.1 * i) / 4);
+  // Y-axis ticks (right - count)
+  const countTicks = countMetrics.length > 0 ? Array.from({ length: 5 }, (_, i) => (maxCount * 1.1 * i) / 4) : [];
+
+  const metricButtons: { key: MetricKey; label: string }[] = [
+    { key: 'spend', label: t('sa.metaAds.spend') },
+    { key: 'clicks', label: t('sa.metaAds.clicks') },
+    { key: 'impressions', label: t('sa.metaAds.impressions') },
+    { key: 'conversions', label: t('sa.metaAds.conversions') },
+  ];
 
   return (
-    <div className="flex items-end gap-[2px] h-36 px-1">
-      {data.map((d, i) => {
-        const h = maxSpend > 0 ? (d.spend / maxSpend) * 100 : 0;
-        return (
-          <div key={d.day} className="flex-1 flex flex-col items-center group relative">
-            <div
-              className="w-full rounded-t-sm bg-brand-accent/40 group-hover:bg-brand-accent/70 transition-all duration-200 min-h-[2px]"
-              style={{ height: `${Math.max(h, 2)}%` }}
+    <div>
+      {/* Metric Toggles */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {metricButtons.map(m => {
+          const isActive = activeMetrics.has(m.key);
+          return (
+            <button
+              key={m.key}
+              onClick={() => toggleMetric(m.key)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border ${
+                isActive
+                  ? 'border-transparent text-white shadow-sm'
+                  : 'border-glass-border text-text-secondary hover:text-text-primary hover:border-glass-hover bg-transparent'
+              }`}
+              style={isActive ? { backgroundColor: METRIC_COLORS[m.key] + '99' } : undefined}
+            >
+              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: METRIC_COLORS[m.key] }} />
+              {m.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* SVG Chart */}
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+        {/* Defs for gradients */}
+        <defs>
+          {(Object.keys(METRIC_COLORS) as MetricKey[]).map(key => (
+            <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={METRIC_COLORS[key]} stopOpacity="0.25" />
+              <stop offset="100%" stopColor={METRIC_COLORS[key]} stopOpacity="0.02" />
+            </linearGradient>
+          ))}
+        </defs>
+
+        {/* Grid */}
+        {spendTicks.map((tick, i) => (
+          <line key={`grid-${i}`} x1={PAD.left} x2={W - PAD.right} y1={yScaleSpend(tick)} y2={yScaleSpend(tick)}
+            stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
+        ))}
+
+        {/* Y-axis left (spend) */}
+        {spendTicks.map((tick, i) => (
+          <text key={`yL-${i}`} x={PAD.left - 6} y={yScaleSpend(tick) + 3}
+            textAnchor="end" fill="#9898b0" fontSize="8" fontFamily="monospace">
+            {tick >= 1000 ? `${(tick / 1000).toFixed(0)}K` : tick.toFixed(0)}
+          </text>
+        ))}
+
+        {/* Y-axis right (count) */}
+        {countTicks.map((tick, i) => (
+          <text key={`yR-${i}`} x={W - PAD.right + 6} y={yScaleCount(tick) + 3}
+            textAnchor="start" fill="#9898b0" fontSize="8" fontFamily="monospace">
+            {tick >= 1000 ? `${(tick / 1000).toFixed(1)}K` : tick.toFixed(0)}
+          </text>
+        ))}
+
+        {/* X-axis labels */}
+        {data.map((d, i) => {
+          if (i % labelInterval !== 0 && i !== data.length - 1) return null;
+          return (
+            <text key={`x-${i}`} x={xScale(i)} y={H - 8}
+              textAnchor="middle" fill="#555570" fontSize="8" fontFamily="monospace">
+              {d.day.substring(5)}
+            </text>
+          );
+        })}
+
+        {/* Area fills + lines */}
+        {(Object.keys(METRIC_COLORS) as MetricKey[]).filter(k => activeMetrics.has(k)).map(key => (
+          <g key={key}>
+            <path d={buildAreaPath(key)} fill={`url(#grad-${key})`} opacity="0.8" />
+            <path d={buildPath(key)} fill="none" stroke={METRIC_COLORS[key]}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ filter: `drop-shadow(0 0 3px ${METRIC_COLORS[key]}40)` }} />
+          </g>
+        ))}
+
+        {/* Data points on lines */}
+        {(Object.keys(METRIC_COLORS) as MetricKey[]).filter(k => activeMetrics.has(k)).map(key => (
+          data.map((d, i) => {
+            const yFn = key === 'spend' ? yScaleSpend : yScaleCount;
+            const isHovered = hoverIndex === i;
+            return (
+              <circle key={`dot-${key}-${i}`} cx={xScale(i)} cy={yFn(d[key])}
+                r={isHovered ? 4 : 2} fill={METRIC_COLORS[key]} stroke="#0a0a0f" strokeWidth="1"
+                opacity={isHovered ? 1 : 0.7}
+                style={{ transition: 'r 0.15s ease, opacity 0.15s ease' }} />
+            );
+          })
+        ))}
+
+        {/* Hover zones */}
+        {data.map((_, i) => {
+          const colW = chartW / data.length;
+          return (
+            <rect key={`hz-${i}`}
+              x={PAD.left + (i * colW)} y={PAD.top}
+              width={colW} height={chartH}
+              fill="transparent"
+              onMouseEnter={() => setHoverIndex(i)}
+              onMouseLeave={() => setHoverIndex(null)}
+              style={{ cursor: 'crosshair' }}
             />
-            <div className="absolute -top-10 bg-bg-elevated border border-glass-border rounded-md px-2 py-1 text-[0.6rem] text-text-primary opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10 shadow-lg">
-              {d.day} · {fmtCurrency(d.spend, currency)} · {fmtNumber(d.clicks)} clicks
+          );
+        })}
+
+        {/* Hover crosshair + tooltip */}
+        {hoverIndex !== null && data[hoverIndex] && (
+          <>
+            <line x1={xScale(hoverIndex)} x2={xScale(hoverIndex)} y1={PAD.top} y2={PAD.top + chartH}
+              stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="3,3" />
+            <foreignObject
+              x={Math.min(xScale(hoverIndex) - 75, W - 180)}
+              y={Math.max(PAD.top - 5, 0)}
+              width="160" height="120">
+              <div className="bg-bg-elevated/95 backdrop-blur-sm border border-glass-border rounded-lg px-3 py-2 text-[0.6rem] shadow-xl">
+                <div className="text-text-secondary font-mono mb-1.5">{data[hoverIndex].day}</div>
+                {activeMetrics.has('spend') && (
+                  <div className="flex justify-between gap-3">
+                    <span style={{ color: METRIC_COLORS.spend }}>● {t('sa.metaAds.spend')}</span>
+                    <span className="text-text-primary font-mono">{fmtCurrency(data[hoverIndex].spend, currency)}</span>
+                  </div>
+                )}
+                {activeMetrics.has('clicks') && (
+                  <div className="flex justify-between gap-3">
+                    <span style={{ color: METRIC_COLORS.clicks }}>● {t('sa.metaAds.clicks')}</span>
+                    <span className="text-text-primary font-mono">{fmtNumber(data[hoverIndex].clicks)}</span>
+                  </div>
+                )}
+                {activeMetrics.has('impressions') && (
+                  <div className="flex justify-between gap-3">
+                    <span style={{ color: METRIC_COLORS.impressions }}>● {t('sa.metaAds.impressions')}</span>
+                    <span className="text-text-primary font-mono">{fmtNumber(data[hoverIndex].impressions)}</span>
+                  </div>
+                )}
+                {activeMetrics.has('conversions') && (
+                  <div className="flex justify-between gap-3">
+                    <span style={{ color: METRIC_COLORS.conversions }}>● {t('sa.metaAds.conversions')}</span>
+                    <span className="text-text-primary font-mono">{data[hoverIndex].conversions}</span>
+                  </div>
+                )}
+              </div>
+            </foreignObject>
+          </>
+        )}
+      </svg>
+    </div>
+  );
+}
+
+// ─── Efficiency Trends Chart ───────────────────────────────
+
+function EfficiencyTrendsChart({ data, currency, t }: {
+  data: DailyRow[];
+  currency: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
+}) {
+  if (data.length < 2) return null;
+
+  const computed = data.map(d => ({
+    day: d.day,
+    cpc: d.clicks > 0 ? d.spend / d.clicks : 0,
+    cpm: d.impressions > 0 ? (d.spend / d.impressions) * 1000 : 0,
+    ctr: d.impressions > 0 ? (d.clicks / d.impressions) * 100 : 0,
+  }));
+
+  const metrics = [
+    { key: 'cpc' as const, label: 'CPC', color: '#fd79a8', fmt: (v: number) => fmtCurrency(v, currency) },
+    { key: 'cpm' as const, label: 'CPM', color: '#6c5ce7', fmt: (v: number) => fmtCurrency(v, currency) },
+    { key: 'ctr' as const, label: 'CTR', color: '#00cec9', fmt: (v: number) => `${v.toFixed(2)}%` },
+  ];
+
+  const W = 260;
+  const H = 80;
+  const PAD = { top: 8, right: 8, bottom: 16, left: 8 };
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {metrics.map(m => {
+        const values = computed.map(c => c[m.key]);
+        const maxV = Math.max(...values, 0.01);
+        const minV = Math.min(...values);
+        const range = maxV - minV || 1;
+        const lastVal = values[values.length - 1] ?? 0;
+        const prevVal = values.length >= 2 ? (values[values.length - 2] ?? lastVal) : lastVal;
+        const trend = lastVal > prevVal ? 'up' : lastVal < prevVal ? 'down' : 'neutral';
+        const avgVal = values.reduce((a, b) => a + b, 0) / values.length;
+
+        const chartW = W - PAD.left - PAD.right;
+        const chartH = H - PAD.top - PAD.bottom;
+
+        const path = computed.map((c, i) => {
+          const x = PAD.left + (i / Math.max(computed.length - 1, 1)) * chartW;
+          const y = PAD.top + chartH - ((c[m.key] - minV) / range) * chartH;
+          return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(' ');
+
+        const areaPath = `${path} L${(PAD.left + chartW).toFixed(1)},${(PAD.top + chartH).toFixed(1)} L${PAD.left},${(PAD.top + chartH).toFixed(1)} Z`;
+
+        return (
+          <div key={m.key} className="dashboard-card p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.color }} />
+                <span className="text-xs font-medium text-text-secondary">{m.label}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-bold text-text-primary font-mono">{m.fmt(avgVal)}</span>
+                {trend === 'up' && <ArrowUpRight className="w-3 h-3 text-error" />}
+                {trend === 'down' && <ArrowDownRight className="w-3 h-3 text-success" />}
+              </div>
             </div>
-            {(i === 0 || i === data.length - 1 || i === Math.floor(data.length / 2)) && (
-              <span className="text-[0.55rem] text-text-muted mt-1 truncate w-full text-center">
-                {d.day.substring(5)}
-              </span>
-            )}
+            <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto">
+              <defs>
+                <linearGradient id={`sparkGrad-${m.key}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={m.color} stopOpacity="0.2" />
+                  <stop offset="100%" stopColor={m.color} stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path d={areaPath} fill={`url(#sparkGrad-${m.key})`} />
+              <path d={path} fill="none" stroke={m.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div className="flex justify-between text-[0.55rem] text-text-muted mt-1 font-mono">
+              <span>{computed[0]?.day.substring(5)}</span>
+              <span>{t('sa.metaAds.efficiencyAvg')}</span>
+              <span>{computed[computed.length - 1]?.day.substring(5)}</span>
+            </div>
           </div>
         );
       })}
+    </div>
+  );
+}
+
+// ─── Spend vs Conversions Chart ────────────────────────────
+
+function SpendConversionsChart({ data, currency, t }: {
+  data: DailyRow[];
+  currency: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  t: any;
+}) {
+  if (data.length === 0) return null;
+
+  const hasConversions = data.some(d => d.conversions > 0);
+  const maxSpend = Math.max(...data.map(d => d.spend), 0.01);
+  const maxConv = Math.max(...data.map(d => d.conversions), 1);
+
+  const W = 800;
+  const H = 160;
+  const PAD = { top: 16, right: 50, bottom: 32, left: 60 };
+  const chartW = W - PAD.left - PAD.right;
+  const chartH = H - PAD.top - PAD.bottom;
+  const barW = Math.max((chartW / data.length) * 0.6, 4);
+  const labelInterval = data.length <= 10 ? 1 : data.length <= 20 ? 2 : Math.ceil(data.length / 10);
+
+  return (
+    <div className="dashboard-card p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
+          <Target className="w-4 h-4 text-warning" />
+          {t('sa.metaAds.spendVsConversions')}
+        </h3>
+        <div className="flex items-center gap-3 text-[0.6rem] text-text-muted">
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ backgroundColor: '#fd79a8' }} /> {t('sa.metaAds.spend')}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#fdcb6e' }} /> {t('sa.metaAds.conversions')}</span>
+        </div>
+      </div>
+
+      {!hasConversions ? (
+        <div className="text-xs text-text-muted text-center py-6">{t('sa.metaAds.noConversionsYet')}</div>
+      ) : (
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+          {/* Bars (spend) */}
+          {data.map((d, i) => {
+            const x = PAD.left + (i / Math.max(data.length - 1, 1)) * chartW - barW / 2;
+            const h = (d.spend / (maxSpend * 1.1)) * chartH;
+            return (
+              <rect key={`bar-${i}`} x={x} y={PAD.top + chartH - h} width={barW} height={h}
+                rx="2" fill="#fd79a8" opacity="0.25" />
+            );
+          })}
+
+          {/* Conversions line */}
+          {(() => {
+            const path = data.map((d, i) => {
+              const x = PAD.left + (i / Math.max(data.length - 1, 1)) * chartW;
+              const y = PAD.top + chartH - (d.conversions / (maxConv * 1.1)) * chartH;
+              return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
+            }).join(' ');
+            return <path d={path} fill="none" stroke="#fdcb6e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />;
+          })()}
+
+          {/* Conversion dots */}
+          {data.map((d, i) => {
+            const x = PAD.left + (i / Math.max(data.length - 1, 1)) * chartW;
+            const y = PAD.top + chartH - (d.conversions / (maxConv * 1.1)) * chartH;
+            return d.conversions > 0 ? (
+              <circle key={`conv-${i}`} cx={x} cy={y} r="3.5" fill="#fdcb6e" stroke="#0a0a0f" strokeWidth="1.5" />
+            ) : null;
+          })}
+
+          {/* X-axis labels */}
+          {data.map((d, i) => {
+            if (i % labelInterval !== 0 && i !== data.length - 1) return null;
+            return (
+              <text key={`x-${i}`} x={PAD.left + (i / Math.max(data.length - 1, 1)) * chartW} y={H - 6}
+                textAnchor="middle" fill="#555570" fontSize="8" fontFamily="monospace">
+                {d.day.substring(5)}
+              </text>
+            );
+          })}
+
+          {/* Y-axis left (spend) */}
+          {[0, 0.25, 0.5, 0.75, 1].map((pct, i) => {
+            const val = maxSpend * 1.1 * pct;
+            return (
+              <text key={`yL-${i}`} x={PAD.left - 6} y={PAD.top + chartH - pct * chartH + 3}
+                textAnchor="end" fill="#9898b0" fontSize="7" fontFamily="monospace">
+                {val >= 1000 ? `${(val / 1000).toFixed(0)}K` : val.toFixed(0)}
+              </text>
+            );
+          })}
+
+          {/* Y-axis right (conversions) */}
+          {[0, 0.5, 1].map((pct, i) => {
+            const val = maxConv * 1.1 * pct;
+            return (
+              <text key={`yR-${i}`} x={W - PAD.right + 6} y={PAD.top + chartH - pct * chartH + 3}
+                textAnchor="start" fill="#fdcb6e" fontSize="7" fontFamily="monospace">
+                {Math.round(val)}
+              </text>
+            );
+          })}
+        </svg>
+      )}
     </div>
   );
 }
@@ -412,18 +805,7 @@ export function MetaAdsPage() {
                 <KpiCard icon={Target} label={t('sa.metaAds.costPerConversion')} value={fmtCurrency(overview.avg_cost_per_conversion, adCurrency)} />
               </div>
 
-              {/* Daily Spend Chart */}
-              <div className="dashboard-card p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-text-primary flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-brand-accent" />
-                    {t('sa.metaAds.dailySpend')}
-                  </h3>
-                  <span className="text-xs text-text-muted">{dailyData.length} {t('sa.metaAds.days')}</span>
-                </div>
-                <SpendChart data={dailyData} currency={adCurrency} />
-              </div>
-            </div>
+
           )}
 
           {/* No overview data */}

@@ -175,7 +175,7 @@ describe("Edge Functions: CORS & Method Gating", () => {
     "users-me", "faq", "plans", "company", "dashboard-overview",
     "sources-summary", "analyses-data", "insights", "topics-prompts",
     "platforms", "admin-active-users", "admin-ai-costs", "admin-settings",
-    "admin-crm-pipeline", "admin-monitoring-timeline",
+    "admin-crm-pipeline", "admin-monitoring-timeline", "admin-metrics-overview",
   ];
 
   for (const fn of fns) {
@@ -217,7 +217,7 @@ describe("Edge Functions: Auth Gating", () => {
 
   const adminRequired = [
     "admin-active-users", "admin-ai-costs", "admin-settings",
-    "admin-crm-pipeline", "admin-monitoring-timeline",
+    "admin-crm-pipeline", "admin-monitoring-timeline", "admin-metrics-overview",
   ];
 
   for (const fn of adminRequired) {
@@ -682,6 +682,101 @@ describe("Edge Functions: admin-crm-pipeline", () => {
     if (skipWithoutAuth("GET /admin-crm-pipeline")) return;
     const res = await callFn("GET", "admin-crm-pipeline");
     assert([200, 403].includes(res.status), `Expected 200 or 403, got ${res.status}`);
+    await res.body?.cancel();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════
+// ADMIN METRICS OVERVIEW — New metrics endpoint
+// ═══════════════════════════════════════════════════════════
+
+describe("Edge Functions: admin-metrics-overview", () => {
+  it("OPTIONS → 204 CORS preflight", async () => {
+    const res = await fetch(`${BASE}/admin-metrics-overview`, {
+      method: "OPTIONS",
+      headers: { apikey: ANON_KEY, Origin: "http://localhost:5173" },
+    });
+    assertEquals(res.status, 204, "Should return 204 for OPTIONS");
+    await res.body?.cancel();
+  });
+
+  it("GET without auth → 401/403", async () => {
+    const res = await callFn("GET", "admin-metrics-overview", { noAuth: true });
+    assert(
+      [401, 403, 500].includes(res.status),
+      `Should reject unauthenticated requests, got ${res.status}`,
+    );
+    assert(res.status !== 200, "Should not return 200 without auth");
+    await res.body?.cancel();
+  });
+
+  it("POST without action → 400 or 403", async () => {
+    if (skipWithoutAuth("POST /admin-metrics-overview")) return;
+    const res = await callFn("POST", "admin-metrics-overview");
+    assert([400, 403].includes(res.status), `Expected 400 or 403, got ${res.status}`);
+    await res.body?.cancel();
+  });
+
+  it("GET ?view=funnel → 200 or 403", async () => {
+    if (skipWithoutAuth("GET /admin-metrics-overview?view=funnel")) return;
+    const res = await callFn("GET", "admin-metrics-overview", {
+      queryParams: { view: "funnel" },
+    });
+    assert([200, 403].includes(res.status), `Expected 200 or 403, got ${res.status}`);
+    await res.body?.cancel();
+  });
+
+  it("GET ?view=revenue → 200 or 403", async () => {
+    if (skipWithoutAuth("GET /admin-metrics-overview?view=revenue")) return;
+    const res = await callFn("GET", "admin-metrics-overview", {
+      queryParams: { view: "revenue" },
+    });
+    assert([200, 403].includes(res.status), `Expected 200 or 403, got ${res.status}`);
+    await res.body?.cancel();
+  });
+
+  it("GET ?view=churn → 200 or 403", async () => {
+    if (skipWithoutAuth("GET /admin-metrics-overview?view=churn")) return;
+    const res = await callFn("GET", "admin-metrics-overview", {
+      queryParams: { view: "churn" },
+    });
+    assert([200, 403].includes(res.status), `Expected 200 or 403, got ${res.status}`);
+    await res.body?.cancel();
+  });
+
+  it("GET ?view=pipeline → 200 or 403", async () => {
+    if (skipWithoutAuth("GET /admin-metrics-overview?view=pipeline")) return;
+    const res = await callFn("GET", "admin-metrics-overview", {
+      queryParams: { view: "pipeline" },
+    });
+    assert([200, 403].includes(res.status), `Expected 200 or 403, got ${res.status}`);
+    await res.body?.cancel();
+  });
+
+  it("GET ?view=meta_cross → 200 or 403", async () => {
+    if (skipWithoutAuth("GET /admin-metrics-overview?view=meta_cross")) return;
+    const res = await callFn("GET", "admin-metrics-overview", {
+      queryParams: { view: "meta_cross" },
+    });
+    assert([200, 403].includes(res.status), `Expected 200 or 403, got ${res.status}`);
+    await res.body?.cancel();
+  });
+
+  it("GET ?view=dashboard_access → 200 or 403", async () => {
+    if (skipWithoutAuth("GET /admin-metrics-overview?view=dashboard_access")) return;
+    const res = await callFn("GET", "admin-metrics-overview", {
+      queryParams: { view: "dashboard_access" },
+    });
+    assert([200, 403].includes(res.status), `Expected 200 or 403, got ${res.status}`);
+    await res.body?.cancel();
+  });
+
+  it("GET ?view=unknown → 400 or 403", async () => {
+    if (skipWithoutAuth("GET /admin-metrics-overview?view=unknown")) return;
+    const res = await callFn("GET", "admin-metrics-overview", {
+      queryParams: { view: "unknown" },
+    });
+    assert([400, 403].includes(res.status), `Expected 400 or 403, got ${res.status}`);
     await res.body?.cancel();
   });
 });
