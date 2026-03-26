@@ -69,7 +69,7 @@ export function ProposalFullPage() {
   const isExpired = proposal.status === 'expired';
   const defaultLang = proposal.default_lang || 'en';
   const features = proposal.custom_features[defaultLang] || proposal.custom_features['en'] || [];
-  const description = proposal.custom_description[lang] || proposal.custom_description['en'] || '';
+  const description = proposal.custom_description[defaultLang] || proposal.custom_description['en'] || '';
   const contactEmail = `contact@${proposal.company_domain || 'ainalytics.com'}`;
 
   const advantages: string[] = (t('proposal.full.advantages', { returnObjects: true }) as string[]) || [];

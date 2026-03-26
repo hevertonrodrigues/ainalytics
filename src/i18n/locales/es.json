@@ -701,6 +701,7 @@
     "kanbanView": "Vista Kanban",
     "tableView": "Vista Tabla",
     "viewFullDetails": "Ver Detalles Completos",
+    "collapseColumn": "Colapsar columna",
     "close": "Cerrar",
     "stage": "Etapa",
     "stage_registered": "Registrado",

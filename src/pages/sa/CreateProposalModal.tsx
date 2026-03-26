@@ -65,10 +65,9 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   const [currency, setCurrency] = useState('usd');
   const [exchangeRates, setExchangeRates] = useState<{ USD_BRL: number; USD_EUR: number }>({ USD_BRL: 5.0, USD_EUR: 1.2 });
   const [features, setFeatures] = useState<string[]>([]);
-  const [description, setDescription] = useState<Record<string, string>>({ en: '', es: '', 'pt-br': '' });
+  const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
   const [validUntil, setValidUntil] = useState(getDefaultValidity);
-  const [activeTab, setActiveTab] = useState<typeof LANGS[number]>(currentLang || 'en');
   const [newFeature, setNewFeature] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
@@ -131,19 +130,12 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
       setPrice(convertPrice(plan.price, currency));
       setBillingInterval((plan.billing_interval as 'monthly' | 'yearly') || 'monthly');
       if (plan.features) {
-        const f: string[] = [];
-      for (const lang of LANGS) {
-        const planFeats = plan.features?.[lang] || plan.features?.['en'] || [];
-        if (f.length === 0) f.push(...planFeats);
-      }
-      setFeatures(f);
+        const planFeats = plan.features?.[defaultLang] || plan.features?.['en'] || [];
+        setFeatures([...planFeats]);
       }
       if (plan.settings) {
-        const d: Record<string, string> = { en: '', es: '', 'pt-br': '' };
-        for (const lang of LANGS) {
-          d[lang] = plan.settings[lang]?.description || plan.settings['en']?.description || '';
-        }
-        setDescription(d);
+        const desc = plan.settings[defaultLang]?.description || plan.settings['en']?.description || '';
+        setDescription(desc);
       }
     }
   }
@@ -172,7 +164,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
         billing_interval: billingInterval,
         currency,
         custom_features: { [defaultLang]: features },
-        custom_description: description,
+        custom_description: { [defaultLang]: description },
         notes: notes || null,
         valid_until: validUntil || null,
         status: submitStatus,
@@ -208,7 +200,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
     setSelectedPlanId('');
     setCurrency('usd');
     setFeatures([]);
-    setDescription({ en: '', es: '', 'pt-br': '' });
+    setDescription('');
     setNotes('');
     setValidUntil(getDefaultValidity());
     setNewFeature('');
@@ -463,34 +455,16 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
             </div>
           </div>
 
-          {/* Description (multilingual) */}
+          {/* Description (single, no tabs) */}
           <div>
-            <div className="flex items-center gap-1 mb-3 border-b border-glass-border">
-              {LANGS.map(lang => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() => setActiveTab(lang)}
-                  className={`px-3 py-1.5 text-xs font-medium uppercase tracking-wider transition-colors ${
-                    activeTab === lang
-                      ? 'border-b-2 border-brand-primary text-brand-primary'
-                      : 'text-text-muted hover:text-text-secondary'
-                  }`}
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.description')}</label>
-              <textarea
-                value={description[activeTab] || ''}
-                onChange={e => setDescription(prev => ({ ...prev, [activeTab]: e.target.value }))}
-                placeholder={t('proposal.descriptionPlaceholder')}
-                rows={3}
-                className={`${inputCls} resize-none`}
-              />
-            </div>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.description')}</label>
+            <textarea
+              value={description}
+              onChange={e => setDescription(e.target.value)}
+              placeholder={t('proposal.descriptionPlaceholder')}
+              rows={3}
+              className={`${inputCls} resize-none`}
+            />
           </div>
 
           {/* Internal notes */}

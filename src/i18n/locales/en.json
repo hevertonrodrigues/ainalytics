@@ -701,6 +701,7 @@
     "kanbanView": "Kanban View",
     "tableView": "Table View",
     "viewFullDetails": "View Full Details",
+    "collapseColumn": "Collapse column",
     "close": "Close",
     "stage": "Stage",
     "stage_registered": "Registered",

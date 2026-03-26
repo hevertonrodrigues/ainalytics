@@ -1384,6 +1384,7 @@
     "kanbanView": "Visão Kanban",
     "tableView": "Visão Tabela",
     "viewFullDetails": "Ver Detalhes Completos",
+    "collapseColumn": "Recolher coluna",
     "close": "Fechar",
     "stage": "Etapa",
     "stage_registered": "Registrado",

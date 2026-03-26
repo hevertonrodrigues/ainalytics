@@ -87,6 +87,7 @@ interface UpdateProfileBody {
   locale?: string;
   has_seen_onboarding?: boolean;
   tutorial_views?: Record<string, boolean>;
+  sa_customizations?: Record<string, unknown>;
 }
 
 async function handleUpdate(req: Request): Promise<Response> {
@@ -102,6 +103,7 @@ async function handleUpdate(req: Request): Promise<Response> {
   if (body.locale !== undefined) profileUpdate.locale = body.locale;
   if (body.has_seen_onboarding !== undefined) profileUpdate.has_seen_onboarding = body.has_seen_onboarding;
   if (body.tutorial_views !== undefined) profileUpdate.tutorial_views = body.tutorial_views;
+  if (body.sa_customizations !== undefined) profileUpdate.sa_customizations = body.sa_customizations;
 
   if (Object.keys(profileUpdate).length > 0) {
     const { error: profileError } = await db
