@@ -985,7 +985,15 @@
       "saveConfig": "Save Config",
       "connectionSuccess": "Connected! Account: {{name}}",
       "configSaved": "Configuration saved successfully",
-      "configError": "Failed to save configuration"
+      "configError": "Failed to save configuration",
+      "attribution": "Attribution",
+      "campaign": "Campaign",
+      "status": "Status",
+      "platformLeads": "Platform Leads",
+      "metaConversions": "Meta Conv.",
+      "costPerLead": "Cost/Lead",
+      "noAttributionData": "No attribution data for this period",
+      "acquiredSubscriptions": "Acquired Subscriptions"
     }
   },
   "timeline": {

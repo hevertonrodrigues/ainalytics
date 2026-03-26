@@ -1668,7 +1668,15 @@
       "saveConfig": "Salvar Config",
       "connectionSuccess": "Conectado! Conta: {{name}}",
       "configSaved": "Configuração salva com sucesso",
-      "configError": "Falha ao salvar configuração"
+      "configError": "Falha ao salvar configuração",
+      "attribution": "Atribuição",
+      "campaign": "Campanha",
+      "status": "Status",
+      "platformLeads": "Leads da Plataforma",
+      "metaConversions": "Conv. Meta",
+      "costPerLead": "Custo/Lead",
+      "noAttributionData": "Sem dados de atribuição neste período",
+      "acquiredSubscriptions": "Assinaturas Adquiridas"
     }
   },
   "proposal": {

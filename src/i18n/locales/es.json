@@ -985,7 +985,15 @@
       "saveConfig": "Guardar Config",
       "connectionSuccess": "¡Conectado! Cuenta: {{name}}",
       "configSaved": "Configuración guardada exitosamente",
-      "configError": "Error al guardar configuración"
+      "configError": "Error al guardar configuración",
+      "attribution": "Atribución",
+      "campaign": "Campaña",
+      "status": "Estado",
+      "platformLeads": "Leads de Plataforma",
+      "metaConversions": "Conv. Meta",
+      "costPerLead": "Costo/Lead",
+      "noAttributionData": "Sin datos de atribución para este período",
+      "acquiredSubscriptions": "Suscripciones Adquiridas"
     }
   },
   "timeline": {

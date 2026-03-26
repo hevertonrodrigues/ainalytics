@@ -6,6 +6,7 @@ import { TenantProvider } from '@/contexts/TenantContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { LayoutProvider } from '@/contexts/LayoutContext';
 import i18n from '@/i18n';
+import { useUTMTracking } from '@/hooks/useUTMTracking';
 
 const ProtectedRoute = lazy(() => import('@/components/guards/ProtectedRoute').then(m => ({ default: m.ProtectedRoute })));
 const GuestRoute = lazy(() => import('@/components/guards/GuestRoute').then(m => ({ default: m.GuestRoute })));
@@ -89,6 +90,8 @@ function AuthOutlet() {
 }
 
 export function App() {
+  useUTMTracking();
+
   return (
     <ThemeProvider>
       <LayoutProvider>

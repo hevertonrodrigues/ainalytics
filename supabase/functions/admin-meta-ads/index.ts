@@ -95,6 +95,39 @@ async function fetchMetaInsights(
   return allData;
 }
 
+interface MetaCampaignRow {
+  id: string;
+  name: string;
+  objective?: string;
+  status?: string;
+  effective_status?: string;
+  daily_budget?: string;
+  lifetime_budget?: string;
+}
+
+async function fetchMetaCampaigns(
+  adAccountId: string,
+  accessToken: string,
+  apiVersion: string,
+): Promise<MetaCampaignRow[]> {
+  const params = new URLSearchParams();
+  params.set("access_token", accessToken);
+  params.set(
+    "fields",
+    "id,name,objective,status,effective_status,daily_budget,lifetime_budget",
+  );
+  // Get all campaigns to ensure we have metadata for anything that had spend
+  const url = `${META_API_BASE}/${apiVersion}/act_${adAccountId}/campaigns?${params.toString()}&limit=500`;
+  
+  const resp = await fetch(url);
+  if (!resp.ok) {
+    const error = await resp.json();
+    throw new Error(`Meta API error (campaigns): ${error?.error?.message || resp.statusText}`);
+  }
+  const json = await resp.json();
+  return json.data || [];
+}
+
 async function testMetaConnection(
   adAccountId: string,
   accessToken: string,
@@ -176,46 +209,263 @@ serve(async (req: Request) => {
 
       // ─── OVERVIEW ─────────────────────────────────────────
       if (view === "overview") {
-        const { data, error } = await db.rpc("get_meta_ads_overview", {
-          p_start_date: startDateStr,
-          p_end_date: endDateStr,
-        });
+        const { data: snaps, error } = await db
+          .from("meta_ads_snapshots")
+          .select("spend, impressions, clicks, conversions, currency, date")
+          .eq("level", "account")
+          .gte("date", startDateStr)
+          .lte("date", endDateStr);
 
         if (error) throw error;
-        return logger.done(withCors(req, ok(data)), authCtx);
+
+        let total_spend = 0, total_impressions = 0, total_clicks = 0, total_conversions = 0;
+        const days = new Set<string>();
+        let currency = 'USD';
+
+        for (const row of snaps || []) {
+          total_spend += Number(row.spend || 0);
+          total_impressions += Number(row.impressions || 0);
+          total_clicks += Number(row.clicks || 0);
+          total_conversions += Number(row.conversions || 0);
+          days.add(row.date);
+          if (row.currency) currency = row.currency;
+        }
+
+        const result = {
+          total_spend,
+          total_impressions,
+          total_clicks,
+          avg_cpc: total_clicks > 0 ? Number((total_spend / total_clicks).toFixed(4)) : 0,
+          avg_cpm: total_impressions > 0 ? Number((total_spend / total_impressions * 1000).toFixed(4)) : 0,
+          avg_ctr: total_impressions > 0 ? Number((total_clicks / total_impressions * 100).toFixed(4)) : 0,
+          total_conversions,
+          avg_cost_per_conversion: total_conversions > 0 ? Number((total_spend / total_conversions).toFixed(2)) : 0,
+          currency,
+          days_count: days.size
+        };
+
+        return logger.done(withCors(req, ok(result)), authCtx);
       }
 
       // ─── DAILY ────────────────────────────────────────────
       if (view === "daily") {
-        const { data, error } = await db.rpc("get_meta_ads_daily", {
-          p_start_date: startDateStr,
-          p_end_date: endDateStr,
-        });
+        const { data: snaps, error } = await db
+          .from("meta_ads_snapshots")
+          .select("date, spend, impressions, clicks, conversions")
+          .eq("level", "account")
+          .gte("date", startDateStr)
+          .lte("date", endDateStr)
+          .order("date", { ascending: true });
 
         if (error) throw error;
-        return logger.done(withCors(req, ok(data || [])), authCtx);
+
+        // deno-lint-ignore no-explicit-any
+        const dailyMap = new Map<string, any>();
+        for (const row of snaps || []) {
+          if (!dailyMap.has(row.date)) {
+            dailyMap.set(row.date, { day: row.date, spend: 0, impressions: 0, clicks: 0, conversions: 0 });
+          }
+          const d = dailyMap.get(row.date);
+          d.spend += Number(row.spend || 0);
+          d.impressions += Number(row.impressions || 0);
+          d.clicks += Number(row.clicks || 0);
+          d.conversions += Number(row.conversions || 0);
+        }
+
+        return logger.done(withCors(req, ok(Array.from(dailyMap.values()))), authCtx);
       }
 
       // ─── CAMPAIGNS ────────────────────────────────────────
       if (view === "campaigns") {
-        const { data, error } = await db.rpc("get_meta_ads_campaigns", {
-          p_start_date: startDateStr,
-          p_end_date: endDateStr,
-        });
+        const { data: snaps, error } = await db
+          .from("meta_ads_snapshots")
+          .select("campaign_id, campaign_name, spend, impressions, clicks, conversions, campaign_objective, campaign_status, campaign_daily_budget, campaign_lifetime_budget")
+          .eq("level", "campaign")
+          .gte("date", startDateStr)
+          .lte("date", endDateStr);
 
         if (error) throw error;
-        return logger.done(withCors(req, ok(data || [])), authCtx);
+
+        // deno-lint-ignore no-explicit-any
+        const campMap = new Map<string, any>();
+        for (const row of snaps || []) {
+          const key = row.campaign_id || "unknown";
+          if (!campMap.has(key)) {
+            campMap.set(key, {
+              campaign_id: key,
+              campaign_name: row.campaign_name || '',
+              total_spend: 0,
+              total_impressions: 0,
+              total_clicks: 0,
+              total_conversions: 0,
+              objective: row.campaign_objective,
+              status: row.campaign_status,
+              daily_budget: row.campaign_daily_budget,
+              lifetime_budget: row.campaign_lifetime_budget
+            });
+          }
+          const c = campMap.get(key);
+          c.total_spend += Number(row.spend || 0);
+          c.total_impressions += Number(row.impressions || 0);
+          c.total_clicks += Number(row.clicks || 0);
+          c.total_conversions += Number(row.conversions || 0);
+          if (row.campaign_objective) c.objective = row.campaign_objective;
+          if (row.campaign_status) c.status = row.campaign_status;
+        }
+
+        const result = Array.from(campMap.values()).map(c => ({
+          ...c,
+          avg_cpc: c.total_clicks > 0 ? Number((c.total_spend / c.total_clicks).toFixed(4)) : 0,
+          avg_ctr: c.total_impressions > 0 ? Number((c.total_clicks / c.total_impressions * 100).toFixed(4)) : 0,
+          cost_per_conversion: c.total_conversions > 0 ? Number((c.total_spend / c.total_conversions).toFixed(2)) : 0
+        })).sort((a, b) => b.total_spend - a.total_spend);
+
+        return logger.done(withCors(req, ok(result)), authCtx);
+      }
+
+      // ─── ATTRIBUTION ──────────────────────────────────────
+      if (view === "attribution") {
+        const { data: snaps, error: snapErr } = await db
+          .from("meta_ads_snapshots")
+          .select("campaign_name, spend, conversions, currency, campaign_objective, campaign_status")
+          .eq("level", "campaign")
+          .gte("date", startDateStr)
+          .lte("date", endDateStr);
+        if (snapErr) throw snapErr;
+
+        // deno-lint-ignore no-explicit-any
+        const spendMap = new Map<string, any>();
+        for (const row of snaps || []) {
+          const key = (row.campaign_name || "unknown").toLowerCase();
+          if (!spendMap.has(key)) {
+            spendMap.set(key, {
+              campaign_name: row.campaign_name,
+              total_spend: 0,
+              meta_conversions: 0,
+              currency: row.currency || "USD",
+              objective: row.campaign_objective,
+              status: row.campaign_status
+            });
+          }
+          const c = spendMap.get(key);
+          c.total_spend += Number(row.spend || 0);
+          c.meta_conversions += Number(row.conversions || 0);
+          if (row.campaign_objective) c.objective = row.campaign_objective;
+          if (row.campaign_status) c.status = row.campaign_status;
+        }
+
+        const endDateObj = new Date(endDateStr);
+        endDateObj.setDate(endDateObj.getDate() + 1);
+        const endISO = endDateObj.toISOString();
+
+        const { data: leadsData, error: leadsErr } = await db
+          .from("lead_attribution")
+          .select("created_at, utm_source, utm_medium, utm_campaign, tenant_id, tenants(name)")
+          .not("utm_campaign", "is", null)
+          .gte("created_at", new Date(startDateStr).toISOString())
+          .lt("created_at", endISO);
+        if (leadsErr) throw leadsErr;
+
+        // deno-lint-ignore no-explicit-any
+        const leadsMap = new Map<string, any[]>();
+        for (const row of leadsData || []) {
+          const key = (row.utm_campaign || "").toLowerCase();
+          if (!leadsMap.has(key)) leadsMap.set(key, []);
+          // deno-lint-ignore no-explicit-any
+          const tenantName = Array.isArray(row.tenants) ? row.tenants[0]?.name : (row.tenants as any)?.name;
+          leadsMap.get(key)?.push({
+            tenant_id: row.tenant_id,
+            tenant_name: tenantName,
+            created_at: row.created_at,
+            utm_source: row.utm_source,
+            utm_medium: row.utm_medium
+          });
+        }
+
+        // deno-lint-ignore no-explicit-any
+        const merged = new Map<string, any>();
+        for (const [key, sv] of spendMap.entries()) {
+          const leads = leadsMap.get(key) || [];
+          merged.set(key, {
+            ...sv,
+            platform_leads: new Set(leads.map(l => l.tenant_id)).size,
+            leads_list: leads
+          });
+        }
+        for (const [key, leads] of leadsMap.entries()) {
+          if (!spendMap.has(key)) {
+            merged.set(key, {
+              campaign_name: leads[0].utm_campaign,
+              objective: null,
+              status: null,
+              total_spend: 0,
+              meta_conversions: 0,
+              currency: "USD",
+              platform_leads: new Set(leads.map(l => l.tenant_id)).size,
+              leads_list: leads
+            });
+          }
+        }
+
+        const result = Array.from(merged.values()).sort((a, b) => b.total_spend - a.total_spend);
+        return logger.done(withCors(req, ok(result)), authCtx);
       }
 
       // ─── ROI ──────────────────────────────────────────────
       if (view === "roi") {
-        const { data, error } = await db.rpc("get_meta_ads_roi", {
-          p_start_date: startDateStr,
-          p_end_date: endDateStr,
-        });
+        const { data: snaps, error: snapErr } = await db
+          .from("meta_ads_snapshots")
+          .select("spend")
+          .eq("level", "account")
+          .gte("date", startDateStr)
+          .lte("date", endDateStr);
+        if (snapErr) throw snapErr;
+        // deno-lint-ignore no-explicit-any
+        const total_ad_spend = snaps?.reduce((acc: number, r: any) => acc + Number(r.spend || 0), 0) || 0;
 
-        if (error) throw error;
-        return logger.done(withCors(req, ok(data)), authCtx);
+        const endDateObj = new Date(endDateStr);
+        endDateObj.setDate(endDateObj.getDate() + 1);
+        const endISO = endDateObj.toISOString();
+
+        const { data: subsData, error: subsErr } = await db
+          .from("subscriptions")
+          .select("created_at, status, billing_interval, paid_amount")
+          .in("status", ["active", "trialing"]);
+        if (subsErr) throw subsErr;
+
+        let new_subscriptions = 0;
+        let new_mrr = 0;
+        let total_active_mrr = 0;
+        const active_sub_count = subsData?.length || 0;
+
+        for (const sub of subsData || []) {
+          const mrr = sub.billing_interval === 'monthly' ? Number(sub.paid_amount || 0) : (sub.billing_interval === 'yearly' ? Number(sub.paid_amount || 0) / 12 : 0);
+          total_active_mrr += mrr;
+
+          if (sub.created_at >= new Date(startDateStr).toISOString() && sub.created_at < endISO) {
+            new_subscriptions++;
+            new_mrr += mrr;
+          }
+        }
+
+        const result = {
+          total_ad_spend,
+          new_subscriptions,
+          new_mrr,
+          cac: new_subscriptions > 0 ? Number((total_ad_spend / new_subscriptions).toFixed(2)) : 0,
+          roas: total_ad_spend > 0 ? Number((new_mrr / total_ad_spend).toFixed(4)) : 0,
+          roi_pct: total_ad_spend > 0 ? Number(((new_mrr - total_ad_spend) / total_ad_spend * 100).toFixed(2)) : 0,
+          total_active_mrr,
+          active_sub_count,
+          avg_revenue_per_sub: active_sub_count > 0 ? Number((total_active_mrr / active_sub_count).toFixed(2)) : 0,
+          ltv_estimate: active_sub_count > 0 ? Number((total_active_mrr / active_sub_count * 12).toFixed(2)) : 0,
+          ltv_cac_ratio: new_subscriptions > 0 && total_ad_spend > 0 && active_sub_count > 0 ? 
+            Number(((total_active_mrr / active_sub_count * 12) / (total_ad_spend / new_subscriptions)).toFixed(2)) : 0,
+          payback_months: new_subscriptions > 0 && new_mrr > 0 ? 
+            Number(((total_ad_spend / new_subscriptions) / (new_mrr / new_subscriptions)).toFixed(1)) : 0
+        };
+
+        return logger.done(withCors(req, ok(result)), authCtx);
       }
 
       return logger.done(
@@ -422,6 +672,17 @@ serve(async (req: Request) => {
             },
           );
 
+          // 2.5 Fetch campaign metadata (objective, status, budgets)
+          const campaignsMetadata = await fetchMetaCampaigns(
+            config.ad_account_id,
+            accessToken,
+            config.api_version,
+          );
+          const campaignMap = new Map<string, MetaCampaignRow>();
+          for (const c of campaignsMetadata) {
+            campaignMap.set(c.id, c);
+          }
+
           // 3. Store snapshots (upsert)
           let insertedCount = 0;
 
@@ -503,6 +764,8 @@ serve(async (req: Request) => {
               .eq("level", "campaign")
               .eq("campaign_id", row.campaign_id || "");
 
+            const m = campaignMap.get(row.campaign_id || "");
+
             await db.from("meta_ads_snapshots").insert({
               ad_account_id: config.ad_account_id,
               date: row.date_start,
@@ -520,6 +783,11 @@ serve(async (req: Request) => {
                 conversions > 0 ? spend / conversions : 0,
               actions_json: row.actions || [],
               currency: row.account_currency || "USD",
+              // New metadata fields
+              campaign_objective: m?.objective || null,
+              campaign_status: m?.effective_status || m?.status || null,
+              campaign_daily_budget: m?.daily_budget ? parseFloat(m.daily_budget) / 100 : null,
+              campaign_lifetime_budget: m?.lifetime_budget ? parseFloat(m.lifetime_budget) / 100 : null,
             });
             insertedCount++;
           }

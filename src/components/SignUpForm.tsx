@@ -76,7 +76,16 @@ export function SignUpForm({
       }
 
       const codeValue = showPromoCode && promoCode ? promoCode : undefined;
-      await signUp(email, password, fullName, '', phone, '', codeValue);
+      
+      // Extract tracked UTM data
+      const utmData: Record<string, string> = {};
+      const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'landing_page', 'referrer'];
+      for (const key of utmKeys) {
+        const val = sessionStorage.getItem(key);
+        if (val) utmData[key] = val;
+      }
+      
+      await signUp(email, password, fullName, '', phone, '', codeValue, utmData);
 
       if (onSuccess) {
         onSuccess();

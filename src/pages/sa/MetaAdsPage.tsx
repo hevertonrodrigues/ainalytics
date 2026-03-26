@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Megaphone, DollarSign, TrendingUp, BarChart3, MousePointerClick,
   Eye, Target, Zap, RefreshCw, Settings, Activity, ArrowUpRight,
   ArrowDownRight, AlertTriangle, CheckCircle, XCircle, Loader2,
-  Calendar, Clock, CreditCard,
+  Calendar, Clock, CreditCard, ChevronDown, ChevronUp, Link, Users
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { formatDate } from '@/lib/dateFormat';
@@ -55,6 +55,27 @@ interface CampaignRow {
   avg_ctr: number;
   total_conversions: number;
   cost_per_conversion: number;
+  objective: string | null;
+  status: string | null;
+}
+
+interface AttributionLead {
+  tenant_id: string;
+  tenant_name: string;
+  created_at: string;
+  utm_source: string;
+  utm_medium: string;
+}
+
+interface AttributionRow {
+  campaign_name: string;
+  objective: string | null;
+  status: string | null;
+  total_spend: number;
+  meta_conversions: number;
+  currency: string;
+  platform_leads: number;
+  leads_list: AttributionLead[];
 }
 
 interface ROIData {
@@ -73,7 +94,7 @@ interface ROIData {
   currency?: string;
 }
 
-type TabId = 'overview' | 'campaigns' | 'roi' | 'settings';
+type TabId = 'overview' | 'campaigns' | 'attribution' | 'roi' | 'settings';
 
 // ─── Helpers ───────────────────────────────────────────────
 
@@ -183,8 +204,10 @@ export function MetaAdsPage() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [dailyData, setDailyData] = useState<DailyRow[]>([]);
   const [campaigns, setCampaigns] = useState<CampaignRow[]>([]);
+  const [attributionData, setAttributionData] = useState<AttributionRow[]>([]);
   const [roiData, setRoiData] = useState<ROIData | null>(null);
   const [adCurrency, setAdCurrency] = useState('BRL');
+  const [expandedCampaigns, setExpandedCampaigns] = useState<Record<string, boolean>>({});
 
   // Settings form
   const [formAccountId, setFormAccountId] = useState('');
@@ -212,6 +235,9 @@ export function MetaAdsPage() {
       } else if (tab === 'campaigns') {
         const res = await apiClient.get<CampaignRow[]>(`/admin-meta-ads?view=campaigns&months=${months}`);
         setCampaigns(res.data || []);
+      } else if (tab === 'attribution') {
+        const res = await apiClient.get<AttributionRow[]>(`/admin-meta-ads?view=attribution&months=${months}`);
+        setAttributionData(res.data || []);
       } else if (tab === 'roi') {
         const res = await apiClient.get<ROIData>(`/admin-meta-ads?view=roi&months=${months}`);
         setRoiData(res.data);
@@ -284,6 +310,7 @@ export function MetaAdsPage() {
   const tabs: { id: TabId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'overview', label: t('sa.metaAds.overview'), icon: BarChart3 },
     { id: 'campaigns', label: t('sa.metaAds.campaigns'), icon: Megaphone },
+    { id: 'attribution', label: t('sa.metaAds.attribution'), icon: Users },
     { id: 'roi', label: t('sa.metaAds.roiAnalysis'), icon: TrendingUp },
     { id: 'settings', label: t('sa.metaAds.settings'), icon: Settings },
   ];
@@ -418,6 +445,7 @@ export function MetaAdsPage() {
                 <thead>
                   <tr>
                     <th className="text-left">{t('sa.metaAds.campaignName')}</th>
+                    <th className="text-center">{t('sa.metaAds.status')}</th>
                     <th className="text-right">{t('sa.metaAds.spend')}</th>
                     <th className="text-right hidden md:table-cell">{t('sa.metaAds.impressions')}</th>
                     <th className="text-right hidden md:table-cell">{t('sa.metaAds.clicks')}</th>
@@ -429,14 +457,24 @@ export function MetaAdsPage() {
                 </thead>
                 <tbody>
                   {campaigns.length === 0 ? (
-                    <tr><td colSpan={8} className="!text-center !font-body !text-text-secondary">{t('sa.metaAds.noCampaigns')}</td></tr>
+                    <tr><td colSpan={9} className="!text-center !font-body !text-text-secondary">{t('sa.metaAds.noCampaigns')}</td></tr>
                   ) : campaigns.map(c => (
                     <tr key={c.campaign_id}>
                       <td className="!font-body">
                         <div className="min-w-0">
                           <span className="font-medium text-text-primary truncate block">{c.campaign_name || t('sa.metaAds.unnamed')}</span>
                           <span className="text-[0.6rem] text-text-muted font-mono">{c.campaign_id}</span>
+                          {c.objective && <span className="text-[0.65rem] bg-glass-element px-1.5 py-0.5 rounded text-text-secondary mt-1 inline-block">{c.objective}</span>}
                         </div>
+                      </td>
+                      <td className="text-center">
+                        {c.status ? (
+                          <span className={`text-[0.65rem] px-2 py-0.5 rounded-full font-medium ${
+                            c.status === 'ACTIVE' ? 'bg-success/10 text-success' : 'bg-glass-element text-text-secondary'
+                          }`}>
+                            {c.status}
+                          </span>
+                        ) : '—'}
                       </td>
                       <td className="text-right">
                         <span className="font-mono font-semibold text-brand-accent text-sm">{fmtCurrency(c.total_spend, adCurrency)}</span>
@@ -454,6 +492,7 @@ export function MetaAdsPage() {
                   <tfoot>
                     <tr className="border-t border-glass-border">
                       <td className="!font-body font-semibold text-text-primary">{t('sa.metaAds.total')}</td>
+                      <td />
                       <td className="text-right font-mono font-bold text-brand-accent">{fmtCurrency(campaigns.reduce((s, c) => s + c.total_spend, 0), adCurrency)}</td>
                       <td className="text-right font-mono font-semibold text-text-primary hidden md:table-cell">{fmtNumber(campaigns.reduce((s, c) => s + c.total_impressions, 0))}</td>
                       <td className="text-right font-mono font-semibold text-text-primary hidden md:table-cell">{fmtNumber(campaigns.reduce((s, c) => s + c.total_clicks, 0))}</td>
@@ -464,6 +503,103 @@ export function MetaAdsPage() {
                     </tr>
                   </tfoot>
                 )}
+              </table>
+            </div>
+          )}
+
+          {/* ─── ATTRIBUTION TAB ──────────────────────────── */}
+          {activeTab === 'attribution' && (
+            <div className="dashboard-card overflow-hidden">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th className="w-8"></th>
+                    <th className="text-left">{t('sa.metaAds.campaign')}</th>
+                    <th className="text-center">{t('sa.metaAds.status')}</th>
+                    <th className="text-right">{t('sa.metaAds.spend')}</th>
+                    <th className="text-right">{t('sa.metaAds.platformLeads')}</th>
+                    <th className="text-right hidden md:table-cell">{t('sa.metaAds.metaConversions')}</th>
+                    <th className="text-right">{t('sa.metaAds.costPerLead')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attributionData.length === 0 ? (
+                    <tr><td colSpan={7} className="!text-center !font-body !text-text-secondary">{t('sa.metaAds.noAttributionData')}</td></tr>
+                  ) : attributionData.map(row => {
+                    const isExpanded = expandedCampaigns[row.campaign_name];
+                    const cpl = row.platform_leads > 0 ? row.total_spend / row.platform_leads : 0;
+                    return (
+                      <Fragment key={row.campaign_name}>
+                        <tr 
+                          className={`cursor-pointer transition-colors ${isExpanded ? 'bg-brand-primary/5' : 'hover:bg-glass-element'} ${row.platform_leads === 0 ? 'opacity-60' : ''}`}
+                          onClick={() => setExpandedCampaigns(prev => ({ ...prev, [row.campaign_name]: !prev[row.campaign_name] }))}
+                        >
+                          <td className="text-center">
+                            {row.platform_leads > 0 ? (
+                              isExpanded ? <ChevronUp className="w-4 h-4 text-text-secondary mx-auto" /> : <ChevronDown className="w-4 h-4 text-text-secondary mx-auto" />
+                            ) : null}
+                          </td>
+                          <td className="!font-body">
+                            <div className="min-w-0">
+                              <span className="font-medium text-text-primary truncate block">{row.campaign_name}</span>
+                              {row.objective && <span className="text-[0.65rem] bg-glass-element px-1.5 py-0.5 rounded text-text-secondary mt-1 inline-block">{row.objective}</span>}
+                            </div>
+                          </td>
+                          <td className="text-center">
+                            {row.status ? (
+                              <span className={`text-[0.65rem] px-2 py-0.5 rounded-full font-medium ${
+                                row.status === 'ACTIVE' ? 'bg-success/10 text-success' : 'bg-glass-element text-text-secondary'
+                              }`}>
+                                {row.status}
+                              </span>
+                            ) : '—'}
+                          </td>
+                          <td className="text-right font-mono text-sm text-text-secondary">
+                            {fmtCurrency(row.total_spend, adCurrency)}
+                          </td>
+                          <td className="text-right text-sm">
+                            <span className="font-mono font-bold text-success">{row.platform_leads}</span>
+                          </td>
+                          <td className="text-right font-mono text-sm text-text-secondary hidden md:table-cell">
+                            {row.meta_conversions}
+                          </td>
+                          <td className="text-right font-mono text-sm">
+                            {row.platform_leads > 0 ? fmtCurrency(cpl, adCurrency) : '—'}
+                          </td>
+                        </tr>
+                        {isExpanded && row.platform_leads > 0 && (
+                          <tr className="bg-bg-primary/30 border-b border-glass-border">
+                            <td colSpan={7} className="!p-0">
+                              <div className="px-12 py-4 shadow-inner text-sm">
+                                <h4 className="font-semibold text-text-primary mb-3 flex items-center gap-2">
+                                  <Users className="w-4 h-4 text-brand-primary" />
+                                  {t('sa.metaAds.acquiredSubscriptions')}
+                                </h4>
+                                <div className="space-y-2">
+                                  {row.leads_list.map(lead => (
+                                    <div key={lead.tenant_id} className="flex items-center justify-between p-2 rounded border border-glass-border bg-glass-element hover:border-brand-primary/30 transition-colors">
+                                      <div>
+                                        <div className="font-medium text-text-primary">{lead.tenant_name}</div>
+                                        <div className="text-[0.65rem] font-mono text-text-muted mt-0.5 flex gap-2">
+                                          <span>{formatDate(lead.created_at)}</span>
+                                          {lead.utm_source && <span className="text-brand-accent">src: {lead.utm_source}</span>}
+                                          {lead.utm_medium && <span className="text-brand-primary">med: {lead.utm_medium}</span>}
+                                        </div>
+                                      </div>
+                                      <a href={`/sa/users/${lead.tenant_id}`} className="p-1 text-text-secondary hover:text-brand-primary transition-colors" target="_blank" rel="noreferrer">
+                                        <Link className="w-4 h-4" />
+                                      </a>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </tbody>
               </table>
             </div>
           )}
