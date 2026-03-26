@@ -133,3 +133,19 @@ export function useProposalData() {
 
   return { proposal, loading, notFound, lang, setLang, slug, theme, c };
 }
+
+/** Accept a proposal by verifying email */
+export async function acceptProposal(slug: string, email: string): Promise<{ accepted: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/proposals/public/${slug}/accept`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const json = await res.json();
+    if (res.ok && json.success) return { accepted: true };
+    return { accepted: false, error: json.error?.code || 'UNKNOWN' };
+  } catch {
+    return { accepted: false, error: 'NETWORK_ERROR' };
+  }
+}

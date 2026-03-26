@@ -108,6 +108,7 @@ serve(async (req: Request) => {
       paymentsRes,
       activationPlansRes,
       authUsersRes,
+      proposalsRes,
     ] = await Promise.all([
       db.from("profiles").select("user_id, full_name, email, avatar_url, locale, is_sa, has_seen_onboarding, created_at").order("created_at", { ascending: false }),
       db.from("tenant_users").select("user_id, tenant_id, role").eq("is_active", true),
@@ -118,6 +119,7 @@ serve(async (req: Request) => {
       db.from("payment_attempts").select("tenant_id, status, amount, currency, stripe_payment_intent_id, created_at").order("created_at", { ascending: false }),
       db.from("activation_plans").select("tenant_id, code, plan_id, is_active, created_at"),
       db.auth.admin.listUsers({ perPage: 1000 }),
+      db.from("proposals").select("user_id, status").eq("status", "accepted"),
     ]);
 
     // Check for errors
@@ -135,6 +137,7 @@ serve(async (req: Request) => {
     const payments = paymentsRes.data || [];
     const activationPlans = activationPlansRes.data || [];
     const authUsers = authUsersRes.data?.users || [];
+    const acceptedProposals = proposalsRes.data || [];
 
     // ── Build lookup maps ──
 
@@ -169,6 +172,8 @@ serve(async (req: Request) => {
     const activationByTenant = new Map<string, any>();
     // deno-lint-ignore no-explicit-any
     activationPlans.forEach((a: any) => { if (a.tenant_id && !activationByTenant.has(a.tenant_id)) activationByTenant.set(a.tenant_id, a); });
+    // deno-lint-ignore no-explicit-any
+    const acceptedProposalUserIds = new Set(acceptedProposals.map((p: any) => p.user_id).filter(Boolean));
 
     // ── Combine into pipeline cards ──
 
@@ -198,6 +203,8 @@ serve(async (req: Request) => {
         stage = hasStripe ? "trial_stripe" : "trial_activation";
       } else if (subStatus === "active") {
         stage = hasStripe ? "active_stripe" : "active_activation";
+      } else if (emailConfirmed && acceptedProposalUserIds.has(profile.user_id)) {
+        stage = "proposal_accepted";
       } else if (emailConfirmed) {
         stage = "email_confirmed";
       }

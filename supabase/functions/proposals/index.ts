@@ -119,6 +119,66 @@ serve(async (req: Request) => {
       return logger.done(withCors(req, ok(publicData)));
     }
 
+    // ── Public route: POST /proposals/public/:slug/accept ──
+    if (segments[1] === "public" && segments[2] && segments[3] === "accept" && req.method === "POST") {
+      const slug = segments[2];
+      const body = await req.json();
+      const submittedEmail = (body.email || "").trim().toLowerCase();
+
+      if (!submittedEmail) {
+        return logger.done(withCors(req, badRequest("email is required")));
+      }
+
+      // Fetch proposal
+      const { data: proposal, error: fetchErr } = await db
+        .from("proposals")
+        .select("id, user_id, status")
+        .eq("slug", slug)
+        .single();
+
+      if (fetchErr || !proposal) {
+        return logger.done(withCors(req, notFound("Proposal not found")));
+      }
+
+      // Only allow acceptance for sent/viewed proposals
+      if (!["sent", "viewed"].includes(proposal.status)) {
+        return logger.done(withCors(req, badRequest("This proposal cannot be accepted in its current status")));
+      }
+
+      // Fetch user email from profiles
+      if (!proposal.user_id) {
+        return logger.done(withCors(req, badRequest("This proposal has no associated user")));
+      }
+
+      const { data: profile } = await db
+        .from("profiles")
+        .select("email")
+        .eq("id", proposal.user_id)
+        .single();
+
+      if (!profile || !profile.email) {
+        return logger.done(withCors(req, badRequest("User profile not found")));
+      }
+
+      // Compare emails (case-insensitive)
+      if (submittedEmail !== profile.email.trim().toLowerCase()) {
+        return logger.done(withCors(req, new Response(
+          JSON.stringify({ success: false, error: { message: "Email does not match", code: "EMAIL_MISMATCH" } }),
+          { status: 403, headers: { "Content-Type": "application/json" } },
+        )));
+      }
+
+      // Accept the proposal
+      const { error: updateErr } = await db
+        .from("proposals")
+        .update({ status: "accepted" })
+        .eq("id", proposal.id);
+
+      if (updateErr) throw updateErr;
+
+      return logger.done(withCors(req, ok({ accepted: true })));
+    }
+
     // ── All other routes require Super Admin auth ──
     const { user } = await verifySuperAdmin(req);
     const authCtx = { user_id: user.id };

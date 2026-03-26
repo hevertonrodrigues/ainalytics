@@ -706,6 +706,7 @@
     "stage": "Etapa",
     "stage_registered": "Registrado",
     "stage_email_confirmed": "Email Confirmado",
+    "stage_proposal_accepted": "Propuesta Aceptada",
     "stage_trial_activation": "Trial (Activación)",
     "stage_trial_stripe": "Trial (Stripe)",
     "stage_active_activation": "Activo (Activación)",
@@ -1670,7 +1671,15 @@
       "poweredBy": "Desarrollado por",
       "customPlan": "Propuesta Exclusiva",
       "footerNote": "Esta propuesta es confidencial y está destinada únicamente al destinatario indicado.",
-      "viewFullPresentation": "Ver presentación completa"
+      "viewFullPresentation": "Ver presentación completa",
+      "acceptProposal": "Aceptar Propuesta",
+      "acceptModalTitle": "Confirmar Su Email",
+      "acceptModalDesc": "Ingrese el email asociado a esta propuesta para confirmar su aceptación.",
+      "acceptEmailPlaceholder": "su@email.com",
+      "acceptConfirm": "Confirmar",
+      "acceptError": "Algo salió mal. Por favor intente nuevamente.",
+      "acceptEmailMismatch": "Este email no coincide con nuestros registros. Utilice el email asociado a esta propuesta.",
+      "acceptedStatus": "✓ Propuesta aceptada. Nuestro equipo se pondrá en contacto pronto."
     },
     "full": {
       "backToSimple": "Vista rápida",

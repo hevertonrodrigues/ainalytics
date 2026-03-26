@@ -1,20 +1,41 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Clock, AlertTriangle, Globe, Mail, Sparkles, ArrowRight, FileQuestion } from 'lucide-react';
+import { Globe, ArrowRight, FileQuestion, Mail, Loader2 } from 'lucide-react';
 import { APP_NAME } from '@/lib/constants';
-import { useProposalData, formatCurrency, formatDate, SUPPORTED_LANGS } from './proposalShared';
+import { useProposalData, formatCurrency, formatDate, acceptProposal, SUPPORTED_LANGS } from './proposalShared';
 
 export function ProposalPublicPage() {
   const { proposal, loading, notFound, lang, setLang, slug, c } = useProposalData();
   const { t } = useTranslation();
 
+  const [showAcceptModal, setShowAcceptModal] = useState(false);
+  const [acceptEmail, setAcceptEmail] = useState('');
+  const [acceptLoading, setAcceptLoading] = useState(false);
+  const [acceptError, setAcceptError] = useState('');
+  const [accepted, setAccepted] = useState(false);
+
+  async function handleAccept() {
+    if (!acceptEmail.trim() || !slug) return;
+    setAcceptLoading(true);
+    setAcceptError('');
+    const result = await acceptProposal(slug, acceptEmail.trim());
+    setAcceptLoading(false);
+    if (result.accepted) {
+      setAccepted(true);
+      setShowAcceptModal(false);
+    } else {
+      setAcceptError(result.error === 'EMAIL_MISMATCH' ? t('proposal.public.acceptEmailMismatch') : t('proposal.public.acceptError'));
+    }
+  }
+
   /* ── Loading ── */
   if (loading) {
     return (
-      <div style={{ background: '#0a0a0f' }} className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse space-y-4 text-center">
-          <div className="w-12 h-12 rounded-full bg-white/5 mx-auto" />
-          <div className="w-48 h-4 bg-white/5 rounded mx-auto" />
+      <div style={{ background: c.bg }} className="min-h-screen flex items-center justify-center">
+        <div className="animate-pulse space-y-3 text-center">
+          <div className="w-32 h-3 rounded mx-auto" style={{ background: c.border }} />
+          <div className="w-48 h-3 rounded mx-auto" style={{ background: c.border }} />
         </div>
       </div>
     );
@@ -33,24 +54,21 @@ export function ProposalPublicPage() {
           </div>
           <div className="error-boundary-content">
             <h1 className="error-boundary-title">{t('errorPages.proposalNotFoundTitle', 'This Proposal Is Unavailable')}</h1>
-            <p className="error-boundary-subtitle">{t('errorPages.proposalNotFoundSubtitle', "The proposal you're looking for may have expired or doesn't exist. Please contact us for an updated offer.")}</p>
+            <p className="error-boundary-subtitle">{t('errorPages.proposalNotFoundSubtitle', "The proposal you're looking for may have expired or doesn't exist.")}</p>
           </div>
           <div className="error-boundary-actions">
-            <a
-              href="mailto:contact@ainalytics.com"
-              className="error-boundary-btn-primary"
-            >
+            <a href="mailto:contact@ainalytics.com" className="error-boundary-btn-primary">
               <Mail className="w-4 h-4" />
               {t('errorPages.contactUs', 'Contact Us')}
             </a>
           </div>
-          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{APP_NAME}</p>
         </div>
       </div>
     );
   }
 
   const isExpired = proposal.status === 'expired';
+  const isAccepted = accepted || proposal.status === 'accepted';
   const defaultLang = proposal.default_lang || 'en';
   const features = proposal.custom_features[defaultLang] || proposal.custom_features['en'] || [];
   const contactEmail = `contact@${proposal.company_domain || 'ainalytics.com'}`;
@@ -59,11 +77,7 @@ export function ProposalPublicPage() {
     : t('proposal.public.billedYearly');
 
   return (
-    <div style={{ background: c.bg }} className="min-h-screen relative overflow-hidden">
-      {/* Background glows */}
-      <div style={{ background: c.glow1 }} className="absolute top-[-200px] right-[-200px] w-[600px] h-[600px] rounded-full blur-[150px] pointer-events-none" />
-      <div style={{ background: c.glow2 }} className="absolute bottom-[-200px] left-[-200px] w-[500px] h-[500px] rounded-full blur-[120px] pointer-events-none" />
-
+    <div style={{ background: c.bg }} className="min-h-screen relative">
       {/* Language switcher */}
       <div className="fixed top-4 right-4 z-50">
         <div style={{ background: c.card, border: `1px solid ${c.border}` }} className="flex items-center gap-1 backdrop-blur-md rounded-lg p-1">
@@ -85,68 +99,60 @@ export function ProposalPublicPage() {
       </div>
 
       <div className="relative max-w-lg mx-auto px-6 py-16 md:py-24">
-        {/* Branding */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="text-lg font-bold tracking-tight" style={{ color: c.text }}>{APP_NAME}</span>
-          </div>
-          {(proposal.client_name || proposal.company_name) && (
-            <p className="text-xs uppercase tracking-widest" style={{ color: c.textMuted }}>
-              {t('proposal.public.preparedFor')} {proposal.client_name || proposal.company_name}
+        {/* Header — Client & Company */}
+        <div className="mb-12">
+          <p className="text-xs uppercase tracking-[.2em] mb-6" style={{ color: c.textMuted }}>
+            {t('proposal.public.preparedFor')}
+          </p>
+          {proposal.client_name && (
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight leading-tight" style={{ color: c.text }}>
+              {proposal.client_name}
+            </h2>
+          )}
+          {proposal.company_name && (
+            <p className="text-lg mt-1" style={{ color: c.textSoft }}>
+              {proposal.company_name}
             </p>
+          )}
+          {!proposal.client_name && !proposal.company_name && (
+            <h2 className="text-3xl font-bold tracking-tight" style={{ color: c.text }}>
+              {t('proposal.public.customPlan')}
+            </h2>
           )}
         </div>
 
-        {/* Main card */}
+        {/* Plan card */}
         <div
-          className="backdrop-blur-xl rounded-2xl overflow-hidden"
-          style={{ background: c.card, border: `1px solid ${c.border}`, boxShadow: c.shadow }}
+          className="rounded-2xl overflow-hidden"
+          style={{ border: `1px solid ${c.border}` }}
         >
-          {/* Plan name */}
-          <div className="px-8 pt-8 pb-4 text-center" style={{ borderBottom: `1px solid ${c.border}` }}>
-            <span
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-widest mb-4"
-              style={{ background: c.badge, color: c.badgeText, border: `1px solid ${c.borderAccent}` }}
-            >
-              {t('proposal.public.customPlan')}
-            </span>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: c.text }}>
+          {/* Plan name + price */}
+          <div className="px-8 py-8" style={{ borderBottom: `1px solid ${c.border}` }}>
+            <p className="text-xs uppercase tracking-[.15em] font-medium mb-3" style={{ color: c.textMuted }}>
               {proposal.custom_plan_name}
-            </h1>
-          </div>
-
-          {/* Price — hero */}
-          <div className="px-8 py-8 text-center" style={{ borderBottom: `1px solid ${c.border}`, background: c.pricingGradient }}>
-            <div className="flex items-baseline justify-center gap-1 mb-2">
-              <span className="text-5xl md:text-6xl font-bold tabular-nums tracking-tight" style={{ color: c.text }}>
+            </p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-5xl font-bold tabular-nums tracking-tight" style={{ color: c.text }}>
                 {formatCurrency(proposal.custom_price, proposal.currency)}
               </span>
             </div>
-            <p className="text-sm" style={{ color: c.textMuted }}>{intervalLabel}</p>
+            <p className="text-sm mt-2" style={{ color: c.textMuted }}>{intervalLabel}</p>
 
             {proposal.base_plan && proposal.base_plan.price > proposal.custom_price && (
-              <div
-                className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full"
-                style={{ background: c.success, border: `1px solid ${c.successBorder}` }}
-              >
-                <span className="text-xs font-semibold" style={{ color: c.successText }}>
-                  {t('proposal.public.savings')} {formatCurrency(proposal.base_plan.price - proposal.custom_price, proposal.currency)}
-                </span>
-              </div>
+              <p className="text-xs mt-3" style={{ color: c.successText }}>
+                {t('proposal.public.savings')} {formatCurrency(proposal.base_plan.price - proposal.custom_price, proposal.currency)}
+              </p>
             )}
           </div>
 
-          {/* Feature list */}
+          {/* Features */}
           {features.length > 0 && (
             <div className="px-8 py-6" style={{ borderBottom: `1px solid ${c.border}` }}>
-              <ul className="space-y-2.5">
+              <ul className="space-y-3">
                 {features.map((feat: string, idx: number) => (
-                  <li key={idx} className="flex items-start gap-2.5">
-                    <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" style={{ color: c.successText }} />
-                    <span className="text-sm" style={{ color: c.textSoft }}>{feat}</span>
+                  <li key={idx} className="flex items-start gap-3">
+                    <span className="shrink-0 mt-2 w-1 h-1 rounded-full" style={{ background: c.badgeText }} />
+                    <span className="text-sm leading-relaxed" style={{ color: c.textSoft }}>{feat}</span>
                   </li>
                 ))}
               </ul>
@@ -156,33 +162,34 @@ export function ProposalPublicPage() {
           {/* CTA */}
           <div className="px-8 py-6">
             {isExpired ? (
-              <div
-                className="flex items-center gap-3 p-4 rounded-xl"
-                style={{ background: c.error, border: `1px solid ${c.errorBorder}` }}
-              >
-                <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: c.errorText }} />
-                <div>
-                  <p className="text-sm font-medium" style={{ color: c.errorText }}>{t('proposal.public.expired')}</p>
-                  <p className="text-xs mt-0.5" style={{ color: c.errorText, opacity: 0.6 }}>{t('proposal.public.expiredDesc')}</p>
-                </div>
+              <div className="text-center py-2">
+                <p className="text-sm font-medium" style={{ color: c.errorText }}>{t('proposal.public.expired')}</p>
+                <p className="text-xs mt-1" style={{ color: c.textMuted }}>{t('proposal.public.expiredDesc')}</p>
+              </div>
+            ) : isAccepted ? (
+              <div className="text-center py-2">
+                <p className="text-sm font-medium" style={{ color: c.successText }}>{t('proposal.public.acceptedStatus')}</p>
               </div>
             ) : (
               <>
                 {proposal.valid_until && (
-                  <div className="flex items-center gap-2 text-xs mb-4" style={{ color: c.textMuted }}>
-                    <Clock className="w-3.5 h-3.5" />
-                    {t('proposal.public.validUntilLabel')} <strong style={{ color: c.textSoft }}>{formatDate(proposal.valid_until, lang)}</strong>
-                  </div>
+                  <p className="text-xs mb-4" style={{ color: c.textMuted }}>
+                    {t('proposal.public.validUntilLabel')} {formatDate(proposal.valid_until, lang)}
+                  </p>
                 )}
+                <button
+                  onClick={() => setShowAcceptModal(true)}
+                  className="block w-full text-center py-3.5 rounded-xl text-white font-semibold text-sm transition-all active:scale-[0.98] cursor-pointer"
+                  style={{ background: c.btnGradient }}
+                >
+                  {t('proposal.public.acceptProposal')}
+                </button>
                 <a
                   href={`mailto:${contactEmail}?subject=${encodeURIComponent(proposal.custom_plan_name)}`}
-                  className="block w-full text-center py-3.5 rounded-xl text-white font-semibold text-sm transition-all shadow-lg shadow-indigo-600/20 active:scale-[0.98]"
-                  style={{ background: c.btnGradient }}
-                  onMouseOver={e => (e.currentTarget.style.background = c.btnGradientHover)}
-                  onMouseOut={e => (e.currentTarget.style.background = c.btnGradient)}
+                  className="block w-full text-center py-3 mt-2 rounded-xl text-sm font-medium transition-colors"
+                  style={{ color: c.textMuted }}
                 >
-                  <Mail className="w-4 h-4 inline mr-2" />
-                  {t('proposal.public.getStarted')}
+                  {t('proposal.public.haveQuestions')}
                 </a>
               </>
             )}
@@ -190,11 +197,11 @@ export function ProposalPublicPage() {
         </div>
 
         {/* Link to full presentation */}
-        {!isExpired && (
+        {!isExpired && !isAccepted && (
           <Link
             to={`/proposal/${slug}/full`}
-            className="mt-6 flex items-center justify-center gap-2 text-sm transition-colors group"
-            style={{ color: c.badgeText, opacity: 0.7 }}
+            className="mt-8 flex items-center justify-center gap-2 text-sm transition-colors group"
+            style={{ color: c.textMuted }}
           >
             {t('proposal.public.viewFullPresentation')}
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -202,10 +209,60 @@ export function ProposalPublicPage() {
         )}
 
         {/* Footer */}
-        <p className="text-center text-xs mt-8" style={{ color: c.textFaint }}>
-          {t('proposal.public.poweredBy')} {APP_NAME}
+        <p className="text-center text-xs mt-10" style={{ color: c.textFaint }}>
+          {APP_NAME}
         </p>
       </div>
+
+      {/* ── Accept Modal ── */}
+      {showAcceptModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowAcceptModal(false)} />
+          <div
+            className="relative w-full max-w-sm rounded-2xl p-6 space-y-4"
+            style={{ background: c.bg, border: `1px solid ${c.border}`, boxShadow: c.shadow }}
+          >
+            <div>
+              <h3 className="text-lg font-semibold" style={{ color: c.text }}>{t('proposal.public.acceptModalTitle')}</h3>
+              <p className="text-sm mt-1" style={{ color: c.textMuted }}>{t('proposal.public.acceptModalDesc')}</p>
+            </div>
+            <input
+              type="email"
+              value={acceptEmail}
+              onChange={e => setAcceptEmail(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAccept(); }}
+              placeholder={t('proposal.public.acceptEmailPlaceholder')}
+              className="w-full px-4 py-3 rounded-xl text-sm outline-none transition-colors"
+              style={{
+                background: c.card,
+                border: `1px solid ${acceptError ? c.errorBorder : c.border}`,
+                color: c.text,
+              }}
+              autoFocus
+            />
+            {acceptError && (
+              <p className="text-xs" style={{ color: c.errorText }}>{acceptError}</p>
+            )}
+            <div className="flex gap-2 pt-1">
+              <button
+                onClick={() => setShowAcceptModal(false)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors cursor-pointer"
+                style={{ border: `1px solid ${c.border}`, color: c.textSoft }}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                onClick={handleAccept}
+                disabled={acceptLoading || !acceptEmail.trim()}
+                className="flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition-all disabled:opacity-40 cursor-pointer"
+                style={{ background: c.btnGradient }}
+              >
+                {acceptLoading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : t('proposal.public.acceptConfirm')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -706,6 +706,7 @@
     "stage": "Stage",
     "stage_registered": "Registered",
     "stage_email_confirmed": "Email Confirmed",
+    "stage_proposal_accepted": "Proposal Accepted",
     "stage_trial_activation": "Trial (Activation)",
     "stage_trial_stripe": "Trial (Stripe)",
     "stage_active_activation": "Active (Activation)",
@@ -1670,7 +1671,15 @@
       "poweredBy": "Powered by",
       "customPlan": "Exclusive Proposal",
       "footerNote": "This proposal is confidential and intended solely for the named recipient.",
-      "viewFullPresentation": "View full presentation"
+      "viewFullPresentation": "View full presentation",
+      "acceptProposal": "Accept Proposal",
+      "acceptModalTitle": "Confirm Your Email",
+      "acceptModalDesc": "Enter the email associated with this proposal to confirm your acceptance.",
+      "acceptEmailPlaceholder": "your@email.com",
+      "acceptConfirm": "Confirm",
+      "acceptError": "Something went wrong. Please try again.",
+      "acceptEmailMismatch": "This email does not match our records. Please use the email associated with this proposal.",
+      "acceptedStatus": "✓ Proposal accepted. Our team will contact you shortly."
     },
     "full": {
       "backToSimple": "Quick view",
