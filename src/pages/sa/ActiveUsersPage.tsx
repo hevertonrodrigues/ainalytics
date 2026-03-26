@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   Cpu,
+  CalendarClock,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 
@@ -35,6 +36,7 @@ interface ActiveUser {
   tenant_name: string | null;
   tenant_slug: string | null;
   plan_name: string | null;
+  plan_end_date: string | null;
   // Company
   has_company: boolean;
   company_name: string | null;
@@ -74,6 +76,7 @@ export function ActiveUsersPage() {
   const [search, setSearch] = useState('');
   const [sortField, setSortField] = useState<SortField>('progress_percent');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [showFinishingSoon, setShowFinishingSoon] = useState(false);
 
   const [users, setUsers] = useState<ActiveUser[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,6 +100,17 @@ export function ActiveUsersPage() {
   }, []);
 
   // KPIs
+  const finishingSoonCount = useMemo(() => {
+    if (!users) return 0;
+    const oneMonthFromNow = new Date();
+    oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+    return users.filter(u => {
+      if (!u.plan_end_date) return false;
+      const endDate = new Date(u.plan_end_date);
+      return endDate <= oneMonthFromNow;
+    }).length;
+  }, [users]);
+
   const kpis = useMemo(() => {
     if (!users) return { total: 0, withCompany: 0, withAnalysis: 0, withPrompts: 0 };
     return {
@@ -111,6 +125,15 @@ export function ActiveUsersPage() {
   const filteredUsers = useMemo(() => {
     if (!users) return [];
     let filtered = [...users];
+    if (showFinishingSoon) {
+      const oneMonthFromNow = new Date();
+      oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+      filtered = filtered.filter(u => {
+        if (!u.plan_end_date) return false;
+        const endDate = new Date(u.plan_end_date);
+        return endDate <= oneMonthFromNow;
+      });
+    }
     if (search.trim()) {
       const q = search.toLowerCase();
       filtered = filtered.filter(u =>
@@ -128,7 +151,7 @@ export function ActiveUsersPage() {
       return 0;
     });
     return filtered;
-  }, [users, search, sortField, sortOrder]);
+  }, [users, search, sortField, sortOrder, showFinishingSoon]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
@@ -176,10 +199,33 @@ export function ActiveUsersPage() {
         <KPICard icon={<MessageSquare className="w-4 h-4" />} label={t('sa.withPrompts')} value={kpis.withPrompts} valueColor="text-success" />
       </div>
 
-      {/* Search */}
-      <div className="relative w-full sm:w-96">
-        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-        <input type="text" placeholder={t('sa.searchUsers')} value={search} onChange={e => setSearch(e.target.value)} className="input pl-9 w-full" />
+      {/* Search + Filter */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative w-full sm:w-96">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input type="text" placeholder={t('sa.searchUsers')} value={search} onChange={e => setSearch(e.target.value)} className="input pl-9 w-full" />
+        </div>
+        <button
+          onClick={() => setShowFinishingSoon(prev => !prev)}
+          title={t('sa.finishingSoonTooltip')}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${
+            showFinishingSoon
+              ? 'bg-warning/15 text-warning border-warning/30 shadow-sm'
+              : 'bg-bg-secondary text-text-secondary border-glass-border hover:bg-glass-hover hover:text-text-primary'
+          }`}
+        >
+          <CalendarClock className="w-4 h-4" />
+          {t('sa.finishingSoon')}
+          {finishingSoonCount > 0 && (
+            <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold ${
+              showFinishingSoon
+                ? 'bg-warning/25 text-warning'
+                : 'bg-warning/15 text-warning'
+            }`}>
+              {finishingSoonCount}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Table */}

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { formatDate } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { ExternalLink, MessageSquare, Quote, ArrowLeft, Globe } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -170,7 +171,7 @@ export function SourceDetailPage() {
                         {ref.platform_slug || 'AI'} 
                       </span>
                       {(ref.model_slug || ref.model_id) && <span>• {ref.model_slug || ref.model_id}</span>}
-                      <span>• {new Date(ref.created_at).toLocaleDateString()}</span>
+                      <span>• {formatDate(ref.created_at)}</span>
                     </div>
                   </div>
                   

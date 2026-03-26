@@ -5,6 +5,7 @@
  * GEO analysis data using jsPDF — no DOM capture.
  */
 import { jsPDF } from 'jspdf';
+import { formatDate } from '@/lib/dateFormat';
 import type { Company, AiReport, CompanyPage, GeoFactorScore, DeepAnalyzeImprovement, DeepAnalyzeTopic, DeepAnalyzePageUsed } from '@/types';
 
 // ─── Color palette (light theme for print) ─────────────────
@@ -101,7 +102,7 @@ export function generatePdfReport(
     pdf.setFontSize(7);
     pdf.setTextColor(...hex(C.textLight));
     pdf.setFont('helvetica', 'normal');
-    const footerDate = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    const footerDate = formatDate(new Date(), 'longDate');
     pdf.text(t('company.pdfGeneratedOn', { date: footerDate }), ML, H - 8);
     pdf.text(t('company.pdfPoweredBy', 'Powered by AINalytics'), W / 2, H - 8, { align: 'center' });
     pdf.text(t('company.pdfPageNumber', { number: pageNum }), W - MR, H - 8, { align: 'right' });
@@ -190,7 +191,7 @@ export function generatePdfReport(
   if (company.domain) metaParts.push(company.domain);
   if (report.industry) metaParts.push(report.industry);
   if (report.country) metaParts.push(report.country);
-  const dateStr = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const dateStr = formatDate(new Date(), 'longDate');
   metaParts.push(dateStr);
   pdf.text(metaParts.join('  |  '), ML, y);
   y += 12;

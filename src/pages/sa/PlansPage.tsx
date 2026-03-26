@@ -1,4 +1,5 @@
 import { useState, Fragment } from 'react';
+import { formatDate, formatDateTime } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { Package, Plus, Pencil, Trash2, Check, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAdminCrud } from './useAdminCrud';
@@ -228,7 +229,7 @@ export function PlansPage() {
                         {p.is_active ? t('sa.active') : t('sa.inactive')}
                       </button>
                     </td>
-                    <td className="text-center text-xs">{new Date(p.created_at).toLocaleDateString()}</td>
+                    <td className="text-center text-xs">{formatDate(p.created_at)}</td>
                     <td className="text-right">
                       <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
                         <button onClick={() => startEdit(p)} className="icon-btn"><Pencil className="w-3.5 h-3.5" /></button>
@@ -258,7 +259,7 @@ export function PlansPage() {
                           </div>
                           <div>
                             <span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.colUpdated')}</span>
-                            <span className="text-sm text-text-primary">{new Date(p.updated_at).toLocaleString()}</span>
+                            <span className="text-sm text-text-primary">{formatDateTime(p.updated_at, 'dateTime')}</span>
                           </div>
                         </div>
                       </td>

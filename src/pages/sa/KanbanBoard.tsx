@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { formatDate } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -9,6 +10,8 @@ import {
   CreditCard,
   Key,
   ExternalLink,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react';
 import type { CRMPipelineUser, KanbanStage } from './types';
 import { KANBAN_STAGES } from './types';
@@ -30,6 +33,11 @@ const STAGE_CONFIG: Record<KanbanStage, { color: string; borderColor: string; bg
 export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  const toggleGroup = (code: string) => {
+    setCollapsedGroups(prev => ({ ...prev, [code]: !prev[code] }));
+  };
 
   // Group filtered users by stage
   const columns = useMemo(() => KANBAN_STAGES.reduce<Record<KanbanStage, CRMPipelineUser[]>>((acc, stage) => {
@@ -71,6 +79,52 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
             <div className="flex-1 space-y-2 p-2 bg-bg-secondary/30 rounded-b-lg border border-t-0 border-glass-border overflow-y-auto max-h-[calc(100vh-320px)]">
               {stageUsers.length === 0 ? (
                 <p className="text-xs text-text-muted text-center py-6 italic">{t('sa.noUsersFound')}</p>
+              ) : stage === 'subscribed_activation' ? (
+                /* Group by activation code */
+                (() => {
+                  const groups: Record<string, CRMPipelineUser[]> = {};
+                  stageUsers.forEach(u => {
+                    const code = u.tenant_code || t('sa.unknownCode');
+                    if (!groups[code]) groups[code] = [];
+                    groups[code].push(u);
+                  });
+                  return Object.entries(groups).map(([code, groupUsers]) => {
+                    const isCollapsed = collapsedGroups[code] ?? false;
+                    return (
+                      <div key={code} className="mb-1">
+                        <button
+                          onClick={() => toggleGroup(code)}
+                          className="w-full flex items-center gap-1.5 px-2 py-1.5 rounded-md bg-brand-primary/5 border border-brand-primary/15 hover:bg-brand-primary/10 transition-colors text-left group/header"
+                        >
+                          {isCollapsed ? (
+                            <ChevronRight className="w-3 h-3 text-brand-primary shrink-0" />
+                          ) : (
+                            <ChevronDown className="w-3 h-3 text-brand-primary shrink-0" />
+                          )}
+                          <Key className="w-3 h-3 text-brand-primary shrink-0" />
+                          <span className="text-[11px] font-semibold text-brand-primary truncate flex-1">
+                            {code}
+                          </span>
+                          <span className="text-[10px] text-text-muted bg-bg-secondary/60 rounded-full px-1.5 py-0.5 font-medium">
+                            {groupUsers.length}
+                          </span>
+                        </button>
+                        {!isCollapsed && (
+                          <div className="mt-1.5 space-y-2 pl-1">
+                            {groupUsers.map(user => (
+                              <KanbanCard
+                                key={user.user_id}
+                                user={user}
+                                onQuickView={() => onUserClick(user)}
+                                onFullView={() => navigate(`/sa/users/${user.user_id}`)}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()
               ) : (
                 stageUsers.map(user => (
                   <KanbanCard
@@ -151,7 +205,7 @@ function KanbanCard({ user, onQuickView, onFullView }: {
 
       {/* Date */}
       <div className="mt-2 text-[10px] text-text-muted">
-        {new Date(user.created_at).toLocaleDateString()}
+        {formatDate(user.created_at)}
       </div>
 
       {/* Hover action */}

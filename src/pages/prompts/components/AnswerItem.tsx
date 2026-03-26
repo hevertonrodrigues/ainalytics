@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { formatDateTime } from '@/lib/dateFormat';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -44,7 +45,7 @@ export function AnswerItem({
         <div className="flex-1 min-w-0 flex items-center gap-2">
           {profile?.is_sa && (
             <span className="text-xs text-text-secondary">
-              {new Date(answer.created_at).toLocaleString()}
+              {formatDateTime(answer.created_at, 'dateTime')}
             </span>
           )}
           {answer.error && (

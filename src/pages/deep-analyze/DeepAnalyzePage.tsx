@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { formatDate } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import {
   Globe,
@@ -206,7 +207,7 @@ export function DeepAnalyzePage() {
                     </span>
                   )}
                   <span className="text-xs text-text-muted whitespace-nowrap">
-                    {new Date(a.created_at).toLocaleDateString()}
+                    {formatDate(a.created_at)}
                   </span>
                 </button>
               ))}

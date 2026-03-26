@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatDate } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -770,7 +771,7 @@ function RecentAnswersCard({ data, t }: { data: DashboardData; t: TFn }) {
                     <span className="text-xs text-text-muted">{meta?.label || a.platform_slug}</span>
                     {a.model_name && <span className="badge">{a.model_name}</span>}
                     <span className="text-xs text-text-muted ml-auto">
-                      {new Date(a.searched_at).toLocaleDateString()}
+                      {formatDate(a.searched_at)}
                     </span>
                   </div>
                 </div>
@@ -828,7 +829,7 @@ function InsightsCard({ data, t, navigate }: { data: DashboardData; t: TFn; navi
               {t(`insightsPage.health${ins.overall_health.charAt(0).toUpperCase() + ins.overall_health.slice(1)}`)}
             </p>
             <p className="text-xs text-text-muted mt-0.5">
-              {new Date(ins.created_at).toLocaleDateString()}
+              {formatDate(ins.created_at)}
             </p>
           </div>
         </div>

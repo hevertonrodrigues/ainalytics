@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { formatDateTime, formatDate } from '@/lib/dateFormat';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,9 +16,15 @@ import {
   XCircle,
   Clock,
   ExternalLink,
+  FileText,
+  Copy,
+  Check,
+  Eye,
+  Trash2,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser } from './types';
+import { CreateProposalModal } from './CreateProposalModal';
 
 export function UserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
@@ -27,6 +34,10 @@ export function UserDetailPage() {
   const [user, setUser] = useState<CRMPipelineUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showProposalModal, setShowProposalModal] = useState(false);
+  // deno-lint-ignore no-explicit-any
+  const [proposals, setProposals] = useState<any[]>([]);
+  const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -47,6 +58,46 @@ export function UserDetailPage() {
     fetchUser();
     return () => { mounted = false; };
   }, [userId, t]);
+
+  const fetchProposals = useCallback(async () => {
+    if (!userId) return;
+    try {
+      const res = await apiClient.get<any[]>(`/proposals?user_id=${userId}`);
+      setProposals(res.data || []);
+    } catch { /* ignore */ }
+  }, [userId]);
+
+  useEffect(() => { fetchProposals(); }, [fetchProposals]);
+
+  async function copyProposalLink(slug: string) {
+    const url = `${window.location.origin}/proposal/${slug}`;
+    await navigator.clipboard.writeText(url);
+    setCopiedSlug(slug);
+    setTimeout(() => setCopiedSlug(null), 2000);
+  }
+
+  async function deleteProposal(id: string) {
+    if (!confirm(t('proposal.deleteConfirm'))) return;
+    try {
+      await apiClient.delete(`/proposals/${id}`);
+      fetchProposals();
+    } catch { /* ignore */ }
+  }
+
+  async function markAsSent(id: string) {
+    try {
+      await apiClient.put(`/proposals/${id}`, { status: 'sent' });
+      fetchProposals();
+    } catch { /* ignore */ }
+  }
+
+  const statusColors: Record<string, string> = {
+    draft: 'bg-text-muted/10 text-text-muted border-text-muted/20',
+    sent: 'bg-chart-cyan/10 text-chart-cyan border-chart-cyan/30',
+    viewed: 'bg-brand-primary/10 text-brand-primary border-brand-primary/30',
+    accepted: 'bg-success/10 text-success border-success/30',
+    expired: 'bg-error/10 text-error border-error/30',
+  };
 
   if (isLoading) {
     return (
@@ -105,9 +156,18 @@ export function UserDetailPage() {
               </p>
             </div>
           </div>
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${stageColor[user.stage] || ''}`}>
-            {t(`sa.stage_${user.stage}`)}
-          </span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowProposalModal(true)}
+              className="btn-primary flex items-center gap-2 text-sm"
+            >
+              <FileText className="w-4 h-4" />
+              {t('proposal.createProposal')}
+            </button>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${stageColor[user.stage] || ''}`}>
+              {t(`sa.stage_${user.stage}`)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -118,14 +178,14 @@ export function UserDetailPage() {
         <DetailCard title={t('sa.authInfo')} icon={<Shield className="w-4 h-4" />}>
           <DetailRow label={t('sa.emailConfirmed')} icon={user.email_confirmed_at ? <CheckCircle2 className="w-3.5 h-3.5 text-success" /> : <XCircle className="w-3.5 h-3.5 text-error" />}>
             <span className={user.email_confirmed_at ? 'text-success' : 'text-error'}>
-              {user.email_confirmed_at ? new Date(user.email_confirmed_at).toLocaleString() : t('sa.notConfirmed')}
+              {user.email_confirmed_at ? formatDateTime(user.email_confirmed_at, 'dateTime') : t('sa.notConfirmed')}
             </span>
           </DetailRow>
           <DetailRow label={t('sa.lastSignIn')} icon={<Clock className="w-3.5 h-3.5" />}>
-            {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : '—'}
+            {user.last_sign_in_at ? formatDateTime(user.last_sign_in_at, 'dateTime') : '—'}
           </DetailRow>
           <DetailRow label={t('sa.registered')} icon={<Calendar className="w-3.5 h-3.5" />}>
-            {new Date(user.created_at).toLocaleString()}
+            {formatDateTime(user.created_at, 'dateTime')}
           </DetailRow>
           <DetailRow label={t('sa.locale')} icon={<Globe className="w-3.5 h-3.5" />}>
             {user.locale}
@@ -204,7 +264,7 @@ export function UserDetailPage() {
           )}
           {user.current_period_start && (
             <DetailRow label={t('sa.period')} icon={<Calendar className="w-3.5 h-3.5" />}>
-              {new Date(user.current_period_start).toLocaleDateString()} — {user.current_period_end ? new Date(user.current_period_end).toLocaleDateString() : '—'}
+              {formatDate(user.current_period_start)} — {user.current_period_end ? formatDate(user.current_period_end) : '—'}
             </DetailRow>
           )}
           {user.cancel_at_period_end && (
@@ -242,7 +302,7 @@ export function UserDetailPage() {
               </DetailRow>
               {user.last_payment_at && (
                 <DetailRow label={t('sa.paymentDate')} icon={<Calendar className="w-3.5 h-3.5" />}>
-                  {new Date(user.last_payment_at).toLocaleString()}
+                  {formatDateTime(user.last_payment_at, 'dateTime')}
                 </DetailRow>
               )}
             </>
@@ -251,6 +311,75 @@ export function UserDetailPage() {
           )}
         </DetailCard>
       </div>
+
+      {/* Proposals section */}
+      <DetailCard title={t('proposal.proposals')} icon={<FileText className="w-4 h-4" />} className="">
+        {proposals.length > 0 ? (
+          <div className="space-y-3">
+            {proposals.map((p: any) => (
+              <div key={p.id} className="flex items-center justify-between gap-4 bg-glass-element rounded-lg px-4 py-3 border border-glass-border">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm text-text-primary truncate">{p.custom_plan_name}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${statusColors[p.status] || ''}`}>
+                      {t(`proposal.status${p.status.charAt(0).toUpperCase() + p.status.slice(1)}`)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-text-muted">
+                    <span>${p.custom_price}{p.billing_interval === 'monthly' ? t('proposal.perMonth') : t('proposal.perYear')}</span>
+                    <span>{formatDate(p.created_at)}</span>
+                    {p.viewed_at && (
+                      <span className="flex items-center gap-1 text-brand-primary">
+                        <Eye className="w-3 h-3" /> {formatDateTime(p.viewed_at, 'dateTime')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {p.status === 'draft' && (
+                    <button
+                      onClick={() => markAsSent(p.id)}
+                      className="px-2 py-1 rounded-md bg-chart-cyan/10 text-chart-cyan hover:bg-chart-cyan/20 text-xs font-medium transition-colors"
+                    >
+                      {t('proposal.markAsSent')}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => copyProposalLink(p.slug)}
+                    className="p-1.5 rounded-md hover:bg-glass-element transition-colors text-text-muted hover:text-brand-primary"
+                    title={t('proposal.copyLink')}
+                  >
+                    {copiedSlug === p.slug ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    onClick={() => deleteProposal(p.id)}
+                    className="p-1.5 rounded-md hover:bg-error/10 transition-colors text-text-muted hover:text-error"
+                    title={t('proposal.deleteProposal')}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-6">
+            <FileText className="w-8 h-8 text-text-muted/30 mx-auto mb-2" />
+            <p className="text-sm text-text-muted">{t('proposal.noProposals')}</p>
+            <p className="text-xs text-text-muted/60 mt-1">{t('proposal.noProposalsDesc')}</p>
+          </div>
+        )}
+      </DetailCard>
+
+      {/* Create Proposal Modal */}
+      <CreateProposalModal
+        isOpen={showProposalModal}
+        onClose={() => setShowProposalModal(false)}
+        onCreated={fetchProposals}
+        userId={user.user_id}
+        tenantId={user.tenant_id ?? undefined}
+        userName={user.full_name || user.email || undefined}
+      />
     </div>
   );
 }

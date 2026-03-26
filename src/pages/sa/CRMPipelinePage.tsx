@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { formatDate } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { 
   Users, 
@@ -252,7 +253,7 @@ export function CRMPipelinePage() {
                           <div><span className="font-medium text-text-primary">${user.paid_amount}</span><span className="text-xs text-text-muted ml-0.5">/{user.billing_interval === 'yearly' ? 'yr' : 'mo'}</span></div>
                         ) : <span className="text-text-muted">—</span>}
                       </td>
-                      <td className="px-4 py-3 text-right"><div className="text-text-secondary whitespace-nowrap">{new Date(user.created_at).toLocaleDateString()}</div></td>
+                      <td className="px-4 py-3 text-right"><div className="text-text-secondary whitespace-nowrap">{formatDate(user.created_at)}</div></td>
                     </tr>
                   ))
                 )}

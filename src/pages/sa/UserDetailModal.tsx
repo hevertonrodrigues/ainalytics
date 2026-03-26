@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { formatDateTime } from '@/lib/dateFormat';
 import {
   X,
   Mail,
@@ -76,13 +77,13 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
           {/* Auth Info */}
           <Section title={t('sa.authInfo')}>
             <Row icon={<CheckCircle2 className="w-3.5 h-3.5" />} label={t('sa.emailConfirmed')} 
-              value={user.email_confirmed_at ? new Date(user.email_confirmed_at).toLocaleString() : '—'}
+              value={user.email_confirmed_at ? formatDateTime(user.email_confirmed_at, 'dateTime') : '—'}
               valueClass={user.email_confirmed_at ? 'text-success' : 'text-error'} />
             <Row icon={<Calendar className="w-3.5 h-3.5" />} label={t('sa.lastSignIn')} 
-              value={user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : '—'} />
+              value={user.last_sign_in_at ? formatDateTime(user.last_sign_in_at, 'dateTime') : '—'} />
             <Row icon={<Globe className="w-3.5 h-3.5" />} label={t('sa.locale')} value={user.locale} />
             <Row icon={<Calendar className="w-3.5 h-3.5" />} label={t('sa.registered')} 
-              value={new Date(user.created_at).toLocaleString()} />
+              value={formatDateTime(user.created_at, 'dateTime')} />
           </Section>
 
           {/* Tenant & Company */}
@@ -127,7 +128,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
                 value={`${user.last_payment_status} — $${user.last_payment_amount}`}
                 valueClass={user.last_payment_status === 'succeeded' ? 'text-success' : 'text-error'} />
               <Row icon={<Calendar className="w-3.5 h-3.5" />} label={t('sa.paymentDate')} 
-                value={user.last_payment_at ? new Date(user.last_payment_at).toLocaleString() : '—'} />
+                value={user.last_payment_at ? formatDateTime(user.last_payment_at, 'dateTime') : '—'} />
               <Row icon={<CreditCard className="w-3.5 h-3.5" />} label={t('sa.totalPayments')} 
                 value={String(user.total_payment_attempts)} />
             </Section>

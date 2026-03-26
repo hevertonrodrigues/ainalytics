@@ -36,7 +36,7 @@ serve(async (req: Request) => {
     ] = await Promise.all([
       db.from("profiles").select("user_id, full_name, email, avatar_url, locale, is_sa, has_seen_onboarding, created_at").order("created_at", { ascending: false }),
       db.from("tenant_users").select("user_id, tenant_id, role").eq("is_active", true),
-      db.from("tenants").select("id, name, slug, created_at"),
+      db.from("tenants").select("id, name, slug, created_at, code"),
       db.from("plans").select("id, name, price"),
       db.from("companies").select("tenant_id, domain, company_name, industry, country"),
       db.from("subscriptions").select("tenant_id, plan_id, status, billing_interval, paid_amount, stripe_subscription_id, stripe_customer_id, current_period_start, current_period_end, cancel_at_period_end, created_at"),
@@ -142,6 +142,7 @@ serve(async (req: Request) => {
         tenant_id: tenant?.id || null,
         tenant_name: tenant?.name || null,
         tenant_slug: tenant?.slug || null,
+        tenant_code: tenant?.code || null,
         tenant_created_at: tenant?.created_at || null,
         tenant_role: activeTenantUser?.role || null,
         // Company

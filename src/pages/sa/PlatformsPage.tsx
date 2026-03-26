@@ -1,4 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
+import { formatDate, formatDateTime } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { Globe, Plus, Pencil, Trash2, Check, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAdminCrud } from './useAdminCrud';
@@ -141,7 +142,7 @@ export function PlatformsPage() {
                     <td className="text-center !font-body">
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-primary/10 text-brand-primary">{platformModels.length}</span>
                     </td>
-                    <td className="!font-body text-sm">{new Date(p.created_at).toLocaleDateString()}</td>
+                    <td className="!font-body text-sm">{formatDate(p.created_at)}</td>
                     <td className="text-right" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => startEdit(p)} className="icon-btn"><Pencil className="w-3.5 h-3.5" /></button>
@@ -155,7 +156,7 @@ export function PlatformsPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                           <div><span className="text-xs font-semibold text-text-secondary block mb-1">ID</span><code className="text-xs text-text-primary break-all">{p.id}</code></div>
                           <div><span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.defaultModelIdLabel')}</span><code className="text-xs text-text-primary break-all">{p.default_model_id || '—'}</code></div>
-                          <div><span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.colUpdated')}</span><span className="text-text-primary">{p.updated_at ? new Date(p.updated_at).toLocaleString() : '—'}</span></div>
+                          <div><span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.colUpdated')}</span><span className="text-text-primary">{p.updated_at ? formatDateTime(p.updated_at, 'dateTime') : '—'}</span></div>
                         </div>
                         {platformModels.length > 0 && (
                           <div className="mt-3">

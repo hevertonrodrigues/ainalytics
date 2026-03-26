@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
+import { formatDate, formatDateTime } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import {
   DollarSign, Activity, Zap, Users, Clock, AlertTriangle,
@@ -115,11 +116,11 @@ function fmtMs(ms: number | null): string {
 }
 
 function fmtDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  return formatDateTime(iso, 'dateTime');
 }
 
 function fmtShortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return formatDate(iso, 'shortDate');
 }
 
 // Platform badge colors

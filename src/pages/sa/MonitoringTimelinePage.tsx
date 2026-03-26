@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
+import { formatDate, formatDateTime } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import {
   Activity, RefreshCw, ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
@@ -116,11 +117,10 @@ export function MonitoringTimelinePage() {
 
   // Format period label
   const fmtPeriod = (iso: string) => {
-    const d = new Date(iso);
-    if (groupBy === 'hour') return d.toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    if (groupBy === 'week') return `${t('timeline.week')} ${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
-    if (groupBy === 'month') return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long' });
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    if (groupBy === 'hour') return formatDateTime(iso, 'dateTime');
+    if (groupBy === 'week') return `${t('timeline.week')} ${formatDate(iso, 'shortDate')}`;
+    if (groupBy === 'month') return formatDate(iso, 'monthYear');
+    return formatDate(iso, 'shortDateYear');
   };
 
   return (
@@ -269,7 +269,7 @@ export function MonitoringTimelinePage() {
                             <div className="flex items-center gap-1.5">
                               {isExpanded ? <ChevronUp className="w-3 h-3 text-text-secondary" /> : <ChevronDown className="w-3 h-3 text-text-secondary" />}
                               <Clock className="w-3 h-3 text-text-secondary" />
-                              {new Date(a.searched_at).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                              {formatDateTime(a.searched_at, 'dateTimeSeconds')}
                             </div>
                           </td>
                           <td className="!font-body text-sm">{a.tenant_name || '—'}</td>

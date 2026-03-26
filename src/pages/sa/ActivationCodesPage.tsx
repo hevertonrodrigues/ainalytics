@@ -1,4 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
+import { formatDate, formatDateTime } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { Key, Plus, Trash2, Copy, Check, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAdminCrud } from './useAdminCrud';
@@ -144,7 +145,7 @@ export function ActivationCodesPage() {
                         {c.is_active ? t('sa.active') : t('sa.inactive')}
                       </button>
                     </td>
-                    <td className="!font-body text-sm">{new Date(c.created_at).toLocaleDateString()}</td>
+                    <td className="!font-body text-sm">{formatDate(c.created_at)}</td>
                     <td className="text-right" onClick={e => e.stopPropagation()}>
                       <button onClick={() => handleDelete(c.id)} className="icon-btn text-error/70 hover:text-error"><Trash2 className="w-3.5 h-3.5" /></button>
                     </td>
@@ -156,7 +157,7 @@ export function ActivationCodesPage() {
                           <div><span className="text-xs font-semibold text-text-secondary block mb-1">ID</span><code className="text-xs text-text-primary break-all">{c.id}</code></div>
                           <div><span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.planIdLabel')}</span><code className="text-xs text-text-primary break-all">{c.plan_id || '—'}</code></div>
                           <div><span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.tenantIdLabel')}</span><code className="text-xs text-text-primary break-all">{c.tenant_id || '—'}</code></div>
-                          <div><span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.colUpdated')}</span><span className="text-text-primary">{c.updated_at ? new Date(c.updated_at).toLocaleString() : '—'}</span></div>
+                          <div><span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.colUpdated')}</span><span className="text-text-primary">{c.updated_at ? formatDateTime(c.updated_at, 'dateTime') : '—'}</span></div>
                         </div>
                       </td>
                     </tr>

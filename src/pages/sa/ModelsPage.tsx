@@ -1,4 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
+import { formatDateTime } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { Cpu, Plus, Pencil, Trash2, Check, X, Loader2, Globe, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
 import { useAdminCrud } from './useAdminCrud';
@@ -258,7 +259,7 @@ export function ModelsPage() {
                           <div>
                             <span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.pricingUpdatedAt')}</span>
                             <span className="text-text-primary text-xs">
-                              {m.pricing_updated_at ? new Date(m.pricing_updated_at).toLocaleString() : '—'}
+                              {m.pricing_updated_at ? formatDateTime(m.pricing_updated_at, 'dateTime') : '—'}
                             </span>
                           </div>
                         </div>

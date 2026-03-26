@@ -17,6 +17,7 @@ export interface CRMPipelineUser {
   tenant_id: string | null;
   tenant_name: string | null;
   tenant_slug: string | null;
+  tenant_code: string | null;
   tenant_created_at: string | null;
   tenant_role: string | null;
   // Company
@@ -53,7 +54,7 @@ export type KanbanStage = CRMPipelineUser['stage'];
 export const KANBAN_STAGES: KanbanStage[] = [
   'registered',
   'email_confirmed',
-  'subscribed_stripe',
   'subscribed_activation',
+  'subscribed_stripe',
   'cancelled',
 ];
