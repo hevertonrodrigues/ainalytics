@@ -64,6 +64,19 @@ serve(async (req: Request) => {
       // Fetch user/tenant info for display
       let companyName = null;
       let companyDomain = null;
+      let clientName = null;
+
+      if (proposal.user_id) {
+        const { data: profile } = await db
+          .from("profiles")
+          .select("full_name")
+          .eq("id", proposal.user_id)
+          .single();
+        if (profile) {
+          clientName = profile.full_name;
+        }
+      }
+
       if (proposal.tenant_id) {
         const { data: company } = await db
           .from("companies")
@@ -96,6 +109,7 @@ serve(async (req: Request) => {
               price: proposal.plans.price,
             }
           : null,
+        client_name: clientName,
         company_name: companyName,
         company_domain: companyDomain,
       };

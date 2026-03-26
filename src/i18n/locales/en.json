@@ -1632,18 +1632,29 @@
     "perYear": "/yr",
     "public": {
       "title": "Custom Proposal",
-      "preparedFor": "Prepared for you",
-      "planDetails": "Plan Details",
+      "preparedFor": "Prepared for",
+      "introText": "Thank you for your interest. We've prepared this custom proposal based on your specific needs and goals. Below you'll find a detailed breakdown of the plan we've designed exclusively for you.",
+      "planDetails": "About This Plan",
       "whatsIncluded": "What's Included",
+      "investment": "Your Investment",
+      "monthlyInvestment": "Monthly Investment",
+      "yearlyInvestment": "Annual Investment",
+      "billedMonthly": "Billed monthly. Cancel anytime.",
+      "billedYearly": "Billed annually. Best value.",
+      "savings": "You save",
       "validUntilLabel": "This offer is valid until",
       "expired": "This proposal has expired",
       "expiredDesc": "Please contact us for an updated offer.",
       "notFound": "Proposal Not Found",
       "notFoundDesc": "This proposal doesn't exist or is no longer available.",
-      "getStarted": "Get Started",
+      "getStarted": "Accept Proposal",
+      "haveQuestions": "Have Questions?",
+      "questionSubject": "Question about proposal",
+      "ctaText": "Ready to get started? Click below to accept this proposal, or reach out if you have any questions — we're happy to help.",
       "contactUs": "Contact Us",
       "poweredBy": "Powered by",
-      "customPlan": "Custom Plan"
+      "customPlan": "Exclusive Proposal",
+      "footerNote": "This proposal is confidential and intended solely for the named recipient."
     }
   }
 }

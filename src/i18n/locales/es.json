@@ -1631,19 +1631,30 @@
     "perMonth": "/mes",
     "perYear": "/año",
     "public": {
-      "title": "Propuesta Personalizada",
-      "preparedFor": "Preparada para usted",
-      "planDetails": "Detalles del Plan",
+      "title": "Propuesta Exclusiva",
+      "preparedFor": "Preparada para",
+      "introText": "Gracias por su interés. Hemos preparado esta propuesta personalizada basada en sus necesidades y objetivos específicos. A continuación encontrará un desglose detallado del plan que hemos diseñado exclusivamente para usted.",
+      "planDetails": "Sobre Este Plan",
       "whatsIncluded": "Qué Incluye",
+      "investment": "Su Inversión",
+      "monthlyInvestment": "Inversión Mensual",
+      "yearlyInvestment": "Inversión Anual",
+      "billedMonthly": "Facturado mensualmente. Cancele cuando quiera.",
+      "billedYearly": "Facturado anualmente. Mejor valor.",
+      "savings": "Usted ahorra",
       "validUntilLabel": "Esta oferta es válida hasta",
       "expired": "Esta propuesta ha expirado",
       "expiredDesc": "Contáctenos para una oferta actualizada.",
       "notFound": "Propuesta No Encontrada",
       "notFoundDesc": "Esta propuesta no existe o ya no está disponible.",
-      "getStarted": "Comenzar",
+      "getStarted": "Aceptar Propuesta",
+      "haveQuestions": "¿Tiene Preguntas?",
+      "questionSubject": "Pregunta sobre propuesta",
+      "ctaText": "¿Listo para comenzar? Haga clic a continuación para aceptar esta propuesta, o contáctenos si tiene alguna pregunta — estaremos encantados de ayudarle.",
       "contactUs": "Contáctenos",
       "poweredBy": "Desarrollado por",
-      "customPlan": "Plan Personalizado"
+      "customPlan": "Propuesta Exclusiva",
+      "footerNote": "Esta propuesta es confidencial y está destinada únicamente al destinatario indicado."
     }
   }
 }
