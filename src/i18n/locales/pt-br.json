@@ -1637,6 +1637,7 @@
     "statusViewed": "Visualizada",
     "statusAccepted": "Aceita",
     "statusExpired": "Expirada",
+    "statusPendingPayment": "Pagamento Pendente",
     "publicLink": "Link Público",
     "simpleLink": "Simples (Checkout)",
     "fullLink": "Apresentação Completa",
@@ -1691,7 +1692,7 @@
       "acceptConfirm": "Confirmar",
       "acceptError": "Algo deu errado. Por favor tente novamente.",
       "acceptEmailMismatch": "Este email não corresponde aos nossos registros. Utilize o email associado a esta proposta.",
-      "acceptedStatus": "✓ Proposta aceita. Nossa equipe entrará em contato em breve."
+      "acceptedStatus": "✓ Pagamento confirmado! Sua assinatura está ativa. Nossa equipe entrará em contato em breve."
     },
     "full": {
       "backToSimple": "Vista rápida",

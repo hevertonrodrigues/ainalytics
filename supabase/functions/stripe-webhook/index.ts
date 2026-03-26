@@ -196,6 +196,21 @@ async function handleCheckoutCompleted(event: any) {
     console.error("[stripe-webhook] Error activating default model:", modelErr);
   }
 
+  // ── If this checkout came from a proposal, mark it as accepted ──
+  const proposalId = metadata.proposal_id;
+  if (proposalId) {
+    const { error: propErr } = await db
+      .from("proposals")
+      .update({ status: "accepted" })
+      .eq("id", proposalId);
+
+    if (propErr) {
+      console.error("[stripe-webhook] Error updating proposal status:", propErr);
+    } else {
+      console.log(`[stripe-webhook] Proposal ${proposalId} marked as accepted`);
+    }
+  }
+
   console.log(`[stripe-webhook] Subscription created for tenant ${tenantId}, plan ${planId}`);
 }
 

@@ -1639,6 +1639,7 @@
     "statusViewed": "Viewed",
     "statusAccepted": "Accepted",
     "statusExpired": "Expired",
+    "statusPendingPayment": "Pending Payment",
     "publicLink": "Public Link",
     "simpleLink": "Simple (Checkout)",
     "fullLink": "Full Presentation",
@@ -1693,7 +1694,7 @@
       "acceptConfirm": "Confirm",
       "acceptError": "Something went wrong. Please try again.",
       "acceptEmailMismatch": "This email does not match our records. Please use the email associated with this proposal.",
-      "acceptedStatus": "✓ Proposal accepted. Our team will contact you shortly."
+      "acceptedStatus": "✓ Payment confirmed! Your subscription is now active. Our team will contact you shortly."
     },
     "full": {
       "backToSimple": "Quick view",

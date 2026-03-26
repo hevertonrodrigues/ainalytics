@@ -21,36 +21,15 @@ serve(async (req: Request) => {
 
     const db = createAdminClient();
 
-    // Use SQL RPC to aggregate all stats in a single query
-    // This avoids the PostgREST 1000-row limit on large tables
-    const { data, error } = await db.rpc("get_admin_active_users");
+    // Query the view directly instead of using a DB function
+    const { data, error } = await db
+      .from("admin_active_users")
+      .select("*")
+      .order("progress_percent", { ascending: false });
 
     if (error) throw error;
 
-    const users = (data || []) as Record<string, unknown>[];
-
-    // Enrich with plan_end_date from subscriptions (current_period_end)
-    if (users.length > 0) {
-      const tenantIds = [...new Set(users.map((u) => u.tenant_id as string))];
-      const { data: subs } = await db
-        .from("subscriptions")
-        .select("tenant_id, current_period_end")
-        .in("tenant_id", tenantIds)
-        .in("status", ["active", "trialing"]);
-
-      const endDateMap = new Map<string, string>();
-      if (subs) {
-        for (const s of subs) {
-          endDateMap.set(s.tenant_id, s.current_period_end);
-        }
-      }
-
-      for (const user of users) {
-        user.plan_end_date = endDateMap.get(user.tenant_id as string) ?? null;
-      }
-    }
-
-    return logger.done(withCors(req, ok(users)), authCtx);
+    return logger.done(withCors(req, ok(data || [])), authCtx);
 
   // deno-lint-ignore no-explicit-any
   } catch (err: any) {

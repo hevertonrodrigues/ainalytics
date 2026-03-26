@@ -86,21 +86,36 @@ async function getActiveSubscription(
   tenantId: string,
 ): Promise<{ response: Response | null; subscription: ActiveSubscription | null }> {
   const db = createAdminClient();
-  const { data, error } = await db.rpc("get_tenant_active_prompt_subscription", {
-    p_tenant_id: tenantId,
-  });
+
+  // Direct query instead of db.rpc("get_tenant_active_prompt_subscription")
+  const { data, error } = await db
+    .from("subscriptions")
+    .select("id, plan_id, plans!inner(prompt_refresh_unit, prompt_refresh_value)")
+    .eq("tenant_id", tenantId)
+    .in("status", ["active", "trialing"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
 
   if (error) {
+    if (error.code === "PGRST116") {
+      // No rows returned
+      return {
+        response: badRequest("An active subscription is required to execute prompt searches"),
+        subscription: null,
+      };
+    }
     return { response: serverError(error.message), subscription: null };
   }
 
-  const subscription = getRpcRow(data as ActiveSubscription | ActiveSubscription[] | null);
-  if (!subscription) {
-    return {
-      response: badRequest("An active subscription is required to execute prompt searches"),
-      subscription: null,
-    };
-  }
+  // deno-lint-ignore no-explicit-any
+  const plan = (data as any).plans;
+  const subscription: ActiveSubscription = {
+    subscription_id: data.id,
+    plan_id: data.plan_id,
+    cadence_unit: plan?.prompt_refresh_unit || "week",
+    cadence_value: plan?.prompt_refresh_value || 1,
+  };
 
   return { response: null, subscription };
 }

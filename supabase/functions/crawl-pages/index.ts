@@ -103,10 +103,9 @@ serve(async (req: Request) => {
 
     if (!pages || pages.length === 0) {
       // No pending pages — check if all are done
-      const { data: progress } = await db.rpc("get_crawl_progress", { p_analysis_id: analysisId });
+      const p = await getCrawlProgress(db, analysisId);
 
-      if (progress && progress.length > 0) {
-        const p = progress[0];
+      if (p) {
         if (p.total === 0) {
           // Pages haven't been inserted yet — scrape-company is still running
           console.log(`[crawl-pages] Analysis ${analysisId}: 0 pages found, scrape-company likely still inserting. Skipping.`);
@@ -266,16 +265,12 @@ serve(async (req: Request) => {
     }
 
     // ── Update analysis progress ─────────────────────────
-    const { data: progress } = await db.rpc("get_crawl_progress", { p_analysis_id: analysisId });
+    const p = await getCrawlProgress(db, analysisId);
 
-    if (progress && progress.length > 0) {
-      const p = progress[0];
+    if (p) {
       const pct = p.total > 0
         ? 15 + Math.round(((p.completed + p.errors) / p.total) * 33)
         : 15;
-
-
-
 
       await db
         .from("geo_analyses")
@@ -368,6 +363,29 @@ async function finalizeAnalysis(
   console.log(`[crawl-pages] Analysis ${analysisId}: Finalized with ${crawledPages.length} pages in snapshot`);
 }
 
+
+/**
+ * Replaces db.rpc("get_crawl_progress") — direct query on geo_analyses_pages.
+ */
+async function getCrawlProgress(
+  db: any,
+  analysisId: string,
+): Promise<{ total: number; completed: number; pending: number; errors: number } | null> {
+  const { data, error } = await db
+    .from("geo_analyses_pages")
+    .select("status")
+    .eq("analysis_id", analysisId);
+
+  if (error || !data) return null;
+
+  const rows = data as { status: string }[];
+  return {
+    total: rows.length,
+    completed: rows.filter(r => r.status === "completed").length,
+    pending: rows.filter(r => r.status === "pending" || r.status === "crawling").length,
+    errors: rows.filter(r => r.status === "error").length,
+  };
+}
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

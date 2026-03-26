@@ -5,6 +5,50 @@ import { ok, created, badRequest, notFound, serverError } from "../_shared/respo
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 
+const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") || "";
+const SITE_URL = Deno.env.get("SITE_URL") || "http://localhost:5173";
+
+// ─── Stripe helpers ─────────────────────────────────────────
+// deno-lint-ignore no-explicit-any
+function flattenObject(obj: Record<string, any>, prefix = "", result: Record<string, string> = {}): Record<string, string> {
+  for (const [key, value] of Object.entries(obj)) {
+    const newKey = prefix ? `${prefix}[${key}]` : key;
+    if (Array.isArray(value)) {
+      // deno-lint-ignore no-explicit-any
+      value.forEach((item: any, index: number) => {
+        if (typeof item === "object" && item !== null) {
+          flattenObject(item, `${newKey}[${index}]`, result);
+        } else {
+          result[`${newKey}[${index}]`] = String(item);
+        }
+      });
+    } else if (typeof value === "object" && value !== null) {
+      flattenObject(value, newKey, result);
+    } else {
+      result[newKey] = String(value);
+    }
+  }
+  return result;
+}
+
+// deno-lint-ignore no-explicit-any
+async function stripeRequest(endpoint: string, body: Record<string, any>) {
+  const res = await fetch(`https://api.stripe.com/v1${endpoint}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${STRIPE_SECRET_KEY}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams(flattenObject(body)).toString(),
+  });
+  const data = await res.json();
+  if (!res.ok) {
+    console.error("[proposals] Stripe API error:", data);
+    throw new Error(data.error?.message || "Stripe API error");
+  }
+  return data;
+}
+
 /** Generate a URL-safe slug like "prop-a1b2c3d4" */
 function generateSlug(): string {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -226,10 +270,10 @@ serve(async (req: Request) => {
         return logger.done(withCors(req, badRequest("email is required")));
       }
 
-      // Fetch proposal
+      // Fetch proposal with full pricing data
       const { data: proposal, error: fetchErr } = await db
         .from("proposals")
-        .select("id, user_id, status")
+        .select("id, user_id, tenant_id, plan_id, status, custom_plan_name, custom_price, billing_interval, currency, custom_features, custom_description, slug")
         .eq("slug", slug)
         .single();
 
@@ -237,16 +281,20 @@ serve(async (req: Request) => {
         return logger.done(withCors(req, notFound("Proposal not found")));
       }
 
-      // Only allow acceptance for sent/viewed proposals
+      // Only allow acceptance for sent/viewed proposals (prevent re-acceptance)
       if (!["sent", "viewed"].includes(proposal.status)) {
+        if (proposal.status === "pending_payment" || proposal.status === "accepted") {
+          return logger.done(withCors(req, badRequest("This proposal has already been accepted")));
+        }
         return logger.done(withCors(req, badRequest("This proposal cannot be accepted in its current status")));
       }
 
-      // Fetch user email from profiles
+      // Must have an associated user
       if (!proposal.user_id) {
         return logger.done(withCors(req, badRequest("This proposal has no associated user")));
       }
 
+      // Fetch user email from profiles for verification
       const { data: profile } = await db
         .from("profiles")
         .select("email")
@@ -265,15 +313,84 @@ serve(async (req: Request) => {
         )));
       }
 
-      // Accept the proposal
-      const { error: updateErr } = await db
-        .from("proposals")
-        .update({ status: "accepted" })
-        .eq("id", proposal.id);
+      // Must have a tenant_id to create a subscription
+      if (!proposal.tenant_id) {
+        return logger.done(withCors(req, badRequest("This proposal has no associated tenant")));
+      }
 
-      if (updateErr) throw updateErr;
+      // ── Create Stripe Checkout Session ──
+      const currency = proposal.currency || "usd";
+      const interval = proposal.billing_interval === "yearly" ? "year" : "month";
+      const unitAmountSmallest = Math.round(proposal.custom_price * 100);
 
-      return logger.done(withCors(req, ok({ accepted: true })));
+      if (unitAmountSmallest <= 0) {
+        // Free proposal — just accept without Stripe
+        await db.from("proposals").update({ status: "accepted" }).eq("id", proposal.id);
+        return logger.done(withCors(req, ok({ accepted: true })));
+      }
+
+      // Fetch tenant name for product description
+      const { data: tenant } = await db
+        .from("tenants")
+        .select("name")
+        .eq("id", proposal.tenant_id)
+        .single();
+
+      // Fetch plan trial days if available
+      let trialDays = 0;
+      if (proposal.plan_id) {
+        const { data: plan } = await db
+          .from("plans")
+          .select("trial")
+          .eq("id", proposal.plan_id)
+          .single();
+        if (plan?.trial) trialDays = plan.trial;
+      }
+
+      const productName = proposal.custom_plan_name || "Custom Plan";
+
+      const session = await stripeRequest("/checkout/sessions", {
+        mode: "subscription",
+        customer_email: submittedEmail,
+        success_url: `${SITE_URL}/proposal/${slug}?checkout=success`,
+        cancel_url: `${SITE_URL}/proposal/${slug}?checkout=canceled`,
+        line_items: [
+          {
+            price_data: {
+              currency,
+              unit_amount: unitAmountSmallest,
+              product_data: {
+                name: productName,
+                description: `Proposal for ${tenant?.name || ""}`.trim(),
+              },
+              recurring: { interval },
+            },
+            quantity: 1,
+          },
+        ],
+        metadata: {
+          tenant_id: proposal.tenant_id,
+          plan_id: proposal.plan_id || "",
+          user_id: proposal.user_id,
+          proposal_id: proposal.id,
+          billing_interval: proposal.billing_interval || "monthly",
+          currency,
+        },
+        subscription_data: {
+          metadata: {
+            tenant_id: proposal.tenant_id,
+            plan_id: proposal.plan_id || "",
+            proposal_id: proposal.id,
+            billing_interval: proposal.billing_interval || "monthly",
+          },
+          ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
+        },
+      });
+
+      // Mark proposal as pending_payment to prevent re-acceptance
+      await db.from("proposals").update({ status: "pending_payment" }).eq("id", proposal.id);
+
+      return logger.done(withCors(req, ok({ checkout_url: session.url })));
     }
 
     // ── All other routes require Super Admin auth ──

@@ -195,6 +195,16 @@ export function UserDetailPage() {
     viewed: 'bg-brand-primary/10 text-brand-primary border-brand-primary/30',
     accepted: 'bg-success/10 text-success border-success/30',
     expired: 'bg-error/10 text-error border-error/30',
+    pending_payment: 'bg-warning/10 text-warning border-warning/30',
+  };
+
+  const statusI18nKey: Record<string, string> = {
+    draft: 'statusDraft',
+    sent: 'statusSent',
+    viewed: 'statusViewed',
+    accepted: 'statusAccepted',
+    expired: 'statusExpired',
+    pending_payment: 'statusPendingPayment',
   };
 
   if (isLoading) {
@@ -468,7 +478,7 @@ export function UserDetailPage() {
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-medium text-sm text-text-primary truncate">{p.custom_plan_name}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${statusColors[p.status] || ''}`}>
-                      {t(`proposal.status${p.status.charAt(0).toUpperCase() + p.status.slice(1)}`)}
+                      {t(`proposal.${statusI18nKey[p.status] || 'statusDraft'}`)}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-text-muted flex-wrap">
@@ -492,6 +502,7 @@ export function UserDetailPage() {
                     <option value="viewed">{t('proposal.statusViewed')}</option>
                     <option value="accepted">{t('proposal.statusAccepted')}</option>
                     <option value="expired">{t('proposal.statusExpired')}</option>
+                    <option value="pending_payment">{t('proposal.statusPendingPayment')}</option>
                   </select>
                   <button
                     onClick={() => setEditTarget(p)}

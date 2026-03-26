@@ -21,6 +21,11 @@ export function ProposalPublicPage() {
     setAcceptError('');
     const result = await acceptProposal(slug, acceptEmail.trim());
     setAcceptLoading(false);
+    if (result.checkout_url) {
+      // Redirect to Stripe Checkout
+      window.location.href = result.checkout_url;
+      return;
+    }
     if (result.accepted) {
       setAccepted(true);
       setShowAcceptModal(false);
@@ -57,7 +62,7 @@ export function ProposalPublicPage() {
             <p className="error-boundary-subtitle">{t('errorPages.proposalNotFoundSubtitle', "The proposal you're looking for may have expired or doesn't exist.")}</p>
           </div>
           <div className="error-boundary-actions">
-            <a href="mailto:contact@ainalytics.com" className="error-boundary-btn-primary">
+            <a href="mailto:contato@ainalytics.tech" className="error-boundary-btn-primary">
               <Mail className="w-4 h-4" />
               {t('errorPages.contactUs', 'Contact Us')}
             </a>
@@ -68,10 +73,11 @@ export function ProposalPublicPage() {
   }
 
   const isExpired = proposal.status === 'expired';
-  const isAccepted = accepted || proposal.status === 'accepted';
+  const checkoutResult = new URLSearchParams(window.location.search).get('checkout');
+  const isAccepted = accepted || proposal.status === 'accepted' || proposal.status === 'pending_payment' || checkoutResult === 'success';
   const defaultLang = proposal.default_lang || 'en';
   const features = proposal.custom_features[defaultLang] || proposal.custom_features['en'] || [];
-  const contactEmail = `contact@${proposal.company_domain || 'ainalytics.com'}`;
+  const contactEmail = 'contato@ainalytics.tech';
   const intervalLabel = proposal.billing_interval === 'monthly'
     ? t('proposal.public.billedMonthly')
     : t('proposal.public.billedYearly');

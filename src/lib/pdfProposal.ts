@@ -664,7 +664,7 @@ export async function generateProposalPdf(
   pdf.setFontSize(7);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(...hex(C.textLight));
-  pdf.text('ainalytics.com', SLIDE_W / 2, SLIDE_H - 16, { align: 'center' });
+  pdf.text('ainalytics.tech', SLIDE_W / 2, SLIDE_H - 16, { align: 'center' });
 
   // Confidentiality
   pdf.setFontSize(6);

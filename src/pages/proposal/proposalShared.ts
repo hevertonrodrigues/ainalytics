@@ -188,8 +188,8 @@ export function useProposalData() {
   return { proposal, loading, notFound, lang, setLang, slug, theme, c };
 }
 
-/** Accept a proposal by verifying email */
-export async function acceptProposal(slug: string, email: string): Promise<{ accepted: boolean; error?: string }> {
+/** Accept a proposal by verifying email → redirects to Stripe Checkout */
+export async function acceptProposal(slug: string, email: string): Promise<{ accepted: boolean; checkout_url?: string; error?: string }> {
   try {
     const res = await fetch(`${SUPABASE_URL}/functions/v1/proposals/public/${slug}/accept`, {
       method: 'POST',
@@ -197,7 +197,13 @@ export async function acceptProposal(slug: string, email: string): Promise<{ acc
       body: JSON.stringify({ email }),
     });
     const json = await res.json();
-    if (res.ok && json.success) return { accepted: true };
+    if (res.ok && json.success) {
+      // Backend returns checkout_url for paid proposals, or accepted:true for free ones
+      if (json.data?.checkout_url) {
+        return { accepted: false, checkout_url: json.data.checkout_url };
+      }
+      return { accepted: true };
+    }
     return { accepted: false, error: json.error?.code || 'UNKNOWN' };
   } catch {
     return { accepted: false, error: 'NETWORK_ERROR' };

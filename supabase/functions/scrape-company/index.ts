@@ -544,9 +544,19 @@ serve(async (req: Request) => {
 
       // ── Safety check: verify all pages are done before analyzing ──
       // Prevents incomplete analysis when crawl-pages hasn't finished yet
-      const { data: crawlProgress } = await db.rpc("get_crawl_progress", { p_analysis_id: analysisId });
-      if (crawlProgress && crawlProgress.length > 0) {
-        const cp = crawlProgress[0];
+      // Direct query instead of db.rpc("get_crawl_progress")
+      const { data: _cpRows } = await db
+        .from("geo_analyses_pages")
+        .select("status")
+        .eq("analysis_id", analysisId);
+      const cpRows = (_cpRows || []) as { status: string }[];
+      const cp = {
+        total: cpRows.length,
+        completed: cpRows.filter((r: { status: string }) => r.status === "completed").length,
+        pending: cpRows.filter((r: { status: string }) => r.status === "pending" || r.status === "crawling").length,
+        errors: cpRows.filter((r: { status: string }) => r.status === "error").length,
+      };
+      if (cpRows.length > 0) {
         if (cp.pending > 0) {
           console.warn(`[analyze] Analysis ${analysisId}: ${cp.pending} pages still pending/crawling. Rejecting analyze request.`);
           return logger.done(withCors(
