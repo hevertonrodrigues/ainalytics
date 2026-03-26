@@ -167,7 +167,7 @@ serve(async (req: Request) => {
         const { data: profile } = await db
           .from("profiles")
           .select("full_name")
-          .eq("id", proposal.user_id)
+          .eq("user_id", proposal.user_id)
           .single();
         if (profile) {
           clientName = profile.full_name;
@@ -250,7 +250,7 @@ serve(async (req: Request) => {
       const { data: profile } = await db
         .from("profiles")
         .select("email")
-        .eq("id", proposal.user_id)
+        .eq("user_id", proposal.user_id)
         .single();
 
       if (!profile || !profile.email) {
