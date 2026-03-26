@@ -152,6 +152,8 @@ export function useProposalData() {
     if (!proposal) return;
 
     const metas: Record<string, string> = {
+      'robots': 'noindex, nofollow, noarchive',
+      'googlebot': 'noindex, nofollow, noarchive',
       'og:title': `${proposal.custom_plan_name} — ${APP_NAME}`,
       'og:description': proposal.client_name
         ? `Custom proposal for ${proposal.client_name}${proposal.company_name ? ` at ${proposal.company_name}` : ''}`

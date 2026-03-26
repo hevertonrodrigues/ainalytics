@@ -83,6 +83,8 @@ serve(async (req: Request) => {
   <title>${esc(title)}</title>
   <meta name="description" content="${esc(desc)}" />
   <meta name="theme-color" content="${bgColor}" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <meta name="googlebot" content="noindex, nofollow, noarchive" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
@@ -113,7 +115,11 @@ serve(async (req: Request) => {
 
       return logger.done(new Response(html, {
         status: 200,
-        headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=3600" },
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          "Cache-Control": "public, max-age=3600",
+          "X-Robots-Tag": "noindex, nofollow, noarchive",
+        },
       }));
     }
 

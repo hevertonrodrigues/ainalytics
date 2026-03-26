@@ -21,6 +21,7 @@ import {
   Check,
   Eye,
   Trash2,
+  Pencil,
   Loader2,
   Save,
   Download,
@@ -36,6 +37,14 @@ interface ProposalItem {
   custom_plan_name: string;
   custom_price: number;
   billing_interval: string;
+  currency: string;
+  custom_features: Record<string, string[]>;
+  custom_description: Record<string, string>;
+  notes: string | null;
+  valid_until: string | null;
+  theme: string;
+  default_lang: string;
+  plan_id: string | null;
   status: string;
   created_at: string;
   viewed_at: string | null;
@@ -53,6 +62,7 @@ export function UserDetailPage() {
   const [proposals, setProposals] = useState<ProposalItem[]>([]);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [editTarget, setEditTarget] = useState<ProposalItem | null>(null);
 
   // Subscription editing state
   const [editStatus, setEditStatus] = useState<string>('');
@@ -115,8 +125,7 @@ export function UserDetailPage() {
   useEffect(() => { fetchProposals(); }, [fetchProposals]);
 
   async function copyProposalLink(slug: string, variant: 'simple' | 'full' = 'simple') {
-    const ogBase = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proposals/public/${slug}/og`;
-    const url = variant === 'full' ? `${ogBase}?v=full` : ogBase;
+    const url = `${window.location.origin}/proposal/${slug}${variant === 'full' ? '/full' : ''}`;
     await navigator.clipboard.writeText(url);
     setCopiedSlug(`${slug}-${variant}`);
     setTimeout(() => setCopiedSlug(null), 2000);
@@ -464,6 +473,13 @@ export function UserDetailPage() {
                     <option value="expired">{t('proposal.statusExpired')}</option>
                   </select>
                   <button
+                    onClick={() => setEditTarget(p)}
+                    className="p-1.5 rounded-md hover:bg-bg-elevated transition-colors text-text-muted hover:text-brand-primary"
+                    title={t('proposal.editProposal')}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
                     onClick={() => copyProposalLink(p.slug, 'simple')}
                     className="p-1.5 rounded-md hover:bg-bg-elevated transition-colors text-text-muted hover:text-brand-primary"
                     title={t('proposal.simpleLink')}
@@ -509,12 +525,13 @@ export function UserDetailPage() {
 
       {/* Create Proposal Modal */}
       <CreateProposalModal
-        isOpen={showProposalModal}
-        onClose={() => setShowProposalModal(false)}
+        isOpen={showProposalModal || !!editTarget}
+        onClose={() => { setShowProposalModal(false); setEditTarget(null); }}
         onCreated={fetchProposals}
         userId={user.user_id}
         tenantId={user.tenant_id ?? undefined}
         userName={user.full_name || user.email || undefined}
+        editProposal={editTarget}
       />
 
       {deleteTarget && (

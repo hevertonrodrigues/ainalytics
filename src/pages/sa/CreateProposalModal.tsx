@@ -13,6 +13,23 @@ interface Plan {
   settings: Record<string, { description?: string }>;
 }
 
+interface EditProposalData {
+  id: string;
+  slug: string;
+  custom_plan_name: string;
+  custom_price: number;
+  billing_interval: string;
+  currency: string;
+  custom_features: Record<string, string[]>;
+  custom_description: Record<string, string>;
+  notes: string | null;
+  valid_until: string | null;
+  theme: string;
+  default_lang: string;
+  plan_id: string | null;
+  status: string;
+}
+
 interface CreateProposalModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,6 +37,7 @@ interface CreateProposalModalProps {
   userId?: string;
   tenantId?: string;
   userName?: string;
+  editProposal?: EditProposalData | null;
 }
 
 const LANGS = ['en', 'es', 'pt-br'] as const;
@@ -52,9 +70,10 @@ function getDefaultValidity(): string {
   return d.toISOString().split('T')[0] ?? '';
 }
 
-export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenantId, userName }: CreateProposalModalProps) {
+export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenantId, userName, editProposal }: CreateProposalModalProps) {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language as typeof LANGS[number];
+  const isEditMode = !!editProposal;
 
   const [plans, setPlans] = useState<Plan[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState('');
@@ -74,6 +93,23 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   const [copied, setCopied] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [defaultLang, setDefaultLang] = useState<string>(currentLang || 'en');
+
+  // Populate fields when editing
+  useEffect(() => {
+    if (!isOpen || !editProposal) return;
+    const dl = editProposal.default_lang || 'en';
+    setSelectedPlanId(editProposal.plan_id || '');
+    setPlanName(editProposal.custom_plan_name || '');
+    setPrice(String(editProposal.custom_price || ''));
+    setBillingInterval((editProposal.billing_interval || 'monthly') as 'monthly' | 'yearly');
+    setCurrency(editProposal.currency || 'usd');
+    setFeatures(editProposal.custom_features?.[dl] || editProposal.custom_features?.['en'] || []);
+    setDescription(editProposal.custom_description?.[dl] || editProposal.custom_description?.['en'] || '');
+    setNotes(editProposal.notes || '');
+    setValidUntil(editProposal.valid_until ? editProposal.valid_until.split('T')[0] || '' : '');
+    setTheme((editProposal.theme || 'dark') as 'dark' | 'light');
+    setDefaultLang(dl);
+  }, [isOpen, editProposal]);
 
   // Fetch plans and exchange rates on open
   useEffect(() => {
@@ -155,29 +191,40 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
     setIsSubmitting(true);
 
     try {
-      const res = await apiClient.post<{ slug: string }>('/proposals', {
-        user_id: userId || null,
-        tenant_id: tenantId || null,
-        plan_id: selectedPlanId || null,
-        custom_plan_name: planName,
-        custom_price: parseFloat(price),
-        billing_interval: billingInterval,
-        currency,
-        custom_features: { [defaultLang]: features },
-        custom_description: { [defaultLang]: description },
-        notes: notes || null,
-        valid_until: validUntil || null,
-        status: submitStatus,
-        theme,
-        default_lang: defaultLang,
-      });
-
-      if (submitStatus === 'sent') {
-        setCreatedSlug(res.data.slug);
-      } else {
+      if (isEditMode && editProposal) {
+        // Edit mode — only update editable fields
+        await apiClient.put(`/proposals/${editProposal.id}`, {
+          custom_features: { [defaultLang]: features },
+          custom_description: { [defaultLang]: description },
+          notes: notes || null,
+        });
+        onCreated();
         resetAndClose();
+      } else {
+        const res = await apiClient.post<{ slug: string }>('/proposals', {
+          user_id: userId || null,
+          tenant_id: tenantId || null,
+          plan_id: selectedPlanId || null,
+          custom_plan_name: planName,
+          custom_price: parseFloat(price),
+          billing_interval: billingInterval,
+          currency,
+          custom_features: { [defaultLang]: features },
+          custom_description: { [defaultLang]: description },
+          notes: notes || null,
+          valid_until: validUntil || null,
+          status: submitStatus,
+          theme,
+          default_lang: defaultLang,
+        });
+
+        if (submitStatus === 'sent') {
+          setCreatedSlug(res.data.slug);
+        } else {
+          resetAndClose();
+        }
+        onCreated();
       }
-      onCreated();
     } catch {
       // TODO: toast
     } finally {
@@ -186,7 +233,8 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   }
 
   function getPublicUrl(slug: string) {
-    return `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proposals/public/${slug}/og`;
+    const siteUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    return `${siteUrl}/proposal/${slug}`;
   }
 
 
@@ -213,7 +261,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   // ── Success state ──
   if (createdSlug) {
     const simpleUrl = getPublicUrl(createdSlug);
-    const fullUrl = `${simpleUrl}?v=full`;
+    const fullUrl = `${simpleUrl}/full`;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={resetAndClose}>
         <div
@@ -280,7 +328,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
               <FileText className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-text-primary">{t('proposal.newProposal')}</h2>
+              <h2 className="text-lg font-bold text-text-primary">{isEditMode ? t('proposal.editProposal') : t('proposal.newProposal')}</h2>
               {userName && <p className="text-xs text-text-muted">{userName}</p>}
             </div>
           </div>
@@ -291,7 +339,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
 
         <form onSubmit={e => e.preventDefault()} className="space-y-5">
           {/* Base plan selector */}
-          <div>
+          <div className={isEditMode ? 'opacity-50 pointer-events-none' : ''}>
             <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.basePlan')}</label>
             <select
               value={selectedPlanId}
@@ -306,7 +354,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
           </div>
 
           {/* Plan name + Price row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${isEditMode ? 'opacity-50 pointer-events-none' : ''}`}>
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.planName')} *</label>
               <input
@@ -343,7 +391,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
           </div>
 
           {/* Billing + Currency + Valid until row */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className={`grid grid-cols-1 sm:grid-cols-3 gap-4 ${isEditMode ? 'opacity-50 pointer-events-none' : ''}`}>
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.billingInterval')}</label>
               <select
@@ -379,7 +427,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
           </div>
 
           {/* Theme + Default Language row */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 gap-4 ${isEditMode ? 'opacity-50 pointer-events-none' : ''}`}>
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.theme')}</label>
               <div className="flex gap-2">
@@ -483,24 +531,38 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
             <button type="button" onClick={resetAndClose} className="px-4 py-2 text-sm text-text-muted hover:text-text-primary transition-colors rounded-lg hover:bg-bg-tertiary w-full sm:w-auto order-3 sm:order-1">
               {t('sa.cancel')}
             </button>
-            <button
-              type="button"
-              disabled={isSubmitting || !planName || !price}
-              onClick={() => handleSubmit('draft')}
-              className="px-4 py-2 rounded-lg border border-glass-border bg-bg-tertiary text-text-secondary hover:text-text-primary text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto order-2"
-            >
-              <FileText className="w-4 h-4" />
-              {isSubmitting ? t('proposal.creating') : t('proposal.saveDraft')}
-            </button>
-            <button
-              type="button"
-              disabled={isSubmitting || !planName || !price}
-              onClick={() => handleSubmit('sent')}
-              className="btn-primary flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto order-1 sm:order-3"
-            >
-              <Check className="w-4 h-4" />
-              {isSubmitting ? t('proposal.creating') : t('proposal.finishGenerate')}
-            </button>
+            {isEditMode ? (
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => handleSubmit('sent')}
+                className="btn-primary flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto order-1 sm:order-3"
+              >
+                <Check className="w-4 h-4" />
+                {isSubmitting ? t('proposal.saving') : t('proposal.saveChanges', 'Save Changes')}
+              </button>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled={isSubmitting || !planName || !price}
+                  onClick={() => handleSubmit('draft')}
+                  className="px-4 py-2 rounded-lg border border-glass-border bg-bg-tertiary text-text-secondary hover:text-text-primary text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto order-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  {isSubmitting ? t('proposal.creating') : t('proposal.saveDraft')}
+                </button>
+                <button
+                  type="button"
+                  disabled={isSubmitting || !planName || !price}
+                  onClick={() => handleSubmit('sent')}
+                  className="btn-primary flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto order-1 sm:order-3"
+                >
+                  <Check className="w-4 h-4" />
+                  {isSubmitting ? t('proposal.creating') : t('proposal.finishGenerate')}
+                </button>
+              </>
+            )}
           </div>
         </form>
       </div>
