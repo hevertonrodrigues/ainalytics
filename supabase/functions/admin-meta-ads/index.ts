@@ -252,12 +252,20 @@ serve(async (req: Request) => {
           .update({ is_active: false })
           .eq("is_active", true);
 
-        // Insert new config
+        // Store token securely in Supabase Vault
+        const { error: vaultError } = await db.rpc("store_meta_ads_token", {
+          p_token: access_token,
+        });
+        if (vaultError) {
+          console.error("[admin-meta-ads] vault store error:", vaultError);
+          throw vaultError;
+        }
+
+        // Insert config (without token — it's in Vault)
         const { data, error } = await db
           .from("meta_ads_config")
           .insert({
             ad_account_id: ad_account_id.replace(/^act_/, ""),
-            access_token,
             api_version: api_version || "v21.0",
             token_expires_at: token_expires_at || null,
             is_active: true,
@@ -285,10 +293,10 @@ serve(async (req: Request) => {
           accessToken = body.access_token;
           apiVersion = body.api_version || "v21.0";
         } else {
-          // Use existing config
+          // Use existing config + token from Vault
           const { data: config } = await db
             .from("meta_ads_config")
-            .select("ad_account_id, access_token, api_version")
+            .select("ad_account_id, api_version")
             .eq("is_active", true)
             .maybeSingle();
 
@@ -303,8 +311,12 @@ serve(async (req: Request) => {
               authCtx,
             );
           }
+
+          // Retrieve token from Vault
+          const { data: vaultToken } = await db.rpc("get_meta_ads_token");
+
           adAccountId = config.ad_account_id;
-          accessToken = config.access_token;
+          accessToken = vaultToken;
           apiVersion = config.api_version;
         }
 
@@ -331,7 +343,7 @@ serve(async (req: Request) => {
         // Get active config
         const { data: config, error: configError } = await db
           .from("meta_ads_config")
-          .select("*")
+          .select("id, ad_account_id, api_version, is_active")
           .eq("is_active", true)
           .maybeSingle();
 
@@ -347,6 +359,16 @@ serve(async (req: Request) => {
             authCtx,
           );
         }
+
+        // Retrieve token from Vault
+        const { data: vaultToken, error: vaultErr } = await db.rpc("get_meta_ads_token");
+        if (vaultErr || !vaultToken) {
+          return logger.done(
+            withCors(req, badRequest("Access token not found in Vault. Please re-save your configuration.")),
+            authCtx,
+          );
+        }
+        const accessToken = vaultToken;
 
         // Update sync status to pending
         await db
@@ -377,7 +399,7 @@ serve(async (req: Request) => {
           // 1. Fetch account-level daily insights
           const accountInsights = await fetchMetaInsights(
             config.ad_account_id,
-            config.access_token,
+            accessToken,
             config.api_version,
             {
               level: "account",
@@ -390,7 +412,7 @@ serve(async (req: Request) => {
           // 2. Fetch campaign-level daily insights
           const campaignInsights = await fetchMetaInsights(
             config.ad_account_id,
-            config.access_token,
+            accessToken,
             config.api_version,
             {
               level: "campaign",
