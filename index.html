@@ -123,7 +123,8 @@
   <body>
 
     <div id="root">
-      <div style="min-height: 100vh; display: flex; flex-direction: column;">
+      <!-- Landing page shell (shown only on /) -->
+      <div id="__landing_shell" style="min-height: 100vh; display: none; flex-direction: column;">
         <nav class="landing-nav">
           <div class="landing-container landing-nav-inner">
             <a href="/" class="landing-logo">
@@ -156,6 +157,19 @@
           </div>
         </section>
       </div>
+      <!-- App loading spinner (shown on non-landing routes) -->
+      <div id="__app_loader" style="display: none; min-height: 100vh; align-items: center; justify-content: center; background: #0a0a0f;">
+        <div style="width: 2rem; height: 2rem; border-radius: 50%; border: 2px solid #6c5ce7; border-top-color: transparent; animation: __spin .6s linear infinite;"></div>
+      </div>
+      <style>@keyframes __spin { to { transform: rotate(360deg); } }</style>
+      <script>
+        // Show landing shell only for landing routes, spinner for everything else
+        (function() {
+          var p = location.pathname;
+          var isLanding = p === '/' || /^\/(en|es|pt-br)\/?$/i.test(p);
+          document.getElementById(isLanding ? '__landing_shell' : '__app_loader').style.display = 'flex';
+        })();
+      </script>
     </div>
     <script type="module" src="/src/main.tsx"></script>
     <!-- Third-party tracking — production only -->

@@ -1718,7 +1718,8 @@
         "Full support for English, Spanish, and Portuguese with locale-aware analysis and reporting."
       ],
       "nextStepsLabel": "Next Steps",
-      "nextStepsTitle": "Ready to Get Started?"
+      "nextStepsTitle": "Ready to Get Started?",
+      "thankYou": "Thank you."
     }
   },
   "errorPages": {

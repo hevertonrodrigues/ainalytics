@@ -1,34 +1,39 @@
 /**
- * Programmatic PDF Proposal Generator
+ * Programmatic PDF Proposal Generator — Presentation Style
  *
- * Builds a professional, branded PDF proposal document using jsPDF.
- * Mirrors the data and sections from the full public proposal page.
+ * Generates a 4:3 landscape presentation-style PDF with one concept per slide,
+ * matching the minimalist, clean aesthetic of the full public proposal page.
  */
 import { jsPDF } from 'jspdf';
 import type { ProposalData } from '@/pages/proposal/proposalShared';
 import { formatCurrency, formatDate } from '@/pages/proposal/proposalShared';
 
+// ─── 4:3 slide dimensions (10" × 7.5" = 254mm × 190.5mm) ──
+const SLIDE_W = 254;
+const SLIDE_H = 190.5;
+
 // ─── Color palette ──────────────────────────────────────────
 const C = {
-  bg:        '#FFFFFF',
-  primary:   '#4f46e5', // indigo-600
-  secondary: '#7c3aed', // violet-600
-  accent:    '#6366f1', // indigo-500
-  textDark:  '#1a1a2e',
+  white:     '#FFFFFF',
+  primary:   '#4f46e5',
+  secondary: '#7c3aed',
+  accent:    '#6366f1',
+  dark:      '#0f172a',
+  textDark:  '#1e293b',
   textMid:   '#475569',
   textLight: '#94a3b8',
+  textFaint: '#cbd5e1',
   success:   '#059669',
   warning:   '#d97706',
-  error:     '#dc2626',
   border:    '#e2e8f0',
-  bgLight:   '#f8fafc',
-  bgCard:    '#f1f5f9',
+  bgSlide:   '#FFFFFF',
+  bgSoft:    '#f8fafc',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TFunc = any;
 
-// ─── Helper: hex → RGB ─────────────────────────────────────
+// ─── Helpers ────────────────────────────────────────────────
 function hex(c: string): [number, number, number] {
   const h = c.replace('#', '');
   return [
@@ -38,13 +43,11 @@ function hex(c: string): [number, number, number] {
   ];
 }
 
-// ─── Helper: lighten a hex color ────────────────────────────
 function lighten(color: string, amount: number): string {
   const [r, g, b] = hex(color);
-  const lr = Math.min(255, Math.round(r + (255 - r) * amount));
-  const lg = Math.min(255, Math.round(g + (255 - g) * amount));
-  const lb = Math.min(255, Math.round(b + (255 - b) * amount));
-  return `#${lr.toString(16).padStart(2, '0')}${lg.toString(16).padStart(2, '0')}${lb.toString(16).padStart(2, '0')}`;
+  return '#' + [r, g, b].map(ch =>
+    Math.min(255, Math.round(ch + (255 - ch) * amount)).toString(16).padStart(2, '0'),
+  ).join('');
 }
 
 // ─── Main generator ─────────────────────────────────────────
@@ -53,454 +56,536 @@ export function generateProposalPdf(
   t: TFunc,
   lang: string,
 ): Blob {
-  const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  const W = pdf.internal.pageSize.getWidth();   // 210
-  const H = pdf.internal.pageSize.getHeight();  // 297
-  const ML = 18;
-  const MR = 18;
-  const CW = W - ML - MR;
-  let y = 0;
-  let pageNum = 1;
+  const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [SLIDE_H, SLIDE_W] });
+
+  const ML = 30; // margin left
+  const MR = 30;
+  const MT = 28; // margin top
+  const CW = SLIDE_W - ML - MR; // content width
+  let slideNum = 0;
 
   const defaultLang = proposal.default_lang || 'en';
   const features = proposal.custom_features[defaultLang] || proposal.custom_features['en'] || [];
   const description = proposal.custom_description[defaultLang] || proposal.custom_description['en'] || '';
-
-  // i18n helpers — get arrays from t()
   const solutionItems: string[] = (t('proposal.full.solutionItems', { returnObjects: true }) as string[]) || [];
   const advantages: string[] = (t('proposal.full.advantages', { returnObjects: true }) as string[]) || [];
   const advantageDescs: string[] = (t('proposal.full.advantageDescs', { returnObjects: true }) as string[]) || [];
 
-  // ── Utility: ensure space or add new page ──
-  function ensureSpace(needed: number) {
-    if (y + needed > H - 22) {
-      addFooter();
-      pdf.addPage();
-      pageNum++;
-      y = 22;
-    }
+  // ── New slide ──
+  function newSlide() {
+    if (slideNum > 0) pdf.addPage();
+    slideNum++;
   }
 
-  // ── Utility: add footer ──
-  function addFooter() {
-    // Thin line
-    pdf.setDrawColor(...hex(C.border));
-    pdf.setLineWidth(0.3);
-    pdf.line(ML, H - 14, W - MR, H - 14);
+  // ── Branded footer bar on every slide ──
+  function slideFooter() {
+    // Thin gradient line
+    pdf.setFillColor(...hex(C.primary));
+    pdf.rect(0, SLIDE_H - 8, SLIDE_W * 0.6, 0.8, 'F');
+    pdf.setFillColor(...hex(C.secondary));
+    pdf.rect(SLIDE_W * 0.6, SLIDE_H - 8, SLIDE_W * 0.4, 0.8, 'F');
 
-    pdf.setFontSize(7);
+    // Brand + page number
+    pdf.setFontSize(6.5);
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(...hex(C.textLight));
-    pdf.text('Confidential — Prepared by Ainalytics', ML, H - 9);
-    pdf.text(`Page ${pageNum}`, W - MR, H - 9, { align: 'right' });
+    pdf.text('AINALYTICS', ML, SLIDE_H - 4);
+    pdf.text('Confidential', SLIDE_W / 2, SLIDE_H - 4, { align: 'center' });
+    pdf.text(`${slideNum}`, SLIDE_W - MR, SLIDE_H - 4, { align: 'right' });
   }
 
-  // ── Utility: section header with accent bar ──
-  function sectionHeader(label: string, title: string, accentColor = C.primary) {
-    ensureSpace(20);
-    // Label
+  // ── Section label (small uppercase) ──
+  function sectionLabel(text: string, x: number, yPos: number, color = C.primary) {
     pdf.setFontSize(8);
     pdf.setFont('helvetica', 'normal');
-    pdf.setTextColor(...hex(accentColor));
-    pdf.text(label.toUpperCase(), ML, y);
-    y += 5;
-    // Accent bar
-    pdf.setFillColor(...hex(accentColor));
-    pdf.rect(ML, y, 24, 1, 'F');
-    y += 6;
-    // Title
-    pdf.setFontSize(16);
-    pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(...hex(C.textDark));
-    const titleLines = pdf.splitTextToSize(title, CW);
-    for (const line of titleLines) {
-      ensureSpace(8);
-      pdf.text(line, ML, y);
-      y += 7;
-    }
-    y += 4;
-  }
-
-  // ── Utility: body text block ──
-  function textBlock(text: string, fontSize = 9.5, color = C.textMid) {
-    pdf.setFontSize(fontSize);
-    pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(...hex(color));
-    const lines = pdf.splitTextToSize(text, CW);
-    for (const line of lines) {
-      ensureSpace(5);
-      pdf.text(line, ML, y);
-      y += fontSize * 0.47;
-    }
-    y += 3;
-  }
-
-  // ── Utility: rounded rect ──
-  function roundedRect(x: number, yPos: number, w: number, h: number, r: number, fill: string, stroke?: string) {
-    pdf.setFillColor(...hex(fill));
-    if (stroke) {
-      pdf.setDrawColor(...hex(stroke));
-      pdf.setLineWidth(0.3);
-    }
-    pdf.roundedRect(x, yPos, w, h, r, r, stroke ? 'FD' : 'F');
+    pdf.text(text.toUpperCase(), x, yPos);
+    // Underline accent
+    pdf.setFillColor(...hex(color));
+    pdf.rect(x, yPos + 1.5, 20, 0.6, 'F');
   }
 
   // ══════════════════════════════════════════════════════════
-  // PAGE 1 — COVER
+  // SLIDE 1 — TITLE / COVER
   // ══════════════════════════════════════════════════════════
+  newSlide();
 
-  // Full-width gradient header band
-  const gradH = 100;
+  // Full-slide dark background
+  pdf.setFillColor(...hex(C.dark));
+  pdf.rect(0, 0, SLIDE_W, SLIDE_H, 'F');
+
+  // Accent bar at top
   pdf.setFillColor(...hex(C.primary));
-  pdf.rect(0, 0, W, gradH, 'F');
+  pdf.rect(0, 0, SLIDE_W, 3, 'F');
 
-  // Secondary accent stripe
-  pdf.setFillColor(...hex(C.secondary));
-  pdf.rect(0, gradH - 12, W, 12, 'F');
-
-  // Brand name
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(11);
+  // Brand
+  pdf.setFontSize(9);
   pdf.setFont('helvetica', 'bold');
-  pdf.text('AINALYTICS', ML, 20);
+  pdf.setTextColor(255, 255, 255);
+  pdf.text('AINALYTICS', ML, MT);
 
   // "Prepared for" label
-  pdf.setFontSize(9);
+  pdf.setFontSize(8);
   pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(255, 255, 255);
-  pdf.text(t('proposal.public.preparedFor', 'PREPARED FOR').toUpperCase(), ML, 40);
+  pdf.setTextColor(...hex(C.textLight));
+  pdf.text(t('proposal.public.preparedFor', 'PREPARED FOR').toUpperCase(), ML, MT + 20);
 
-  // Client name (large)
+  // Client name (hero)
+  pdf.setTextColor(255, 255, 255);
   if (proposal.client_name) {
-    pdf.setFontSize(30);
+    pdf.setFontSize(36);
     pdf.setFont('helvetica', 'bold');
     const clientLines = pdf.splitTextToSize(proposal.client_name, CW);
-    let clientY = 52;
+    let cy = MT + 38;
     for (const line of clientLines) {
-      pdf.text(line, ML, clientY);
-      clientY += 13;
+      pdf.text(line, ML, cy);
+      cy += 15;
     }
-    // Company name below
     if (proposal.company_name) {
-      pdf.setFontSize(14);
+      pdf.setFontSize(16);
       pdf.setFont('helvetica', 'normal');
-      pdf.text(proposal.company_name, ML, clientY + 2);
+      pdf.setTextColor(...hex(C.textFaint));
+      pdf.text(proposal.company_name, ML, cy + 4);
     }
   } else if (proposal.company_name) {
-    pdf.setFontSize(30);
+    pdf.setFontSize(36);
     pdf.setFont('helvetica', 'bold');
-    const compLines = pdf.splitTextToSize(proposal.company_name, CW);
-    let compY = 52;
-    for (const line of compLines) {
-      pdf.text(line, ML, compY);
-      compY += 13;
-    }
+    pdf.text(proposal.company_name, ML, MT + 38);
   } else {
-    pdf.setFontSize(30);
+    pdf.setFontSize(36);
     pdf.setFont('helvetica', 'bold');
-    pdf.text(proposal.custom_plan_name, ML, 52);
+    pdf.text(proposal.custom_plan_name, ML, MT + 38);
   }
 
-  // Plan name + date below gradient
-  y = gradH + 10;
-  pdf.setFontSize(12);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(...hex(C.textDark));
-  pdf.text(proposal.custom_plan_name, ML, y);
-  y += 7;
+  // Divider line
+  pdf.setFillColor(...hex(C.textLight));
+  pdf.rect(ML, SLIDE_H - 48, 40, 0.3, 'F');
 
+  // Plan name
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(255, 255, 255);
+  pdf.text(proposal.custom_plan_name, ML, SLIDE_H - 38);
+
+  // Date
   pdf.setFontSize(9);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(...hex(C.textLight));
-  pdf.text(formatDate(proposal.created_at, lang), ML, y);
-  y += 4;
+  pdf.text(formatDate(proposal.created_at, lang), ML, SLIDE_H - 32);
 
   if (proposal.valid_until) {
     pdf.setTextColor(...hex(C.warning));
-    pdf.text(`${t('proposal.public.validUntilLabel', 'Valid until:')} ${formatDate(proposal.valid_until, lang)}`, ML, y);
-    y += 4;
-  }
-
-  y += 12;
-
-  // ── Cover pricing box ──
-  const priceBoxH = 40;
-  roundedRect(ML, y, CW, priceBoxH, 4, C.bgLight, C.border);
-
-  // Price
-  const priceStr = formatCurrency(proposal.custom_price, proposal.currency);
-  pdf.setFontSize(28);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(...hex(C.primary));
-  pdf.text(priceStr, W / 2, y + 18, { align: 'center' });
-
-  // Billing interval
-  pdf.setFontSize(10);
-  pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(...hex(C.textMid));
-  const intervalLabel = proposal.billing_interval === 'monthly'
-    ? t('proposal.public.billedMonthly', 'Billed monthly')
-    : t('proposal.public.billedYearly', 'Billed yearly');
-  pdf.text(intervalLabel, W / 2, y + 28, { align: 'center' });
-
-  // Savings
-  if (proposal.base_plan && proposal.base_plan.price > proposal.custom_price) {
-    pdf.setFontSize(8);
-    pdf.setTextColor(...hex(C.success));
-    const savings = formatCurrency(proposal.base_plan.price - proposal.custom_price, proposal.currency);
     pdf.text(
-      `${t('proposal.public.savings', 'You save')} ${savings} vs. ${proposal.base_plan.name}`,
-      W / 2, y + 35, { align: 'center' },
+      `${t('proposal.public.validUntilLabel', 'Valid until:')} ${formatDate(proposal.valid_until, lang)}`,
+      ML, SLIDE_H - 26,
     );
   }
 
-  y += priceBoxH + 8;
+  // ══════════════════════════════════════════════════════════
+  // SLIDE 2 — ABOUT US
+  // ══════════════════════════════════════════════════════════
+  newSlide();
+  slideFooter();
 
-  // Cover footer
-  addFooter();
+  sectionLabel(t('proposal.full.aboutUsLabel', 'About Us'), ML, MT);
+
+  pdf.setFontSize(22);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(...hex(C.textDark));
+  pdf.text(t('proposal.full.aboutUsTitle', 'Who We Are'), ML, MT + 14);
+
+  // Body text
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(...hex(C.textMid));
+  const aboutText = t('proposal.full.aboutUsText', '');
+  const aboutLines = pdf.splitTextToSize(aboutText, CW);
+  let ay = MT + 26;
+  for (const line of aboutLines.slice(0, 20)) {
+    pdf.text(line, ML, ay);
+    ay += 5;
+  }
 
   // ══════════════════════════════════════════════════════════
-  // PAGE 2 — ABOUT US
+  // SLIDE 3 — THE PROBLEM
   // ══════════════════════════════════════════════════════════
-  pdf.addPage();
-  pageNum++;
-  y = 22;
+  newSlide();
+  slideFooter();
 
-  sectionHeader(
-    t('proposal.full.aboutUsLabel', 'About Us'),
-    t('proposal.full.aboutUsTitle', 'Who We Are'),
-    C.primary,
-  );
-  textBlock(t('proposal.full.aboutUsText', ''));
+  sectionLabel(t('proposal.full.problemLabel', 'The Challenge'), ML, MT, C.secondary);
 
-  y += 6;
+  pdf.setFontSize(22);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(...hex(C.textDark));
+  pdf.text(t('proposal.full.problemTitle', 'The Problem We Solve'), ML, MT + 14);
 
-  // ── THE PROBLEM ──
-  sectionHeader(
-    t('proposal.full.problemLabel', 'The Challenge'),
-    t('proposal.full.problemTitle', 'The Problem We Solve'),
-    C.error,
-  );
-  textBlock(t('proposal.full.problemText', ''));
-
-  addFooter();
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(...hex(C.textMid));
+  const probText = t('proposal.full.problemText', '');
+  const probLines = pdf.splitTextToSize(probText, CW);
+  let py = MT + 26;
+  for (const line of probLines.slice(0, 20)) {
+    pdf.text(line, ML, py);
+    py += 5;
+  }
 
   // ══════════════════════════════════════════════════════════
-  // PAGE 3 — OUR SOLUTION
+  // SLIDE 4 — OUR SOLUTION
   // ══════════════════════════════════════════════════════════
-  pdf.addPage();
-  pageNum++;
-  y = 22;
-
-  sectionHeader(
-    t('proposal.full.solutionLabel', 'Our Solution'),
-    t('proposal.full.solutionTitle', 'How We Help'),
-    C.accent,
-  );
-
   if (solutionItems.length > 0) {
+    newSlide();
+    slideFooter();
+
+    sectionLabel(t('proposal.full.solutionLabel', 'Our Solution'), ML, MT, C.accent);
+
+    pdf.setFontSize(22);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...hex(C.textDark));
+    pdf.text(t('proposal.full.solutionTitle', 'How We Help'), ML, MT + 14);
+
+    let sy = MT + 28;
     solutionItems.forEach((item: string, idx: number) => {
-      ensureSpace(10);
+      if (sy > SLIDE_H - 22) return; // safety
       const num = String(idx + 1).padStart(2, '0');
 
       // Number
-      pdf.setFontSize(10);
+      pdf.setFontSize(11);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(...hex(C.primary));
-      pdf.text(num, ML, y + 4);
+      pdf.text(num, ML, sy);
 
       // Text
-      pdf.setFontSize(9);
+      pdf.setFontSize(9.5);
       pdf.setFont('helvetica', 'normal');
       pdf.setTextColor(...hex(C.textMid));
-      const lines = pdf.splitTextToSize(item, CW - 14);
-      lines.forEach((line: string, li: number) => {
-        ensureSpace(5);
-        pdf.text(line, ML + 12, y + 4 + li * 4);
+      const lines = pdf.splitTextToSize(item, CW - 16);
+      lines.slice(0, 2).forEach((line: string, li: number) => {
+        pdf.text(line, ML + 14, sy + li * 4.2);
       });
-      y += Math.max(8, lines.length * 4 + 3);
+
+      sy += Math.max(9, lines.length * 4.2 + 4);
     });
-    y += 4;
   }
 
-  // ── COMPETITIVE ADVANTAGES ──
-  sectionHeader(
-    t('proposal.full.advantagesLabel', 'Why Choose Us'),
-    t('proposal.full.advantagesTitle', 'Competitive Advantages'),
-    C.secondary,
-  );
-
+  // ══════════════════════════════════════════════════════════
+  // SLIDE 5 — COMPETITIVE ADVANTAGES
+  // ══════════════════════════════════════════════════════════
   if (advantages.length > 0) {
-    advantages.forEach((adv: string, idx: number) => {
-      ensureSpace(14);
+    newSlide();
+    slideFooter();
 
-      // Card background
-      const cardH = advantageDescs[idx] ? 16 : 9;
-      roundedRect(ML, y, CW, cardH, 2, C.bgLight, C.border);
+    sectionLabel(t('proposal.full.advantagesLabel', 'Why Choose Us'), ML, MT, C.secondary);
+
+    pdf.setFontSize(22);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...hex(C.textDark));
+    pdf.text(t('proposal.full.advantagesTitle', 'Competitive Advantages'), ML, MT + 14);
+
+    // Two-column card grid
+    const colW = (CW - 10) / 2;
+    let advY = MT + 28;
+    let col = 0;
+
+    advantages.forEach((adv: string, idx: number) => {
+      if (advY > SLIDE_H - 30 && col === 0) return; // safety
+      const x = col === 0 ? ML : ML + colW + 10;
+
+      // Card
+      const cardH = advantageDescs[idx] ? 22 : 14;
+      pdf.setFillColor(...hex(C.bgSoft));
+      pdf.setDrawColor(...hex(C.border));
+      pdf.setLineWidth(0.3);
+      pdf.roundedRect(x, advY, colW, cardH, 2, 2, 'FD');
+
+      // Accent dot
+      pdf.setFillColor(...hex(C.primary));
+      pdf.circle(x + 5, advY + 6, 1.2, 'F');
 
       // Title
       pdf.setFontSize(9);
       pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(...hex(C.textDark));
-      pdf.text(adv, ML + 4, y + 6);
+      const titleLines = pdf.splitTextToSize(adv, colW - 14);
+      pdf.text(titleLines[0] || '', x + 10, advY + 7);
 
       // Description
       if (advantageDescs[idx]) {
-        pdf.setFontSize(8);
+        pdf.setFontSize(7.5);
         pdf.setFont('helvetica', 'normal');
         pdf.setTextColor(...hex(C.textMid));
-        const descLines = pdf.splitTextToSize(advantageDescs[idx], CW - 8);
-        pdf.text(descLines[0] || '', ML + 4, y + 12);
+        const descLines = pdf.splitTextToSize(advantageDescs[idx], colW - 14);
+        descLines.slice(0, 2).forEach((line: string, li: number) => {
+          pdf.text(line, x + 10, advY + 13 + li * 3.5);
+        });
       }
 
-      y += cardH + 3;
+      if (col === 1) {
+        advY += cardH + 5;
+        col = 0;
+      } else {
+        col = 1;
+      }
     });
-    y += 2;
   }
 
-  addFooter();
-
   // ══════════════════════════════════════════════════════════
-  // PLAN DETAILS + FEATURES
+  // SLIDE 6 — PLAN DETAILS (description)
   // ══════════════════════════════════════════════════════════
-  pdf.addPage();
-  pageNum++;
-  y = 22;
-
-  // Description
   if (description) {
-    sectionHeader(
-      t('proposal.public.planDetails', 'Plan Details'),
-      proposal.custom_plan_name,
-      C.primary,
-    );
-    textBlock(description);
-    y += 4;
+    newSlide();
+    slideFooter();
+
+    sectionLabel(t('proposal.public.planDetails', 'Plan Details'), ML, MT);
+
+    pdf.setFontSize(22);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(...hex(C.textDark));
+    const planTitle = pdf.splitTextToSize(proposal.custom_plan_name, CW);
+    pdf.text(planTitle[0] || proposal.custom_plan_name, ML, MT + 14);
+
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(...hex(C.textMid));
+    const descLines = pdf.splitTextToSize(description, CW);
+    let dy = MT + 28;
+    for (const line of descLines.slice(0, 22)) {
+      pdf.text(line, ML, dy);
+      dy += 5;
+    }
   }
 
-  // Features
+  // ══════════════════════════════════════════════════════════
+  // SLIDE 7 — FEATURES
+  // ══════════════════════════════════════════════════════════
   if (features.length > 0) {
-    sectionHeader(
-      t('proposal.public.whatsIncluded', "What's Included"),
-      t('proposal.features', 'Features'),
-      C.accent,
-    );
+    // Split features into slides of max 10
+    const perSlide = 10;
+    for (let page = 0; page < Math.ceil(features.length / perSlide); page++) {
+      newSlide();
+      slideFooter();
 
-    // Two-column feature grid
-    const colW = (CW - 6) / 2;
-    const leftX = ML;
-    const rightX = ML + colW + 6;
+      sectionLabel(t('proposal.public.whatsIncluded', "What's Included"), ML, MT, C.accent);
 
-    features.forEach((feat: string, idx: number) => {
-      const isLeft = idx % 2 === 0;
-      if (isLeft) ensureSpace(10);
-
-      const x = isLeft ? leftX : rightX;
-      const featureY = isLeft ? y : y; // Both on same y for pairs
-
-      // Dot
-      pdf.setFillColor(...hex(C.primary));
-      pdf.circle(x + 2, featureY + 3, 1, 'F');
-
-      // Text
-      pdf.setFontSize(8.5);
-      pdf.setFont('helvetica', 'normal');
+      pdf.setFontSize(22);
+      pdf.setFont('helvetica', 'bold');
       pdf.setTextColor(...hex(C.textDark));
-      const fLines = pdf.splitTextToSize(feat, colW - 8);
-      fLines.slice(0, 2).forEach((line: string, li: number) => {
-        pdf.text(line, x + 6, featureY + 3 + li * 3.5);
-      });
+      pdf.text(
+        page === 0
+          ? t('proposal.features', 'Features')
+          : `${t('proposal.features', 'Features')} (${page + 1})`,
+        ML, MT + 14,
+      );
 
-      if (!isLeft || idx === features.length - 1) {
-        y += Math.max(8, fLines.length * 3.5 + 3);
-      }
-    });
-    y += 4;
+      const chunk = features.slice(page * perSlide, (page + 1) * perSlide);
+      const colW = (CW - 10) / 2;
+
+      chunk.forEach((feat: string, idx: number) => {
+        const isLeft = idx % 2 === 0;
+        const x = isLeft ? ML : ML + colW + 10;
+        const row = Math.floor(idx / 2);
+        const fy = MT + 28 + row * 13;
+
+        // Feature card
+        pdf.setFillColor(...hex(C.bgSoft));
+        pdf.setDrawColor(...hex(C.border));
+        pdf.setLineWidth(0.2);
+        pdf.roundedRect(x, fy, colW, 10, 2, 2, 'FD');
+
+        // Dot
+        pdf.setFillColor(...hex(C.primary));
+        pdf.circle(x + 4, fy + 5, 1, 'F');
+
+        // Text
+        pdf.setFontSize(8.5);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setTextColor(...hex(C.textDark));
+        const fLines = pdf.splitTextToSize(feat, colW - 12);
+        pdf.text(fLines[0] || '', x + 8, fy + 5.5);
+        if (fLines[1]) {
+          pdf.setFontSize(7);
+          pdf.text(fLines[1], x + 8, fy + 9);
+        }
+      });
+    }
   }
 
-  // ── PRICING SECTION ──
-  sectionHeader(
-    t('proposal.public.investment', 'Investment'),
-    proposal.billing_interval === 'monthly'
-      ? t('proposal.public.monthlyInvestment', 'Monthly Investment')
-      : t('proposal.public.yearlyInvestment', 'Yearly Investment'),
-    C.primary,
-  );
+  // ══════════════════════════════════════════════════════════
+  // SLIDE — INVESTMENT / PRICING
+  // ══════════════════════════════════════════════════════════
+  newSlide();
 
-  ensureSpace(35);
-  const pBoxY = y;
-  const pBoxH = 30;
+  // Dark background for impact
+  pdf.setFillColor(...hex(C.dark));
+  pdf.rect(0, 0, SLIDE_W, SLIDE_H, 'F');
 
-  // Gradient-like box
-  roundedRect(ML, pBoxY, CW, pBoxH, 4, lighten(C.primary, 0.92), C.primary);
+  // Accent bar at top
+  pdf.setFillColor(...hex(C.primary));
+  pdf.rect(0, 0, SLIDE_W, 3, 'F');
 
-  // Price
-  pdf.setFontSize(24);
-  pdf.setFont('helvetica', 'bold');
-  pdf.setTextColor(...hex(C.primary));
-  pdf.text(priceStr, W / 2, pBoxY + 14, { align: 'center' });
-
-  // Interval
-  pdf.setFontSize(9);
+  // Section label
+  pdf.setFontSize(8);
   pdf.setFont('helvetica', 'normal');
-  pdf.setTextColor(...hex(C.textMid));
-  pdf.text(intervalLabel, W / 2, pBoxY + 22, { align: 'center' });
+  pdf.setTextColor(...hex(C.textLight));
+  pdf.text(t('proposal.public.investment', 'INVESTMENT').toUpperCase(), SLIDE_W / 2, MT + 10, { align: 'center' });
 
-  y = pBoxY + pBoxH + 8;
+  // Interval label
+  pdf.setFontSize(12);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(...hex(C.textFaint));
+  const intervalLabel = proposal.billing_interval === 'monthly'
+    ? t('proposal.public.monthlyInvestment', 'Monthly Investment')
+    : t('proposal.public.yearlyInvestment', 'Yearly Investment');
+  pdf.text(intervalLabel, SLIDE_W / 2, MT + 24, { align: 'center' });
 
-  addFooter();
+  // PRICE — large, centered
+  const priceStr = formatCurrency(proposal.custom_price, proposal.currency);
+  pdf.setFontSize(52);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(255, 255, 255);
+  pdf.text(priceStr, SLIDE_W / 2, SLIDE_H / 2 + 6, { align: 'center' });
+
+  // Billing note
+  pdf.setFontSize(11);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(...hex(C.textLight));
+  const billedLabel = proposal.billing_interval === 'monthly'
+    ? t('proposal.public.billedMonthly', 'Billed monthly')
+    : t('proposal.public.billedYearly', 'Billed yearly');
+  pdf.text(billedLabel, SLIDE_W / 2, SLIDE_H / 2 + 18, { align: 'center' });
+
+  // Savings callout
+  if (proposal.base_plan && proposal.base_plan.price > proposal.custom_price) {
+    const savings = formatCurrency(proposal.base_plan.price - proposal.custom_price, proposal.currency);
+
+    // Savings pill
+    const savingsText = `${t('proposal.public.savings', 'You save')} ${savings} vs. ${proposal.base_plan.name}`;
+    const sw = pdf.setFontSize(9).getTextWidth(savingsText) + 12;
+    const sx = (SLIDE_W - sw) / 2;
+    pdf.setFillColor(...hex(lighten(C.success, 0.15)));
+    pdf.roundedRect(sx, SLIDE_H / 2 + 24, sw, 8, 3, 3, 'F');
+    pdf.setFontSize(9);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(255, 255, 255);
+    pdf.text(savingsText, SLIDE_W / 2, SLIDE_H / 2 + 30, { align: 'center' });
+  }
+
+  // Validity
+  if (proposal.valid_until) {
+    pdf.setFontSize(8);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(...hex(C.warning));
+    pdf.text(
+      `${t('proposal.public.validUntilLabel', 'Valid until:')} ${formatDate(proposal.valid_until, lang)}`,
+      SLIDE_W / 2, SLIDE_H - 20, { align: 'center' },
+    );
+  }
+
+  // Footer (light variant for dark bg)
+  pdf.setFillColor(...hex(C.primary));
+  pdf.rect(0, SLIDE_H - 8, SLIDE_W * 0.6, 0.8, 'F');
+  pdf.setFillColor(...hex(C.secondary));
+  pdf.rect(SLIDE_W * 0.6, SLIDE_H - 8, SLIDE_W * 0.4, 0.8, 'F');
+
+  pdf.setFontSize(6.5);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(...hex(C.textLight));
+  pdf.text('AINALYTICS', ML, SLIDE_H - 4);
+  pdf.text('Confidential', SLIDE_W / 2, SLIDE_H - 4, { align: 'center' });
+  pdf.text(`${slideNum}`, SLIDE_W - MR, SLIDE_H - 4, { align: 'right' });
 
   // ══════════════════════════════════════════════════════════
-  // LAST PAGE — NEXT STEPS + CONTACT
+  // SLIDE — NEXT STEPS
   // ══════════════════════════════════════════════════════════
-  pdf.addPage();
-  pageNum++;
-  y = 22;
+  newSlide();
+  slideFooter();
 
-  sectionHeader(
-    t('proposal.full.nextStepsLabel', 'Next Steps'),
-    t('proposal.full.nextStepsTitle', 'Ready to Get Started?'),
-    C.success,
-  );
+  sectionLabel(t('proposal.full.nextStepsLabel', 'Next Steps'), ML, MT, C.success);
 
-  textBlock(t('proposal.public.ctaText', 'Accept this proposal to begin your journey with Ainalytics.'));
-
-  y += 4;
-
-  // Contact info box
-  ensureSpace(30);
-  const contactBoxY = y;
-  roundedRect(ML, contactBoxY, CW, 24, 4, C.bgCard, C.border);
-
-  pdf.setFontSize(10);
+  pdf.setFontSize(22);
   pdf.setFont('helvetica', 'bold');
   pdf.setTextColor(...hex(C.textDark));
-  pdf.text(t('proposal.public.haveQuestions', 'Have questions?'), ML + 6, contactBoxY + 9);
+  pdf.text(t('proposal.full.nextStepsTitle', 'Ready to Get Started?'), ML, MT + 14);
+
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(...hex(C.textMid));
+  const ctaText = t('proposal.public.ctaText', 'Accept this proposal to begin your journey with Ainalytics.');
+  const ctaLines = pdf.splitTextToSize(ctaText, CW * 0.7);
+  let ctaY = MT + 28;
+  for (const line of ctaLines) {
+    pdf.text(line, ML, ctaY);
+    ctaY += 5;
+  }
+
+  // Contact box
+  const boxW = CW * 0.45;
+  const boxH = 22;
+  const boxY = SLIDE_H - 50;
+  pdf.setFillColor(...hex(C.bgSoft));
+  pdf.setDrawColor(...hex(C.border));
+  pdf.setLineWidth(0.3);
+  pdf.roundedRect(ML, boxY, boxW, boxH, 3, 3, 'FD');
+
+  pdf.setFontSize(9);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(...hex(C.textDark));
+  pdf.text(t('proposal.public.haveQuestions', 'Have questions?'), ML + 6, boxY + 9);
 
   const contactEmail = `contact@${proposal.company_domain || 'ainalytics.com'}`;
   pdf.setFontSize(9);
   pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(...hex(C.primary));
-  pdf.text(contactEmail, ML + 6, contactBoxY + 17);
+  pdf.text(contactEmail, ML + 6, boxY + 16);
 
-  y = contactBoxY + 30;
+  // ══════════════════════════════════════════════════════════
+  // SLIDE — CLOSING / THANK YOU
+  // ══════════════════════════════════════════════════════════
+  newSlide();
 
-  // Confidentiality notice
-  ensureSpace(12);
-  pdf.setFontSize(7.5);
-  pdf.setFont('helvetica', 'italic');
+  // Dark closing slide
+  pdf.setFillColor(...hex(C.dark));
+  pdf.rect(0, 0, SLIDE_W, SLIDE_H, 'F');
+
+  // Accent bar at top
+  pdf.setFillColor(...hex(C.primary));
+  pdf.rect(0, 0, SLIDE_W, 3, 'F');
+
+  // Thank you
+  pdf.setFontSize(36);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(255, 255, 255);
+  pdf.text(t('proposal.full.thankYou', 'Thank you.'), SLIDE_W / 2, SLIDE_H / 2 - 10, { align: 'center' });
+
+  // Subtitle
+  pdf.setFontSize(13);
+  pdf.setFont('helvetica', 'normal');
   pdf.setTextColor(...hex(C.textLight));
-  const confLines = pdf.splitTextToSize(
-    t('proposal.public.footerNote', 'This proposal is confidential and intended solely for the named recipient.'),
-    CW,
+  pdf.text(
+    proposal.client_name
+      ? `${proposal.client_name}${proposal.company_name ? ` — ${proposal.company_name}` : ''}`
+      : proposal.company_name || proposal.custom_plan_name,
+    SLIDE_W / 2, SLIDE_H / 2 + 6, { align: 'center' },
   );
-  for (const line of confLines) {
-    pdf.text(line, ML, y);
-    y += 3.5;
-  }
 
-  // Final page footer
-  addFooter();
+  // Brand at bottom
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(...hex(C.accent));
+  pdf.text('AINALYTICS', SLIDE_W / 2, SLIDE_H - 20, { align: 'center' });
+
+  pdf.setFontSize(7);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(...hex(C.textLight));
+  pdf.text('ainalytics.com', SLIDE_W / 2, SLIDE_H - 14, { align: 'center' });
+
+  // Confidentiality
+  pdf.setFontSize(6);
+  pdf.setTextColor(...hex(C.textLight));
+  pdf.text(
+    t('proposal.public.footerNote', 'This proposal is confidential and intended solely for the named recipient.'),
+    SLIDE_W / 2, SLIDE_H - 8, { align: 'center' },
+  );
 
   // ── Return as blob ──
   return pdf.output('blob');
