@@ -480,7 +480,7 @@ function EfficiencyTrendsChart({ data, currency, t }: {
 
 // ─── Spend vs Conversions Chart ────────────────────────────
 
-function SpendConversionsChart({ data, currency, t }: {
+function SpendConversionsChart({ data, currency: _currency, t }: {
   data: DailyRow[];
   currency: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
