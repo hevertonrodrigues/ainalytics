@@ -19,6 +19,7 @@ import {
   Cpu,
   DollarSign,
   BarChart3,
+  Megaphone,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -41,6 +42,7 @@ const SA_NAV: NavItem[] = [
   { key: 'sa.platformsTitle', path: '/sa/platforms', icon: Globe },
   { key: 'sa.modelsTitle', path: '/sa/models', icon: Cpu },
   { key: 'sa.costs.title', path: '/sa/costs', icon: DollarSign },
+  { key: 'sa.metaAds.title', path: '/sa/meta-ads', icon: Megaphone },
   { key: 'timeline.title', path: '/sa/monitoring', icon: BarChart3 },
 ];
 

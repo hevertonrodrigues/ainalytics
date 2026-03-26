@@ -23,6 +23,7 @@ const SAActivationCodesPage = lazy(() => import('@/pages/sa/ActivationCodesPage'
 const SAPlatformsPage = lazy(() => import('@/pages/sa/PlatformsPage').then(m => ({ default: m.PlatformsPage })));
 const SAModelsPage = lazy(() => import('@/pages/sa/ModelsPage').then(m => ({ default: m.ModelsPage })));
 const SAAICostsPage = lazy(() => import('@/pages/sa/AICostsPage').then(m => ({ default: m.AICostsPage })));
+const SAMetaAdsPage = lazy(() => import('@/pages/sa/MetaAdsPage').then(m => ({ default: m.MetaAdsPage })));
 const SAMonitoringTimelinePage = lazy(() => import('@/pages/sa/MonitoringTimelinePage').then(m => ({ default: m.MonitoringTimelinePage })));
 const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 
@@ -126,6 +127,7 @@ export function App() {
               <Route path="platforms" element={<SAPlatformsPage />} />
               <Route path="models" element={<SAModelsPage />} />
               <Route path="costs" element={<SAAICostsPage />} />
+              <Route path="meta-ads" element={<SAMetaAdsPage />} />
               <Route path="monitoring" element={<SAMonitoringTimelinePage />} />
               <Route path="users/:userId" element={<UserDetailPage />} />
             </Route>
