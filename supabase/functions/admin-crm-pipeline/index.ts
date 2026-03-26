@@ -119,8 +119,10 @@ serve(async (req: Request) => {
       let stage = "registered";
       if (subStatus === "canceled") {
         stage = "cancelled";
-      } else if (subStatus === "active" || subStatus === "trialing") {
-        stage = hasStripe ? "subscribed_stripe" : (hasActivation ? "subscribed_activation" : "subscribed_stripe");
+      } else if (subStatus === "trialing") {
+        stage = "trial";
+      } else if (subStatus === "active") {
+        stage = "active";
       } else if (emailConfirmed) {
         stage = "email_confirmed";
       }

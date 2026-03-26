@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Plus, Trash2, Copy, Check, FileText } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 
 interface Plan {
   id: string;
@@ -44,6 +45,13 @@ function formatCurrency(value: number, currencyCode: string): string {
   }).format(value);
 }
 
+// Calculate default validity (7 days from now)
+function getDefaultValidity(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 7);
+  return d.toISOString().split('T')[0] ?? '';
+}
+
 export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenantId, userName }: CreateProposalModalProps) {
   const { t, i18n } = useTranslation();
   const currentLang = i18n.language as typeof LANGS[number];
@@ -52,19 +60,21 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [planName, setPlanName] = useState('');
   const [price, setPrice] = useState('');
+  const [basePriceUsd, setBasePriceUsd] = useState<number | null>(null);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [currency, setCurrency] = useState('usd');
+  const [exchangeRates, setExchangeRates] = useState<{ USD_BRL: number; USD_EUR: number }>({ USD_BRL: 5.0, USD_EUR: 1.2 });
   const [features, setFeatures] = useState<Record<string, string[]>>({ en: [], es: [], 'pt-br': [] });
   const [description, setDescription] = useState<Record<string, string>>({ en: '', es: '', 'pt-br': '' });
   const [notes, setNotes] = useState('');
-  const [validUntil, setValidUntil] = useState('');
+  const [validUntil, setValidUntil] = useState(getDefaultValidity);
   const [activeTab, setActiveTab] = useState<typeof LANGS[number]>(currentLang || 'en');
   const [newFeature, setNewFeature] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // Fetch plans for the selector
+  // Fetch plans and exchange rates on open
   useEffect(() => {
     if (!isOpen) return;
     async function fetchPlans() {
@@ -73,8 +83,41 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
         setPlans(res.data || []);
       } catch { /* ignore */ }
     }
+    async function fetchRates() {
+      try {
+        const { data } = await supabase
+          .from('general_settings')
+          .select('key, value')
+          .in('key', ['USD_BRL', 'USD_EUR']);
+        if (data) {
+          const r = { ...exchangeRates };
+          data.forEach((row: { key: string; value: string }) => {
+            if (row.key === 'USD_BRL') r.USD_BRL = parseFloat(row.value);
+            if (row.key === 'USD_EUR') r.USD_EUR = parseFloat(row.value);
+          });
+          setExchangeRates(r);
+        }
+      } catch { /* ignore */ }
+    }
     fetchPlans();
+    fetchRates();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
+
+  // Convert price when currency changes
+  const convertPrice = useCallback((usdPrice: number, toCurrency: string): string => {
+    let converted = usdPrice;
+    if (toCurrency === 'brl') converted = usdPrice * exchangeRates.USD_BRL;
+    if (toCurrency === 'eur') converted = usdPrice * exchangeRates.USD_EUR;
+    return converted.toFixed(2);
+  }, [exchangeRates]);
+
+  function handleCurrencyChange(newCurrency: string) {
+    setCurrency(newCurrency);
+    if (basePriceUsd !== null) {
+      setPrice(convertPrice(basePriceUsd, newCurrency));
+    }
+  }
 
   // When a base plan is selected, prefill features
   function handlePlanSelect(planId: string) {
@@ -82,7 +125,8 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
     const plan = plans.find(p => p.id === planId);
     if (plan) {
       setPlanName(plan.name);
-      setPrice(String(plan.price));
+      setBasePriceUsd(plan.price);
+      setPrice(convertPrice(plan.price, currency));
       setBillingInterval((plan.billing_interval as 'monthly' | 'yearly') || 'monthly');
       if (plan.features) {
         const f: Record<string, string[]> = { en: [], es: [], 'pt-br': [] };
@@ -166,11 +210,13 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
     setCreatedSlug(null);
     setPlanName('');
     setPrice('');
+    setBasePriceUsd(null);
     setSelectedPlanId('');
+    setCurrency('usd');
     setFeatures({ en: [], es: [], 'pt-br': [] });
     setDescription({ en: '', es: '', 'pt-br': '' });
     setNotes('');
-    setValidUntil('');
+    setValidUntil(getDefaultValidity());
     setNewFeature('');
     onClose();
   }
@@ -267,7 +313,16 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
                 step="0.01"
                 min="0"
                 value={price}
-                onChange={e => setPrice(e.target.value)}
+                onChange={e => {
+                  setPrice(e.target.value);
+                  const val = parseFloat(e.target.value);
+                  if (!isNaN(val)) {
+                    let usd = val;
+                    if (currency === 'brl') usd = val / exchangeRates.USD_BRL;
+                    if (currency === 'eur') usd = val / exchangeRates.USD_EUR;
+                    setBasePriceUsd(usd);
+                  }
+                }}
                 placeholder="99.00"
                 className={inputCls}
                 required
@@ -292,7 +347,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
               <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.currency')}</label>
               <select
                 value={currency}
-                onChange={e => setCurrency(e.target.value)}
+                onChange={e => handleCurrencyChange(e.target.value)}
                 className={inputCls}
               >
                 <option value="usd">USD ($)</option>

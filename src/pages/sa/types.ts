@@ -46,7 +46,7 @@ export interface CRMPipelineUser {
   last_payment_amount: number;
   total_payment_attempts: number;
   // Kanban
-  stage: 'registered' | 'email_confirmed' | 'subscribed_stripe' | 'subscribed_activation' | 'cancelled';
+  stage: 'registered' | 'email_confirmed' | 'trial' | 'active' | 'cancelled';
 }
 
 export type KanbanStage = CRMPipelineUser['stage'];
@@ -54,7 +54,7 @@ export type KanbanStage = CRMPipelineUser['stage'];
 export const KANBAN_STAGES: KanbanStage[] = [
   'registered',
   'email_confirmed',
-  'subscribed_activation',
-  'subscribed_stripe',
+  'trial',
+  'active',
   'cancelled',
 ];
