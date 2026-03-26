@@ -23,11 +23,13 @@ interface KanbanBoardProps {
 }
 
 const STAGE_CONFIG: Record<KanbanStage, { color: string; borderColor: string; bgColor: string; dotColor: string }> = {
-  registered:      { color: 'text-warning',        borderColor: 'border-warning/30',        bgColor: 'bg-warning/5',         dotColor: 'bg-warning' },
-  email_confirmed: { color: 'text-chart-cyan',     borderColor: 'border-chart-cyan/30',     bgColor: 'bg-chart-cyan/5',      dotColor: 'bg-chart-cyan' },
-  trial:        { color: 'text-brand-primary',  borderColor: 'border-brand-primary/30',  bgColor: 'bg-brand-primary/5',   dotColor: 'bg-brand-primary' },
-  active:          { color: 'text-success',        borderColor: 'border-success/30',        bgColor: 'bg-success/5',         dotColor: 'bg-success' },
-  cancelled:       { color: 'text-error',          borderColor: 'border-error/30',          bgColor: 'bg-error/5',           dotColor: 'bg-error' },
+  registered:         { color: 'text-warning',        borderColor: 'border-warning/30',        bgColor: 'bg-warning/5',         dotColor: 'bg-warning' },
+  email_confirmed:    { color: 'text-chart-cyan',     borderColor: 'border-chart-cyan/30',     bgColor: 'bg-chart-cyan/5',      dotColor: 'bg-chart-cyan' },
+  trial_activation:   { color: 'text-brand-primary',  borderColor: 'border-brand-primary/30',  bgColor: 'bg-brand-primary/5',   dotColor: 'bg-brand-primary' },
+  trial_stripe:       { color: 'text-chart-purple',   borderColor: 'border-chart-purple/30',   bgColor: 'bg-chart-purple/5',    dotColor: 'bg-chart-purple' },
+  active_activation:  { color: 'text-success',        borderColor: 'border-success/30',        bgColor: 'bg-success/5',         dotColor: 'bg-success' },
+  active_stripe:      { color: 'text-chart-green',    borderColor: 'border-chart-green/30',    bgColor: 'bg-chart-green/5',     dotColor: 'bg-chart-green' },
+  cancelled:          { color: 'text-error',          borderColor: 'border-error/30',          bgColor: 'bg-error/5',           dotColor: 'bg-error' },
 };
 
 export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProps) {
@@ -79,7 +81,7 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
             <div className="flex-1 space-y-2 p-2 bg-bg-secondary/30 rounded-b-lg border border-t-0 border-glass-border overflow-y-auto max-h-[calc(100vh-320px)]">
               {stageUsers.length === 0 ? (
                 <p className="text-xs text-text-muted text-center py-6 italic">{t('sa.noUsersFound')}</p>
-              ) : (stage === 'trial' || stage === 'active') ? (
+              ) : (stage === 'trial_activation' || stage === 'active_activation') ? (
                 /* Group by activation code */
                 (() => {
                   const groups: Record<string, CRMPipelineUser[]> = {};

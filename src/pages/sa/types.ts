@@ -26,6 +26,7 @@ export interface CRMPipelineUser {
   company_industry: string | null;
   company_country: string | null;
   // Plan & Subscription
+  subscription_plan_id: string | null;
   plan_name: string | null;
   plan_price: number;
   subscription_status: string | null;
@@ -46,7 +47,7 @@ export interface CRMPipelineUser {
   last_payment_amount: number;
   total_payment_attempts: number;
   // Kanban
-  stage: 'registered' | 'email_confirmed' | 'trial' | 'active' | 'cancelled';
+  stage: 'registered' | 'email_confirmed' | 'trial_stripe' | 'trial_activation' | 'active_stripe' | 'active_activation' | 'cancelled';
 }
 
 export type KanbanStage = CRMPipelineUser['stage'];
@@ -54,7 +55,9 @@ export type KanbanStage = CRMPipelineUser['stage'];
 export const KANBAN_STAGES: KanbanStage[] = [
   'registered',
   'email_confirmed',
-  'trial',
-  'active',
+  'trial_activation',
+  'trial_stripe',
+  'active_activation',
+  'active_stripe',
   'cancelled',
 ];

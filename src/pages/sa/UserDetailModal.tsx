@@ -28,8 +28,10 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
   const stageColor: Record<string, string> = {
     registered: 'text-warning',
     email_confirmed: 'text-chart-cyan',
-    trial: 'text-brand-primary',
-    active: 'text-success',
+    trial_activation: 'text-brand-primary',
+    trial_stripe: 'text-chart-purple',
+    active_activation: 'text-success',
+    active_stripe: 'text-chart-green',
     cancelled: 'text-error',
   };
 

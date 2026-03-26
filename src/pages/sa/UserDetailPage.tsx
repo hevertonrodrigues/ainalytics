@@ -28,6 +28,7 @@ import {
 import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser } from './types';
 import { CreateProposalModal } from './CreateProposalModal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 
 interface ProposalItem {
   id: string;
@@ -51,6 +52,7 @@ export function UserDetailPage() {
   const [showProposalModal, setShowProposalModal] = useState(false);
   const [proposals, setProposals] = useState<ProposalItem[]>([]);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   // Subscription editing state
   const [editStatus, setEditStatus] = useState<string>('');
@@ -58,6 +60,8 @@ export function UserDetailPage() {
   const [editPeriodEnd, setEditPeriodEnd] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [editPlanId, setEditPlanId] = useState<string>('');
+  const [availablePlans, setAvailablePlans] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -85,8 +89,20 @@ export function UserDetailPage() {
       setEditStatus(user.subscription_status || '');
       setEditPeriodStart(user.current_period_start ? user.current_period_start.slice(0, 10) : '');
       setEditPeriodEnd(user.current_period_end ? user.current_period_end.slice(0, 10) : '');
+      setEditPlanId(user.subscription_plan_id || '');
     }
   }, [user]);
+
+  // Fetch available plans
+  useEffect(() => {
+    async function fetchPlans() {
+      try {
+        const res = await apiClient.get<{ plans: { id: string; name: string }[] }>('/plans');
+        setAvailablePlans(res.data.plans || []);
+      } catch { /* ignore */ }
+    }
+    fetchPlans();
+  }, []);
 
   const fetchProposals = useCallback(async () => {
     if (!userId) return;
@@ -106,11 +122,11 @@ export function UserDetailPage() {
   }
 
   async function deleteProposal(id: string) {
-    if (!confirm(t('proposal.deleteConfirm'))) return;
     try {
       await apiClient.delete(`/proposals/${id}`);
       fetchProposals();
     } catch { /* ignore */ }
+    finally { setDeleteTarget(null); }
   }
 
   async function updateProposalStatus(id: string, status: string) {
@@ -130,6 +146,7 @@ export function UserDetailPage() {
         status: editStatus || undefined,
         current_period_start: editPeriodStart ? new Date(editPeriodStart).toISOString() : undefined,
         current_period_end: editPeriodEnd ? new Date(editPeriodEnd).toISOString() : undefined,
+        plan_id: editPlanId || undefined,
       });
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);
@@ -174,8 +191,10 @@ export function UserDetailPage() {
   const stageColor: Record<string, string> = {
     registered: 'bg-warning/10 text-warning border-warning/30',
     email_confirmed: 'bg-chart-cyan/10 text-chart-cyan border-chart-cyan/30',
-    trial: 'bg-brand-primary/10 text-brand-primary border-brand-primary/30',
-    active: 'bg-success/10 text-success border-success/30',
+    trial_activation: 'bg-brand-primary/10 text-brand-primary border-brand-primary/30',
+    trial_stripe: 'bg-chart-purple/10 text-chart-purple border-chart-purple/30',
+    active_activation: 'bg-success/10 text-success border-success/30',
+    active_stripe: 'bg-chart-green/10 text-chart-green border-chart-green/30',
     cancelled: 'bg-error/10 text-error border-error/30',
   };
 
@@ -284,11 +303,19 @@ export function UserDetailPage() {
 
         {/* Subscription */}
         <DetailCard title={t('sa.subscriptionInfo')} icon={<CreditCard className="w-4 h-4" />}>
-          <DetailRow label={t('sa.colPlan')} icon={<CreditCard className="w-3.5 h-3.5" />}>
-            {user.plan_name ? (
-              <span className="text-brand-primary font-medium">{user.plan_name}</span>
-            ) : <span className="text-text-muted italic">{t('sa.noPlan')}</span>}
-          </DetailRow>
+          <div className="flex items-start justify-between text-sm gap-4">
+            <span className="flex items-center gap-1.5 text-text-muted shrink-0"><CreditCard className="w-3.5 h-3.5" /> {t('sa.colPlan')}</span>
+            <select
+              value={editPlanId}
+              onChange={e => setEditPlanId(e.target.value)}
+              className="bg-bg-tertiary border border-glass-border rounded-md px-2 py-1 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer text-right"
+            >
+              <option value="">{t('sa.noPlan')}</option>
+              {availablePlans.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex items-start justify-between text-sm gap-4">
             <span className="flex items-center gap-1.5 text-text-muted shrink-0"><CheckCircle2 className="w-3.5 h-3.5" /> {t('sa.status')}</span>
             <select
@@ -460,7 +487,7 @@ export function UserDetailPage() {
                     <Download className="w-3.5 h-3.5" />
                   </button>
                   <button
-                    onClick={() => deleteProposal(p.id)}
+                    onClick={() => setDeleteTarget(p.id)}
                     className="p-1.5 rounded-md hover:bg-error/10 transition-colors text-text-muted hover:text-error"
                     title={t('proposal.deleteProposal')}
                   >
@@ -488,6 +515,15 @@ export function UserDetailPage() {
         tenantId={user.tenant_id ?? undefined}
         userName={user.full_name || user.email || undefined}
       />
+
+      {deleteTarget && (
+        <ConfirmModal
+          message={t('proposal.deleteConfirm')}
+          onConfirm={() => deleteProposal(deleteTarget)}
+          onCancel={() => setDeleteTarget(null)}
+          variant="danger"
+        />
+      )}
     </div>
   );
 }

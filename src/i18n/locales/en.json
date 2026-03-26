@@ -705,8 +705,10 @@
     "stage": "Stage",
     "stage_registered": "Registered",
     "stage_email_confirmed": "Email Confirmed",
-    "stage_trial": "Trial",
-    "stage_active": "Active",
+    "stage_trial_activation": "Trial (Activation)",
+    "stage_trial_stripe": "Trial (Stripe)",
+    "stage_active_activation": "Active (Activation)",
+    "stage_active_stripe": "Active (Stripe)",
     "stage_cancelled": "Cancelled",
     "authInfo": "Auth & Account",
     "emailConfirmed": "Email Confirmed",
@@ -1592,6 +1594,7 @@
     "themeDark": "Dark",
     "themeLight": "Light",
     "downloadPdf": "Download PDF",
+    "defaultLang": "Default Language",
     "proposals": "Proposals",
     "newProposal": "New Proposal",
     "editProposal": "Edit Proposal",
@@ -1707,5 +1710,17 @@
       "nextStepsLabel": "Next Steps",
       "nextStepsTitle": "Ready to Get Started?"
     }
+  },
+  "errorPages": {
+    "maintenanceTitle": "We're improving things for you",
+    "maintenanceSubtitle": "Our team is working on updates to make your experience even better. This usually takes just a moment.",
+    "tryAgain": "Try Again",
+    "goToDashboard": "Go to Dashboard",
+    "notFoundTitle": "This Page Has Moved",
+    "notFoundSubtitle": "We may have reorganized things. Let's get you back on track.",
+    "goBack": "Go Back",
+    "proposalNotFoundTitle": "This Proposal Is Unavailable",
+    "proposalNotFoundSubtitle": "The proposal you're looking for may have expired or doesn't exist. Please contact us for an updated offer.",
+    "contactUs": "Contact Us"
   }
 }

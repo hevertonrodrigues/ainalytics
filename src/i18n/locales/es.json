@@ -705,8 +705,10 @@
     "stage": "Etapa",
     "stage_registered": "Registrado",
     "stage_email_confirmed": "Email Confirmado",
-    "stage_trial": "Trial",
-    "stage_active": "Activo",
+    "stage_trial_activation": "Trial (Activación)",
+    "stage_trial_stripe": "Trial (Stripe)",
+    "stage_active_activation": "Activo (Activación)",
+    "stage_active_stripe": "Activo (Stripe)",
     "stage_cancelled": "Cancelado",
     "authInfo": "Auth y Cuenta",
     "emailConfirmed": "Email Confirmado",
@@ -1592,6 +1594,7 @@
     "themeDark": "Oscuro",
     "themeLight": "Claro",
     "downloadPdf": "Descargar PDF",
+    "defaultLang": "Idioma Predeterminado",
     "proposals": "Propuestas",
     "newProposal": "Nueva Propuesta",
     "editProposal": "Editar Propuesta",
@@ -1707,5 +1710,17 @@
       "nextStepsLabel": "Próximos Pasos",
       "nextStepsTitle": "¿Listo para Comenzar?"
     }
+  },
+  "errorPages": {
+    "maintenanceTitle": "Estamos mejorando las cosas para ti",
+    "maintenanceSubtitle": "Nuestro equipo está trabajando en actualizaciones para hacer tu experiencia aún mejor. Esto generalmente toma solo un momento.",
+    "tryAgain": "Intentar de Nuevo",
+    "goToDashboard": "Ir al Dashboard",
+    "notFoundTitle": "Esta Página se ha Movido",
+    "notFoundSubtitle": "Puede que hayamos reorganizado algunas cosas. Vamos a ponerte de vuelta en el camino correcto.",
+    "goBack": "Volver",
+    "proposalNotFoundTitle": "Esta Propuesta No Está Disponible",
+    "proposalNotFoundSubtitle": "La propuesta que busca puede haber expirado o no existe. Contáctenos para una oferta actualizada.",
+    "contactUs": "Contáctenos"
   }
 }

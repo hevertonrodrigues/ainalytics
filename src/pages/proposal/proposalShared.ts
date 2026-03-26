@@ -22,6 +22,7 @@ export interface ProposalData {
   company_name: string | null;
   company_domain: string | null;
   theme: ProposalTheme;
+  default_lang: string;
 }
 
 export const SUPPORTED_LANGS = ['en', 'es', 'pt-br'];
@@ -96,6 +97,11 @@ export function useProposalData() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [lang, setLang] = useState(detectLang);
+
+  // Update lang when proposal loads if it specifies a default
+  useEffect(() => {
+    if (proposal?.default_lang) setLang(proposal.default_lang);
+  }, [proposal?.default_lang]);
 
   useEffect(() => { i18n.changeLanguage(lang); }, [lang, i18n]);
 

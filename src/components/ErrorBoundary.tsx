@@ -1,6 +1,6 @@
 import { Component, ErrorInfo, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
+import { RefreshCcw, Home, Wrench } from 'lucide-react';
 import { captureException } from '@/lib/sentry';
 
 interface Props {
@@ -33,47 +33,43 @@ class ErrorBoundaryClass extends Component<Props & { t: any }, State> {
       const { t } = this.props;
       
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50/50 dark:bg-gray-900/50 px-4">
-          <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
-            <div className="p-6 sm:p-8 space-y-6">
-              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-500" />
+        <div className="error-boundary-page">
+          <div className="error-boundary-card">
+            {/* Animated icon */}
+            <div className="error-boundary-icon-wrapper">
+              <div className="error-boundary-icon-glow" />
+              <div className="error-boundary-icon-ring">
+                <Wrench className="error-boundary-icon" />
               </div>
+            </div>
+
+            {/* Copy */}
+            <div className="error-boundary-content">
+              <h1 className="error-boundary-title">
+                {t('errorPages.maintenanceTitle', "We're improving things for you")}
+              </h1>
+              <p className="error-boundary-subtitle">
+                {t('errorPages.maintenanceSubtitle', 'Our team is working on updates to make your experience even better. This usually takes just a moment.')}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="error-boundary-actions">
+              <button
+                onClick={() => window.location.reload()}
+                className="error-boundary-btn-primary"
+              >
+                <RefreshCcw className="w-4 h-4" />
+                {t('errorPages.tryAgain', 'Try Again')}
+              </button>
               
-              <div className="text-center space-y-2">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  {t('common.somethingWentWrong', 'Something went wrong')}
-                </h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {t('common.errorDescription', 'An unexpected error occurred. Our team has been notified.')}
-                </p>
-              </div>
-
-              {import.meta.env.DEV && this.state.error && (
-                <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg overflow-auto max-h-40 border border-gray-200 dark:border-gray-700">
-                  <p className="text-xs font-mono text-red-600 dark:text-red-400 break-all">
-                    {this.state.error.toString()}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex flex-col space-y-3 pt-2">
-                <button
-                  onClick={() => window.location.reload()}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors focus:ring-4 focus:ring-indigo-300 dark:focus:ring-indigo-800"
-                >
-                  <RefreshCcw className="w-4 h-4" />
-                  {t('common.refreshPage', 'Refresh Page')}
-                </button>
-                
-                <button
-                  onClick={() => window.location.href = '/dashboard'}
-                  className="flex items-center justify-center gap-2 w-full px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700"
-                >
-                  <Home className="w-4 h-4" />
-                  {t('common.backToHome', 'Back to Dashboard')}
-                </button>
-              </div>
+              <button
+                onClick={() => window.location.href = '/dashboard'}
+                className="error-boundary-btn-secondary"
+              >
+                <Home className="w-4 h-4" />
+                {t('errorPages.goToDashboard', 'Go to Dashboard')}
+              </button>
             </div>
           </div>
         </div>

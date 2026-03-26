@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Plus, Trash2, Copy, Check, FileText, Moon, Sun } from 'lucide-react';
+import { X, Plus, Trash2, Copy, Check, FileText, Moon, Sun, Globe } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
@@ -64,7 +64,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [currency, setCurrency] = useState('usd');
   const [exchangeRates, setExchangeRates] = useState<{ USD_BRL: number; USD_EUR: number }>({ USD_BRL: 5.0, USD_EUR: 1.2 });
-  const [features, setFeatures] = useState<Record<string, string[]>>({ en: [], es: [], 'pt-br': [] });
+  const [features, setFeatures] = useState<string[]>([]);
   const [description, setDescription] = useState<Record<string, string>>({ en: '', es: '', 'pt-br': '' });
   const [notes, setNotes] = useState('');
   const [validUntil, setValidUntil] = useState(getDefaultValidity);
@@ -74,6 +74,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const [defaultLang, setDefaultLang] = useState<string>(currentLang || 'en');
 
   // Fetch plans and exchange rates on open
   useEffect(() => {
@@ -130,11 +131,12 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
       setPrice(convertPrice(plan.price, currency));
       setBillingInterval((plan.billing_interval as 'monthly' | 'yearly') || 'monthly');
       if (plan.features) {
-        const f: Record<string, string[]> = { en: [], es: [], 'pt-br': [] };
-        for (const lang of LANGS) {
-          f[lang] = plan.features[lang] || plan.features['en'] || [];
-        }
-        setFeatures(f);
+        const f: string[] = [];
+      for (const lang of LANGS) {
+        const planFeats = plan.features?.[lang] || plan.features?.['en'] || [];
+        if (f.length === 0) f.push(...planFeats);
+      }
+      setFeatures(f);
       }
       if (plan.settings) {
         const d: Record<string, string> = { en: '', es: '', 'pt-br': '' };
@@ -148,18 +150,12 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
 
   function addFeature() {
     if (!newFeature.trim()) return;
-    setFeatures(prev => ({
-      ...prev,
-      [activeTab]: [...(prev[activeTab] || []), newFeature.trim()],
-    }));
+    setFeatures(prev => [...prev, newFeature.trim()]);
     setNewFeature('');
   }
 
   function removeFeature(idx: number) {
-    setFeatures(prev => ({
-      ...prev,
-      [activeTab]: (prev[activeTab] || []).filter((_: string, i: number) => i !== idx),
-    }));
+    setFeatures(prev => prev.filter((_: string, i: number) => i !== idx));
   }
 
   async function handleSubmit(submitStatus: 'draft' | 'sent') {
@@ -175,12 +171,13 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
         custom_price: parseFloat(price),
         billing_interval: billingInterval,
         currency,
-        custom_features: features,
+        custom_features: { [defaultLang]: features },
         custom_description: description,
         notes: notes || null,
         valid_until: validUntil || null,
         status: submitStatus,
         theme,
+        default_lang: defaultLang,
       });
 
       if (submitStatus === 'sent') {
@@ -210,12 +207,13 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
     setBasePriceUsd(null);
     setSelectedPlanId('');
     setCurrency('usd');
-    setFeatures({ en: [], es: [], 'pt-br': [] });
+    setFeatures([]);
     setDescription({ en: '', es: '', 'pt-br': '' });
     setNotes('');
     setValidUntil(getDefaultValidity());
     setNewFeature('');
     setTheme('dark');
+    setDefaultLang(currentLang || 'en');
     onClose();
   }
 
@@ -389,38 +387,83 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
             </div>
           </div>
 
-          {/* Theme toggle */}
+          {/* Theme + Default Language row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.theme')}</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setTheme('dark')}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                    theme === 'dark'
+                      ? 'bg-gray-900 text-white border-indigo-500/40 ring-2 ring-indigo-500/20'
+                      : 'bg-bg-tertiary text-text-muted border-glass-border hover:border-glass-border/80'
+                  }`}
+                >
+                  <Moon className="w-4 h-4" />
+                  {t('proposal.themeDark')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme('light')}
+                  className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                    theme === 'light'
+                      ? 'bg-white text-gray-900 border-indigo-500/40 ring-2 ring-indigo-500/20'
+                      : 'bg-bg-tertiary text-text-muted border-glass-border hover:border-glass-border/80'
+                  }`}
+                >
+                  <Sun className="w-4 h-4" />
+                  {t('proposal.themeLight')}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-text-secondary mb-1.5">
+                <Globe className="w-3.5 h-3.5 inline mr-1" />
+                {t('proposal.defaultLang')}
+              </label>
+              <select
+                value={defaultLang}
+                onChange={e => setDefaultLang(e.target.value)}
+                className={inputCls}
+              >
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="pt-br">Português (BR)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Features (single list, no language tabs) */}
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.theme')}</label>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.features')}</label>
+            <div className="space-y-1.5 mb-2">
+              {features.map((feat: string, idx: number) => (
+                <div key={idx} className="flex items-center gap-2 bg-bg-tertiary border border-glass-border rounded-lg px-3 py-1.5 text-sm">
+                  <span className="flex-1 text-text-primary">{feat}</span>
+                  <button type="button" onClick={() => removeFeature(idx)} className="text-error/60 hover:text-error transition-colors">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
             <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setTheme('dark')}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
-                  theme === 'dark'
-                    ? 'bg-gray-900 text-white border-indigo-500/40 ring-2 ring-indigo-500/20'
-                    : 'bg-bg-tertiary text-text-muted border-glass-border hover:border-glass-border/80'
-                }`}
-              >
-                <Moon className="w-4 h-4" />
-                {t('proposal.themeDark')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setTheme('light')}
-                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
-                  theme === 'light'
-                    ? 'bg-white text-gray-900 border-indigo-500/40 ring-2 ring-indigo-500/20'
-                    : 'bg-bg-tertiary text-text-muted border-glass-border hover:border-glass-border/80'
-                }`}
-              >
-                <Sun className="w-4 h-4" />
-                {t('proposal.themeLight')}
+              <input
+                type="text"
+                value={newFeature}
+                onChange={e => setNewFeature(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addFeature(); } }}
+                placeholder={t('proposal.featuresPlaceholder')}
+                className={`flex-1 ${inputBase}`}
+              />
+              <button type="button" onClick={addFeature} className="px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors text-sm flex items-center gap-1 shrink-0">
+                <Plus className="w-3.5 h-3.5" /> {t('proposal.addFeature')}
               </button>
             </div>
           </div>
 
-          {/* Multilingual tabs for Features + Description */}
+          {/* Description (multilingual) */}
           <div>
             <div className="flex items-center gap-1 mb-3 border-b border-glass-border">
               {LANGS.map(lang => (
@@ -438,36 +481,6 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
                 </button>
               ))}
             </div>
-
-            {/* Features */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.features')}</label>
-              <div className="space-y-1.5 mb-2">
-                {(features[activeTab] || []).map((feat: string, idx: number) => (
-                  <div key={idx} className="flex items-center gap-2 bg-bg-tertiary border border-glass-border rounded-lg px-3 py-1.5 text-sm">
-                    <span className="flex-1 text-text-primary">{feat}</span>
-                    <button type="button" onClick={() => removeFeature(idx)} className="text-error/60 hover:text-error transition-colors">
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newFeature}
-                  onChange={e => setNewFeature(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addFeature(); } }}
-                  placeholder={t('proposal.featuresPlaceholder')}
-                  className={`flex-1 ${inputBase}`}
-                />
-                <button type="button" onClick={addFeature} className="px-3 py-1.5 rounded-lg bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors text-sm flex items-center gap-1 shrink-0">
-                  <Plus className="w-3.5 h-3.5" /> {t('proposal.addFeature')}
-                </button>
-              </div>
-            </div>
-
-            {/* Description */}
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.description')}</label>
               <textarea

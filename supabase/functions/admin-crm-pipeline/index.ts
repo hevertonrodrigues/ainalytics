@@ -21,13 +21,62 @@ serve(async (req: Request) => {
 
     const db = createAdminClient();
 
-    // ── PATCH: Update subscription status/dates ──
+    // ── PATCH: Update subscription status/dates/plan ──
     if (req.method === "PATCH") {
       const body = await req.json();
-      const { tenant_id, status, current_period_start, current_period_end } = body;
+      const { tenant_id, status, current_period_start, current_period_end, plan_id } = body;
 
       if (!tenant_id) {
         return logger.done(withCors(req, badRequest("tenant_id is required")), authCtx);
+      }
+
+      // Find the latest subscription for this tenant
+      const { data: sub } = await db
+        .from("subscriptions")
+        .select("id, plan_id, status, billing_interval, paid_amount, currency, stripe_subscription_id, stripe_customer_id")
+        .eq("tenant_id", tenant_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      // ── Plan change: cancel old + create new ──
+      if (plan_id && (!sub || sub.plan_id !== plan_id)) {
+        // Cancel existing subscription if any
+        if (sub) {
+          await db
+            .from("subscriptions")
+            .update({ status: "canceled", canceled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+            .eq("id", sub.id);
+        }
+
+        // Create new subscription with provided or default values
+        const now = new Date();
+        const threeMonthsLater = new Date(now);
+        threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
+
+        const { error: insertErr } = await db
+          .from("subscriptions")
+          .insert({
+            tenant_id,
+            plan_id,
+            stripe_subscription_id: sub?.stripe_subscription_id || null,
+            stripe_customer_id: sub?.stripe_customer_id || null,
+            status: status || "active",
+            billing_interval: sub?.billing_interval || "unique",
+            paid_amount: sub?.paid_amount || 0,
+            currency: sub?.currency || "usd",
+            current_period_start: current_period_start || now.toISOString(),
+            current_period_end: current_period_end || threeMonthsLater.toISOString(),
+            cancel_at_period_end: false,
+          });
+
+        if (insertErr) throw insertErr;
+        return logger.done(withCors(req, ok({ updated: true, plan_changed: true })), authCtx);
+      }
+
+      // ── Status/dates update only (no plan change) ──
+      if (!sub) {
+        return logger.done(withCors(req, badRequest("No subscription found for this tenant")), authCtx);
       }
 
       // Build update payload — only include provided fields
@@ -36,19 +85,6 @@ serve(async (req: Request) => {
       if (status !== undefined) update.status = status;
       if (current_period_start !== undefined) update.current_period_start = current_period_start;
       if (current_period_end !== undefined) update.current_period_end = current_period_end;
-
-      // Find the latest subscription for this tenant
-      const { data: sub } = await db
-        .from("subscriptions")
-        .select("id")
-        .eq("tenant_id", tenant_id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (!sub) {
-        return logger.done(withCors(req, badRequest("No subscription found for this tenant")), authCtx);
-      }
 
       const { error: updateErr } = await db
         .from("subscriptions")
@@ -159,9 +195,9 @@ serve(async (req: Request) => {
       if (subStatus === "canceled") {
         stage = "cancelled";
       } else if (subStatus === "trialing") {
-        stage = "trial";
+        stage = hasStripe ? "trial_stripe" : "trial_activation";
       } else if (subStatus === "active") {
-        stage = "active";
+        stage = hasStripe ? "active_stripe" : "active_activation";
       } else if (emailConfirmed) {
         stage = "email_confirmed";
       }
@@ -192,6 +228,7 @@ serve(async (req: Request) => {
         company_industry: company?.industry || null,
         company_country: company?.country || null,
         // Plan & Subscription
+        subscription_plan_id: subscription?.plan_id || null,
         plan_name: plan?.name || null,
         plan_price: plan?.price || 0,
         subscription_status: subStatus || null,

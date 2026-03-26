@@ -1,48 +1,47 @@
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, ArrowLeft } from 'lucide-react';
+import { Home, ArrowLeft, Compass } from 'lucide-react';
 
 export function NotFoundPage() {
   const { t } = useTranslation();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50/50 dark:bg-gray-900/50 px-4">
-      <div className="max-w-md w-full text-center space-y-8">
-        <div>
-          <h1 className="text-9xl font-extrabold text-indigo-600 dark:text-indigo-400 tracking-widest relative">
-            <span className="opacity-20 blur-sm absolute inset-0 text-indigo-500">404</span>
-            <span className="relative">404</span>
-          </h1>
-          <div className="bg-indigo-600 dark:bg-indigo-500 text-white px-3 py-1 text-sm font-medium rounded shadow-sm rotate-12 absolute transform -translate-x-1/2 -translate-y-1/2 left-1/2 mt-[-60px]">
-            {t('common.pageNotFound', 'Page Not Found')}
+    <div className="error-boundary-page">
+      <div className="error-boundary-card">
+        {/* Animated icon */}
+        <div className="error-boundary-icon-wrapper">
+          <div className="error-boundary-icon-glow" />
+          <div className="error-boundary-icon-ring">
+            <Compass className="error-boundary-icon error-boundary-icon-spin" />
           </div>
         </div>
-        
-        <div className="space-y-4">
-          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            {t('common.lost', 'Oops! Looks like you are lost.')}
-          </h2>
-          <p className="text-gray-500 dark:text-gray-400">
-            {t('common.lostDescription', "The page you're looking for doesn't exist or has been moved.")}
+
+        {/* Copy */}
+        <div className="error-boundary-content">
+          <h1 className="error-boundary-title">
+            {t('errorPages.notFoundTitle', 'This Page Has Moved')}
+          </h1>
+          <p className="error-boundary-subtitle">
+            {t('errorPages.notFoundSubtitle', "We may have reorganized things. Let's get you back on track.")}
           </p>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-          <button 
+        {/* Actions */}
+        <div className="error-boundary-actions">
+          <button
             onClick={() => window.history.back()}
-            className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-500 transition-colors w-full sm:w-auto"
+            className="error-boundary-btn-secondary"
           >
             <ArrowLeft className="w-4 h-4" />
-            {t('common.goBack', 'Go Back')}
+            {t('errorPages.goBack', 'Go Back')}
           </button>
           
-          <Link 
-            to="/dashboard"
-            className="flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-300 dark:bg-indigo-500 dark:hover:bg-indigo-600 transition-colors w-full sm:w-auto"
+          <button
+            onClick={() => window.location.href = '/dashboard'}
+            className="error-boundary-btn-primary"
           >
             <Home className="w-4 h-4" />
-            {t('common.backToHome', 'Back to Dashboard')}
-          </Link>
+            {t('errorPages.goToDashboard', 'Go to Dashboard')}
+          </button>
         </div>
       </div>
     </div>

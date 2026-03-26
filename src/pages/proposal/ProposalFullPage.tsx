@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import {
   CheckCircle2, Clock, AlertTriangle, Globe, Mail, Sparkles,
-  BarChart3, Target, Shield, Zap, Eye, TrendingUp, ArrowLeft,
+  BarChart3, Target, Shield, Zap, Eye, TrendingUp, ArrowLeft, FileQuestion,
 } from 'lucide-react';
 import { APP_NAME } from '@/lib/constants';
 import { useProposalData, formatCurrency, formatDate, SUPPORTED_LANGS } from './proposalShared';
@@ -39,18 +39,36 @@ export function ProposalFullPage() {
   /* ── Not found ── */
   if (notFound || !proposal) {
     return (
-      <div style={{ background: '#0a0a0f' }} className="min-h-screen flex items-center justify-center px-4">
-        <div className="text-center space-y-4 max-w-md">
-          <AlertTriangle className="w-16 h-16 text-amber-400/60 mx-auto" />
-          <h1 className="text-2xl font-bold text-white">{t('proposal.public.notFound')}</h1>
-          <p className="text-white/50">{t('proposal.public.notFoundDesc')}</p>
+      <div className="error-boundary-page">
+        <div className="error-boundary-card">
+          <div className="error-boundary-icon-wrapper">
+            <div className="error-boundary-icon-glow" />
+            <div className="error-boundary-icon-ring">
+              <FileQuestion className="error-boundary-icon" />
+            </div>
+          </div>
+          <div className="error-boundary-content">
+            <h1 className="error-boundary-title">{t('errorPages.proposalNotFoundTitle', 'This Proposal Is Unavailable')}</h1>
+            <p className="error-boundary-subtitle">{t('errorPages.proposalNotFoundSubtitle', "The proposal you're looking for may have expired or doesn't exist. Please contact us for an updated offer.")}</p>
+          </div>
+          <div className="error-boundary-actions">
+            <a
+              href="mailto:contact@ainalytics.com"
+              className="error-boundary-btn-primary"
+            >
+              <Mail className="w-4 h-4" />
+              {t('errorPages.contactUs', 'Contact Us')}
+            </a>
+          </div>
+          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>{APP_NAME}</p>
         </div>
       </div>
     );
   }
 
   const isExpired = proposal.status === 'expired';
-  const features = proposal.custom_features[lang] || proposal.custom_features['en'] || [];
+  const defaultLang = proposal.default_lang || 'en';
+  const features = proposal.custom_features[defaultLang] || proposal.custom_features['en'] || [];
   const description = proposal.custom_description[lang] || proposal.custom_description['en'] || '';
   const contactEmail = `contact@${proposal.company_domain || 'ainalytics.com'}`;
 
