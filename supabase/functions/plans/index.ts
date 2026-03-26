@@ -126,7 +126,7 @@ async function handleSelectPlan(req: Request): Promise<Response> {
   // 3. Verify the code's plan exists and is active
   const { data: plan } = await db
     .from("plans")
-    .select("id, name")
+    .select("id, name, trial")
     .eq("id", activation.plan_id)
     .eq("is_active", true)
     .single();
@@ -153,10 +153,21 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     .eq("tenant_id", auth.tenantId)
     .in("status", ["active", "trialing"]);
 
-  // 6. Create a free 3-month subscription (activation code grant)
+  // 6. Create subscription (trial or active based on plan's trial days)
   const now = new Date();
-  const threeMonthsLater = new Date(now);
-  threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
+  const trialDays = Number(plan.trial) || 0;
+  const periodEnd = new Date(now);
+  let subStatus: string;
+
+  if (trialDays > 0) {
+    // Start as trialing — period ends after trial days
+    periodEnd.setDate(periodEnd.getDate() + trialDays);
+    subStatus = "trialing";
+  } else {
+    // No trial — start as active with 3-month grant
+    periodEnd.setMonth(periodEnd.getMonth() + 3);
+    subStatus = "active";
+  }
 
   const { data: subscription, error: subError } = await db
     .from("subscriptions")
@@ -165,13 +176,13 @@ async function handleSelectPlan(req: Request): Promise<Response> {
       plan_id: activation.plan_id,
       stripe_subscription_id: null,
       stripe_customer_id: null,
-      status: "active",
+      status: subStatus,
       billing_interval: "unique",
       paid_amount: 0,
       currency: "usd",
       current_period_start: now.toISOString(),
-      current_period_end: threeMonthsLater.toISOString(),
-      cancel_at_period_end: true, // auto-cancels after 3 months
+      current_period_end: periodEnd.toISOString(),
+      cancel_at_period_end: true,
     })
     .select()
     .single();

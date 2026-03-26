@@ -66,7 +66,6 @@ function useCountdown(hours: number) {
   useEffect(() => {
     const timer = setInterval(() => setRemaining(calcRemaining()), 1000);
     return () => clearInterval(timer);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const totalSeconds = Math.floor(remaining / 1000);

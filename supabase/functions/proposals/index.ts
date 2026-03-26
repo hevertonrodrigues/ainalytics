@@ -112,6 +112,7 @@ serve(async (req: Request) => {
         client_name: clientName,
         company_name: companyName,
         company_domain: companyDomain,
+        theme: proposal.theme || 'dark',
       };
 
       return logger.done(withCors(req, ok(publicData)));
@@ -188,6 +189,7 @@ serve(async (req: Request) => {
           notes: body.notes || null,
           status: body.status || "draft",
           valid_until: body.valid_until || null,
+          theme: body.theme || "dark",
         };
 
         const { data, error: insertErr } = await db

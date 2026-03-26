@@ -58,12 +58,66 @@ serve(async (req: Request) => {
       (platformModelsRes.data || []).map((r: any) => r.platform_id).filter(Boolean)
     );
 
-    // ── 2. Sources summary (the heart of the dashboard) ───────
-    const { data: sourcesSummaryData } = await db.rpc("get_sources_summary_full", {
-      p_tenant_id: tenantId,
-    });
+    // ── 2. Sources summary (direct view queries — no RPC) ──────
+    // Fetch the three lightweight views in parallel instead of the
+    // heavyweight get_sources_summary_full RPC which returned unused
+    // total_by_answer (~5 MB JSONB) and total_by_model columns.
+    const [mentionRes, promptRes, platformRes, allSourcesRes] = await Promise.all([
+      db.from("source_mention_counts")
+        .select("source_id, mention_count")
+        .eq("tenant_id", tenantId)
+        .limit(10000),
+      db.from("source_prompt_counts")
+        .select("source_id, prompt_id, prompt_text, cnt")
+        .eq("tenant_id", tenantId)
+        .limit(50000),
+      db.from("source_platform_counts")
+        .select("source_id, platform_id, platform_name, platform_slug, cnt")
+        .eq("tenant_id", tenantId)
+        .limit(50000),
+      db.from("sources")
+        .select("id, domain")
+        .eq("tenant_id", tenantId)
+        .limit(10000),
+    ]);
 
-    const allSources = sourcesSummaryData || [];
+    // Build lookup maps keyed by source_id
+    const mentionMap = new Map<string, number>();
+    for (const r of (mentionRes.data || [])) {
+      mentionMap.set(r.source_id, r.mention_count);
+    }
+
+    const promptMap = new Map<string, any[]>();
+    for (const r of (promptRes.data || [])) {
+      const arr = promptMap.get(r.source_id) || [];
+      arr.push({ prompt_id: r.prompt_id, prompt_text: r.prompt_text, count: r.cnt });
+      promptMap.set(r.source_id, arr);
+    }
+
+    const platformMapBySource = new Map<string, any[]>();
+    for (const r of (platformRes.data || [])) {
+      const arr = platformMapBySource.get(r.source_id) || [];
+      arr.push({
+        platform_id: r.platform_id,
+        platform_name: r.platform_name,
+        platform_slug: r.platform_slug,
+        count: r.cnt,
+      });
+      platformMapBySource.set(r.source_id, arr);
+    }
+
+    // Assemble per-source objects (same shape the old RPC returned)
+    const allSources = (allSourcesRes.data || [])
+      .filter((s: any) => mentionMap.has(s.id))          // only sources with mentions
+      .map((s: any) => ({
+        id: s.id,
+        domain: s.domain,
+        total: mentionMap.get(s.id) || 0,
+        total_by_prompt: promptMap.get(s.id) || [],
+        total_by_platform: platformMapBySource.get(s.id) || [],
+      }))
+      .sort((a: any, b: any) => b.total - a.total);       // highest mentions first
+
     const totalCitations = allSources.reduce(
       (sum: number, s: any) => sum + (s.total || 0),
       0,

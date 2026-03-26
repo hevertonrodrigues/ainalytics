@@ -94,7 +94,7 @@ export function SignUpForm({
       }
       setLoading(false);
     }
-  }, [email, fullName, password, phone, promoCode, showPromoCode, signUp, t, onSuccess]);
+  }, [email, fullName, password, phone, promoCode, showPromoCode, signUp, t, onSuccess, onConfirmEmail]);
 
   const getErrors = () => {
     const errors: string[] = [];

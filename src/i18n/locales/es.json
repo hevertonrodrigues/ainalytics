@@ -733,6 +733,11 @@
     "activationInfo": "Código de Activación",
     "period": "Período de Facturación",
     "cancelAtPeriodEnd": "Cancelar al Final del Período",
+    "periodStart": "Inicio del Período",
+    "periodEnd": "Fin del Período",
+    "saveSubscription": "Guardar",
+    "saving": "Guardando...",
+    "saved": "¡Guardado!",
     "yes": "Sí",
     "paymentInfo": "Historial de Pagos",
     "lastPayment": "Último Pago",
@@ -1583,6 +1588,10 @@
     "createProposal": "Crear Propuesta",
     "saveDraft": "Guardar Borrador",
     "finishGenerate": "Finalizar y Generar",
+    "theme": "Tema de la Propuesta",
+    "themeDark": "Oscuro",
+    "themeLight": "Claro",
+    "downloadPdf": "Descargar PDF",
     "proposals": "Propuestas",
     "newProposal": "Nueva Propuesta",
     "editProposal": "Editar Propuesta",
@@ -1612,6 +1621,8 @@
     "statusAccepted": "Aceptada",
     "statusExpired": "Expirada",
     "publicLink": "Enlace Público",
+    "simpleLink": "Simple (Checkout)",
+    "fullLink": "Presentación Completa",
     "copyLink": "Copiar Enlace",
     "linkCopied": "¡Enlace copiado!",
     "markAsSent": "Marcar como Enviada",
@@ -1654,7 +1665,47 @@
       "contactUs": "Contáctenos",
       "poweredBy": "Desarrollado por",
       "customPlan": "Propuesta Exclusiva",
-      "footerNote": "Esta propuesta es confidencial y está destinada únicamente al destinatario indicado."
+      "footerNote": "Esta propuesta es confidencial y está destinada únicamente al destinatario indicado.",
+      "viewFullPresentation": "Ver presentación completa"
+    },
+    "full": {
+      "backToSimple": "Vista rápida",
+      "aboutUsLabel": "Sobre Nosotros",
+      "aboutUsTitle": "¿Qué es AINalytics?",
+      "aboutUsText": "AINalytics es una plataforma integral de monitoreo de visibilidad en IA. Ayudamos a las empresas a entender, medir y mejorar cómo los sistemas de inteligencia artificial perciben y representan su marca.\n\nDesde ChatGPT y Claude hasta Gemini y Grok — monitoreamos todas las principales plataformas de IA en tiempo real, brindándole información accionable para mantenerse por delante de la competencia en el panorama impulsado por IA.",
+      "problemLabel": "El Desafío",
+      "problemTitle": "Por Qué la Visibilidad en IA Importa",
+      "problemText": "Hoy, millones de usuarios utilizan asistentes de IA para investigar empresas, comparar productos y tomar decisiones de compra. Si las plataformas de IA tergiversan su marca — o no la mencionan — está perdiendo clientes que nunca sabrá.\n\nEl SEO tradicional no aborda esto. Los modelos de IA forman opiniones basadas en datos estructurados, señales de autoridad y calidad del contenido de maneras fundamentalmente diferentes a los motores de búsqueda.",
+      "solutionLabel": "Nuestra Solución",
+      "solutionTitle": "Cómo Funciona AINalytics",
+      "solutionItems": [
+        "Monitoree las respuestas de IA sobre su marca en ChatGPT, Claude, Gemini y Grok en tiempo real",
+        "Analice cómo los modelos de IA perciben y posicionan su marca frente a los competidores",
+        "Rastree las fuentes de citación para entender qué contenido impulsa las recomendaciones de IA",
+        "Obtenga puntuaciones GEO (Optimización para Motores Generativos) con planes de mejora accionables",
+        "Genere archivos llms.txt para dar a los sistemas de IA información precisa y estructurada de su marca",
+        "Análisis profundo de IA impulsado por los modelos más avanzados para descubrir oportunidades ocultas"
+      ],
+      "advantagesLabel": "Por Qué Elegirnos",
+      "advantagesTitle": "Ventajas Competitivas",
+      "advantages": [
+        "Cobertura Multi-Plataforma",
+        "Monitoreo en Tiempo Real",
+        "Insights GEO Accionables",
+        "Rastreo de Fuentes y Atribución",
+        "Seguridad de Nivel Empresarial",
+        "Soporte Multi-Idioma"
+      ],
+      "advantageDescs": [
+        "La única plataforma que monitorea su marca en todos los principales sistemas de IA simultáneamente — no solo uno.",
+        "Manténgase adelante con monitoreo continuo. Sepa al instante cuando las respuestas de IA sobre su marca cambien.",
+        "Nuestro sistema propietario de puntuación GEO analiza 25+ factores para darle una hoja de ruta clara de optimización.",
+        "Entienda exactamente qué páginas web y fuentes de datos usan los modelos de IA para formar opiniones sobre su marca.",
+        "Cifrado de nivel bancario, cumplimiento SOC 2 y aislamiento estricto de inquilinos protegen su inteligencia competitiva.",
+        "Soporte completo para inglés, español y portugués con análisis e informes adaptados al idioma."
+      ],
+      "nextStepsLabel": "Próximos Pasos",
+      "nextStepsTitle": "¿Listo para Comenzar?"
     }
   }
 }

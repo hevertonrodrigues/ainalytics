@@ -55,6 +55,7 @@ const NotFoundPage = lazy(() => import('@/pages/error/NotFoundPage').then(m => (
 const LegalPage = lazy(() => import('@/pages/legal/LegalPage').then(m => ({ default: m.LegalPage })));
 const SalesPage = lazy(() => import('@/pages/sales/SalesPage').then(m => ({ default: m.SalesPage })));
 const ProposalPublicPage = lazy(() => import('@/pages/proposal/ProposalPublicPage').then(m => ({ default: m.ProposalPublicPage })));
+const ProposalFullPage = lazy(() => import('@/pages/proposal/ProposalFullPage').then(m => ({ default: m.ProposalFullPage })));
 
 const SUPPORTED_LANGS = new Set(
   (Array.isArray(i18n.options.supportedLngs) ? i18n.options.supportedLngs : ['en', 'es', 'pt-br']).filter(
@@ -100,6 +101,7 @@ export function App() {
           <Route path="/terms" element={<LegalPage />} />
           <Route path="/privacy" element={<LegalPage />} />
           <Route path="/proposal/:slug" element={<ProposalPublicPage />} />
+          <Route path="/proposal/:slug/full" element={<ProposalFullPage />} />
 
           {/* All other routes require AuthProvider */}
           <Route element={<AuthProvider><AuthOutlet /></AuthProvider>}>

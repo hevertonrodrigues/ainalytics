@@ -89,8 +89,11 @@ serve(async (req: Request) => {
         .eq("tenant_id", tenantId)
         .eq("is_active", true),
 
-      // 9. Sources summary (RPC)
-      db.rpc("get_sources_summary_full", { p_tenant_id: tenantId }),
+      // 9. Sources mention counts (direct view query — no heavyweight RPC)
+      db.from("source_mention_counts")
+        .select("source_id, mention_count")
+        .eq("tenant_id", tenantId)
+        .limit(10000),
 
       // 10. Recent prompts (last 5)
       db.from("prompts")
@@ -167,7 +170,28 @@ serve(async (req: Request) => {
     }
 
     // ── Build sources ranking ─────────────────────────────────
-    const allSources = sourcesSummaryRes.data || [];
+    // Build a domain→total lookup from mention counts + sources table
+    const mentionRows = sourcesSummaryRes.data || [];
+    const { data: sourcesData } = await db
+      .from("sources")
+      .select("id, domain")
+      .eq("tenant_id", tenantId)
+      .limit(10000);
+
+    const sourceIdToDomain = new Map<string, string>();
+    for (const s of (sourcesData || [])) {
+      sourceIdToDomain.set(s.id, s.domain);
+    }
+
+    // deno-lint-ignore no-explicit-any
+    const allSources = mentionRows
+      .filter((r: any) => sourceIdToDomain.has(r.source_id))
+      .map((r: any) => ({
+        domain: sourceIdToDomain.get(r.source_id)!,
+        total: r.mention_count || 0,
+      }))
+      .sort((a: any, b: any) => b.total - a.total);
+
     const ownDomain = tenant?.main_domain?.toLowerCase() || "";
     // deno-lint-ignore no-explicit-any
     const ownDomainSource = allSources.find((s: any) => s.domain?.toLowerCase() === ownDomain);

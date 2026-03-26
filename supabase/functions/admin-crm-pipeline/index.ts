@@ -15,11 +15,50 @@ serve(async (req: Request) => {
     const { user } = await verifySuperAdmin(req);
     authCtx = { user_id: user.id };
 
-    if (req.method !== "GET") {
+    if (req.method !== "GET" && req.method !== "PATCH") {
       return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
 
     const db = createAdminClient();
+
+    // ── PATCH: Update subscription status/dates ──
+    if (req.method === "PATCH") {
+      const body = await req.json();
+      const { tenant_id, status, current_period_start, current_period_end } = body;
+
+      if (!tenant_id) {
+        return logger.done(withCors(req, badRequest("tenant_id is required")), authCtx);
+      }
+
+      // Build update payload — only include provided fields
+      // deno-lint-ignore no-explicit-any
+      const update: Record<string, any> = { updated_at: new Date().toISOString() };
+      if (status !== undefined) update.status = status;
+      if (current_period_start !== undefined) update.current_period_start = current_period_start;
+      if (current_period_end !== undefined) update.current_period_end = current_period_end;
+
+      // Find the latest subscription for this tenant
+      const { data: sub } = await db
+        .from("subscriptions")
+        .select("id")
+        .eq("tenant_id", tenant_id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!sub) {
+        return logger.done(withCors(req, badRequest("No subscription found for this tenant")), authCtx);
+      }
+
+      const { error: updateErr } = await db
+        .from("subscriptions")
+        .update(update)
+        .eq("id", sub.id);
+
+      if (updateErr) throw updateErr;
+
+      return logger.done(withCors(req, ok({ updated: true })), authCtx);
+    }
 
     // ── Parallel data fetching (all flat queries, no PostgREST joins) ──
 

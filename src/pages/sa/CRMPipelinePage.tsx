@@ -94,8 +94,7 @@ export function CRMPipelinePage() {
       );
     }
     filtered.sort((a, b) => {
-      let valA: any = a[sortField], valB: any = b[sortField];
-      if (valA == null) valA = ''; if (valB == null) valB = '';
+      let valA: string | number = a[sortField] ?? '', valB: string | number = b[sortField] ?? '';
       if (typeof valA === 'string') valA = valA.toLowerCase();
       if (typeof valB === 'string') valB = valB.toLowerCase();
       if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
@@ -189,7 +188,7 @@ export function CRMPipelinePage() {
           <input type="text" placeholder={t('sa.searchUsers')} value={search} onChange={e => setSearch(e.target.value)} className="input pl-9 w-full" />
         </div>
         {viewMode === 'table' && (
-          <select className="input py-2 bg-bg-secondary w-full sm:w-48" value={statusFilter} onChange={e => setStatusFilter(e.target.value as any)}>
+          <select className="input py-2 bg-bg-secondary w-full sm:w-48" value={statusFilter} onChange={e => setStatusFilter(e.target.value as typeof statusFilter)}>
             <option value="all">{t('sa.filterAll')}</option>
             <option value="active">{t('sa.filterActive')}</option>
             <option value="inactive">{t('sa.filterInactive')}</option>

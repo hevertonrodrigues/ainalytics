@@ -21,10 +21,24 @@ import {
   Check,
   Eye,
   Trash2,
+  Loader2,
+  Save,
+  Download,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser } from './types';
 import { CreateProposalModal } from './CreateProposalModal';
+
+interface ProposalItem {
+  id: string;
+  slug: string;
+  custom_plan_name: string;
+  custom_price: number;
+  billing_interval: string;
+  status: string;
+  created_at: string;
+  viewed_at: string | null;
+}
 
 export function UserDetailPage() {
   const { userId } = useParams<{ userId: string }>();
@@ -35,9 +49,15 @@ export function UserDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showProposalModal, setShowProposalModal] = useState(false);
-  // deno-lint-ignore no-explicit-any
-  const [proposals, setProposals] = useState<any[]>([]);
+  const [proposals, setProposals] = useState<ProposalItem[]>([]);
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
+
+  // Subscription editing state
+  const [editStatus, setEditStatus] = useState<string>('');
+  const [editPeriodStart, setEditPeriodStart] = useState<string>('');
+  const [editPeriodEnd, setEditPeriodEnd] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -59,20 +79,29 @@ export function UserDetailPage() {
     return () => { mounted = false; };
   }, [userId, t]);
 
+  // Sync edit fields when user data loads
+  useEffect(() => {
+    if (user) {
+      setEditStatus(user.subscription_status || '');
+      setEditPeriodStart(user.current_period_start ? user.current_period_start.slice(0, 10) : '');
+      setEditPeriodEnd(user.current_period_end ? user.current_period_end.slice(0, 10) : '');
+    }
+  }, [user]);
+
   const fetchProposals = useCallback(async () => {
     if (!userId) return;
     try {
-      const res = await apiClient.get<any[]>(`/proposals?user_id=${userId}`);
+      const res = await apiClient.get<ProposalItem[]>(`/proposals?user_id=${userId}`);
       setProposals(res.data || []);
     } catch { /* ignore */ }
   }, [userId]);
 
   useEffect(() => { fetchProposals(); }, [fetchProposals]);
 
-  async function copyProposalLink(slug: string) {
-    const url = `${window.location.origin}/proposal/${slug}`;
+  async function copyProposalLink(slug: string, variant: 'simple' | 'full' = 'simple') {
+    const url = `${window.location.origin}/proposal/${slug}${variant === 'full' ? '/full' : ''}`;
     await navigator.clipboard.writeText(url);
-    setCopiedSlug(slug);
+    setCopiedSlug(`${slug}-${variant}`);
     setTimeout(() => setCopiedSlug(null), 2000);
   }
 
@@ -89,6 +118,27 @@ export function UserDetailPage() {
       await apiClient.put(`/proposals/${id}`, { status });
       fetchProposals();
     } catch { /* ignore */ }
+  }
+
+  async function saveSubscription() {
+    if (!user?.tenant_id) return;
+    setIsSaving(true);
+    setSaveSuccess(false);
+    try {
+      await apiClient.patch('/admin-crm-pipeline', {
+        tenant_id: user.tenant_id,
+        status: editStatus || undefined,
+        current_period_start: editPeriodStart ? new Date(editPeriodStart).toISOString() : undefined,
+        current_period_end: editPeriodEnd ? new Date(editPeriodEnd).toISOString() : undefined,
+      });
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+      // Re-fetch user data
+      const res = await apiClient.get<CRMPipelineUser[]>('/admin-crm-pipeline');
+      const found = res.data.find(u => u.user_id === userId);
+      if (found) setUser(found);
+    } catch { /* ignore */ }
+    setIsSaving(false);
   }
 
   const statusColors: Record<string, string> = {
@@ -124,8 +174,8 @@ export function UserDetailPage() {
   const stageColor: Record<string, string> = {
     registered: 'bg-warning/10 text-warning border-warning/30',
     email_confirmed: 'bg-chart-cyan/10 text-chart-cyan border-chart-cyan/30',
-    subscribed_stripe: 'bg-success/10 text-success border-success/30',
-    subscribed_activation: 'bg-brand-primary/10 text-brand-primary border-brand-primary/30',
+    trial: 'bg-brand-primary/10 text-brand-primary border-brand-primary/30',
+    active: 'bg-success/10 text-success border-success/30',
     cancelled: 'bg-error/10 text-error border-error/30',
   };
 
@@ -239,14 +289,23 @@ export function UserDetailPage() {
               <span className="text-brand-primary font-medium">{user.plan_name}</span>
             ) : <span className="text-text-muted italic">{t('sa.noPlan')}</span>}
           </DetailRow>
-          <DetailRow label={t('sa.status')} icon={<CheckCircle2 className="w-3.5 h-3.5" />}>
-            <span className={
-              ['active', 'trialing'].includes(user.subscription_status || '') ? 'text-success font-medium' :
-              user.subscription_status === 'canceled' ? 'text-error' : 'text-text-secondary'
-            }>
-              {user.subscription_status?.replace('_', ' ') || '—'}
-            </span>
-          </DetailRow>
+          <div className="flex items-start justify-between text-sm gap-4">
+            <span className="flex items-center gap-1.5 text-text-muted shrink-0"><CheckCircle2 className="w-3.5 h-3.5" /> {t('sa.status')}</span>
+            <select
+              value={editStatus}
+              onChange={e => setEditStatus(e.target.value)}
+              className="bg-bg-tertiary border border-glass-border rounded-md px-2 py-1 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer text-right"
+            >
+              <option value="">—</option>
+              <option value="trialing">trialing</option>
+              <option value="active">active</option>
+              <option value="past_due">past_due</option>
+              <option value="canceled">canceled</option>
+              <option value="incomplete">incomplete</option>
+              <option value="paused">paused</option>
+              <option value="unpaid">unpaid</option>
+            </select>
+          </div>
           {user.paid_amount > 0 && (
             <DetailRow label={t('sa.amount')} icon={<CreditCard className="w-3.5 h-3.5" />}>
               <span className="font-medium">${user.paid_amount} / {user.billing_interval}</span>
@@ -262,15 +321,44 @@ export function UserDetailPage() {
               </DetailRow>
             </>
           )}
-          {user.current_period_start && (
-            <DetailRow label={t('sa.period')} icon={<Calendar className="w-3.5 h-3.5" />}>
-              {formatDate(user.current_period_start)} — {user.current_period_end ? formatDate(user.current_period_end) : '—'}
-            </DetailRow>
-          )}
+          <div className="flex items-start justify-between text-sm gap-4">
+            <span className="flex items-center gap-1.5 text-text-muted shrink-0"><Calendar className="w-3.5 h-3.5" /> {t('sa.periodStart')}</span>
+            <input
+              type="date"
+              value={editPeriodStart}
+              onChange={e => setEditPeriodStart(e.target.value)}
+              className="bg-bg-tertiary border border-glass-border rounded-md px-2 py-1 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer text-right"
+            />
+          </div>
+          <div className="flex items-start justify-between text-sm gap-4">
+            <span className="flex items-center gap-1.5 text-text-muted shrink-0"><Calendar className="w-3.5 h-3.5" /> {t('sa.periodEnd')}</span>
+            <input
+              type="date"
+              value={editPeriodEnd}
+              onChange={e => setEditPeriodEnd(e.target.value)}
+              className="bg-bg-tertiary border border-glass-border rounded-md px-2 py-1 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer text-right"
+            />
+          </div>
           {user.cancel_at_period_end && (
             <DetailRow label={t('sa.cancelAtPeriodEnd')} icon={<XCircle className="w-3.5 h-3.5 text-warning" />}>
               <span className="text-warning font-medium">{t('sa.yes')}</span>
             </DetailRow>
+          )}
+          {user.tenant_id && (
+            <div className="pt-2 flex justify-end">
+              <button
+                onClick={saveSubscription}
+                disabled={isSaving}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-medium transition-all ${
+                  saveSuccess
+                    ? 'bg-success/10 text-success border border-success/30'
+                    : 'bg-brand-primary/10 text-brand-primary border border-brand-primary/30 hover:bg-brand-primary/20'
+                } disabled:opacity-50`}
+              >
+                {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : saveSuccess ? <Check className="w-3 h-3" /> : <Save className="w-3 h-3" />}
+                {isSaving ? t('sa.saving') : saveSuccess ? t('sa.saved') : t('sa.saveSubscription')}
+              </button>
+            </div>
           )}
         </DetailCard>
 
@@ -316,7 +404,7 @@ export function UserDetailPage() {
       <DetailCard title={t('proposal.proposals')} icon={<FileText className="w-4 h-4" />} className="">
         {proposals.length > 0 ? (
           <div className="space-y-3">
-            {proposals.map((p: any) => (
+            {proposals.map((p) => (
               <div key={p.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-bg-tertiary rounded-lg px-4 py-3 border border-glass-border">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -348,11 +436,28 @@ export function UserDetailPage() {
                     <option value="expired">{t('proposal.statusExpired')}</option>
                   </select>
                   <button
-                    onClick={() => copyProposalLink(p.slug)}
+                    onClick={() => copyProposalLink(p.slug, 'simple')}
                     className="p-1.5 rounded-md hover:bg-bg-elevated transition-colors text-text-muted hover:text-brand-primary"
-                    title={t('proposal.copyLink')}
+                    title={t('proposal.simpleLink')}
                   >
-                    {copiedSlug === p.slug ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedSlug === `${p.slug}-simple` ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    onClick={() => copyProposalLink(p.slug, 'full')}
+                    className="p-1.5 rounded-md hover:bg-bg-elevated transition-colors text-text-muted hover:text-brand-primary"
+                    title={t('proposal.fullLink')}
+                  >
+                    {copiedSlug === `${p.slug}-full` ? <Check className="w-3.5 h-3.5 text-success" /> : <ExternalLink className="w-3.5 h-3.5" />}
+                  </button>
+                  <button
+                    onClick={() => {
+                      const url = `${window.location.origin}/proposal/${p.slug}/full?print=1`;
+                      window.open(url, '_blank');
+                    }}
+                    className="p-1.5 rounded-md hover:bg-bg-elevated transition-colors text-text-muted hover:text-brand-primary"
+                    title={t('proposal.downloadPdf')}
+                  >
+                    <Download className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => deleteProposal(p.id)}

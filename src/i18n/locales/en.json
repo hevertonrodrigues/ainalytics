@@ -733,6 +733,11 @@
     "activationInfo": "Activation Code",
     "period": "Billing Period",
     "cancelAtPeriodEnd": "Cancel at Period End",
+    "periodStart": "Period Start",
+    "periodEnd": "Period End",
+    "saveSubscription": "Save",
+    "saving": "Saving...",
+    "saved": "Saved!",
     "yes": "Yes",
     "paymentInfo": "Payment History",
     "lastPayment": "Last Payment",
@@ -1583,6 +1588,10 @@
     "createProposal": "Create Proposal",
     "saveDraft": "Save as Draft",
     "finishGenerate": "Finish & Generate",
+    "theme": "Proposal Theme",
+    "themeDark": "Dark",
+    "themeLight": "Light",
+    "downloadPdf": "Download PDF",
     "proposals": "Proposals",
     "newProposal": "New Proposal",
     "editProposal": "Edit Proposal",
@@ -1612,6 +1621,8 @@
     "statusAccepted": "Accepted",
     "statusExpired": "Expired",
     "publicLink": "Public Link",
+    "simpleLink": "Simple (Checkout)",
+    "fullLink": "Full Presentation",
     "copyLink": "Copy Link",
     "linkCopied": "Link copied!",
     "markAsSent": "Mark as Sent",
@@ -1654,7 +1665,47 @@
       "contactUs": "Contact Us",
       "poweredBy": "Powered by",
       "customPlan": "Exclusive Proposal",
-      "footerNote": "This proposal is confidential and intended solely for the named recipient."
+      "footerNote": "This proposal is confidential and intended solely for the named recipient.",
+      "viewFullPresentation": "View full presentation"
+    },
+    "full": {
+      "backToSimple": "Quick view",
+      "aboutUsLabel": "About Us",
+      "aboutUsTitle": "What is AINalytics?",
+      "aboutUsText": "AINalytics is a comprehensive AI visibility monitoring platform. We help businesses understand, measure, and improve how artificial intelligence systems perceive and represent their brand.\n\nFrom ChatGPT and Claude to Gemini and Grok — we monitor every major AI platform in real time, giving you actionable insights to stay ahead of the competition in the AI-driven landscape.",
+      "problemLabel": "The Challenge",
+      "problemTitle": "Why AI Visibility Matters",
+      "problemText": "Today, millions of users rely on AI assistants to research companies, compare products, and make purchasing decisions. If AI platforms misrepresent your brand — or don't mention it at all — you're losing customers you'll never know about.\n\nTraditional SEO doesn't address this. AI models form opinions based on structured data, authority signals, and content quality in ways that differ fundamentally from search engines.",
+      "solutionLabel": "Our Solution",
+      "solutionTitle": "How AINalytics Works",
+      "solutionItems": [
+        "Monitor AI responses about your brand across ChatGPT, Claude, Gemini, and Grok in real time",
+        "Analyze how AI models perceive and position your brand versus competitors",
+        "Track citation sources to understand which content drives AI recommendations",
+        "Get GEO (Generative Engine Optimization) scores with actionable improvement plans",
+        "Generate llms.txt files to give AI systems accurate, structured brand information",
+        "Deep AI analysis powered by the most advanced models to uncover hidden opportunities"
+      ],
+      "advantagesLabel": "Why Choose Us",
+      "advantagesTitle": "Competitive Advantages",
+      "advantages": [
+        "Multi-Platform Coverage",
+        "Real-Time Monitoring",
+        "Actionable GEO Insights",
+        "Source Tracking & Attribution",
+        "Enterprise-Grade Security",
+        "Multi-Language Support"
+      ],
+      "advantageDescs": [
+        "The only platform monitoring your brand across all major AI systems simultaneously — not just one.",
+        "Stay ahead with continuous monitoring. Know instantly when AI responses about your brand change.",
+        "Our proprietary GEO scoring system analyzes 25+ factors to give you a clear optimization roadmap.",
+        "Understand exactly which web pages and data sources AI models use to form opinions about your brand.",
+        "Bank-level encryption, SOC 2 compliance, and strict tenant isolation protect your competitive intelligence.",
+        "Full support for English, Spanish, and Portuguese with locale-aware analysis and reporting."
+      ],
+      "nextStepsLabel": "Next Steps",
+      "nextStepsTitle": "Ready to Get Started?"
     }
   }
 }

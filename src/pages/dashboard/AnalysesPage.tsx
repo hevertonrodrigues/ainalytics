@@ -129,9 +129,9 @@ export function AnalysesPage() {
       setError('');
       const res = await apiClient.get<AnalyticsData>('analyses-data');
       setData(res.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || t('common.error'));
+      setError(err instanceof Error ? err.message : t('common.error'));
     } finally {
       setLoading(false);
     }
@@ -280,10 +280,9 @@ function CitationSharePie({ own, totalCitations, competitors, t }: {
   competitors: SourceItem[];
   t: ReturnType<typeof useTranslation>['t'];
 }) {
-  // Build segments: self + top 3 competitors by mentions + others
-  const SEGMENT_COLORS = [OWN_COLOR, '#6c5ce7', '#e84393', '#a29bfe', NEUTRAL];
 
   const segments = useMemo(() => {
+    const SEGMENT_COLORS = [OWN_COLOR, '#6c5ce7', '#e84393', '#a29bfe', NEUTRAL];
     const ownTotal = own?.total || 0;
     const top3 = [...competitors].sort((a, b) => b.total - a.total).slice(0, 3);
     const top3Total = top3.reduce((sum, c) => sum + c.total, 0);

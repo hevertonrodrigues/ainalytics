@@ -142,8 +142,7 @@ export function ActiveUsersPage() {
       );
     }
     filtered.sort((a, b) => {
-      let valA: any = a[sortField], valB: any = b[sortField];
-      if (valA == null) valA = -1; if (valB == null) valB = -1;
+      let valA: string | number = a[sortField] ?? -1, valB: string | number = b[sortField] ?? -1;
       if (typeof valA === 'string') valA = valA.toLowerCase();
       if (typeof valB === 'string') valB = valB.toLowerCase();
       if (valA < valB) return sortOrder === 'asc' ? -1 : 1;

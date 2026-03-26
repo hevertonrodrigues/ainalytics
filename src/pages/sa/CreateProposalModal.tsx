@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Plus, Trash2, Copy, Check, FileText } from 'lucide-react';
+import { X, Plus, Trash2, Copy, Check, FileText, Moon, Sun } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
@@ -73,6 +73,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [createdSlug, setCreatedSlug] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
   // Fetch plans and exchange rates on open
   useEffect(() => {
@@ -179,6 +180,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
         notes: notes || null,
         valid_until: validUntil || null,
         status: submitStatus,
+        theme,
       });
 
       if (submitStatus === 'sent') {
@@ -199,12 +201,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
     return `${siteUrl}/proposal/${slug}`;
   }
 
-  async function copyLink() {
-    if (!createdSlug) return;
-    await navigator.clipboard.writeText(getPublicUrl(createdSlug));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
+
 
   function resetAndClose() {
     setCreatedSlug(null);
@@ -218,6 +215,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
     setNotes('');
     setValidUntil(getDefaultValidity());
     setNewFeature('');
+    setTheme('dark');
     onClose();
   }
 
@@ -225,6 +223,8 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
 
   // ── Success state ──
   if (createdSlug) {
+    const simpleUrl = getPublicUrl(createdSlug);
+    const fullUrl = `${simpleUrl}/full`;
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={resetAndClose}>
         <div
@@ -237,14 +237,37 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
               <Check className="w-8 h-8 text-success" />
             </div>
             <h2 className="text-xl font-bold text-text-primary">{t('proposal.created')}</h2>
-            <div className="bg-bg-tertiary rounded-lg p-3 border border-glass-border">
-              <p className="text-xs text-text-muted mb-1">{t('proposal.publicLink')}</p>
-              <p className="text-sm font-mono text-brand-primary break-all">{getPublicUrl(createdSlug)}</p>
+
+            {/* Simple link */}
+            <div className="bg-bg-tertiary rounded-lg p-3 border border-glass-border text-left">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs text-text-muted font-medium">{t('proposal.simpleLink')}</p>
+                <button
+                  onClick={async () => { await navigator.clipboard.writeText(simpleUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                  className="text-xs text-brand-primary hover:text-brand-hover flex items-center gap-1"
+                >
+                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  {copied ? t('proposal.linkCopied') : t('proposal.copyLink')}
+                </button>
+              </div>
+              <p className="text-xs font-mono text-brand-primary break-all">{simpleUrl}</p>
             </div>
-            <button onClick={copyLink} className="btn-primary w-full flex items-center justify-center gap-2">
-              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              {copied ? t('proposal.linkCopied') : t('proposal.copyLink')}
-            </button>
+
+            {/* Full presentation link */}
+            <div className="bg-bg-tertiary rounded-lg p-3 border border-glass-border text-left">
+              <div className="flex items-center justify-between mb-1">
+                <p className="text-xs text-text-muted font-medium">{t('proposal.fullLink')}</p>
+                <button
+                  onClick={async () => { await navigator.clipboard.writeText(fullUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+                  className="text-xs text-brand-primary hover:text-brand-hover flex items-center gap-1"
+                >
+                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                  {copied ? t('proposal.linkCopied') : t('proposal.copyLink')}
+                </button>
+              </div>
+              <p className="text-xs font-mono text-brand-primary break-all">{fullUrl}</p>
+            </div>
+
             <button onClick={resetAndClose} className="text-sm text-text-muted hover:text-text-primary transition-colors">
               {t('sa.close')}
             </button>
@@ -363,6 +386,37 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
                 onChange={e => setValidUntil(e.target.value)}
                 className={inputCls}
               />
+            </div>
+          </div>
+
+          {/* Theme toggle */}
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.theme')}</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setTheme('dark')}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                  theme === 'dark'
+                    ? 'bg-gray-900 text-white border-indigo-500/40 ring-2 ring-indigo-500/20'
+                    : 'bg-bg-tertiary text-text-muted border-glass-border hover:border-glass-border/80'
+                }`}
+              >
+                <Moon className="w-4 h-4" />
+                {t('proposal.themeDark')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTheme('light')}
+                className={`flex-1 flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all border ${
+                  theme === 'light'
+                    ? 'bg-white text-gray-900 border-indigo-500/40 ring-2 ring-indigo-500/20'
+                    : 'bg-bg-tertiary text-text-muted border-glass-border hover:border-glass-border/80'
+                }`}
+              >
+                <Sun className="w-4 h-4" />
+                {t('proposal.themeLight')}
+              </button>
             </div>
           </div>
 

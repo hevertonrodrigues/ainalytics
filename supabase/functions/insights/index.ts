@@ -284,12 +284,32 @@ async function aggregateTenantData(db: any, tenantId: string) {
     .eq("tenant_id", tenantId)
     .eq("is_active", true);
 
-  // 6. Sources summary (top sources)
-  const { data: sourcesSummaryData } = await db.rpc("get_sources_summary_full", {
-    p_tenant_id: tenantId,
-  });
+  // 6. Sources summary (direct view queries — no heavyweight RPC)
+  const [mentionCountsRes, allSourcesRes] = await Promise.all([
+    db.from("source_mention_counts")
+      .select("source_id, mention_count")
+      .eq("tenant_id", tenantId)
+      .limit(10000),
+    db.from("sources")
+      .select("id, domain")
+      .eq("tenant_id", tenantId)
+      .limit(10000),
+  ]);
 
-  const allSources = sourcesSummaryData || [];
+  const sourceIdToDomain = new Map<string, string>();
+  for (const s of (allSourcesRes.data || [])) {
+    sourceIdToDomain.set(s.id, s.domain);
+  }
+
+  // deno-lint-ignore no-explicit-any
+  const allSources = (mentionCountsRes.data || [])
+    .filter((r: any) => sourceIdToDomain.has(r.source_id))
+    .map((r: any) => ({
+      domain: sourceIdToDomain.get(r.source_id)!,
+      total: r.mention_count || 0,
+    }))
+    .sort((a: any, b: any) => b.total - a.total);
+
   const ownDomain = tenant?.main_domain?.toLowerCase() || "";
   // deno-lint-ignore no-explicit-any
   const ownDomainSource = allSources.find((s: any) => s.domain?.toLowerCase() === ownDomain);
