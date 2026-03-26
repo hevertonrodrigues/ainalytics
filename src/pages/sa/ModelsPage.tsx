@@ -175,11 +175,11 @@ export function ModelsPage() {
               <th className="text-left">{t('sa.colPlatform')}</th>
               <th className="text-left">{t('sa.colSlug')}</th>
               <th className="text-left">{t('sa.colName')}</th>
-              <th className="text-right">{t('sa.priceIn')}</th>
-              <th className="text-right">{t('sa.priceOut')}</th>
+              <th className="text-right hidden md:table-cell">{t('sa.priceIn')}</th>
+              <th className="text-right hidden md:table-cell">{t('sa.priceOut')}</th>
               <th className="text-center">{t('sa.colActive')}</th>
-              <th className="text-center">{t('sa.colDefault')}</th>
-              <th className="text-center">{t('sa.colWebSearch')}</th>
+              <th className="text-center hidden md:table-cell">{t('sa.colDefault')}</th>
+              <th className="text-center hidden md:table-cell">{t('sa.colWebSearch')}</th>
               <th className="text-right">{t('sa.colActions')}</th>
             </tr>
           </thead>
@@ -200,12 +200,12 @@ export function ModelsPage() {
                     </td>
                     <td><code className="text-brand-primary text-xs font-semibold">{m.slug}</code></td>
                     <td className="!font-body font-medium">{m.name}</td>
-                    <td className="text-right">
+                    <td className="text-right hidden md:table-cell">
                       <span className={`text-xs font-mono ${hasPricing ? 'text-chart-green font-semibold' : 'text-text-secondary'}`}>
                         {fmtPrice(m.price_per_input_token)}
                       </span>
                     </td>
-                    <td className="text-right">
+                    <td className="text-right hidden md:table-cell">
                       <span className={`text-xs font-mono ${hasPricing ? 'text-chart-orange font-semibold' : 'text-text-secondary'}`}>
                         {fmtPrice(m.price_per_output_token)}
                       </span>
@@ -216,13 +216,13 @@ export function ModelsPage() {
                         {m.is_active ? t('sa.statusActive') : t('sa.statusInactive')}
                       </button>
                     </td>
-                    <td className="text-center">
+                    <td className="text-center hidden md:table-cell">
                       <button onClick={(e) => { e.stopPropagation(); update(m.id, { is_default: !m.is_default } as unknown as Partial<Model>); }}
                         className={`px-2 py-0.5 rounded-full text-xs font-semibold ${m.is_default ? 'bg-brand-primary/15 text-brand-primary' : 'text-text-secondary'}`}>
                         {m.is_default ? `★ ${t('sa.defaultStar')}` : '—'}
                       </button>
                     </td>
-                    <td className="text-center">
+                    <td className="text-center hidden md:table-cell">
                       <button onClick={(e) => { e.stopPropagation(); update(m.id, { web_search_active: !m.web_search_active } as unknown as Partial<Model>); }}
                         className={`px-2 py-0.5 rounded-full text-xs font-semibold inline-flex items-center gap-1 ${m.web_search_active ? 'bg-chart-cyan/15 text-chart-cyan' : 'text-text-secondary'}`}>
                         {m.web_search_active ? <><Globe className="w-3 h-3" /> {t('sa.webSearchOn')}</> : '—'}

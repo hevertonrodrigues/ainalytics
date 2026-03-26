@@ -139,38 +139,38 @@ export function MonitoringTimelinePage() {
       </div>
 
       {/* Filters */}
-      <div className="dashboard-card p-4 flex items-center gap-3 flex-wrap">
-        <Filter className="w-4 h-4 text-text-secondary" />
+      <div className="dashboard-card p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+        <Filter className="w-4 h-4 text-text-secondary hidden sm:block" />
 
         {/* Period */}
-        <select value={months} onChange={e => setMonths(Number(e.target.value))} className="input-field !py-1.5 !text-sm w-auto">
+        <select value={months} onChange={e => setMonths(Number(e.target.value))} className="input-field !py-1.5 !text-sm w-full sm:w-auto">
           {PERIOD_OPTIONS.map(o => <option key={o.value} value={o.value}>{t(o.label)}</option>)}
         </select>
 
         {/* Group by */}
-        <div className="flex bg-bg-tertiary rounded border border-glass-border">
+        <div className="flex bg-bg-tertiary rounded border border-glass-border overflow-x-auto">
           {GROUP_OPTIONS.map(g => (
             <button key={g} onClick={() => setGroupBy(g)}
-              className={`px-3 py-1.5 text-xs font-medium transition-colors ${groupBy === g ? 'bg-brand-primary text-white rounded' : 'text-text-secondary hover:text-text-primary'}`}>
+              className={`px-3 py-1.5 text-xs font-medium transition-colors whitespace-nowrap ${groupBy === g ? 'bg-brand-primary text-white rounded' : 'text-text-secondary hover:text-text-primary'}`}>
               {t(`timeline.${g}`)}
             </button>
           ))}
         </div>
 
         {/* Tenant filter */}
-        <select value={tenantId} onChange={e => setTenantId(e.target.value)} className="input-field !py-1.5 !text-sm w-auto min-w-[180px]">
+        <select value={tenantId} onChange={e => setTenantId(e.target.value)} className="input-field !py-1.5 !text-sm w-full sm:w-auto sm:min-w-[180px]">
           <option value="">{t('timeline.allTenants')}</option>
           {tenants.map(te => <option key={te.id} value={te.id}>{te.name}</option>)}
         </select>
 
         {/* Tab toggle */}
-        <div className="ml-auto flex bg-bg-tertiary rounded border border-glass-border">
+        <div className="flex bg-bg-tertiary rounded border border-glass-border w-full sm:w-auto sm:ml-auto">
           <button onClick={() => setTab('grouped')}
-            className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1 transition-colors ${tab === 'grouped' ? 'bg-brand-primary text-white rounded' : 'text-text-secondary hover:text-text-primary'}`}>
+            className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium flex items-center justify-center gap-1 transition-colors ${tab === 'grouped' ? 'bg-brand-primary text-white rounded' : 'text-text-secondary hover:text-text-primary'}`}>
             <BarChart3 className="w-3 h-3" />{t('timeline.grouped')}
           </button>
           <button onClick={() => setTab('answers')}
-            className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1 transition-colors ${tab === 'answers' ? 'bg-brand-primary text-white rounded' : 'text-text-secondary hover:text-text-primary'}`}>
+            className={`flex-1 sm:flex-none px-3 py-1.5 text-xs font-medium flex items-center justify-center gap-1 transition-colors ${tab === 'answers' ? 'bg-brand-primary text-white rounded' : 'text-text-secondary hover:text-text-primary'}`}>
             <Activity className="w-3 h-3" />{t('timeline.details')}
           </button>
         </div>
@@ -191,8 +191,8 @@ export function MonitoringTimelinePage() {
                   <th className="text-right">{t('timeline.total')}</th>
                   <th className="text-right">{t('timeline.success')}</th>
                   <th className="text-right">{t('timeline.errors')}</th>
-                  <th className="text-right">{t('timeline.avgLatency')}</th>
-                  <th className="text-center">{t('timeline.tenants')}</th>
+                  <th className="text-right hidden md:table-cell">{t('timeline.avgLatency')}</th>
+                  <th className="text-center hidden md:table-cell">{t('timeline.tenants')}</th>
                   <th className="text-left" style={{ minWidth: 200 }}>{t('timeline.distribution')}</th>
                 </tr>
               </thead>
@@ -209,10 +209,10 @@ export function MonitoringTimelinePage() {
                         <span className="text-error font-medium">{g.error_count}</span>
                       ) : <span className="text-text-secondary">0</span>}
                     </td>
-                    <td className="text-right">
+                    <td className="text-right hidden md:table-cell">
                       <span className="!font-body text-xs">{g.avg_latency_ms ? `${g.avg_latency_ms}ms` : '—'}</span>
                     </td>
-                    <td className="text-center !font-body">{g.tenant_count}</td>
+                    <td className="text-center !font-body hidden md:table-cell">{g.tenant_count}</td>
                     <td>
                       {/* Mini bar chart */}
                       <div className="flex items-center gap-1.5">
@@ -253,10 +253,10 @@ export function MonitoringTimelinePage() {
                     <th className="text-left">{t('timeline.tenant')}</th>
                     <th className="text-left">{t('timeline.prompt')}</th>
                     <th className="text-left">{t('timeline.platform')}</th>
-                    <th className="text-left">{t('timeline.model')}</th>
+                    <th className="text-left hidden md:table-cell">{t('timeline.model')}</th>
                     <th className="text-center">{t('timeline.status')}</th>
                     <th className="text-right">{t('timeline.latency')}</th>
-                    <th className="text-right">{t('timeline.tokens')}</th>
+                    <th className="text-right hidden md:table-cell">{t('timeline.tokens')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -277,7 +277,7 @@ export function MonitoringTimelinePage() {
                           <td>
                             <span className="text-xs px-1.5 py-0.5 rounded bg-glass-bg border border-glass-border text-text-primary">{a.platform_slug}</span>
                           </td>
-                          <td className="text-xs">{a.model_name || a.model_slug || '—'}</td>
+                          <td className="text-xs hidden md:table-cell">{a.model_name || a.model_slug || '—'}</td>
                           <td className="text-center">
                             {a.has_answer ? (
                               <span className="inline-flex items-center gap-0.5 text-success text-xs font-semibold"><Check className="w-3 h-3" /></span>
@@ -290,7 +290,7 @@ export function MonitoringTimelinePage() {
                               <span className="inline-flex items-center gap-0.5"><Zap className="w-3 h-3 text-warning" />{a.latency_ms}ms</span>
                             ) : '—'}
                           </td>
-                          <td className="text-right text-xs">
+                          <td className="text-right text-xs hidden md:table-cell">
                             {a.tokens_used ? (
                               <span className="text-text-primary">{(a.tokens_used.input || 0) + (a.tokens_used.output || 0)}</span>
                             ) : '—'}
@@ -342,7 +342,7 @@ export function MonitoringTimelinePage() {
               </table>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between p-4 border-t border-glass-border">
+              <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2 p-4 border-t border-glass-border">
                 <span className="text-sm text-text-secondary">
                   {t('timeline.showing')} {((answersPage - 1) * perPage) + 1}–{Math.min(answersPage * perPage, answersTotal)} {t('timeline.of')} {answersTotal.toLocaleString()}
                 </span>

@@ -138,13 +138,13 @@ export function CRMPipelinePage() {
   return (
     <div className="stagger-enter space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-text-primary">{t('sa.crmPipeline')}</h1>
           <p className="text-sm text-text-secondary mt-1">{t('sa.crmSubtitle')}</p>
         </div>
         {/* View toggle */}
-        <div className="flex items-center gap-1 bg-bg-secondary/60 rounded-lg p-0.5 border border-glass-border">
+        <div className="flex items-center gap-1 bg-bg-secondary/60 rounded-lg p-0.5 border border-glass-border self-start">
           <button
             onClick={() => setViewMode('kanban')}
             className={`p-2 rounded-md transition-all ${viewMode === 'kanban' ? 'bg-brand-primary/10 text-brand-primary' : 'text-text-muted hover:text-text-primary'}`}

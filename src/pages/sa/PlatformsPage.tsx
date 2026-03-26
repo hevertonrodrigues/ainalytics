@@ -107,10 +107,10 @@ export function PlatformsPage() {
             <tr>
               <th className="text-left">{t('sa.colSlug')}</th>
               <th className="text-left">{t('sa.colName')}</th>
-              <th className="text-left">{t('sa.colDefaultModel')}</th>
+              <th className="text-left hidden md:table-cell">{t('sa.colDefaultModel')}</th>
               <th className="text-center">{t('sa.colActive')}</th>
-              <th className="text-center">{t('sa.relatedModels')}</th>
-              <th className="text-left">{t('sa.colCreated')}</th>
+              <th className="text-center hidden md:table-cell">{t('sa.relatedModels')}</th>
+              <th className="text-left hidden md:table-cell">{t('sa.colCreated')}</th>
               <th className="text-right">{t('sa.colActions')}</th>
             </tr>
           </thead>
@@ -132,17 +132,17 @@ export function PlatformsPage() {
                       </div>
                     </td>
                     <td className="!font-body font-medium">{p.name}</td>
-                    <td className="!font-body text-sm">{defaultModel ? defaultModel.name : <span className="text-text-secondary italic">—</span>}</td>
+                    <td className="!font-body text-sm hidden md:table-cell">{defaultModel ? defaultModel.name : <span className="text-text-secondary italic">—</span>}</td>
                     <td className="text-center">
                       <button onClick={(e) => { e.stopPropagation(); update(p.id, { is_active: !p.is_active } as unknown as Partial<Platform>); }}
                         className={`px-2 py-0.5 rounded-full text-xs font-semibold ${p.is_active ? 'bg-success/15 text-success' : 'bg-error/15 text-error'}`}>
                         {p.is_active ? t('sa.active') : t('sa.inactive')}
                       </button>
                     </td>
-                    <td className="text-center !font-body">
+                    <td className="text-center !font-body hidden md:table-cell">
                       <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-brand-primary/10 text-brand-primary">{platformModels.length}</span>
                     </td>
-                    <td className="!font-body text-sm">{formatDate(p.created_at)}</td>
+                    <td className="!font-body text-sm hidden md:table-cell">{formatDate(p.created_at)}</td>
                     <td className="text-right" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={() => startEdit(p)} className="icon-btn"><Pencil className="w-3.5 h-3.5" /></button>

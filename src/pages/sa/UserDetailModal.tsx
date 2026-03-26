@@ -170,9 +170,9 @@ function Row({ icon, label, value, valueClass = '', mono = false }: {
   icon: React.ReactNode; label: string; value: string; valueClass?: string; mono?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="flex items-center gap-1.5 text-text-muted">{icon} {label}</span>
-      <span className={`text-text-secondary ${valueClass} ${mono ? 'font-mono text-xs' : ''} truncate max-w-[50%] text-right`}>
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm gap-0.5 sm:gap-4">
+      <span className="flex items-center gap-1.5 text-text-muted shrink-0">{icon} {label}</span>
+      <span className={`text-text-secondary ${valueClass} ${mono ? 'font-mono text-xs' : ''} sm:truncate sm:max-w-[50%] sm:text-right break-words`}>
         {value}
       </span>
     </div>

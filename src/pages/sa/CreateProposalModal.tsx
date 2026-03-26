@@ -248,7 +248,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
           </div>
 
           {/* Plan name + Price row */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.planName')} *</label>
               <input
@@ -276,7 +276,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
           </div>
 
           {/* Billing + Currency + Valid until row */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-text-secondary mb-1.5">{t('proposal.billingInterval')}</label>
               <select
@@ -384,15 +384,15 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-glass-border">
-            <button type="button" onClick={resetAndClose} className="px-4 py-2 text-sm text-text-muted hover:text-text-primary transition-colors rounded-lg hover:bg-bg-tertiary">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-end gap-3 pt-4 border-t border-glass-border">
+            <button type="button" onClick={resetAndClose} className="px-4 py-2 text-sm text-text-muted hover:text-text-primary transition-colors rounded-lg hover:bg-bg-tertiary w-full sm:w-auto order-3 sm:order-1">
               {t('sa.cancel')}
             </button>
             <button
               type="button"
               disabled={isSubmitting || !planName || !price}
               onClick={() => handleSubmit('draft')}
-              className="px-4 py-2 rounded-lg border border-glass-border bg-bg-tertiary text-text-secondary hover:text-text-primary text-sm font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 rounded-lg border border-glass-border bg-bg-tertiary text-text-secondary hover:text-text-primary text-sm font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2 w-full sm:w-auto order-2"
             >
               <FileText className="w-4 h-4" />
               {isSubmitting ? t('proposal.creating') : t('proposal.saveDraft')}
@@ -401,7 +401,7 @@ export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenant
               type="button"
               disabled={isSubmitting || !planName || !price}
               onClick={() => handleSubmit('sent')}
-              className="btn-primary flex items-center gap-2 disabled:opacity-50"
+              className="btn-primary flex items-center justify-center gap-2 disabled:opacity-50 w-full sm:w-auto order-1 sm:order-3"
             >
               <Check className="w-4 h-4" />
               {isSubmitting ? t('proposal.creating') : t('proposal.finishGenerate')}

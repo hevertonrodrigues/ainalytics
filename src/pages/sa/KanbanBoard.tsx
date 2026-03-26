@@ -57,7 +57,7 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
   }, {} as Record<KanbanStage, CRMPipelineUser[]>), [users, searchQuery]);
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 min-h-[500px]">
+    <div className="flex gap-4 overflow-x-auto pb-4 min-h-[300px] sm:min-h-[500px]">
       {KANBAN_STAGES.map(stage => {
         const cfg = STAGE_CONFIG[stage];
         const stageUsers = columns[stage];
@@ -149,14 +149,11 @@ function KanbanCard({ user, onQuickView, onFullView }: {
   onFullView: () => void;
 }) {
   const { t } = useTranslation();
-  const [hover, setHover] = useState(false);
 
   return (
     <div
       className="dashboard-card p-3 cursor-pointer hover:border-brand-primary/30 transition-all duration-200 group relative"
       onClick={onQuickView}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
     >
       {/* User info */}
       <div className="flex items-center gap-2.5 mb-2">
@@ -208,16 +205,14 @@ function KanbanCard({ user, onQuickView, onFullView }: {
         {formatDate(user.created_at)}
       </div>
 
-      {/* Hover action */}
-      {hover && (
-        <button
-          onClick={(e) => { e.stopPropagation(); onFullView(); }}
-          className="absolute top-2 right-2 p-1 rounded bg-bg-secondary/90 border border-glass-border text-text-muted hover:text-brand-primary transition-colors"
-          title={t('sa.viewFullDetails')}
-        >
-          <ExternalLink className="w-3 h-3" />
-        </button>
-      )}
+      {/* Full view action — always visible on mobile, hover-reveal on desktop */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onFullView(); }}
+        className="absolute top-2 right-2 p-1.5 rounded bg-bg-secondary/90 border border-glass-border text-text-muted hover:text-brand-primary transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+        title={t('sa.viewFullDetails')}
+      >
+        <ExternalLink className="w-3 h-3" />
+      </button>
     </div>
   );
 }

@@ -194,10 +194,10 @@ export function PlansPage() {
               <th className="text-left">{t('sa.colName')}</th>
               <th className="text-right">{t('sa.colPrice')}</th>
               <th className="text-center">{t('sa.colMaxPrompts')}</th>
-              <th className="text-center">{t('sa.colRefreshRate')}</th>
-              <th className="text-center">{t('sa.colOrder')}</th>
+              <th className="text-center hidden md:table-cell">{t('sa.colRefreshRate')}</th>
+              <th className="text-center hidden md:table-cell">{t('sa.colOrder')}</th>
               <th className="text-center">{t('sa.colActive')}</th>
-              <th className="text-center">{t('sa.colCreated')}</th>
+              <th className="text-center hidden md:table-cell">{t('sa.colCreated')}</th>
               <th className="text-right">{t('sa.colActions')}</th>
             </tr>
           </thead>
@@ -221,15 +221,15 @@ export function PlansPage() {
                     </td>
                     <td className="text-right">{s.custom_pricing ? t('sa.customPricing') : `$${Number(p.price).toFixed(0)}`}</td>
                     <td className="text-center">{s.max_prompts ? String(s.max_prompts) : '∞'}</td>
-                    <td className="text-center capitalize">{String(s.refresh_rate || '—')}</td>
-                    <td className="text-center">{p.sort_order}</td>
+                    <td className="text-center capitalize hidden md:table-cell">{String(s.refresh_rate || '—')}</td>
+                    <td className="text-center hidden md:table-cell">{p.sort_order}</td>
                     <td className="text-center">
                       <button onClick={(e) => { e.stopPropagation(); update(p.id, { is_active: !p.is_active } as unknown as Partial<Plan>); }}
                         className={`px-2 py-0.5 rounded-full text-xs font-semibold ${p.is_active ? 'bg-success/15 text-success' : 'bg-error/15 text-error'}`}>
                         {p.is_active ? t('sa.active') : t('sa.inactive')}
                       </button>
                     </td>
-                    <td className="text-center text-xs">{formatDate(p.created_at)}</td>
+                    <td className="text-center text-xs hidden md:table-cell">{formatDate(p.created_at)}</td>
                     <td className="text-right">
                       <div className="flex items-center justify-end gap-1" onClick={e => e.stopPropagation()}>
                         <button onClick={() => startEdit(p)} className="icon-btn"><Pencil className="w-3.5 h-3.5" /></button>

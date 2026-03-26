@@ -228,8 +228,80 @@ export function ActiveUsersPage() {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="dashboard-card overflow-hidden">
+      {/* Mobile card view */}
+      <div className="md:hidden space-y-3">
+        {filteredUsers.length === 0 ? (
+          <div className="dashboard-card p-6 text-center text-text-muted">{t('sa.noUsersFound')}</div>
+        ) : filteredUsers.map(user => (
+          <div key={user.user_id} className="dashboard-card p-4 cursor-pointer hover:border-brand-primary/30 transition-colors" onClick={() => navigate(`/sa/users/${user.user_id}`)}>
+            {/* User info */}
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-full bg-brand-primary/10 flex items-center justify-center shrink-0 border border-brand-primary/20">
+                <User className="w-4 h-4 text-brand-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-text-primary truncate">{user.full_name || t('sa.unnamed')}</div>
+                <div className="text-xs text-text-muted truncate">{user.email}</div>
+              </div>
+              {user.plan_name && <span className="text-[10px] text-brand-primary font-medium bg-brand-primary/10 rounded px-1.5 py-0.5 border border-brand-primary/20 shrink-0">{user.plan_name}</span>}
+            </div>
+
+            {/* Progress bar */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex-1 h-1.5 rounded-full bg-bg-secondary overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    user.progress_percent === 100 ? 'bg-success' :
+                    user.progress_percent >= 50 ? 'bg-brand-primary' :
+                    'bg-warning'
+                  }`}
+                  style={{ width: `${user.progress_percent}%` }}
+                />
+              </div>
+              <span className={`text-xs font-semibold ${
+                user.progress_percent === 100 ? 'text-success' :
+                user.progress_percent >= 50 ? 'text-brand-primary' :
+                'text-warning'
+              }`}>{user.progress_percent}%</span>
+            </div>
+
+            {/* Stats grid */}
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              <div className="text-center">
+                <div className="text-xs text-text-muted">{t('sa.prompts')}</div>
+                <div className="text-sm font-semibold text-text-primary">{user.active_prompts || '—'}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-text-muted">{t('sa.answers')}</div>
+                <div className="text-sm font-semibold text-text-primary">{user.total_answers || '—'}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-text-muted">{t('sa.activeModels')}</div>
+                <div className="text-sm font-semibold text-text-primary">{user.active_models_count || '—'}</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xs text-text-muted">{t('sa.geoScore')}</div>
+                <div className={`text-sm font-semibold ${
+                  user.best_geo_score != null
+                    ? user.best_geo_score >= 70 ? 'text-success' : user.best_geo_score >= 40 ? 'text-warning' : 'text-error'
+                    : 'text-text-muted'
+                }`}>{user.best_geo_score != null ? Math.round(user.best_geo_score) : '—'}</div>
+              </div>
+            </div>
+
+            {/* Progress steps */}
+            <div className="flex items-center justify-between gap-1 pt-2 border-t border-glass-border">
+              <ProgressStep done={user.has_company} label={t('sa.stepCompany')} sublabel={user.company_domain} />
+              <ProgressStep done={user.has_analysis} label={t('sa.stepAnalysis')} sublabel={user.completed_analyses > 0 ? `${user.completed_analyses}x` : undefined} />
+              <ProgressStep done={user.has_prompts} label={t('sa.stepPrompts')} sublabel={user.active_prompts > 0 ? `${user.active_prompts}` : undefined} />
+              <ProgressStep done={user.has_answers} label={t('sa.stepAnswers')} sublabel={user.total_answers > 0 ? `${user.total_answers}` : undefined} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Table (desktop) */}
+      <div className="dashboard-card overflow-hidden hidden md:block">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-text-muted bg-bg-secondary/50 border-b border-glass-border">
@@ -360,7 +432,7 @@ function KPICard({ icon, label, value, valueColor = 'text-text-primary' }: {
 
 function ProgressStep({ done, label, sublabel }: { done: boolean; label: string; sublabel?: string | null }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 min-w-[56px]">
+    <div className="flex flex-col items-center gap-0.5 min-w-[48px] sm:min-w-[56px]">
       {done ? (
         <CheckCircle2 className="w-4 h-4 text-success" />
       ) : (

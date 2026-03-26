@@ -161,7 +161,7 @@ function KpiCard({ icon: Icon, label, value, sub, accent }: {
       </div>
       <p className="text-2xl font-bold text-text-primary font-display tracking-tight">{value}</p>
       <p className="text-xs text-text-secondary mt-0.5">{label}</p>
-      {sub && <p className="text-[0.65rem] text-text-muted mt-1">{sub}</p>}
+      {sub && <p className="text-[0.65rem] text-text-muted mt-1 break-words">{sub}</p>}
     </div>
   );
 }
@@ -362,8 +362,8 @@ export function AICostsPage() {
                         const pct = total > 0 ? (cost / total) * 100 : 0;
                         const colors = PLATFORM_COLORS[platform] || 'bg-text-muted/15 text-text-secondary';
                         return (
-                          <div key={platform} className="flex items-center gap-3">
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${colors} w-24 text-center capitalize`}>
+                          <div key={platform} className="flex items-center gap-2 sm:gap-3">
+                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${colors} w-16 sm:w-24 text-center capitalize shrink-0`}>
                               {platform}
                             </span>
                             <div className="flex-1 h-5 bg-glass-bg rounded-full overflow-hidden">
@@ -372,8 +372,8 @@ export function AICostsPage() {
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
-                            <span className="text-xs font-mono text-text-primary w-20 text-right">{fmtCost(cost)}</span>
-                            <span className="text-xs text-text-muted w-12 text-right">{pct.toFixed(1)}%</span>
+                            <span className="text-xs font-mono text-text-primary w-16 sm:w-20 text-right shrink-0">{fmtCost(cost)}</span>
+                            <span className="text-xs text-text-muted w-12 text-right shrink-0">{pct.toFixed(1)}%</span>
                           </div>
                         );
                       })}
@@ -392,8 +392,8 @@ export function AICostsPage() {
                   <tr>
                     <th className="text-left">{t('sa.costs.tenant')}</th>
                     <th className="text-right">{t('sa.costs.requests')}</th>
-                    <th className="text-right">{t('sa.costs.tokensIn')}</th>
-                    <th className="text-right">{t('sa.costs.tokensOut')}</th>
+                    <th className="text-right hidden md:table-cell">{t('sa.costs.tokensIn')}</th>
+                    <th className="text-right hidden md:table-cell">{t('sa.costs.tokensOut')}</th>
                     <th className="text-right">{t('sa.costs.cost')}</th>
                     <th className="text-right">{t('sa.costs.lastActivity')}</th>
                   </tr>
@@ -413,8 +413,8 @@ export function AICostsPage() {
                             </div>
                           </td>
                           <td className="text-right font-mono text-sm">{row.total_requests.toLocaleString()}</td>
-                          <td className="text-right font-mono text-sm">{fmtTokens(row.total_tokens_input)}</td>
-                          <td className="text-right font-mono text-sm">{fmtTokens(row.total_tokens_output)}</td>
+                          <td className="text-right font-mono text-sm hidden md:table-cell">{fmtTokens(row.total_tokens_input)}</td>
+                          <td className="text-right font-mono text-sm hidden md:table-cell">{fmtTokens(row.total_tokens_output)}</td>
                           <td className="text-right">
                             <span className="font-mono font-semibold text-brand-accent text-sm">{fmtCost(row.total_cost_usd)}</span>
                           </td>
@@ -469,10 +469,10 @@ export function AICostsPage() {
                     <th className="text-left">{t('sa.costs.platform')}</th>
                     <th className="text-left">{t('sa.costs.model')}</th>
                     <th className="text-right">{t('sa.costs.requests')}</th>
-                    <th className="text-right">{t('sa.costs.tokensIn')}</th>
-                    <th className="text-right">{t('sa.costs.tokensOut')}</th>
-                    <th className="text-right">{t('sa.costs.costIn')}</th>
-                    <th className="text-right">{t('sa.costs.costOut')}</th>
+                    <th className="text-right hidden md:table-cell">{t('sa.costs.tokensIn')}</th>
+                    <th className="text-right hidden md:table-cell">{t('sa.costs.tokensOut')}</th>
+                    <th className="text-right hidden md:table-cell">{t('sa.costs.costIn')}</th>
+                    <th className="text-right hidden md:table-cell">{t('sa.costs.costOut')}</th>
                     <th className="text-right">{t('sa.costs.totalCostCol')}</th>
                     <th className="text-right">{t('sa.costs.avgLatency')}</th>
                   </tr>
@@ -491,10 +491,10 @@ export function AICostsPage() {
                         </td>
                         <td><code className="text-brand-primary text-xs font-semibold">{row.model_slug}</code></td>
                         <td className="text-right font-mono text-sm">{row.total_requests.toLocaleString()}</td>
-                        <td className="text-right font-mono text-sm">{fmtTokens(row.total_tokens_input)}</td>
-                        <td className="text-right font-mono text-sm">{fmtTokens(row.total_tokens_output)}</td>
-                        <td className="text-right font-mono text-sm text-text-secondary">{fmtCost(row.cost_input_usd)}</td>
-                        <td className="text-right font-mono text-sm text-text-secondary">{fmtCost(row.cost_output_usd)}</td>
+                        <td className="text-right font-mono text-sm hidden md:table-cell">{fmtTokens(row.total_tokens_input)}</td>
+                        <td className="text-right font-mono text-sm hidden md:table-cell">{fmtTokens(row.total_tokens_output)}</td>
+                        <td className="text-right font-mono text-sm text-text-secondary hidden md:table-cell">{fmtCost(row.cost_input_usd)}</td>
+                        <td className="text-right font-mono text-sm text-text-secondary hidden md:table-cell">{fmtCost(row.cost_output_usd)}</td>
                         <td className="text-right">
                           <span className="font-mono font-semibold text-brand-accent text-sm">{fmtCost(row.total_cost_usd)}</span>
                         </td>
@@ -508,10 +508,10 @@ export function AICostsPage() {
                     <tr className="border-t border-glass-border">
                       <td colSpan={2} className="!font-body font-semibold text-text-primary">{t('sa.costs.total')}</td>
                       <td className="text-right font-mono font-semibold text-text-primary">{modelData.reduce((a, b) => a + b.total_requests, 0).toLocaleString()}</td>
-                      <td className="text-right font-mono font-semibold text-text-primary">{fmtTokens(modelData.reduce((a, b) => a + b.total_tokens_input, 0))}</td>
-                      <td className="text-right font-mono font-semibold text-text-primary">{fmtTokens(modelData.reduce((a, b) => a + b.total_tokens_output, 0))}</td>
-                      <td className="text-right font-mono font-semibold text-text-secondary">{fmtCost(modelData.reduce((a, b) => a + b.cost_input_usd, 0))}</td>
-                      <td className="text-right font-mono font-semibold text-text-secondary">{fmtCost(modelData.reduce((a, b) => a + b.cost_output_usd, 0))}</td>
+                      <td className="text-right font-mono font-semibold text-text-primary hidden md:table-cell">{fmtTokens(modelData.reduce((a, b) => a + b.total_tokens_input, 0))}</td>
+                      <td className="text-right font-mono font-semibold text-text-primary hidden md:table-cell">{fmtTokens(modelData.reduce((a, b) => a + b.total_tokens_output, 0))}</td>
+                      <td className="text-right font-mono font-semibold text-text-secondary hidden md:table-cell">{fmtCost(modelData.reduce((a, b) => a + b.cost_input_usd, 0))}</td>
+                      <td className="text-right font-mono font-semibold text-text-secondary hidden md:table-cell">{fmtCost(modelData.reduce((a, b) => a + b.cost_output_usd, 0))}</td>
                       <td className="text-right font-mono font-bold text-brand-accent">{fmtCost(modelData.reduce((a, b) => a + b.total_cost_usd, 0))}</td>
                       <td />
                     </tr>
@@ -531,11 +531,11 @@ export function AICostsPage() {
                     <th className="text-right">{t('sa.costs.requests')}</th>
                     <th className="text-right">{t('sa.costs.errorsCol')}</th>
                     <th className="text-right">{t('sa.costs.errorRate')}</th>
-                    <th className="text-right">{t('sa.costs.tokensIn')}</th>
-                    <th className="text-right">{t('sa.costs.tokensOut')}</th>
+                    <th className="text-right hidden md:table-cell">{t('sa.costs.tokensIn')}</th>
+                    <th className="text-right hidden md:table-cell">{t('sa.costs.tokensOut')}</th>
                     <th className="text-right">{t('sa.costs.cost')}</th>
                     <th className="text-right">{t('sa.costs.avgLatency')}</th>
-                    <th className="text-left">{t('sa.costs.modelsUsed')}</th>
+                    <th className="text-left hidden md:table-cell">{t('sa.costs.modelsUsed')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -560,13 +560,13 @@ export function AICostsPage() {
                           {row.error_rate}%
                         </span>
                       </td>
-                      <td className="text-right font-mono text-sm">{fmtTokens(row.total_tokens_input)}</td>
-                      <td className="text-right font-mono text-sm">{fmtTokens(row.total_tokens_output)}</td>
+                      <td className="text-right font-mono text-sm hidden md:table-cell">{fmtTokens(row.total_tokens_input)}</td>
+                      <td className="text-right font-mono text-sm hidden md:table-cell">{fmtTokens(row.total_tokens_output)}</td>
                       <td className="text-right">
                         <span className="font-mono font-semibold text-brand-accent text-sm">{fmtCost(row.total_cost_usd)}</span>
                       </td>
                       <td className="text-right text-sm text-text-secondary">{fmtMs(row.avg_latency_ms)}</td>
-                      <td>
+                      <td className="hidden md:table-cell">
                         <div className="flex flex-wrap gap-1">
                           {row.models_used.slice(0, 3).map(m => (
                             <span key={m} className="text-[0.6rem] px-1 py-0.5 rounded bg-glass-bg border border-glass-border text-brand-primary font-mono">{m}</span>
@@ -594,10 +594,10 @@ export function AICostsPage() {
                       <th className="text-left">{t('sa.costs.tenant')}</th>
                       <th className="text-left">{t('sa.costs.callSite')}</th>
                       <th className="text-left">{t('sa.costs.model')}</th>
-                      <th className="text-right">{t('sa.costs.tokensIn')}</th>
-                      <th className="text-right">{t('sa.costs.tokensOut')}</th>
+                      <th className="text-right hidden md:table-cell">{t('sa.costs.tokensIn')}</th>
+                      <th className="text-right hidden md:table-cell">{t('sa.costs.tokensOut')}</th>
                       <th className="text-right">{t('sa.costs.cost')}</th>
-                      <th className="text-right">{t('sa.costs.latency')}</th>
+                      <th className="text-right hidden md:table-cell">{t('sa.costs.latency')}</th>
                       <th className="text-center">{t('sa.costs.statusCol')}</th>
                     </tr>
                   </thead>
@@ -617,10 +617,10 @@ export function AICostsPage() {
                             <code className="text-[0.65rem] text-brand-primary">{row.model_slug}</code>
                           </div>
                         </td>
-                        <td className="text-right font-mono text-xs">{row.tokens_input.toLocaleString()}</td>
-                        <td className="text-right font-mono text-xs">{row.tokens_output.toLocaleString()}</td>
+                        <td className="text-right font-mono text-xs hidden md:table-cell">{row.tokens_input.toLocaleString()}</td>
+                        <td className="text-right font-mono text-xs hidden md:table-cell">{row.tokens_output.toLocaleString()}</td>
                         <td className="text-right font-mono text-xs font-semibold text-brand-accent">{fmtCost(parseFloat(row.cost_total_usd))}</td>
-                        <td className="text-right text-xs text-text-secondary">{fmtMs(row.latency_ms)}</td>
+                        <td className="text-right text-xs text-text-secondary hidden md:table-cell">{fmtMs(row.latency_ms)}</td>
                         <td className="text-center">
                           {row.error ? (
                             <span className="text-[0.6rem] px-1.5 py-0.5 rounded-full bg-error/15 text-error font-semibold">Error</span>
@@ -636,7 +636,7 @@ export function AICostsPage() {
 
               {/* Pagination */}
               {recentData.total_pages > 1 && (
-                <div className="flex items-center justify-between px-2">
+                <div className="flex flex-col sm:flex-row items-center sm:justify-between gap-2 px-2">
                   <span className="text-xs text-text-secondary">
                     {t('sa.costs.showing')} {((recentData.page - 1) * recentData.per_page) + 1}–{Math.min(recentData.page * recentData.per_page, recentData.total)} {t('sa.costs.of')} {recentData.total}
                   </span>

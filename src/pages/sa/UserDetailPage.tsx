@@ -138,25 +138,25 @@ export function UserDetailPage() {
 
       {/* Header card */}
       <div className="dashboard-card p-6">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
+            <div className="w-14 h-14 rounded-full bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20 shrink-0">
               <User className="w-7 h-7 text-brand-primary" />
             </div>
-            <div>
+            <div className="min-w-0">
               <h1 className="text-xl font-bold text-text-primary flex items-center gap-2">
                 {user.full_name || t('sa.unnamedUser')}
                 {user.is_sa && <Shield className="w-5 h-5 text-brand-accent" />}
               </h1>
-              <p className="text-sm text-text-muted flex items-center gap-1.5 mt-0.5">
-                <Mail className="w-3.5 h-3.5" /> {user.email}
+              <p className="text-sm text-text-muted flex items-center gap-1.5 mt-0.5 truncate">
+                <Mail className="w-3.5 h-3.5 shrink-0" /> {user.email}
               </p>
-              <p className="text-xs text-text-muted mt-1">
+              <p className="text-xs text-text-muted mt-1 truncate">
                 ID: <span className="font-mono">{user.user_id}</span>
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
             <button
               onClick={() => setShowProposalModal(true)}
               className="btn-primary flex items-center gap-2 text-sm"
@@ -164,7 +164,7 @@ export function UserDetailPage() {
               <FileText className="w-4 h-4" />
               {t('proposal.createProposal')}
             </button>
-            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border ${stageColor[user.stage] || ''}`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider border whitespace-nowrap ${stageColor[user.stage] || ''}`}>
               {t(`sa.stage_${user.stage}`)}
             </span>
           </div>
@@ -317,15 +317,15 @@ export function UserDetailPage() {
         {proposals.length > 0 ? (
           <div className="space-y-3">
             {proposals.map((p: any) => (
-              <div key={p.id} className="flex items-center justify-between gap-4 bg-bg-tertiary rounded-lg px-4 py-3 border border-glass-border">
+              <div key={p.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-bg-tertiary rounded-lg px-4 py-3 border border-glass-border">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-medium text-sm text-text-primary truncate">{p.custom_plan_name}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider border ${statusColors[p.status] || ''}`}>
                       {t(`proposal.status${p.status.charAt(0).toUpperCase() + p.status.slice(1)}`)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-text-muted">
+                  <div className="flex items-center gap-3 text-xs text-text-muted flex-wrap">
                     <span>${p.custom_price}{p.billing_interval === 'monthly' ? t('proposal.perMonth') : t('proposal.perYear')}</span>
                     <span>{formatDate(p.created_at)}</span>
                     {p.viewed_at && (
@@ -335,7 +335,7 @@ export function UserDetailPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end">
                   <select
                     value={p.status}
                     onChange={(e) => updateProposalStatus(p.id, e.target.value)}

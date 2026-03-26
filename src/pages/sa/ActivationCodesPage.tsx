@@ -107,7 +107,7 @@ export function ActivationCodesPage() {
               <th className="text-left">{t('sa.colLinkedPlan')}</th>
               <th className="text-left">{t('sa.colClaimedBy')}</th>
               <th className="text-center">{t('sa.colActive')}</th>
-              <th className="text-left">{t('sa.colCreated')}</th>
+              <th className="text-left hidden sm:table-cell">{t('sa.colCreated')}</th>
               <th className="text-right">{t('sa.colActions')}</th>
             </tr>
           </thead>
@@ -145,7 +145,7 @@ export function ActivationCodesPage() {
                         {c.is_active ? t('sa.active') : t('sa.inactive')}
                       </button>
                     </td>
-                    <td className="!font-body text-sm">{formatDate(c.created_at)}</td>
+                    <td className="!font-body text-sm hidden sm:table-cell">{formatDate(c.created_at)}</td>
                     <td className="text-right" onClick={e => e.stopPropagation()}>
                       <button onClick={() => handleDelete(c.id)} className="icon-btn text-error/70 hover:text-error"><Trash2 className="w-3.5 h-3.5" /></button>
                     </td>
