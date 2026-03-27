@@ -20,6 +20,7 @@ import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser } from './types';
 import { KanbanBoard } from './KanbanBoard';
 import { UserDetailModal } from './UserDetailModal';
+import { SAPageHeader } from './SAPageHeader';
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-glass-element rounded-md ${className}`} />;
@@ -69,7 +70,7 @@ export function CRMPipelinePage() {
         if (u.billing_interval === 'monthly') totalMrr += Number(u.paid_amount);
         if (u.billing_interval === 'yearly') totalMrr += Number(u.paid_amount) / 12;
       }
-      if (u.stage === 'cancelled') cancelled++;
+      if (u.stage === 'churned_from_trial' || u.stage === 'churned_from_paid') cancelled++;
     });
     return { totalUsers: users.length, activeSubs, mrr: totalMrr, cancelled };
   }, [users]);
@@ -137,13 +138,9 @@ export function CRMPipelinePage() {
   return (
     <div className="stagger-enter space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary">{t('sa.crmPipeline')}</h1>
-          <p className="text-sm text-text-secondary mt-1">{t('sa.crmSubtitle')}</p>
-        </div>
+      <SAPageHeader title={t('sa.crmPipeline')} subtitle={t('sa.crmSubtitle')}>
         {/* View toggle */}
-        <div className="flex items-center gap-1 bg-bg-secondary/60 rounded-lg p-0.5 border border-glass-border self-start">
+        <div className="flex items-center gap-1 bg-bg-secondary/60 rounded-lg p-0.5 border border-glass-border">
           <button
             onClick={() => setViewMode('kanban')}
             className={`p-2 rounded-md transition-all ${viewMode === 'kanban' ? 'bg-brand-primary/10 text-brand-primary' : 'text-text-muted hover:text-text-primary'}`}
@@ -159,7 +156,7 @@ export function CRMPipelinePage() {
             <List className="w-4 h-4" />
           </button>
         </div>
-      </div>
+      </SAPageHeader>
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

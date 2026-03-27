@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Key, Plus, Trash2, Copy, Check, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAdminCrud } from './useAdminCrud';
 import { apiClient } from '@/lib/api';
+import { SAPageHeader } from './SAPageHeader';
 
 interface ActivationCode {
   id: string;
@@ -62,13 +63,13 @@ export function ActivationCodesPage() {
 
   return (
     <div className="stagger-enter space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2"><Key className="w-6 h-6 text-brand-primary" />{t('sa.activationTitle')}</h1>
-          <p className="text-sm text-text-secondary mt-1">{t('sa.activationSubtitle')}</p>
-        </div>
+      <SAPageHeader
+        title={t('sa.activationTitle')}
+        subtitle={t('sa.activationSubtitle')}
+        icon={<Key className="w-6 h-6 text-brand-primary" />}
+      >
         <button onClick={() => { setCreating(true); setNewCode(generateCode()); }} className="btn btn-primary flex items-center gap-2"><Plus className="w-4 h-4" />{t('sa.addNew')}</button>
-      </div>
+      </SAPageHeader>
 
       {creating && (
         <div className="dashboard-card p-5 space-y-3">

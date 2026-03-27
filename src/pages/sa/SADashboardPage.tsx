@@ -21,6 +21,7 @@ import {
 import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser, KanbanStage } from './types';
 import { KANBAN_STAGES } from './types';
+import { SAPageHeader } from './SAPageHeader';
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-glass-element rounded-md ${className}`} />;
@@ -84,8 +85,8 @@ export function SADashboardPage() {
         if (u.billing_interval === 'yearly') totalMrr += Number(u.paid_amount) / 12;
       }
 
-      // Cancelled
-      if (u.stage === 'cancelled') cancelled++;
+      // Cancelled (churned)
+      if (u.stage === 'churned_from_trial' || u.stage === 'churned_from_paid') cancelled++;
 
       // MAU (signed in within 30 days)
       if (u.last_sign_in_at) {
@@ -173,18 +174,19 @@ export function SADashboardPage() {
     proposal_accepted: 'bg-brand-accent/15 text-brand-accent',
     trial_activation: 'bg-warning/15 text-warning',
     trial_stripe: 'bg-warning/15 text-warning',
+    trial_other: 'bg-chart-orange/15 text-chart-orange',
+    free_user: 'bg-text-muted/15 text-text-muted',
     active_activation: 'bg-success/15 text-success',
     active_stripe: 'bg-success/15 text-success',
-    cancelled: 'bg-error/15 text-error',
+    active_other: 'bg-success/15 text-success',
+    churned_from_trial: 'bg-warning/15 text-warning',
+    churned_from_paid: 'bg-error/15 text-error',
   };
 
   return (
     <div className="stagger-enter space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">{t('sa.dashboard')}</h1>
-        <p className="text-sm text-text-secondary mt-1">{t('sa.dashboardSubtitle')}</p>
-      </div>
+      <SAPageHeader title={t('sa.dashboard')} subtitle={t('sa.dashboardSubtitle')} />
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -252,7 +254,9 @@ export function SADashboardPage() {
                       className={`h-full rounded-full transition-all duration-700 ${
                         stage.includes('active') ? 'bg-success' :
                         stage.includes('trial') ? 'bg-warning' :
-                        stage === 'cancelled' ? 'bg-error' :
+                        stage === 'churned_from_paid' ? 'bg-error' :
+                        stage === 'churned_from_trial' ? 'bg-warning' :
+                        stage === 'free_user' ? 'bg-text-muted/60' :
                         stage === 'proposal_accepted' ? 'bg-brand-accent' :
                         'bg-text-muted/40'
                       }`}

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Cpu, Plus, Pencil, Trash2, Check, X, Loader2, Globe, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
 import { useAdminCrud } from './useAdminCrud';
 import { apiClient } from '@/lib/api';
+import { SAPageHeader } from './SAPageHeader';
 
 interface Model {
   id: string;
@@ -89,13 +90,13 @@ export function ModelsPage() {
 
   return (
     <div className="stagger-enter space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2"><Cpu className="w-6 h-6 text-brand-primary" />{t('sa.modelsTitle')}</h1>
-          <p className="text-sm text-text-secondary mt-1">{t('sa.modelsSubtitle')}</p>
-        </div>
+      <SAPageHeader
+        title={t('sa.modelsTitle')}
+        subtitle={t('sa.modelsSubtitle')}
+        icon={<Cpu className="w-6 h-6 text-brand-primary" />}
+      >
         <button onClick={startCreate} className="btn btn-primary flex items-center gap-2"><Plus className="w-4 h-4" />{t('sa.addNew')}</button>
-      </div>
+      </SAPageHeader>
 
       {/* Filter */}
       <div className="flex items-center gap-3">

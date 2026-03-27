@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { formatDate } from '@/lib/dateFormat';
+import { SAPageHeader } from './SAPageHeader';
 
 // ─── Types ─────────────────────────────────────────────────
 
@@ -719,40 +720,35 @@ export function MetaAdsPage() {
   return (
     <div className="stagger-enter space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-brand-accent" />
-            {t('sa.metaAds.title')}
-          </h1>
-          <p className="text-sm text-text-secondary mt-1">{t('sa.metaAds.subtitle')}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          {activeTab !== 'settings' && (
-            <>
-              <select
-                value={months}
-                onChange={e => setMonths(parseInt(e.target.value))}
-                className="input-field !py-2 !text-sm w-36"
-              >
-                <option value={1}>{t('sa.metaAds.last30Days')}</option>
-                <option value={3}>{t('sa.metaAds.last90Days')}</option>
-                <option value={6}>{t('sa.metaAds.last6Months')}</option>
-                <option value={12}>{t('sa.metaAds.lastYear')}</option>
-              </select>
-              <button
-                onClick={handleSync}
-                disabled={isSyncing}
-                className="btn btn-secondary btn-sm flex items-center gap-1.5"
-                title={t('sa.metaAds.syncNow')}
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
-                {t('sa.metaAds.sync')}
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+      <SAPageHeader
+        title={t('sa.metaAds.title')}
+        subtitle={t('sa.metaAds.subtitle')}
+        icon={<Megaphone className="w-6 h-6 text-brand-accent" />}
+      >
+        {activeTab !== 'settings' && (
+          <>
+            <select
+              value={months}
+              onChange={e => setMonths(parseInt(e.target.value))}
+              className="input-field !py-2 !text-sm w-36"
+            >
+              <option value={1}>{t('sa.metaAds.last30Days')}</option>
+              <option value={3}>{t('sa.metaAds.last90Days')}</option>
+              <option value={6}>{t('sa.metaAds.last6Months')}</option>
+              <option value={12}>{t('sa.metaAds.lastYear')}</option>
+            </select>
+            <button
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="btn btn-secondary btn-sm flex items-center gap-1.5"
+              title={t('sa.metaAds.syncNow')}
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+              {t('sa.metaAds.sync')}
+            </button>
+          </>
+        )}
+      </SAPageHeader>
 
       {/* Sync Status Badge */}
       {config && config.last_sync_at && activeTab !== 'settings' && (

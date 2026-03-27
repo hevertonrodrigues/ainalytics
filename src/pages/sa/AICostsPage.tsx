@@ -7,6 +7,7 @@ import {
   RefreshCw, Hash, Cpu, Globe,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { SAPageHeader } from './SAPageHeader';
 
 // ─── Types ─────────────────────────────────────────────────
 interface Summary {
@@ -265,34 +266,29 @@ export function AICostsPage() {
   return (
     <div className="stagger-enter space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            <DollarSign className="w-6 h-6 text-brand-primary" />
-            {t('sa.costs.title')}
-          </h1>
-          <p className="text-sm text-text-secondary mt-1">{t('sa.costs.subtitle')}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={months}
-            onChange={e => setMonths(parseInt(e.target.value))}
-            className="input-field !py-2 !text-sm w-36"
-          >
-            <option value={1}>{t('sa.costs.last30Days')}</option>
-            <option value={3}>{t('sa.costs.last90Days')}</option>
-            <option value={6}>{t('sa.costs.last6Months')}</option>
-            <option value={12}>{t('sa.costs.lastYear')}</option>
-          </select>
-          <button
-            onClick={() => fetchData(activeTab, recentPage)}
-            className="icon-btn"
-            title={t('sa.costs.refresh')}
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-          </button>
-        </div>
-      </div>
+      <SAPageHeader
+        title={t('sa.costs.title')}
+        subtitle={t('sa.costs.subtitle')}
+        icon={<DollarSign className="w-6 h-6 text-brand-primary" />}
+      >
+        <select
+          value={months}
+          onChange={e => setMonths(parseInt(e.target.value))}
+          className="input-field !py-2 !text-sm w-36"
+        >
+          <option value={1}>{t('sa.costs.last30Days')}</option>
+          <option value={3}>{t('sa.costs.last90Days')}</option>
+          <option value={6}>{t('sa.costs.last6Months')}</option>
+          <option value={12}>{t('sa.costs.lastYear')}</option>
+        </select>
+        <button
+          onClick={() => fetchData(activeTab, recentPage)}
+          className="icon-btn"
+          title={t('sa.costs.refresh')}
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+        </button>
+      </SAPageHeader>
 
       {/* Tabs */}
       <div className="flex items-center gap-1 border-b border-glass-border overflow-x-auto pb-px">

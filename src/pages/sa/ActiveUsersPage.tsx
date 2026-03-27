@@ -17,6 +17,7 @@ import {
   CalendarClock,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { SAPageHeader } from './SAPageHeader';
 
 interface ActiveModelInfo {
   model_slug: string;
@@ -185,10 +186,7 @@ export function ActiveUsersPage() {
   return (
     <div className="stagger-enter space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">{t('sa.activeUsers')}</h1>
-        <p className="text-sm text-text-secondary mt-1">{t('sa.activeUsersSubtitle')}</p>
-      </div>
+      <SAPageHeader title={t('sa.activeUsers')} subtitle={t('sa.activeUsersSubtitle')} />
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

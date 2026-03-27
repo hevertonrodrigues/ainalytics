@@ -3,6 +3,7 @@ import { formatDate, formatDateTime } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { Package, Plus, Pencil, Trash2, Check, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAdminCrud } from './useAdminCrud';
+import { SAPageHeader } from './SAPageHeader';
 
 interface Plan {
   id: string;
@@ -92,13 +93,13 @@ export function PlansPage() {
 
   return (
     <div className="stagger-enter space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2"><Package className="w-6 h-6 text-brand-primary" />{t('sa.plansTitle')}</h1>
-          <p className="text-sm text-text-secondary mt-1">{t('sa.plansSubtitle')}</p>
-        </div>
+      <SAPageHeader
+        title={t('sa.plansTitle')}
+        subtitle={t('sa.plansSubtitle')}
+        icon={<Package className="w-6 h-6 text-brand-primary" />}
+      >
         <button onClick={startCreate} className="btn btn-primary flex items-center gap-2"><Plus className="w-4 h-4" />{t('sa.addNew')}</button>
-      </div>
+      </SAPageHeader>
 
       {/* Create / Edit form */}
       {(creating || editing) && (

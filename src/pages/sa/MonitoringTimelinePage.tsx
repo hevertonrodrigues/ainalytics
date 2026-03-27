@@ -6,6 +6,7 @@ import {
   Check, X, Clock, Zap, Filter, BarChart3,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { SAPageHeader } from './SAPageHeader';
 
 /* ──────────────── types ──────────────── */
 
@@ -126,17 +127,15 @@ export function MonitoringTimelinePage() {
   return (
     <div className="stagger-enter space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2">
-            <Activity className="w-6 h-6 text-brand-primary" />{t('timeline.title')}
-          </h1>
-          <p className="text-sm text-text-secondary mt-1">{t('timeline.subtitle')}</p>
-        </div>
+      <SAPageHeader
+        title={t('timeline.title')}
+        subtitle={t('timeline.subtitle')}
+        icon={<Activity className="w-6 h-6 text-brand-primary" />}
+      >
         <button onClick={refresh} className="btn btn-secondary btn-sm flex items-center gap-1.5">
           <RefreshCw className="w-3.5 h-3.5" />{t('timeline.refresh')}
         </button>
-      </div>
+      </SAPageHeader>
 
       {/* Filters */}
       <div className="dashboard-card p-4 flex flex-col sm:flex-row sm:items-center gap-3">

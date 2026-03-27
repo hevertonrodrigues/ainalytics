@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Globe, Plus, Pencil, Trash2, Check, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAdminCrud } from './useAdminCrud';
 import { apiClient } from '@/lib/api';
+import { SAPageHeader } from './SAPageHeader';
 
 interface Platform {
   id: string;
@@ -59,13 +60,13 @@ export function PlatformsPage() {
 
   return (
     <div className="stagger-enter space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-text-primary flex items-center gap-2"><Globe className="w-6 h-6 text-brand-primary" />{t('sa.platformsTitle')}</h1>
-          <p className="text-sm text-text-secondary mt-1">{t('sa.platformsSubtitle')}</p>
-        </div>
+      <SAPageHeader
+        title={t('sa.platformsTitle')}
+        subtitle={t('sa.platformsSubtitle')}
+        icon={<Globe className="w-6 h-6 text-brand-primary" />}
+      >
         <button onClick={startCreate} className="btn btn-primary flex items-center gap-2"><Plus className="w-4 h-4" />{t('sa.addNew')}</button>
-      </div>
+      </SAPageHeader>
 
       {(creating || editing) && (
         <div className="dashboard-card p-5 space-y-3">

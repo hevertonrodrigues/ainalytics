@@ -34,12 +34,16 @@ interface KanbanCustomizations {
 const STAGE_CONFIG: Record<KanbanStage, { color: string; borderColor: string; bgColor: string; dotColor: string }> = {
   registered:         { color: 'text-warning',        borderColor: 'border-warning/30',        bgColor: 'bg-warning/5',         dotColor: 'bg-warning' },
   email_confirmed:    { color: 'text-chart-cyan',     borderColor: 'border-chart-cyan/30',     bgColor: 'bg-chart-cyan/5',      dotColor: 'bg-chart-cyan' },
-  proposal_accepted:  { color: 'text-brand-accent',    borderColor: 'border-brand-accent/30',    bgColor: 'bg-brand-accent/5',     dotColor: 'bg-brand-accent' },
+  proposal_accepted:  { color: 'text-brand-accent',   borderColor: 'border-brand-accent/30',   bgColor: 'bg-brand-accent/5',    dotColor: 'bg-brand-accent' },
   trial_activation:   { color: 'text-brand-primary',  borderColor: 'border-brand-primary/30',  bgColor: 'bg-brand-primary/5',   dotColor: 'bg-brand-primary' },
   trial_stripe:       { color: 'text-chart-purple',   borderColor: 'border-chart-purple/30',   bgColor: 'bg-chart-purple/5',    dotColor: 'bg-chart-purple' },
+  trial_other:        { color: 'text-chart-orange',   borderColor: 'border-chart-orange/30',   bgColor: 'bg-chart-orange/5',    dotColor: 'bg-chart-orange' },
+  free_user:          { color: 'text-text-muted',     borderColor: 'border-text-muted/30',     bgColor: 'bg-text-muted/5',      dotColor: 'bg-text-muted' },
   active_activation:  { color: 'text-success',        borderColor: 'border-success/30',        bgColor: 'bg-success/5',         dotColor: 'bg-success' },
   active_stripe:      { color: 'text-chart-green',    borderColor: 'border-chart-green/30',    bgColor: 'bg-chart-green/5',     dotColor: 'bg-chart-green' },
-  cancelled:          { color: 'text-error',          borderColor: 'border-error/30',          bgColor: 'bg-error/5',           dotColor: 'bg-error' },
+  active_other:       { color: 'text-success',        borderColor: 'border-success/30',        bgColor: 'bg-success/5',         dotColor: 'bg-success' },
+  churned_from_trial: { color: 'text-warning',        borderColor: 'border-warning/30',        bgColor: 'bg-warning/5',         dotColor: 'bg-warning' },
+  churned_from_paid:  { color: 'text-error',          borderColor: 'border-error/30',          bgColor: 'bg-error/5',           dotColor: 'bg-error' },
 };
 
 // ─── Persistence helpers ─────────────────────────────────────
