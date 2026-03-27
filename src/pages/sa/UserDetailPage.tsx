@@ -234,13 +234,10 @@ export function UserDetailPage() {
     email_confirmed: 'bg-chart-cyan/10 text-chart-cyan border-chart-cyan/30',
     proposal_accepted: 'bg-brand-accent/10 text-brand-accent border-brand-accent/30',
     trial_activation: 'bg-brand-primary/10 text-brand-primary border-brand-primary/30',
-    trial_stripe: 'bg-chart-purple/10 text-chart-purple border-chart-purple/30',
-    trial_other: 'bg-chart-orange/10 text-chart-orange border-chart-orange/30',
-    free_user: 'bg-text-muted/10 text-text-muted border-text-muted/30',
+    trial_stripe: 'bg-brand-primary/10 text-brand-primary border-brand-primary/30',
     active_activation: 'bg-success/10 text-success border-success/30',
-    active_stripe: 'bg-chart-green/10 text-chart-green border-chart-green/30',
-    active_other: 'bg-success/10 text-success border-success/30',
-    churned_from_trial: 'bg-warning/10 text-warning border-warning/30',
+    active_stripe: 'bg-success/10 text-success border-success/30',
+    churned_from_trial: 'bg-error/10 text-error border-error/30',
     churned_from_paid: 'bg-error/10 text-error border-error/30',
   };
 

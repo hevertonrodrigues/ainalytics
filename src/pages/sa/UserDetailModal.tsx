@@ -30,13 +30,10 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
     email_confirmed: 'text-chart-cyan',
     proposal_accepted: 'text-brand-accent',
     trial_activation: 'text-brand-primary',
-    trial_stripe: 'text-chart-purple',
-    trial_other: 'text-chart-orange',
-    free_user: 'text-text-muted',
+    trial_stripe: 'text-brand-primary',
     active_activation: 'text-success',
-    active_stripe: 'text-chart-green',
-    active_other: 'text-success',
-    churned_from_trial: 'text-warning',
+    active_stripe: 'text-success',
+    churned_from_trial: 'text-error',
     churned_from_paid: 'text-error',
   };
 

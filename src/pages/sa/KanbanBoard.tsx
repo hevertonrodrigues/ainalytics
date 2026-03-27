@@ -29,6 +29,7 @@ interface KanbanBoardProps {
 interface KanbanCustomizations {
   columnOrder?: KanbanStage[];
   collapsedColumns?: KanbanStage[];
+  collapsedGroups?: Record<string, boolean>;
 }
 
 const STAGE_CONFIG: Record<KanbanStage, { color: string; borderColor: string; bgColor: string; dotColor: string }> = {
@@ -36,13 +37,10 @@ const STAGE_CONFIG: Record<KanbanStage, { color: string; borderColor: string; bg
   email_confirmed:    { color: 'text-chart-cyan',     borderColor: 'border-chart-cyan/30',     bgColor: 'bg-chart-cyan/5',      dotColor: 'bg-chart-cyan' },
   proposal_accepted:  { color: 'text-brand-accent',   borderColor: 'border-brand-accent/30',   bgColor: 'bg-brand-accent/5',    dotColor: 'bg-brand-accent' },
   trial_activation:   { color: 'text-brand-primary',  borderColor: 'border-brand-primary/30',  bgColor: 'bg-brand-primary/5',   dotColor: 'bg-brand-primary' },
-  trial_stripe:       { color: 'text-chart-purple',   borderColor: 'border-chart-purple/30',   bgColor: 'bg-chart-purple/5',    dotColor: 'bg-chart-purple' },
-  trial_other:        { color: 'text-chart-orange',   borderColor: 'border-chart-orange/30',   bgColor: 'bg-chart-orange/5',    dotColor: 'bg-chart-orange' },
-  free_user:          { color: 'text-text-muted',     borderColor: 'border-text-muted/30',     bgColor: 'bg-text-muted/5',      dotColor: 'bg-text-muted' },
+  trial_stripe:       { color: 'text-brand-primary',  borderColor: 'border-brand-primary/30',  bgColor: 'bg-brand-primary/5',   dotColor: 'bg-brand-primary' },
   active_activation:  { color: 'text-success',        borderColor: 'border-success/30',        bgColor: 'bg-success/5',         dotColor: 'bg-success' },
-  active_stripe:      { color: 'text-chart-green',    borderColor: 'border-chart-green/30',    bgColor: 'bg-chart-green/5',     dotColor: 'bg-chart-green' },
-  active_other:       { color: 'text-success',        borderColor: 'border-success/30',        bgColor: 'bg-success/5',         dotColor: 'bg-success' },
-  churned_from_trial: { color: 'text-warning',        borderColor: 'border-warning/30',        bgColor: 'bg-warning/5',         dotColor: 'bg-warning' },
+  active_stripe:      { color: 'text-success',        borderColor: 'border-success/30',        bgColor: 'bg-success/5',         dotColor: 'bg-success' },
+  churned_from_trial: { color: 'text-error',          borderColor: 'border-error/30',          bgColor: 'bg-error/5',           dotColor: 'bg-error' },
   churned_from_paid:  { color: 'text-error',          borderColor: 'border-error/30',          bgColor: 'bg-error/5',           dotColor: 'bg-error' },
 };
 
@@ -65,10 +63,14 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  // Activation-code group collapse (within column)
+  // Activation-code group collapse (within column) — persisted
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const toggleGroup = (code: string) => {
-    setCollapsedGroups(prev => ({ ...prev, [code]: !prev[code] }));
+    setCollapsedGroups(prev => {
+      const next = { ...prev, [code]: !prev[code] };
+      persistAllCustomizations(columnOrder, collapsedColumns, next);
+      return next;
+    });
   };
 
   // Column order & collapsed state
@@ -88,16 +90,19 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
       if (c.collapsedColumns?.length) {
         setCollapsedColumns(new Set(c.collapsedColumns));
       }
+      if (c.collapsedGroups) {
+        setCollapsedGroups(c.collapsedGroups);
+      }
       setLoaded(true);
     });
   }, []);
 
   // Persist customizations (debounced)
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const persistCustomizations = useCallback((order: KanbanStage[], collapsed: Set<KanbanStage>) => {
+  const persistAllCustomizations = useCallback((order: KanbanStage[], collapsed: Set<KanbanStage>, groups?: Record<string, boolean>) => {
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
     saveTimeout.current = setTimeout(() => {
-      saveCustomizations({ columnOrder: order, collapsedColumns: Array.from(collapsed) });
+      saveCustomizations({ columnOrder: order, collapsedColumns: Array.from(collapsed), collapsedGroups: groups });
     }, 500);
   }, []);
 
@@ -105,7 +110,7 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
     setCollapsedColumns(prev => {
       const next = new Set(prev);
       if (next.has(stage)) next.delete(stage); else next.add(stage);
-      persistCustomizations(columnOrder, next);
+      persistAllCustomizations(columnOrder, next, collapsedGroups);
       return next;
     });
   };
@@ -127,7 +132,7 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
         const next = [...prev];
         const [moved] = next.splice(dragIdx, 1);
         if (moved !== undefined) next.splice(dragOverIdx, 0, moved);
-        persistCustomizations(next, collapsedColumns);
+        persistAllCustomizations(next, collapsedColumns, collapsedGroups);
         return next;
       });
     }

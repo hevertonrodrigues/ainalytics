@@ -172,14 +172,11 @@ export function SADashboardPage() {
     registered: 'bg-text-muted/20 text-text-muted',
     email_confirmed: 'bg-chart-cyan/15 text-chart-cyan',
     proposal_accepted: 'bg-brand-accent/15 text-brand-accent',
-    trial_activation: 'bg-warning/15 text-warning',
-    trial_stripe: 'bg-warning/15 text-warning',
-    trial_other: 'bg-chart-orange/15 text-chart-orange',
-    free_user: 'bg-text-muted/15 text-text-muted',
+    trial_activation: 'bg-brand-primary/15 text-brand-primary',
+    trial_stripe: 'bg-brand-primary/15 text-brand-primary',
     active_activation: 'bg-success/15 text-success',
     active_stripe: 'bg-success/15 text-success',
-    active_other: 'bg-success/15 text-success',
-    churned_from_trial: 'bg-warning/15 text-warning',
+    churned_from_trial: 'bg-error/15 text-error',
     churned_from_paid: 'bg-error/15 text-error',
   };
 
@@ -253,10 +250,8 @@ export function SADashboardPage() {
                     <div
                       className={`h-full rounded-full transition-all duration-700 ${
                         stage.includes('active') ? 'bg-success' :
-                        stage.includes('trial') ? 'bg-warning' :
-                        stage === 'churned_from_paid' ? 'bg-error' :
-                        stage === 'churned_from_trial' ? 'bg-warning' :
-                        stage === 'free_user' ? 'bg-text-muted/60' :
+                        stage.includes('trial') ? 'bg-brand-primary' :
+                        stage.includes('churned') ? 'bg-error' :
                         stage === 'proposal_accepted' ? 'bg-brand-accent' :
                         'bg-text-muted/40'
                       }`}

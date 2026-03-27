@@ -206,12 +206,14 @@ serve(async (req: Request) => {
         const sp = s.plan_id ? planMap.get(s.plan_id) : null;
         return s.status === 'active' && Number(sp?.price || 0) > 0;
       });
+      // Also check if they ever made a successful payment
+      const hadSuccessfulPayment = tenantPayments.some((p: { status: string }) => p.status === 'succeeded');
 
       let stage = "registered";
       let userClassification = "registered";
 
       if (subStatus === "canceled") {
-        if (wasEverPaid || isPaidPlan) {
+        if (wasEverPaid || hadSuccessfulPayment) {
           stage = "churned_from_paid";
           userClassification = "churned_paid";
         } else {
@@ -219,14 +221,11 @@ serve(async (req: Request) => {
           userClassification = "churned_trial";
         }
       } else if (subStatus === "trialing") {
-        stage = hasStripe ? "trial_stripe" : (hasActivation ? "trial_activation" : "trial_other");
+        stage = hasStripe ? "trial_stripe" : "trial_activation";
         userClassification = "trial";
       } else if (subStatus === "active" && isPaidPlan) {
-        stage = hasStripe ? "active_stripe" : (hasActivation ? "active_activation" : "active_other");
+        stage = hasStripe ? "active_stripe" : "active_activation";
         userClassification = "paid";
-      } else if (subStatus === "active" && !isPaidPlan) {
-        stage = "free_user";
-        userClassification = "free";
       } else if (emailConfirmed && acceptedProposalUserIds.has(profile.user_id)) {
         stage = "proposal_accepted";
       } else if (emailConfirmed) {

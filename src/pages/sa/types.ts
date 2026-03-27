@@ -48,7 +48,7 @@ export interface CRMPipelineUser {
   total_payment_attempts: number;
   // Kanban
   stage: KanbanStage;
-  user_classification: 'registered' | 'trial' | 'free' | 'paid' | 'churned_trial' | 'churned_paid';
+  user_classification: 'registered' | 'trial' | 'paid' | 'churned_trial' | 'churned_paid';
   is_paid_user: boolean;
 }
 
@@ -58,11 +58,8 @@ export type KanbanStage =
   | 'proposal_accepted'
   | 'trial_activation'
   | 'trial_stripe'
-  | 'trial_other'
-  | 'free_user'
   | 'active_activation'
   | 'active_stripe'
-  | 'active_other'
   | 'churned_from_trial'
   | 'churned_from_paid';
 
@@ -72,11 +69,8 @@ export const KANBAN_STAGES: KanbanStage[] = [
   'proposal_accepted',
   'trial_activation',
   'trial_stripe',
-  'trial_other',
-  'free_user',
   'active_activation',
   'active_stripe',
-  'active_other',
   'churned_from_trial',
   'churned_from_paid',
 ];
