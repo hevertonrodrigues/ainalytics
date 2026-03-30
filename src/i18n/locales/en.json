@@ -764,6 +764,7 @@
     "totalPayments": "Total Attempts",
     "noPayments": "No payment attempts recorded",
     "activeUsers": "Active Users",
+    "analytics": "User Analytics",
     "activeUsersSubtitle": "Track onboarding progress and engagement for subscribed users",
     "totalActive": "Total Active",
     "withCompany": "With Company",

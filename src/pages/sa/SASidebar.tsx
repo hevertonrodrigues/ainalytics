@@ -20,6 +20,7 @@ import {
   DollarSign,
   BarChart3,
   Megaphone,
+  Footprints,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -37,6 +38,7 @@ const SA_NAV: NavItem[] = [
   { key: 'sa.dashboard', path: '/sa', icon: LayoutDashboard },
   { key: 'sa.crmPipeline', path: '/sa/crm', icon: Kanban },
   { key: 'sa.activeUsers', path: '/sa/active', icon: Activity },
+  { key: 'sa.analytics', path: '/sa/analytics', icon: Footprints },
   { key: 'sa.plansTitle', path: '/sa/plans', icon: Package },
   { key: 'sa.activationTitle', path: '/sa/activation-codes', icon: Key },
   { key: 'sa.platformsTitle', path: '/sa/platforms', icon: Globe },

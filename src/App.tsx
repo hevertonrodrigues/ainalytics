@@ -26,6 +26,7 @@ const SAModelsPage = lazy(() => import('@/pages/sa/ModelsPage').then(m => ({ def
 const SAAICostsPage = lazy(() => import('@/pages/sa/AICostsPage').then(m => ({ default: m.AICostsPage })));
 const SAMetaAdsPage = lazy(() => import('@/pages/sa/MetaAdsPage').then(m => ({ default: m.MetaAdsPage })));
 const SAMonitoringTimelinePage = lazy(() => import('@/pages/sa/MonitoringTimelinePage').then(m => ({ default: m.MonitoringTimelinePage })));
+const SAAnalyticsPage = lazy(() => import('@/pages/sa/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
 const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 
 // Lazy-loaded page components (route-level code splitting)
@@ -132,6 +133,7 @@ export function App() {
               <Route path="costs" element={<SAAICostsPage />} />
               <Route path="meta-ads" element={<SAMetaAdsPage />} />
               <Route path="monitoring" element={<SAMonitoringTimelinePage />} />
+              <Route path="analytics" element={<SAAnalyticsPage />} />
               <Route path="users/:userId" element={<UserDetailPage />} />
             </Route>
 

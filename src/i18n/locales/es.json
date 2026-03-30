@@ -763,6 +763,7 @@
     "totalPayments": "Intentos Totales",
     "noPayments": "Sin intentos de pago registrados",
     "activeUsers": "Usuarios Activos",
+    "analytics": "Análisis de Usuarios",
     "activeUsersSubtitle": "Seguimiento del progreso de onboarding y engagement de usuarios suscritos",
     "totalActive": "Total Activos",
     "withCompany": "Con Empresa",

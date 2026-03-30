@@ -441,6 +441,10 @@ entrypoint = "./functions/admin-crm-pipeline/index.ts"
 enabled = true
 verify_jwt = true
 
+[functions.admin-analytics]
+enabled = true
+verify_jwt = true
+
 [functions.admin-settings]
 enabled = true
 verify_jwt = true
