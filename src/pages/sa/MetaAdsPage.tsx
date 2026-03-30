@@ -9,6 +9,7 @@ import {
 import { apiClient } from '@/lib/api';
 import { formatDate } from '@/lib/dateFormat';
 import { SAPageHeader } from './SAPageHeader';
+import { SAKpiGrid } from './SAKpiGrid';
 
 // ─── Types ─────────────────────────────────────────────────
 
@@ -790,7 +791,7 @@ export function MetaAdsPage() {
           {activeTab === 'overview' && overview && (
             <div className="space-y-6">
               {/* KPI Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3">
+              <SAKpiGrid desktopCols="lg:grid-cols-4 xl:grid-cols-8">
                 <KpiCard icon={DollarSign} label={t('sa.metaAds.totalSpend')} value={fmtCurrency(overview.total_spend, adCurrency)} accent="bg-brand-accent/10 text-brand-accent" />
                 <KpiCard icon={Eye} label={t('sa.metaAds.impressions')} value={fmtNumber(overview.total_impressions)} />
                 <KpiCard icon={MousePointerClick} label={t('sa.metaAds.clicks')} value={fmtNumber(overview.total_clicks)} />
@@ -799,7 +800,7 @@ export function MetaAdsPage() {
                 <KpiCard icon={DollarSign} label={t('sa.metaAds.cpm')} value={fmtCurrency(overview.avg_cpm, adCurrency)} />
                 <KpiCard icon={Target} label={t('sa.metaAds.conversions')} value={fmtNumber(overview.total_conversions)} accent="bg-success/10 text-success" />
                 <KpiCard icon={Target} label={t('sa.metaAds.costPerConversion')} value={fmtCurrency(overview.avg_cost_per_conversion, adCurrency)} />
-              </div>
+              </SAKpiGrid>
 
               {/* Daily Performance Chart */}
               <div className="dashboard-card p-5">
@@ -1009,7 +1010,7 @@ export function MetaAdsPage() {
           {activeTab === 'roi' && roiData && (
             <div className="space-y-6">
               {/* Main ROI KPI Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <SAKpiGrid desktopCols="lg:grid-cols-6">
                 <KpiCard
                   icon={DollarSign}
                   label={t('sa.metaAds.totalAdSpend')}
@@ -1052,7 +1053,7 @@ export function MetaAdsPage() {
                   value={roiData.payback_months > 0 ? `${roiData.payback_months} mo` : '—'}
                   sub={t('sa.metaAds.paybackDescription')}
                 />
-              </div>
+              </SAKpiGrid>
 
               {/* Revenue vs Spend Breakdown */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

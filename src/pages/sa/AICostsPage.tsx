@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
+import { SAKpiGrid } from './SAKpiGrid';
 
 // ─── Types ─────────────────────────────────────────────────
 interface Summary {
@@ -315,14 +316,14 @@ export function AICostsPage() {
           {activeTab === 'overview' && summary && (
             <div className="space-y-6">
               {/* KPI Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <SAKpiGrid desktopCols="lg:grid-cols-6">
                 <KpiCard icon={DollarSign} label={t('sa.costs.totalCost')} value={fmtCost(summary.total_cost_usd)} sub={`${t('sa.costs.input')}: ${fmtCost(summary.cost_input_usd)} · ${t('sa.costs.output')}: ${fmtCost(summary.cost_output_usd)}`} accent="bg-brand-accent/10 text-brand-accent" />
                 <KpiCard icon={Zap} label={t('sa.costs.totalRequests')} value={summary.total_requests.toLocaleString()} sub={`${fmtCost(summary.avg_cost_per_request)} ${t('sa.costs.perRequest')}`} />
                 <KpiCard icon={Hash} label={t('sa.costs.totalTokens')} value={fmtTokens(summary.total_tokens)} sub={`${t('sa.costs.input')}: ${fmtTokens(summary.total_tokens_input)} · ${t('sa.costs.output')}: ${fmtTokens(summary.total_tokens_output)}`} />
                 <KpiCard icon={Users} label={t('sa.costs.activeTenants')} value={summary.total_tenants.toString()} />
                 <KpiCard icon={Clock} label={t('sa.costs.avgLatency')} value={fmtMs(summary.avg_latency_ms)} />
                 <KpiCard icon={AlertTriangle} label={t('sa.costs.errorRate')} value={`${summary.error_rate}%`} sub={`${summary.error_count} ${t('sa.costs.errors')}`} accent={summary.error_rate > 5 ? 'bg-error/10 text-error' : 'bg-success/10 text-success'} />
-              </div>
+              </SAKpiGrid>
 
               {/* Daily Chart */}
               <div className="dashboard-card p-5">

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDateTime, formatDate } from '@/lib/dateFormat';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
+import { SAKpiGrid } from './SAKpiGrid';
 import {
   Activity,
   Users,
@@ -264,7 +265,7 @@ export function AnalyticsPage() {
 
       {/* KPI Row */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <SAKpiGrid desktopCols="lg:grid-cols-6">
           <KPICard
             icon={<Eye className="w-4 h-4" />}
             label="Total Events"
@@ -303,7 +304,7 @@ export function AnalyticsPage() {
             value={stats.anonymous_events.toLocaleString()}
             valueColor="text-warning"
           />
-        </div>
+        </SAKpiGrid>
       )}
 
       {/* Tab Navigation */}

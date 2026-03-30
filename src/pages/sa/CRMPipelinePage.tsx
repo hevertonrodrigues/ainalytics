@@ -21,6 +21,7 @@ import type { CRMPipelineUser } from './types';
 import { KanbanBoard } from './KanbanBoard';
 import { UserDetailModal } from './UserDetailModal';
 import { SAPageHeader } from './SAPageHeader';
+import { SAKpiGrid } from './SAKpiGrid';
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-glass-element rounded-md ${className}`} />;
@@ -159,7 +160,7 @@ export function CRMPipelinePage() {
       </SAPageHeader>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <SAKpiGrid desktopCols="lg:grid-cols-4">
         <div className="dashboard-card p-5">
           <div className="flex items-center gap-2 text-text-muted mb-2"><Users className="w-4 h-4" /><span className="text-sm font-medium">{t('sa.totalUsers')}</span></div>
           <p className="text-2xl font-bold text-text-primary">{kpis.totalUsers}</p>
@@ -176,7 +177,7 @@ export function CRMPipelinePage() {
           <div className="flex items-center gap-2 text-text-muted mb-2"><Activity className="w-4 h-4" /><span className="text-sm font-medium">{t('sa.cancelledUsers')}</span></div>
           <p className="text-2xl font-bold text-error">{kpis.cancelled}</p>
         </div>
-      </div>
+      </SAKpiGrid>
 
       {/* Search */}
       <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">

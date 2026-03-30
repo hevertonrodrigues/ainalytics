@@ -22,6 +22,7 @@ import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser, KanbanStage } from './types';
 import { KANBAN_STAGES } from './types';
 import { SAPageHeader } from './SAPageHeader';
+import { SAKpiGrid } from './SAKpiGrid';
 
 function Skeleton({ className }: { className?: string }) {
   return <div className={`animate-pulse bg-glass-element rounded-md ${className}`} />;
@@ -186,7 +187,7 @@ export function SADashboardPage() {
       <SAPageHeader title={t('sa.dashboard')} subtitle={t('sa.dashboardSubtitle')} />
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <SAKpiGrid desktopCols="lg:grid-cols-3 xl:grid-cols-6">
         <KPICard
           icon={<Users className="w-4 h-4" />}
           label={t('sa.totalUsers')}
@@ -227,7 +228,7 @@ export function SADashboardPage() {
           trend={metrics.churnRate <= 5 ? 'up' : 'down'}
           valueColor={metrics.churnRate <= 5 ? 'text-success' : 'text-error'}
         />
-      </div>
+      </SAKpiGrid>
 
       {/* Users by Status + Expiring Soon */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

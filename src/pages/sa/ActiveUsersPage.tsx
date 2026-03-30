@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
+import { SAKpiGrid } from './SAKpiGrid';
 
 interface ActiveModelInfo {
   model_slug: string;
@@ -199,7 +200,7 @@ export function ActiveUsersPage() {
       <SAPageHeader title={t('sa.activeUsers')} subtitle={t('sa.activeUsersSubtitle')} />
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <SAKpiGrid desktopCols="lg:grid-cols-4">
         <KPICard icon={<Users className="w-4 h-4" />} label={t('sa.totalActive')} value={kpis.total} />
         <KPICard icon={<Building2 className="w-4 h-4" />} label={t('sa.withCompany')} value={kpis.withCompany} valueColor="text-chart-cyan" />
         <KPICard icon={<Target className="w-4 h-4" />} label={t('sa.withAnalysis')} value={kpis.withAnalysis} valueColor="text-brand-primary" />
@@ -207,7 +208,7 @@ export function ActiveUsersPage() {
         {kpis.overLimit > 0 && (
           <KPICard icon={<AlertTriangle className="w-4 h-4" />} label={t('sa.overLimitUsers')} value={kpis.overLimit} valueColor="text-warning" />
         )}
-      </div>
+      </SAKpiGrid>
 
       {/* Search + Filter */}
       <div className="flex items-center gap-3 flex-wrap">
