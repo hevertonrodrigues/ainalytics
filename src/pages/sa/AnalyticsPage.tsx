@@ -174,7 +174,7 @@ export function AnalyticsPage() {
     const cumulative: { key: string; label: string; color: string; count: number; cumCount: number; pct: number }[] = [];
     let runningFromEnd = 0;
     for (let i = FUNNEL_STEPS.length - 1; i >= 0; i--) {
-      runningFromEnd += counts[FUNNEL_STEPS[i].key] || 0;
+      runningFromEnd += counts[FUNNEL_STEPS[i]!.key] || 0;
     }
     const total = data.funnel.length;
     let cumFromTop = 0;
@@ -566,7 +566,7 @@ function FunnelTab({
         </h3>
         <div className="space-y-2">
           {metrics.cumulative.map((step, i) => {
-            const prevPct = i > 0 ? metrics.cumulative[i - 1].pct : 100;
+            const prevPct = i > 0 ? metrics.cumulative[i - 1]!.pct : 100;
             const dropoff = i > 0 ? prevPct - step.pct : 0;
             const usersAtStep = funnel.filter(u => u.last_step === step.key);
 
