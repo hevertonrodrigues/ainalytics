@@ -63,6 +63,10 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  // Mobile snap-scroll tracking
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [activeMobileCol, setActiveMobileCol] = useState(0);
+
   // Activation-code group collapse (within column) — persisted
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const toggleGroup = (code: string) => {
@@ -157,10 +161,48 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
     return acc;
   }, {} as Record<KanbanStage, CRMPipelineUser[]>), [users, searchQuery]);
 
+  // Count visible (non-collapsed) columns for dot indicator
+  const visibleColumns = useMemo(() => columnOrder.filter(s => !collapsedColumns.has(s)), [columnOrder, collapsedColumns]);
+
+  // Mobile scroll-spy: track which column is snapped into view
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      // Find the child most centered in the viewport
+      const children = Array.from(container.children) as HTMLElement[];
+      const containerLeft = container.scrollLeft;
+      const containerCenter = containerLeft + container.offsetWidth / 2;
+      let closestIdx = 0;
+      let closestDist = Infinity;
+      children.forEach((child, i) => {
+        const childCenter = child.offsetLeft + child.offsetWidth / 2;
+        const dist = Math.abs(childCenter - containerCenter);
+        if (dist < closestDist) { closestDist = dist; closestIdx = i; }
+      });
+      setActiveMobileCol(closestIdx);
+    };
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [visibleColumns]);
+
+  const scrollToColumn = (idx: number) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const child = container.children[idx] as HTMLElement | undefined;
+    if (child) {
+      container.scrollTo({ left: child.offsetLeft - 16, behavior: 'smooth' });
+    }
+  };
+
   if (!loaded) return null;
 
   return (
-    <div className="flex gap-2 overflow-x-auto h-[calc(100vh-320px)] min-h-[400px]">
+    <div className="flex flex-col">
+      <div
+        ref={scrollContainerRef}
+        className="flex gap-3 sm:gap-2 overflow-x-auto h-[calc(100vh-320px)] min-h-[400px] max-sm:snap-x max-sm:snap-mandatory max-sm:scroll-smooth max-sm:-mx-4 max-sm:px-4 max-sm:scroll-pl-4"
+      >
       {columnOrder.map((stage, idx) => {
         const cfg = STAGE_CONFIG[stage];
         const stageUsers = columns[stage] || [];
@@ -175,7 +217,7 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
               onDragStart={() => handleDragStart(idx)}
               onDragOver={(e) => handleDragOver(e, idx)}
               onDragEnd={handleDragEnd}
-              className={`flex flex-col items-center w-10 shrink-0 rounded-lg border ${cfg.borderColor} ${cfg.bgColor} transition-all cursor-grab active:cursor-grabbing ${isDragTarget ? 'ring-2 ring-brand-primary' : ''}`}
+              className={`flex flex-col items-center w-10 shrink-0 rounded-lg border ${cfg.borderColor} ${cfg.bgColor} transition-all cursor-grab active:cursor-grabbing ${isDragTarget ? 'ring-2 ring-brand-primary' : ''} max-sm:hidden`}
             >
               <button
                 onClick={() => toggleColumn(stage)}
@@ -201,7 +243,7 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
             onDragStart={() => handleDragStart(idx)}
             onDragOver={(e) => handleDragOver(e, idx)}
             onDragEnd={handleDragEnd}
-            className={`flex flex-col min-w-[260px] w-[260px] shrink-0 transition-all ${isDragTarget ? 'ring-2 ring-brand-primary rounded-lg' : ''}`}
+            className={`flex flex-col min-w-[260px] w-[260px] shrink-0 transition-all ${isDragTarget ? 'ring-2 ring-brand-primary rounded-lg' : ''} max-sm:min-w-[calc(100vw-2.75rem)] max-sm:w-[calc(100vw-2.75rem)] max-sm:snap-start max-sm:snap-always`}
           >
             {/* Column header */}
             <div className={`flex items-center gap-2 px-3 py-2 rounded-t-lg border-t-2 ${cfg.borderColor} ${cfg.bgColor} cursor-grab active:cursor-grabbing`}>
@@ -286,6 +328,26 @@ export function KanbanBoard({ users, searchQuery, onUserClick }: KanbanBoardProp
           </div>
         );
       })}
+      </div>
+
+      {/* Mobile column dot indicators */}
+      <div className="flex items-center justify-center gap-1.5 pt-3 pb-1 sm:hidden">
+        {visibleColumns.map((stage, idx) => {
+          const cfg = STAGE_CONFIG[stage];
+          return (
+            <button
+              key={stage}
+              onClick={() => scrollToColumn(idx)}
+              className={`rounded-full transition-all duration-200 ${
+                activeMobileCol === idx
+                  ? `w-6 h-2 ${cfg.dotColor}`
+                  : 'w-2 h-2 bg-text-muted/30 hover:bg-text-muted/50'
+              }`}
+              title={t(`sa.stage_${stage}`)}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

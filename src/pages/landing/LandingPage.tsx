@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -15,7 +15,7 @@ import {
   CalendarCheck,
 } from 'lucide-react';
 import { Suspense, lazy } from 'react';
-import { trackCTAClick, trackBookCallClick } from '@/lib/analytics';
+import { trackCTAClick, trackBookCallClick, trackActivity, trackPageView } from '@/lib/analytics';
 
 const PricingPlans = lazy(() => import('@/components/PricingPlans').then(m => ({ default: m.PricingPlans })));
 const InterestFormModal = lazy(() => import('@/components/InterestFormModal').then(m => ({ default: m.InterestFormModal })));
@@ -68,6 +68,40 @@ function useScrollReveal() {
   return ref;
 }
 
+/* ────────────────────────────────────────────────────────────
+   Section visibility tracking hook
+   ──────────────────────────────────────────────────────────── */
+
+function useSectionTracking() {
+  const trackedRef = useRef<Set<string>>(new Set());
+
+  const sectionRefCallback = useCallback((el: HTMLElement | null) => {
+    if (!el) return;
+    const sectionId = el.getAttribute('data-track-section');
+    if (!sectionId || trackedRef.current.has(sectionId)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (entry?.isIntersecting && !trackedRef.current.has(sectionId)) {
+          trackedRef.current.add(sectionId);
+          trackActivity({
+            event_type: 'landing_section',
+            event_action: 'viewed',
+            event_target: sectionId,
+            metadata: { scroll_depth: Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100) / 100 },
+          });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    observer.observe(el);
+  }, []);
+
+  return sectionRefCallback;
+}
+
 export function LandingPage() {
   const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
@@ -78,6 +112,12 @@ export function LandingPage() {
   const [plansLoading, setPlansLoading] = useState(true);
   const { formatPrice: formatCurrency } = useCurrency();
   const revealRef = useScrollReveal();
+  const trackSection = useSectionTracking();
+
+  // Track landing page view on mount
+  useEffect(() => {
+    trackPageView('/');
+  }, []);
 
   // Fetch plans from database
   useEffect(() => {
@@ -175,7 +215,7 @@ export function LandingPage() {
       </section>
 
       {/* ─── Features ─── */}
-      <section id="features" className="landing-section">
+      <section id="features" className="landing-section" data-track-section="features" ref={trackSection}>
         <div className="landing-container">
           <div className="landing-section-header landing-reveal">
             <h2>
@@ -226,7 +266,7 @@ export function LandingPage() {
       </section>
 
       {/* ─── How It Works ─── */}
-      <section id="how-it-works" className="landing-section landing-section-alt">
+      <section id="how-it-works" className="landing-section landing-section-alt" data-track-section="how-it-works" ref={trackSection}>
         <div className="landing-container">
           <div className="landing-section-header landing-reveal">
             <h2>
@@ -291,7 +331,7 @@ export function LandingPage() {
       </section>
 
       {/* ─── Pricing ─── */}
-      <section id="pricing" className="landing-section landing-section-alt">
+      <section id="pricing" className="landing-section landing-section-alt" data-track-section="pricing" ref={trackSection}>
         <div className="landing-container">
           <div className="landing-section-header landing-reveal">
             <h2>
@@ -315,7 +355,7 @@ export function LandingPage() {
       </section>
 
       {/* ─── Book a Call ─── */}
-      <section className="landing-book-call landing-reveal">
+      <section className="landing-book-call landing-reveal" data-track-section="book-call" ref={trackSection}>
         <div className="landing-container landing-book-call-inner">
           <CalendarCheck className="w-10 h-10" style={{ color: 'var(--brand-secondary)' }} />
           <h2>{t('landing.bookCall.title')}</h2>
@@ -335,7 +375,7 @@ export function LandingPage() {
       </section>
 
       {/* ─── Final CTA ─── */}
-      <section className="landing-final-cta landing-reveal">
+      <section className="landing-final-cta landing-reveal" data-track-section="final-cta" ref={trackSection}>
         <div className="landing-container landing-final-cta-inner">
           <h2>{t('landing.cta.title')}</h2>
           <p>{t('landing.cta.subtitle')}</p>

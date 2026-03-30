@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
 import { useCurrency } from '@/hooks/useCurrency';
 import { apiClient } from '@/lib/api';
+import { trackActivity } from '@/lib/analytics';
 import { suggestCompanyNameFromDomain, isFreeEmailDomain } from '@/lib/email';
 import { extractRootDomain } from '@/lib/domain';
 import type { PricingPlan, BillingPeriod } from '@/components/PricingPlans';
@@ -38,6 +39,8 @@ const STEP_TOPICS = EXPLANATION_STEPS.length + 1;  // 2
 const STEP_PROMPTS = EXPLANATION_STEPS.length + 2; // 3
 const STEP_FINAL = EXPLANATION_STEPS.length + 3;   // 4
 const TOTAL_STEPS = STEP_FINAL + 1;                // 5
+
+const STEP_NAMES = ['welcome', 'analyze', 'topics', 'prompts', 'plans'] as const;
 
 const TOPICS_STEP_CONFIG: StepConfig = { key: 'topics', icon: FolderOpen, color: 'from-blue-500 to-indigo-600' };
 const PROMPTS_STEP_CONFIG: StepConfig = { key: 'prompts', icon: MessageSquare, color: 'from-pink-500 to-rose-600' };
@@ -137,12 +140,20 @@ export function OnboardingPage() {
       .finally(() => setPlansLoading(false));
   }, [result]);
 
-  // Sync step to URL param
+  // Sync step to URL param + track step entry
   useEffect(() => {
     const current = Number(searchParams.get('step')) || 0;
     if (current !== step) {
       setSearchParams({ step: String(step) }, { replace: true });
     }
+    // Track step entry
+    const stepName = STEP_NAMES[step] || `step_${step}`;
+    trackActivity({
+      event_type: 'onboarding_step',
+      event_action: 'entered',
+      event_target: stepName,
+      metadata: { step_number: step, total_steps: TOTAL_STEPS },
+    });
   }, [step, searchParams, setSearchParams]);
 
   // ─── Computed ───────────────────────────────────────────
@@ -201,16 +212,27 @@ export function OnboardingPage() {
   }, []);
 
   const skipToPlans = useCallback(async () => {
+    trackActivity({
+      event_type: 'onboarding_step',
+      event_action: 'skipped',
+      metadata: { from_step: step, from_step_name: STEP_NAMES[step] || `step_${step}` },
+    });
     try { await apiClient.put('/users-me', { has_seen_onboarding: true }); await refreshAuth(); } catch { /* ignore */ }
     navigate('/dashboard/plans', { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate]);
+  }, [navigate, step]);
 
   const handleAnalyze = useCallback(async () => {
     if (!domain.trim()) return;
     setAnalyzing(true);
     setError('');
     setResult(null);
+
+    trackActivity({
+      event_type: 'onboarding_analyze',
+      event_action: 'started',
+      metadata: { domain: domain.trim() },
+    });
 
     try {
       if (companyExists) {
@@ -246,10 +268,26 @@ export function OnboardingPage() {
       setSelectedTopics(defaultTopicIds);
       setSelectedPrompts(getDefaultSelectedPrompts(defaultTopicIds, serverPrompts));
 
+      trackActivity({
+        event_type: 'onboarding_analyze',
+        event_action: 'completed',
+        metadata: {
+          domain: domain.trim(),
+          topics_count: serverTopics.length,
+          geo_score: res.data.geo_score ?? null,
+          readiness_level: res.data.readiness_level ?? null,
+        },
+      });
+
       goTo(STEP_TOPICS); // jump to topics selection
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message || t('common.error'));
+      trackActivity({
+        event_type: 'onboarding_analyze',
+        event_action: 'errored',
+        metadata: { domain: domain.trim(), error: err.message || 'unknown' },
+      });
     } finally {
       setAnalyzing(false);
     }
@@ -359,6 +397,20 @@ export function OnboardingPage() {
 
   const handleStripeCheckout = async (planId: string) => {
     setSelecting(planId);
+
+    const selectedPlan = plans.find(p => p.id === planId);
+    trackActivity({
+      event_type: 'onboarding_plan',
+      event_action: 'checkout_started',
+      metadata: {
+        plan_id: planId,
+        plan_name: selectedPlan?.name,
+        billing_period: billingPeriod,
+        selected_topics: selectedTopics.size,
+        selected_prompts: selectedPrompts.size,
+      },
+    });
+
     try {
       // Save topics, prompts, and default platform models before redirecting to Stripe
       await Promise.all([
@@ -382,6 +434,13 @@ export function OnboardingPage() {
     if (!activationCode.trim()) return;
     setCodeError('');
     setSelecting('activation');
+
+    trackActivity({
+      event_type: 'onboarding_plan',
+      event_action: 'activation_code',
+      metadata: { selected_topics: selectedTopics.size, selected_prompts: selectedPrompts.size },
+    });
+
     try {
       // Save topics, prompts, and default platform models before activating
       await Promise.all([
@@ -394,6 +453,13 @@ export function OnboardingPage() {
       });
       closeCodeModal();
       refreshSetup();
+
+      trackActivity({
+        event_type: 'onboarding_plan',
+        event_action: 'activated',
+        metadata: { method: 'activation_code' },
+      });
+
       try { await apiClient.put('/users-me', { has_seen_onboarding: true }); await refreshAuth(); } catch { /* ignore */ }
       navigate('/dashboard/company', { replace: true });
     } catch (err) {

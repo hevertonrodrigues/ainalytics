@@ -1,7 +1,8 @@
-import { useState, useCallback, type FormEvent } from 'react';
+import { useState, useCallback, useEffect, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { getAuthErrorMessage } from '@/lib/authErrors';
+import { trackActivity } from '@/lib/analytics';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
 import type { Iso2 } from 'intl-tel-input/data';
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff, Tag } from 'lucide-react';
@@ -50,6 +51,15 @@ export function SignUpForm({
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
+  // Track form viewed on mount
+  useEffect(() => {
+    trackActivity({
+      event_type: 'signup_form',
+      event_action: 'viewed',
+      metadata: { has_promo: showPromoCode, has_default_code: !!defaultPromoCode },
+    });
+  }, [showPromoCode, defaultPromoCode]);
+
   const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
     setSubmitAttempted(true);
@@ -69,6 +79,13 @@ export function SignUpForm({
     }
 
     setLoading(true);
+
+    trackActivity({
+      event_type: 'signup_form',
+      event_action: 'submitted',
+      metadata: { has_promo: showPromoCode && !!promoCode },
+    });
+
     try {
       const token = await executeRecaptcha('sign_up');
       if (token === null) {
@@ -87,6 +104,12 @@ export function SignUpForm({
       
       await signUp(email, password, fullName, '', phone, '', codeValue, utmData);
 
+      trackActivity({
+        event_type: 'signup_form',
+        event_action: 'completed',
+        metadata: { confirm_email: false },
+      });
+
       if (onSuccess) {
         onSuccess();
       } else {
@@ -95,10 +118,19 @@ export function SignUpForm({
     } catch (err) {
       const msg = getAuthErrorMessage(err, t);
       if (err instanceof Error && err.message === 'CONFIRM_EMAIL') {
+        trackActivity({
+          event_type: 'signup_form',
+          event_action: 'confirm_email',
+        });
         if (onConfirmEmail) {
           onConfirmEmail();
         }
       } else {
+        trackActivity({
+          event_type: 'signup_form',
+          event_action: 'errored',
+          metadata: { error: msg },
+        });
         setError(msg);
       }
       setLoading(false);

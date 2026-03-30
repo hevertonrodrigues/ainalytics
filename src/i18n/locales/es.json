@@ -1839,6 +1839,8 @@
     "overLimitPrompts": "Tienes {{current}} prompts activos, pero tu plan solo permite {{max}}. Desactiva o elimina algunos prompts para continuar.",
     "overLimitModels": "Tienes {{current}} modelos activos, pero tu plan solo permite {{max}}. Desactiva algunos modelos para continuar.",
     "deleteToFix": "Desactiva o elimina elementos para volver a los límites de tu plan, o actualiza tu plan.",
-    "upgradePlan": "Upgrade"
+    "upgradePlan": "Upgrade",
+    "toastPrompts": "Prompts",
+    "toastModels": "Modelos"
   }
 }

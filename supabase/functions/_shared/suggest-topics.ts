@@ -42,37 +42,37 @@ const CATEGORY_TOPIC_MAP: Record<string, { title: string; prompts: (domain: stri
   technical: {
     title: "Technical SEO & Performance",
     prompts: (domain) => [
-      `Analyze page load speed and Core Web Vitals for ${domain}`,
-      `Check mobile responsiveness and cross-device compatibility`,
-      `Review structured data and schema markup implementation`,
-      `Audit robots.txt and sitemap configuration`,
+      `is ${domain} fast on mobile? it feels slow sometimes`,
+      `why does ${domain} take so long to load on my phone`,
+      `does ${domain} work well on all devices or just desktop`,
+      `how can I check if ${domain} shows up right in google`,
     ],
   },
   content: {
     title: "Content Quality & Strategy",
     prompts: (domain) => [
-      `Evaluate content structure and heading hierarchy for ${domain}`,
-      `Assess keyword coverage and topic relevance`,
-      `Review meta descriptions and title tags optimization`,
-      `Analyze content freshness and update frequency`,
+      `is the content on ${domain} actually useful or is it just filler`,
+      `what keywords should a site like ${domain} be ranking for`,
+      `how do I know if my website content is outdated`,
+      `what's missing from ${domain} content compared to competitors`,
     ],
   },
   authority: {
     title: "Authority & Credibility",
     prompts: (domain) => [
-      `Evaluate expertise signals and trust indicators on ${domain}`,
-      `Review internal linking structure and content depth`,
-      `Assess citation potential and authoritative sourcing`,
-      `Analyze brand mentions and digital presence`,
+      `does ${domain} look trustworthy to visitors`,
+      `how can ${domain} build more credibility online`,
+      `what makes a website like ${domain} seem more legit`,
+      `is ${domain} being mentioned on other sites or just floating alone`,
     ],
   },
   semantic: {
     title: "Semantic & AI Readiness",
     prompts: (_domain) => [
-      `Review AI bot accessibility and llms.txt configuration`,
-      `Analyze semantic markup and entity recognition potential`,
-      `Assess FAQ and conversational content coverage`,
-      `Evaluate content structure for AI snippet extraction`,
+      `can chatgpt and other AIs actually find and understand my website`,
+      `how do I make sure AI assistants recommend my business`,
+      `what should I add to my site so AI can pull info from it`,
+      `do AI tools like perplexity even know my company exists`,
     ],
   },
 };
@@ -91,9 +91,9 @@ export function generateAlgorithmicSuggestions(
   ];
   const suggestedPrompts: Record<string, SuggestedPrompt[]> = {
     topic_brand: [
-      { id: "prompt_brand_0", title: `How is ${websiteTitle} positioned in AI search results?` },
-      { id: "prompt_brand_1", title: `What do AI assistants say about ${websiteTitle}?` },
-      { id: "prompt_brand_2", title: `Compare ${websiteTitle} visibility across AI platforms` },
+      { id: "prompt_brand_0", title: `if I ask chatgpt about ${websiteTitle}, what does it say?` },
+      { id: "prompt_brand_1", title: `does AI even know about ${websiteTitle}? like if someone asks` },
+      { id: "prompt_brand_2", title: `is ${websiteTitle} showing up when people use AI to search?` },
     ],
   };
 
@@ -154,21 +154,40 @@ export async function generateAiSuggestions(
   // Build the prompt parts
   const parts: string[] = [];
 
-  parts.push(`You are an expert AI prompt engineer and SEO analyst.
-Based on the following extracted details about a website/company, generate a list of topics and prompts that users might ask AI platforms (like ChatGPT or Perplexity) about the services, products, or industry this company operates in.
+  parts.push(`You are an expert at understanding how real people talk to AI assistants like ChatGPT, Perplexity, and Google Gemini.
+Based on the following extracted details about a website/company, generate a list of topics and prompts that **real potential customers** would type into AI platforms when looking for the kind of services or products this company offers.
 
 **CRITICAL INSTRUCTIONS:**
-1. The prompts and topics must be **GENERIC** and focused on customer **NECESSITIES** or **SERVICES**.
-2. **DO NOT MENTION THE COMPANY NAME** or specific brand names in the prompts or topics.
-3. Imagine a client who needs a solution this company provides, but doesn't necessarily know the company yet.
-4. You should suggest 3-5 high-value topics. For each topic, suggest 3-5 relevant prompts.
-5. **DO NOT** create prompts that are duplicates or very similar to existing ones listed below.
-6. If an existing topic could benefit from NEW additional prompts, include it with "is_existing": true and ONLY new prompts (not the ones already listed).
-7. For brand-new topics that don't overlap with existing ones, use "is_existing": false.
+1. The prompts MUST sound like a **real person casually asking an AI for help** — not like a marketer or SEO analyst.
+2. Write prompts the way the company's **target audience actually talks**: informal, direct, sometimes with typos-level casualness. Think of someone typing into ChatGPT at 11pm trying to solve a problem.
+3. **DO NOT MENTION THE COMPANY NAME** or specific brand names in the prompts or topics.
+4. Imagine someone who has a need but doesn't know this company yet — they're describing their problem or what they're looking for in their own words.
+5. Mix up the prompt styles:
+   - Some should be questions ("what's the best...", "how do I...")
+   - Some should be requests ("help me find...", "I need a...")
+   - Some should be conversational ("I'm looking for...", "so I have this problem...")
+6. **DO NOT** use formal or corporate language. Avoid words like "evaluate", "assess", "analyze", "optimize", "leverage". Use words real people use.
+7. You should suggest 3-5 high-value topics. For each topic, suggest 3-5 relevant prompts.
+8. **DO NOT** create prompts that are duplicates or very similar to existing ones listed below.
+9. If an existing topic could benefit from NEW additional prompts, include it with "is_existing": true and ONLY new prompts (not the ones already listed).
+10. For brand-new topics that don't overlap with existing ones, use "is_existing": false.
+
+**EXAMPLES OF GOOD "HUMANIZED" PROMPTS (for reference style only, do not copy):**
+- "I need someone to fix my website, it's super slow on phones"
+- "what's the best way to get more clients for my boat rental business"
+- "help me understand why nobody finds my site on google"
+- "is it worth investing in social media ads for a small business"
+- "I'm trying to sell more online but idk where to start"
+
+**EXAMPLES OF BAD PROMPTS (too formal, avoid this style):**
+- "Evaluate the technical SEO performance metrics"
+- "Assess the competitive landscape and market positioning"
+- "Analyze content strategy effectiveness and engagement rates"
 
 **LANGUAGE REQUIREMENT:**
 - You MUST respond in the following language: ${language}
 - All fields in the JSON (name, prompts text) must be in ${language}.
+- The informal/conversational tone must match how native speakers of ${language} actually type in chat — use their natural contractions, slang, and casual phrasing.
 
 Data:
 - Title: ${websiteTitle}

@@ -1,9 +1,10 @@
-import { useState, useCallback, type FormEvent } from 'react';
+import { useState, useCallback, useEffect, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { getAuthErrorMessage } from '@/lib/authErrors';
+import { trackActivity } from '@/lib/analytics';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { executeRecaptcha } from '@/lib/recaptcha';
 
@@ -24,10 +25,17 @@ export function SignIn() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Track form viewed on mount
+  useEffect(() => {
+    trackActivity({ event_type: 'signin_form', event_action: 'viewed' });
+  }, []);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    trackActivity({ event_type: 'signin_form', event_action: 'submitted' });
 
     try {
       // reCAPTCHA v3 — frontend gating before auth
@@ -37,10 +45,17 @@ export function SignIn() {
       }
 
       await signIn(email, password);
+      trackActivity({ event_type: 'signin_form', event_action: 'completed' });
       // Hard redirect — guarantees AuthContext restores session from localStorage
       window.location.href = '/dashboard';
     } catch (err) {
-      setError(getAuthErrorMessage(err, t));
+      const msg = getAuthErrorMessage(err, t);
+      trackActivity({
+        event_type: 'signin_form',
+        event_action: 'errored',
+        metadata: { error: msg },
+      });
+      setError(msg);
       setLoading(false);
     }
   };
