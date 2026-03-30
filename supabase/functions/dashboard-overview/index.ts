@@ -4,6 +4,7 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import { getSubscriptionLimits } from "../_shared/limits.ts";
 
 /**
  * Dashboard Overview Edge Function
@@ -239,6 +240,17 @@ serve(async (req: Request) => {
     const plan = (tenant?.plans as any) || null;
 
     // ── Build response ───────────────────────────────────────
+    // Fetch subscription limits
+    const limits = await getSubscriptionLimits(db, tenantId);
+    const subscriptionLimits = limits ? {
+      max_prompts: limits.max_prompts,
+      max_models: limits.max_models,
+      current_prompts: limits.current_prompts,
+      current_models: limits.current_models,
+      is_over_prompts: limits.max_prompts !== null && limits.current_prompts > limits.max_prompts,
+      is_over_models: limits.max_models !== null && limits.current_models > limits.max_models,
+    } : null;
+
     const data = {
       company: company ? {
         domain: company.domain,
@@ -253,6 +265,7 @@ serve(async (req: Request) => {
       plan: plan ? {
         name: plan.name,
       } : null,
+      subscription_limits: subscriptionLimits,
       geo_analysis: geoData,
       monitoring: {
         total_topics: topics.length,

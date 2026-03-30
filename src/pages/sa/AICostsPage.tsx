@@ -423,7 +423,7 @@ export function AICostsPage() {
                                 <div>
                                   <span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.costs.modelsUsed')}</span>
                                   <div className="flex flex-wrap gap-1">
-                                    {row.models_used.map(m => (
+                                    {(row.models_used || []).map(m => (
                                       <span key={m} className="text-xs px-1.5 py-0.5 rounded bg-glass-bg border border-glass-border text-brand-primary font-mono">{m}</span>
                                     ))}
                                   </div>
@@ -431,7 +431,7 @@ export function AICostsPage() {
                                 <div>
                                   <span className="text-xs font-semibold text-text-secondary block mb-1">{t('sa.costs.callSites')}</span>
                                   <div className="flex flex-wrap gap-1">
-                                    {row.call_sites.map(cs => (
+                                    {(row.call_sites || []).map(cs => (
                                       <span key={cs} className="text-xs px-1.5 py-0.5 rounded bg-glass-bg border border-glass-border text-text-primary">{CALLSITE_LABELS[cs] || cs}</span>
                                     ))}
                                   </div>
@@ -564,11 +564,11 @@ export function AICostsPage() {
                       <td className="text-right text-sm text-text-secondary">{fmtMs(row.avg_latency_ms)}</td>
                       <td className="hidden md:table-cell">
                         <div className="flex flex-wrap gap-1">
-                          {row.models_used.slice(0, 3).map(m => (
+                          {(row.models_used || []).slice(0, 3).map(m => (
                             <span key={m} className="text-[0.6rem] px-1 py-0.5 rounded bg-glass-bg border border-glass-border text-brand-primary font-mono">{m}</span>
                           ))}
-                          {row.models_used.length > 3 && (
-                            <span className="text-[0.6rem] text-text-muted">+{row.models_used.length - 3}</span>
+                          {(row.models_used || []).length > 3 && (
+                            <span className="text-[0.6rem] text-text-muted">+{(row.models_used || []).length - 3}</span>
                           )}
                         </div>
                       </td>

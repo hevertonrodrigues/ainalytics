@@ -87,7 +87,14 @@ async function request<T>(
     return { success: true, data: null as unknown as T };
   }
 
-  const json = (await res.json()) as ApiResponse<T>;
+  const json = await (async () => {
+    try {
+      return (await res.json()) as ApiResponse<T>;
+    } catch {
+      // Empty or malformed body (e.g. backend crash returning no JSON)
+      return { success: false, error: { code: 'EMPTY_RESPONSE', message: `Server error (${res.status})` } } as ApiResponse<T>;
+    }
+  })();
 
   if (!json.success) {
     // Retry once on 401 with refreshed token

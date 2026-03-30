@@ -101,7 +101,16 @@ async function handleCheckoutCompleted(event: any) {
   // Determine subscription status — Stripe sets 'trialing' when trial_period_days is used
   const subscriptionStatus = stripeSubscription?.status === "trialing" ? "trialing" : "active";
 
-  // Create subscription record
+  // Fetch plan limits to copy into the subscription
+  const { data: plan } = await db
+    .from("plans")
+    .select("settings")
+    .eq("id", planId)
+    .single();
+
+  const planSettings = plan?.settings || {};
+
+  // Create subscription record (with frozen plan limits)
   const { data: subscription, error: subError } = await db
     .from("subscriptions")
     .insert({
@@ -113,6 +122,9 @@ async function handleCheckoutCompleted(event: any) {
       billing_interval: billingInterval,
       paid_amount: paidAmount,
       currency,
+      max_prompts: planSettings.max_prompts ?? null,
+      max_models: planSettings.max_models ?? null,
+      refresh_frequency: planSettings.refresh_rate ?? null,
       current_period_start: stripeSubscription?.current_period_start
         ? new Date(stripeSubscription.current_period_start * 1000).toISOString()
         : new Date().toISOString(),

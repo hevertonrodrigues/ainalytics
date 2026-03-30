@@ -4,6 +4,7 @@ import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { ActiveModelsGuard } from '@/components/guards/ActiveModelsGuard';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
+import { OverLimitBanner } from '@/components/OverLimitBanner';
 import type { Prompt } from '@/types';
 
 // Components
@@ -32,6 +33,10 @@ export function PromptsPage() {
   const [deleting, setDeleting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
+  // Subscription limits
+  const [limits, setLimits] = useState<{ max_prompts: number | null; current_prompts: number } | null>(null);
+  const isOverPromptLimit = limits !== null && limits.max_prompts !== null && limits.current_prompts > limits.max_prompts;
+
   const loadAll = useCallback(async () => {
     try {
       // Get all topics
@@ -58,6 +63,14 @@ export function PromptsPage() {
 
   useEffect(() => {
     loadAll();
+    // Fetch subscription limits
+    apiClient.get<{ subscription_limits?: { max_prompts: number | null; current_prompts: number } }>('/dashboard-overview')
+      .then(res => {
+        if (res.data.subscription_limits) {
+          setLimits(res.data.subscription_limits);
+        }
+      })
+      .catch(() => { /* ignore */ });
   }, [loadAll]);
 
   const toggleCollapsed = (topicId: string) => {
@@ -148,6 +161,10 @@ export function PromptsPage() {
     <ActiveModelsGuard>
       <div className="stagger-enter space-y-6 max-w-4xl">
         <PromptsHeader totalPrompts={totalPrompts} />
+
+        {isOverPromptLimit && limits && (
+          <OverLimitBanner type="prompts" current={limits.current_prompts} max={limits.max_prompts!} />
+        )}
 
         {formMode === 'closed' && (
           <PageExplanation message={t('prompts.banner')} />

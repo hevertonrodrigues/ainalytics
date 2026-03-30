@@ -15,6 +15,7 @@ import {
   ChevronUp,
   Cpu,
   CalendarClock,
+  AlertTriangle,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
@@ -60,6 +61,10 @@ interface ActiveUser {
   // Models
   active_models: ActiveModelInfo[];
   active_models_count: number;
+  // Limits
+  max_prompts: number | null;
+  max_models: number | null;
+  is_over_limit: boolean;
   // Progress
   progress_percent: number;
 }
@@ -78,6 +83,7 @@ export function ActiveUsersPage() {
   const [sortField, setSortField] = useState<SortField>('progress_percent');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [showFinishingSoon, setShowFinishingSoon] = useState(false);
+  const [showOverLimit, setShowOverLimit] = useState(false);
 
   const [users, setUsers] = useState<ActiveUser[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -113,12 +119,13 @@ export function ActiveUsersPage() {
   }, [users]);
 
   const kpis = useMemo(() => {
-    if (!users) return { total: 0, withCompany: 0, withAnalysis: 0, withPrompts: 0 };
+    if (!users) return { total: 0, withCompany: 0, withAnalysis: 0, withPrompts: 0, overLimit: 0 };
     return {
       total: users.length,
       withCompany: users.filter(u => u.has_company).length,
       withAnalysis: users.filter(u => u.has_analysis).length,
       withPrompts: users.filter(u => u.has_prompts).length,
+      overLimit: users.filter(u => u.is_over_limit).length,
     };
   }, [users]);
 
@@ -134,6 +141,9 @@ export function ActiveUsersPage() {
         const endDate = new Date(u.plan_end_date);
         return endDate <= oneMonthFromNow;
       });
+    }
+    if (showOverLimit) {
+      filtered = filtered.filter(u => u.is_over_limit);
     }
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -151,7 +161,7 @@ export function ActiveUsersPage() {
       return 0;
     });
     return filtered;
-  }, [users, search, sortField, sortOrder, showFinishingSoon]);
+  }, [users, search, sortField, sortOrder, showFinishingSoon, showOverLimit]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) setSortOrder(o => o === 'asc' ? 'desc' : 'asc');
@@ -194,6 +204,9 @@ export function ActiveUsersPage() {
         <KPICard icon={<Building2 className="w-4 h-4" />} label={t('sa.withCompany')} value={kpis.withCompany} valueColor="text-chart-cyan" />
         <KPICard icon={<Target className="w-4 h-4" />} label={t('sa.withAnalysis')} value={kpis.withAnalysis} valueColor="text-brand-primary" />
         <KPICard icon={<MessageSquare className="w-4 h-4" />} label={t('sa.withPrompts')} value={kpis.withPrompts} valueColor="text-success" />
+        {kpis.overLimit > 0 && (
+          <KPICard icon={<AlertTriangle className="w-4 h-4" />} label={t('sa.overLimitUsers')} value={kpis.overLimit} valueColor="text-warning" />
+        )}
       </div>
 
       {/* Search + Filter */}
@@ -223,6 +236,27 @@ export function ActiveUsersPage() {
             </span>
           )}
         </button>
+        <button
+          onClick={() => setShowOverLimit(prev => !prev)}
+          title={t('sa.overLimitTooltip')}
+          className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${
+            showOverLimit
+              ? 'bg-error/15 text-error border-error/30 shadow-sm'
+              : 'bg-bg-secondary text-text-secondary border-glass-border hover:bg-glass-hover hover:text-text-primary'
+          }`}
+        >
+          <AlertTriangle className="w-4 h-4" />
+          {t('sa.overLimit')}
+          {kpis.overLimit > 0 && (
+            <span className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[11px] font-bold ${
+              showOverLimit
+                ? 'bg-error/25 text-error'
+                : 'bg-error/15 text-error'
+            }`}>
+              {kpis.overLimit}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Mobile card view */}
@@ -241,6 +275,7 @@ export function ActiveUsersPage() {
                 <div className="text-xs text-text-muted truncate">{user.email}</div>
               </div>
               {user.plan_name && <span className="text-[10px] text-brand-primary font-medium bg-brand-primary/10 rounded px-1.5 py-0.5 border border-brand-primary/20 shrink-0">{user.plan_name}</span>}
+              {user.is_over_limit && <span className="text-[10px] text-error font-semibold bg-error/10 rounded px-1.5 py-0.5 border border-error/20 shrink-0 flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" />{t('sa.overLimit')}</span>}
             </div>
 
             {/* Progress bar */}
@@ -328,6 +363,7 @@ export function ActiveUsersPage() {
                           <div className="font-medium text-text-primary truncate">{user.full_name || t('sa.unnamed')}</div>
                           <div className="text-xs text-text-muted flex items-center gap-1 truncate"><Mail className="w-3 h-3 shrink-0" />{user.email}</div>
                           {user.plan_name && <span className="text-[10px] text-brand-primary font-medium">{user.plan_name}</span>}
+                          {user.is_over_limit && <span className="text-[10px] text-error font-semibold flex items-center gap-0.5"><AlertTriangle className="w-3 h-3" />{t('sa.overLimit')}</span>}
                         </div>
                       </div>
                     </td>

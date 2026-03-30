@@ -16,6 +16,8 @@ import { SourceDetailsModal } from './components/SourceDetailsModal';
 import { PlatformAnswerGroup } from './components/PlatformAnswerGroup';
 import type { PlatformGroup, PromptSource } from '@/types/dashboard';
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function PromptDetailPage() {
   const { id: promptId } = useParams<{ id: string }>();
   const { t } = useTranslation();
@@ -39,6 +41,12 @@ export function PromptDetailPage() {
 
   const loadAll = useCallback(async () => {
     if (!promptId) return;
+    // Guard against non-UUID params (e.g. web crawlers appending domains)
+    if (!UUID_RE.test(promptId)) {
+      setError(t('errors.NOT_FOUND'));
+      setLoading(false);
+      return;
+    }
     try {
       // 1. Fetch the prompt's answers
       const answersRes = await apiClient.get<PromptAnswer[]>(

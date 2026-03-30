@@ -1459,6 +1459,13 @@
     "geoScore": "GEO",
     "finishingSoon": "Finalizando em Breve",
     "finishingSoonTooltip": "Mostrar usuários com plano encerrando em menos de 1 mês",
+    "overLimit": "Acima do Limite",
+    "overLimitTooltip": "Mostrar usuários que excedem os limites do plano",
+    "overLimitUsers": "Acima do Limite",
+    "planLimits": "Limites do Plano",
+    "promptUsage": "Prompts",
+    "modelUsage": "Modelos",
+    "unlimited": "Ilimitado",
     "activeModels": "Modelos",
     "stepCompany": "Empresa",
     "stepAnalysis": "Análise",
@@ -1832,5 +1839,12 @@
     "proposalNotFoundTitle": "Esta Proposta Não Está Disponível",
     "proposalNotFoundSubtitle": "A proposta que você procura pode ter expirado ou não existe. Entre em contato conosco para uma oferta atualizada.",
     "contactUs": "Fale Conosco"
+  },
+  "limits": {
+    "overLimitTitle": "Limite do Plano Excedido",
+    "overLimitPrompts": "Você tem {{current}} prompts ativos, mas seu plano permite apenas {{max}}. Desative ou exclua alguns prompts para continuar.",
+    "overLimitModels": "Você tem {{current}} modelos ativos, mas seu plano permite apenas {{max}}. Desative alguns modelos para continuar.",
+    "deleteToFix": "Desative ou exclua itens para retornar aos limites do seu plano, ou faça upgrade.",
+    "upgradePlan": "Upgrade"
   }
 }

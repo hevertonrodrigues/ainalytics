@@ -18,6 +18,25 @@ export function initSentry() {
     enabled: import.meta.env.PROD,
     // Performance monitoring: sample 10% of transactions
     tracesSampleRate: import.meta.env.PROD ? 0.1 : 0,
+    // Filter out known noise: stale-chunk loads and browser-extension errors
+    beforeSend(event) {
+      const msg = (
+        event.message ||
+        event.exception?.values?.[0]?.value ||
+        ''
+      ).toLowerCase();
+      const ignoredPatterns = [
+        'importing a module script failed',
+        'failed to fetch dynamically imported module',
+        'error loading dynamically imported module',
+        'object not found matching id',
+        'java object is gone',
+      ];
+      if (ignoredPatterns.some((p) => msg.includes(p))) {
+        return null; // Drop the event
+      }
+      return event;
+    },
   });
 }
 

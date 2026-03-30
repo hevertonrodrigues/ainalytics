@@ -4,6 +4,7 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, forbidden, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import { getSubscriptionLimits } from "../_shared/limits.ts";
 
 serve(async (req: Request) => {
   const logger = createRequestLogger("plans", req);
@@ -60,7 +61,10 @@ async function handleGet(req: Request): Promise<Response> {
     .limit(1)
     .single();
 
-  return ok({ plans, current_plan_id: activeSub?.plan_id || null });
+  // Fetch current subscription limits and usage
+  const limits = await getSubscriptionLimits(db, auth.tenantId);
+
+  return ok({ plans, current_plan_id: activeSub?.plan_id || null, limits });
 }
 
 // ────────────────────────────────────────────────────────────
@@ -146,12 +150,19 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     return serverError("Failed to claim activation code");
   }
 
-  // 5. Cancel any existing active subscriptions for this tenant
+  // 5. Cancel any existing active subscriptions and deactivate all models
   await db
     .from("subscriptions")
     .update({ status: "canceled", canceled_at: new Date().toISOString() })
     .eq("tenant_id", auth.tenantId)
     .in("status", ["active", "trialing"]);
+
+  await db
+    .from("tenant_platform_models")
+    .update({ is_active: false })
+    .eq("tenant_id", auth.tenantId);
+
+  console.log(`[plans] All models deactivated for tenant ${auth.tenantId} before new subscription`);
 
   // 6. Create subscription (trial or active based on plan's trial days)
   const now = new Date();
@@ -169,6 +180,15 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     subStatus = "active";
   }
 
+  // 5.5 Fetch plan limits to copy into the subscription
+  const { data: planDetails } = await db
+    .from("plans")
+    .select("settings")
+    .eq("id", activation.plan_id)
+    .single();
+
+  const planSettings = planDetails?.settings || {};
+
   const { data: subscription, error: subError } = await db
     .from("subscriptions")
     .insert({
@@ -180,6 +200,9 @@ async function handleSelectPlan(req: Request): Promise<Response> {
       billing_interval: "unique",
       paid_amount: 0,
       currency: "usd",
+      max_prompts: planSettings.max_prompts ?? null,
+      max_models: planSettings.max_models ?? null,
+      refresh_frequency: planSettings.refresh_rate ?? null,
       current_period_start: now.toISOString(),
       current_period_end: periodEnd.toISOString(),
       cancel_at_period_end: true,

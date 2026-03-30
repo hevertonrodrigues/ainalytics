@@ -8,10 +8,12 @@ import {
   notFound,
   noContent,
   conflict,
+  forbidden,
   serverError,
 } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import { checkPromptLimit } from "../_shared/limits.ts";
 
 serve(async (req: Request) => {
   const logger = createRequestLogger("topics-prompts", req);
@@ -238,6 +240,14 @@ async function createPrompt(req: Request): Promise<Response> {
 
   const db = createAdminClient();
 
+  // Check subscription prompt limit
+  const limitCheck = await checkPromptLimit(db, auth.tenantId);
+  if (!limitCheck.allowed) {
+    return forbidden(
+      `Prompt limit reached (${limitCheck.current}/${limitCheck.max}). Upgrade your plan to add more prompts.`,
+    );
+  }
+
   // Verify topic belongs to tenant
   const { data: topic } = await db
     .from("topics")
@@ -290,6 +300,25 @@ async function updatePrompt(req: Request): Promise<Response> {
 
   if (Object.keys(updates).length === 0) {
     return badRequest("No fields to update");
+  }
+
+  // Check limit when reactivating a prompt
+  if (body.is_active === true) {
+    const { data: existing } = await db
+      .from("prompts")
+      .select("is_active")
+      .eq("id", body.id)
+      .eq("tenant_id", auth.tenantId)
+      .single();
+
+    if (existing && !existing.is_active) {
+      const limitCheck = await checkPromptLimit(db, auth.tenantId);
+      if (!limitCheck.allowed) {
+        return forbidden(
+          `Prompt limit reached (${limitCheck.current}/${limitCheck.max}). Upgrade your plan to activate more prompts.`,
+        );
+      }
+    }
   }
 
   const { data, error } = await db

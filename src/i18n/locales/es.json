@@ -1833,5 +1833,12 @@
     "proposalNotFoundTitle": "Esta Propuesta No Está Disponible",
     "proposalNotFoundSubtitle": "La propuesta que busca puede haber expirado o no existe. Contáctenos para una oferta actualizada.",
     "contactUs": "Contáctenos"
+  },
+  "limits": {
+    "overLimitTitle": "Límite del Plan Excedido",
+    "overLimitPrompts": "Tienes {{current}} prompts activos, pero tu plan solo permite {{max}}. Desactiva o elimina algunos prompts para continuar.",
+    "overLimitModels": "Tienes {{current}} modelos activos, pero tu plan solo permite {{max}}. Desactiva algunos modelos para continuar.",
+    "deleteToFix": "Desactiva o elimina elementos para volver a los límites de tu plan, o actualiza tu plan.",
+    "upgradePlan": "Upgrade"
   }
 }

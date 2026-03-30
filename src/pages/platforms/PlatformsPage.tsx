@@ -4,6 +4,7 @@ import { Cpu, RefreshCw, Download } from 'lucide-react';
 import { SearchSelect, type SelectOption } from '@/components/ui/SearchSelect';
 import { apiClient } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
+import { OverLimitBanner } from '@/components/OverLimitBanner';
 import type { Platform, Model } from '@/types';
 import { PLATFORM_GRADIENTS, SYNCABLE_PLATFORMS } from '@/types/dashboard';
 
@@ -21,6 +22,10 @@ export function PlatformsPage() {
   const [syncing, setSyncing] = useState<string | null>(null);
   const [selectingModel, setSelectingModel] = useState<string | null>(null);
 
+  // Subscription limits
+  const [limits, setLimits] = useState<{ max_models: number | null; current_models: number } | null>(null);
+  const isOverModelLimit = limits !== null && limits.max_models !== null && limits.current_models > limits.max_models;
+
   const loadPlatforms = useCallback(async () => {
     try {
       const res = await apiClient.get<Platform[]>('/platforms');
@@ -34,6 +39,14 @@ export function PlatformsPage() {
 
   useEffect(() => {
     loadPlatforms();
+    // Fetch subscription limits
+    apiClient.get<{ subscription_limits?: { max_models: number | null; current_models: number } }>('/dashboard-overview')
+      .then(res => {
+        if (res.data.subscription_limits) {
+          setLimits(res.data.subscription_limits);
+        }
+      })
+      .catch(() => { /* ignore */ });
   }, [loadPlatforms]);
 
   // Pre-load models for all platforms
@@ -138,6 +151,11 @@ export function PlatformsPage() {
           <RefreshCw className="w-4 h-4" />
         </button>
       </div>
+
+      {/* Over Limit Banner */}
+      {isOverModelLimit && limits && (
+        <OverLimitBanner type="models" current={limits.current_models} max={limits.max_models!} />
+      )}
 
       {/* Error */}
       {error && (

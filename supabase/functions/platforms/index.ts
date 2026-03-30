@@ -2,9 +2,10 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifyAuth } from "../_shared/auth.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
-import { ok, badRequest, serverError } from "../_shared/response.ts";
+import { ok, badRequest, forbidden, serverError } from "../_shared/response.ts";
 import { fetchModelsForPlatform, supportsModelListing } from "../_shared/ai-providers/model-fetcher.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import { checkModelLimit } from "../_shared/limits.ts";
 
 /**
  * Platforms Edge Function
@@ -303,6 +304,30 @@ async function handleSetPreference(req: Request, tenantId: string) {
   if (!platform_id || !model_id) return badRequest("platform_id and model_id are required");
 
   const sb = createAdminClient();
+
+  // Check model limit when activating (not when deactivating)
+  if (is_active !== false) {
+    // Check if this model is already active for this tenant (if so, no limit impact)
+    const { data: existing } = await sb
+      .from("tenant_platform_models")
+      .select("id, is_active")
+      .eq("tenant_id", tenantId)
+      .eq("platform_id", platform_id)
+      .eq("model_id", model_id)
+      .single();
+
+    const isAlreadyActive = existing?.is_active === true;
+
+    if (!isAlreadyActive) {
+      const limitCheck = await checkModelLimit(sb, tenantId);
+      if (!limitCheck.allowed) {
+        return forbidden(
+          `Model limit reached (${limitCheck.current}/${limitCheck.max}). Upgrade your plan to activate more models.`,
+        );
+      }
+    }
+  }
+
   const { data, error } = await sb
     .from("tenant_platform_models")
     .upsert(

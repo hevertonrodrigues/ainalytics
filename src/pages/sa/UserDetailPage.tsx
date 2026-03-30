@@ -25,6 +25,8 @@ import {
   Loader2,
   Save,
   Download,
+  AlertTriangle,
+  Cpu,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser } from './types';
@@ -66,6 +68,16 @@ export function UserDetailPage() {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<ProposalItem | null>(null);
 
+  // Plan limits
+  interface UserLimits {
+    max_prompts: number | null;
+    max_models: number | null;
+    active_prompts: number;
+    active_models_count: number;
+    is_over_limit: boolean;
+  }
+  const [userLimits, setUserLimits] = useState<UserLimits | null>(null);
+
   // Subscription editing state
   const [editStatus, setEditStatus] = useState<string>('');
   const [editPeriodStart, setEditPeriodStart] = useState<string>('');
@@ -94,6 +106,34 @@ export function UserDetailPage() {
     fetchUser();
     return () => { mounted = false; };
   }, [userId, t]);
+
+  // Fetch plan limits from admin-active-users
+  useEffect(() => {
+    if (!userId) return;
+    async function fetchLimits() {
+      try {
+        const res = await apiClient.get<Array<{
+          user_id: string;
+          max_prompts: number | null;
+          max_models: number | null;
+          active_prompts: number;
+          active_models_count: number;
+          is_over_limit: boolean;
+        }>>('/admin-active-users');
+        const found = res.data.find(u => u.user_id === userId);
+        if (found) {
+          setUserLimits({
+            max_prompts: found.max_prompts,
+            max_models: found.max_models,
+            active_prompts: found.active_prompts,
+            active_models_count: found.active_models_count,
+            is_over_limit: found.is_over_limit,
+          });
+        }
+      } catch { /* ignore */ }
+    }
+    fetchLimits();
+  }, [userId]);
 
   // Sync edit fields when user data loads
   useEffect(() => {
@@ -468,6 +508,34 @@ export function UserDetailPage() {
             <p className="text-sm text-text-muted italic py-2">{t('sa.noPayments')}</p>
           )}
         </DetailCard>
+
+        {/* Plan Limits */}
+        {userLimits && (
+          <DetailCard
+            title={t('sa.planLimits')}
+            icon={userLimits.is_over_limit ? <AlertTriangle className="w-4 h-4 text-error" /> : <CheckCircle2 className="w-4 h-4" />}
+            className={userLimits.is_over_limit ? 'border border-error/30 bg-error/5' : ''}
+          >
+            <DetailRow label={t('sa.promptUsage')} icon={<FileText className="w-3.5 h-3.5" />}>
+              <span className={userLimits.max_prompts !== null && userLimits.active_prompts > userLimits.max_prompts ? 'text-error font-semibold' : ''}>
+                {userLimits.active_prompts}
+                <span className="text-text-muted"> / {userLimits.max_prompts ?? t('sa.unlimited')}</span>
+              </span>
+            </DetailRow>
+            <DetailRow label={t('sa.modelUsage')} icon={<Cpu className="w-3.5 h-3.5" />}>
+              <span className={userLimits.max_models !== null && userLimits.active_models_count > userLimits.max_models ? 'text-error font-semibold' : ''}>
+                {userLimits.active_models_count}
+                <span className="text-text-muted"> / {userLimits.max_models ?? t('sa.unlimited')}</span>
+              </span>
+            </DetailRow>
+            {userLimits.is_over_limit && (
+              <div className="mt-2 p-2 rounded bg-error/10 border border-error/20 text-error text-xs font-medium flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                {t('limits.overLimitTitle')}
+              </div>
+            )}
+          </DetailCard>
+        )}
       </div>
 
       {/* Proposals section */}

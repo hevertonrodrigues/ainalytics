@@ -776,6 +776,13 @@
     "geoScore": "GEO",
     "finishingSoon": "Finishing Soon",
     "finishingSoonTooltip": "Show users whose plan ends within 1 month",
+    "overLimit": "Over Limit",
+    "overLimitTooltip": "Show users exceeding their plan limits",
+    "overLimitUsers": "Over Limit",
+    "planLimits": "Plan Limits",
+    "promptUsage": "Prompts",
+    "modelUsage": "Models",
+    "unlimited": "Unlimited",
     "activeModels": "Models",
     "stepCompany": "Company",
     "stepAnalysis": "Analysis",
@@ -1834,5 +1841,12 @@
     "proposalNotFoundTitle": "This Proposal Is Unavailable",
     "proposalNotFoundSubtitle": "The proposal you're looking for may have expired or doesn't exist. Please contact us for an updated offer.",
     "contactUs": "Contact Us"
+  },
+  "limits": {
+    "overLimitTitle": "Plan Limit Exceeded",
+    "overLimitPrompts": "You have {{current}} active prompts but your plan allows only {{max}}. Please deactivate or delete some prompts to continue.",
+    "overLimitModels": "You have {{current}} active models but your plan allows only {{max}}. Please deactivate some models to continue.",
+    "deleteToFix": "Deactivate or delete items to return within your plan's limits, or upgrade your plan.",
+    "upgradePlan": "Upgrade"
   }
 }
