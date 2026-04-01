@@ -21,8 +21,8 @@ export interface InterestLeadFormProps {
   variant: InterestLeadFormVariant;
   /** Override the submit button label */
   submitLabel?: string;
-  /** Called after successful submission */
-  onSuccess?: () => void;
+  /** Called after successful submission. Receives the submitted website URL. */
+  onSuccess?: (website: string) => void;
 }
 
 /* ── Variant-specific configuration ── */
@@ -161,7 +161,7 @@ export function InterestLeadForm({ variant, submitLabel, onSuccess }: InterestLe
       });
 
       if (onSuccess) {
-        onSuccess();
+        onSuccess(website.trim());
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : t('common.error');
@@ -172,8 +172,13 @@ export function InterestLeadForm({ variant, submitLabel, onSuccess }: InterestLe
       });
       setError(msg);
       setLoading(false);
+
+      // Explicitly requested: bypass error and continue for the free analysis crawler
+      if (variant === 'free-analysis' && onSuccess) {
+        onSuccess(website.trim());
+      }
     }
-  }, [email, fullName, phone, website, optIn, t, onSuccess, config]);
+  }, [email, fullName, phone, website, optIn, t, onSuccess, config, variant]);
 
   const getErrors = () => {
     const errors: string[] = [];

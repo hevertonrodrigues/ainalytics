@@ -62,6 +62,7 @@ const ProposalPublicPage = lazy(() => import('@/pages/proposal/ProposalPublicPag
 const ProposalFullPage = lazy(() => import('@/pages/proposal/ProposalFullPage').then(m => ({ default: m.ProposalFullPage })));
 const EbookPage = lazy(() => import('@/pages/ebook/EbookPage').then(m => ({ default: m.EbookPage })));
 const FreeAnalysisPage = lazy(() => import('@/pages/sales/FreeAnalysisPage').then(m => ({ default: m.FreeAnalysisPage })));
+const FreeAnalysisResultsPage = lazy(() => import('@/pages/sales/FreeAnalysisResultsPage').then(m => ({ default: m.FreeAnalysisResultsPage })));
 
 const SUPPORTED_LANGS = new Set(
   (Array.isArray(i18n.options.supportedLngs) ? i18n.options.supportedLngs : ['en', 'es', 'pt-br']).filter(
@@ -122,6 +123,7 @@ export function App() {
             <Route path="/oferta-marco" element={<GuestRoute><SalesPage /></GuestRoute>} />
             <Route path="/guia-ia" element={<GuestRoute><EbookPage /></GuestRoute>} />
             <Route path="/analise-gratuita" element={<GuestRoute><FreeAnalysisPage /></GuestRoute>} />
+            <Route path="/analise-gratuita/resultado" element={<FreeAnalysisResultsPage />} />
             <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
             <Route path="/reset-password" element={<ResetPassword />} />
 

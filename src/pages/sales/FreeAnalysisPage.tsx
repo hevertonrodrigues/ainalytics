@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowRight,
@@ -16,8 +16,12 @@ import {
   Search,
 } from 'lucide-react';
 import { InterestLeadForm } from '@/components/InterestLeadForm';
-import { APP_NAME } from '@/lib/constants';
+import { AnalyzingOverlay } from '@/pages/onboarding/AnalyzingOverlay';
+import { type FreeAnalysisData } from '@/components/FreeAnalysisResults';
+import { APP_NAME, EDGE_FUNCTION_BASE, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { trackCTAClick } from '@/lib/analytics';
+import { executeRecaptcha } from '@/lib/recaptcha';
+import { useTheme } from '@/contexts/ThemeContext';
 
 /* ── Scroll Reveal ── */
 
@@ -73,12 +77,28 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 
 /* ── Main Free Analysis Landing Page ── */
 
+type PageState =
+  | { step: 'idle' }
+  | { step: 'analyzing'; domain: string };
+
 export function FreeAnalysisPage() {
   const { t, i18n } = useTranslation();
+  const { theme: currentTheme, setTheme } = useTheme();
+  const navigate = useNavigate();
   const revealRef = useScrollReveal();
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [pageState, setPageState] = useState<PageState>({ step: 'idle' });
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [stickyCtaDismissed, setStickyCtaDismissed] = useState(false);
+
+  // Force light theme on all free analysis pages
+  useEffect(() => {
+    const prev = currentTheme;
+    if (prev !== 'light') setTheme('light');
+    return () => {
+      if (prev !== 'light') setTheme(prev);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Show sticky CTA after scrolling past hero
   useEffect(() => {
@@ -125,19 +145,51 @@ export function FreeAnalysisPage() {
     document.getElementById('free-analysis-signup')?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  if (isSuccess) {
-    return (
-      <div className="sales-page">
-        <div className="sales-success-container">
-          <CheckCircle className="w-20 h-20 text-success" />
-          <h1>{t('interestForm.successTitle', 'Recebemos sua solicitação!')}</h1>
-          <p>{t('interestForm.successMessage', 'Em breve entraremos em contato.')}</p>
-          <RouterLink to="/" className="btn btn-primary btn-lg">
-            {t('common.backToHome', 'Voltar para Início')}
-          </RouterLink>
-        </div>
-      </div>
-    );
+  /* ── Analysis trigger: called after successful lead save ── */
+  const handleFormSuccess = useCallback(async (website: string) => {
+    const domain = website.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+
+    // Step 1: Show overlay immediately
+    setPageState({ step: 'analyzing', domain });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    try {
+      // Step 2: Wait 5 seconds so the user sees the analyzing animation
+      await new Promise((resolve) => setTimeout(resolve, 5000));
+
+      // Step 3: Start the crawler
+      const recaptcha_token = await executeRecaptcha('free_analyze');
+
+      const res = await fetch(`${EDGE_FUNCTION_BASE}/free-analyze`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ domain, recaptcha_token }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Analysis failed (${res.status})`);
+      }
+
+      const json = await res.json();
+      const data: FreeAnalysisData = json.data;
+
+      // Step 4: Navigate to results page
+      setPageState({ step: 'idle' });
+      navigate('/analise-gratuita/resultado', { state: { data, domain } });
+    } catch (err) {
+      console.error('[FreeAnalysisPage] Analysis error:', err);
+      setPageState({ step: 'idle' });
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      navigate('/analise-gratuita/resultado', { state: { error: errorMessage, domain } });
+    }
+  }, [navigate]);
+
+  /* ── Analyzing Overlay ── */
+  if (pageState.step === 'analyzing') {
+    return <AnalyzingOverlay domain={pageState.domain} visible={true} />;
   }
 
   return (
@@ -383,7 +435,7 @@ export function FreeAnalysisPage() {
               <InterestLeadForm
                 variant="free-analysis"
                 submitLabel={t('freeAnalysis.heroCta')}
-                onSuccess={() => setIsSuccess(true)}
+                onSuccess={handleFormSuccess}
               />
             </div>
           </div>
