@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { FreeAnalysisResults, type FreeAnalysisData } from '@/components/FreeAnalysisResults';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AlertCircle, RefreshCw, ArrowLeft } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 
 /**
  * Standalone results page for the free GEO analysis.
@@ -14,8 +13,6 @@ export function FreeAnalysisResultsPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { theme: currentTheme, setTheme } = useTheme();
-
-  const { t } = useTranslation();
 
   const state = location.state as { data?: FreeAnalysisData; error?: string; domain?: string } | null;
 
@@ -73,6 +70,8 @@ export function FreeAnalysisResultsPage() {
       </div>
     );
   }
+
+  if (!state?.data) return null;
 
   return (
     <FreeAnalysisResults
