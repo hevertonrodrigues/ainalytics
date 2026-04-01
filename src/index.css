@@ -4024,8 +4024,9 @@ html[data-layout="expanded"] main > div {
 }
 
 .iti__selected-dial-code {
-  color: var(--color-text-secondary);
+  color: var(--color-text-secondary) !important;
   font-size: 0.9375rem;
+  font-weight: 500;
   margin-left: 4px;
   display: flex;
   align-items: center;
@@ -4066,10 +4067,7 @@ html[data-layout="expanded"] main > div {
   height: 100% !important;
 }
 
-.iti__selected-dial-code {
-  color: var(--iti-dial-code-color) !important;
-  font-weight: 500;
-}
+
 
 .phone-input-field:focus {
   border-color: var(--color-brand-primary) !important;
@@ -5092,6 +5090,143 @@ html[data-layout="expanded"] main > div {
   [data-theme="light"] .sales-sticky-cta {
     background: rgba(255, 255, 255, 0.94);
   }
+}
+
+/* ────────────────────────────────────────────────────────────
+   Sales Page — Light Theme Contrast Fix
+   Boost all secondary/muted text for comfortable reading on
+   light backgrounds (#f7f7fb, #fff, #f0f0f6, glass cards).
+   ──────────────────────────────────────────────────────────── */
+
+[data-theme="light"] .sales-page {
+  /* Global overrides for the whole sales page in light mode */
+  --color-text-secondary: #3d3d5c;
+  --color-text-muted: #4e4e6a;
+}
+
+[data-theme="light"] .sales-hero-subtitle {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-pain-card p {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-pain-card h3 {
+  color: #1a1a2e;
+}
+
+[data-theme="light"] .sales-section-subtitle {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-proof-text {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-proof-author {
+  color: #4e4e6a;
+}
+
+[data-theme="light"] .sales-faq-a p {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-offer-subtitle {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-final-cta p {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-final-note {
+  color: #4e4e6a;
+}
+
+[data-theme="light"] .sales-footer p {
+  color: #4e4e6a;
+}
+
+[data-theme="light"] .sales-footer-links a {
+  color: #4e4e6a;
+}
+
+[data-theme="light"] .sales-billed-annually {
+  color: #4e4e6a;
+}
+
+[data-theme="light"] .sales-included li {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-guarantee p {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-hero-trust {
+  color: #4e4e6a;
+}
+
+[data-theme="light"] .sales-success-container p {
+  color: #3d3d5c;
+}
+
+/* Glass card text in sales pages — ensure readability */
+[data-theme="light"] .sales-page .glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  border-color: #d8d8e8;
+}
+
+[data-theme="light"] .sales-page .glass-card h4,
+[data-theme="light"] .sales-page .glass-card h3 {
+  color: #1a1a2e;
+}
+
+[data-theme="light"] .sales-page .glass-card p {
+  color: #3d3d5c;
+}
+
+/* Badge contrast fixes for light mode */
+[data-theme="light"] .sales-badge-limited {
+  background: rgba(231, 76, 60, 0.12);
+  color: #c0392b;
+  border-color: rgba(231, 76, 60, 0.3);
+}
+
+[data-theme="light"] .sales-badge-trial {
+  background: rgba(0, 168, 157, 0.12);
+  color: #007a72;
+  border-color: rgba(0, 168, 157, 0.3);
+}
+
+[data-theme="light"] .sales-book-call p {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-book-call-note {
+  color: #4e4e6a;
+}
+
+[data-theme="light"] .sales-price-label {
+  color: #4e4e6a;
+}
+
+[data-theme="light"] .sales-price-period {
+  color: #4e4e6a;
+}
+
+/* Offer card header text — ensure dark text on light gradient bg */
+[data-theme="light"] .sales-offer-header h2 {
+  color: #1a1a2e;
+}
+
+[data-theme="light"] .sales-offer-header .sales-offer-subtitle {
+  color: #3d3d5c;
+}
+
+[data-theme="light"] .sales-offer-header .sales-badge-trial {
+  color: #007a72;
 }
 
 /* ────────────────────────────────────────────────────────────

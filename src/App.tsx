@@ -60,6 +60,8 @@ const LegalPage = lazy(() => import('@/pages/legal/LegalPage').then(m => ({ defa
 const SalesPage = lazy(() => import('@/pages/sales/SalesPage').then(m => ({ default: m.SalesPage })));
 const ProposalPublicPage = lazy(() => import('@/pages/proposal/ProposalPublicPage').then(m => ({ default: m.ProposalPublicPage })));
 const ProposalFullPage = lazy(() => import('@/pages/proposal/ProposalFullPage').then(m => ({ default: m.ProposalFullPage })));
+const EbookPage = lazy(() => import('@/pages/ebook/EbookPage').then(m => ({ default: m.EbookPage })));
+const FreeAnalysisPage = lazy(() => import('@/pages/sales/FreeAnalysisPage').then(m => ({ default: m.FreeAnalysisPage })));
 
 const SUPPORTED_LANGS = new Set(
   (Array.isArray(i18n.options.supportedLngs) ? i18n.options.supportedLngs : ['en', 'es', 'pt-br']).filter(
@@ -118,6 +120,8 @@ export function App() {
             <Route path="/signin" element={<GuestRoute><SignIn /></GuestRoute>} />
             <Route path="/signup" element={<GuestRoute><SignUp /></GuestRoute>} />
             <Route path="/oferta-marco" element={<GuestRoute><SalesPage /></GuestRoute>} />
+            <Route path="/guia-ia" element={<GuestRoute><EbookPage /></GuestRoute>} />
+            <Route path="/analise-gratuita" element={<GuestRoute><FreeAnalysisPage /></GuestRoute>} />
             <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
             <Route path="/reset-password" element={<ResetPassword />} />
 
