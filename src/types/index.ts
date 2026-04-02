@@ -34,6 +34,7 @@ export interface Tenant {
   name: string;
   slug: string;
   active_plan_id: string | null;
+  subscription_status: string | null;
   main_domain: string | null;
   created_at: string;
   updated_at: string;

@@ -6,6 +6,7 @@ import { createAdminClient } from "../_shared/supabase.ts";
 import { runDeepAnalyze } from "../_shared/deep-analyze-core.ts";
 import { logAiUsage } from "../_shared/cost-calculator.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import { requireActiveSubscription } from "../_shared/subscription-guard.ts";
 
 /**
  * Deep Analyze Edge Function
@@ -57,6 +58,10 @@ serve(async (req: Request) => {
 
     // ─── POST: Create new analysis ──────────────────────────
     if (req.method === "POST") {
+      // Block expired subscriptions from running new analyses
+      const guardResponse = await requireActiveSubscription(db, tenantId);
+      if (guardResponse) return logger.done(withCors(req, guardResponse), authCtx);
+
       const body = await req.json().catch(() => ({}));
       // deno-lint-ignore no-explicit-any
       const inputUrl = ((body as any).url || "").trim();

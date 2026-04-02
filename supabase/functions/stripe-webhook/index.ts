@@ -101,6 +101,46 @@ async function handleCheckoutCompleted(event: any) {
   // Determine subscription status — Stripe sets 'trialing' when trial_period_days is used
   const subscriptionStatus = stripeSubscription?.status === "trialing" ? "trialing" : "active";
 
+  // ── Cancel any existing non-canceled subscriptions for this tenant ──
+  // (e.g., trialing activation-code subscription being replaced by Stripe)
+  const { data: existingSubs } = await db
+    .from("subscriptions")
+    .select("id, status, stripe_subscription_id")
+    .eq("tenant_id", tenantId)
+    .not("status", "in", "(canceled,incomplete_expired)");
+
+  if (existingSubs && existingSubs.length > 0) {
+    // If any old sub has a Stripe ID (and it's different from the new one), cancel on Stripe
+    for (const oldSub of existingSubs) {
+      if (oldSub.stripe_subscription_id && oldSub.stripe_subscription_id !== session.subscription) {
+        try {
+          await fetch(`https://api.stripe.com/v1/subscriptions/${oldSub.stripe_subscription_id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${STRIPE_SECRET_KEY}` },
+          });
+          console.log(`[stripe-webhook] Canceled old Stripe subscription ${oldSub.stripe_subscription_id}`);
+        } catch (e) {
+          console.warn("[stripe-webhook] Failed to cancel old Stripe sub:", e);
+        }
+      }
+    }
+
+    // Cancel all old local subscriptions
+    await db
+      .from("subscriptions")
+      .update({ status: "canceled", canceled_at: new Date().toISOString() })
+      .eq("tenant_id", tenantId)
+      .not("status", "in", "(canceled,incomplete_expired)");
+
+    // Deactivate all models (will be re-activated below)
+    await db
+      .from("tenant_platform_models")
+      .update({ is_active: false })
+      .eq("tenant_id", tenantId);
+
+    console.log(`[stripe-webhook] Canceled ${existingSubs.length} existing subscription(s) for tenant ${tenantId}`);
+  }
+
   // Fetch plan limits to copy into the subscription
   const { data: plan } = await db
     .from("plans")
@@ -175,6 +215,24 @@ async function handleCheckoutCompleted(event: any) {
       stripe_event_type: event.type,
       raw_event: event,
     });
+  }
+
+  // ── Insert payment record in the payments table ──
+  if (paidAmount > 0) {
+    const { error: paymentErr } = await db.from("payments").insert({
+      tenant_id: tenantId,
+      subscription_id: subscription?.id || null,
+      source: "stripe",
+      stripe_payment_intent_id: session.payment_intent || null,
+      stripe_invoice_id: stripeSubscription?.latest_invoice || null,
+      amount: paidAmount,
+      currency,
+      status: "succeeded",
+      paid_at: new Date().toISOString(),
+    });
+    if (paymentErr) {
+      console.error("[stripe-webhook] Error inserting payment record:", paymentErr);
+    }
   }
 
   // ── Activate the default model on tenant_platform_models ──
@@ -285,6 +343,38 @@ async function handleInvoicePaymentSucceeded(event: any) {
     });
   }
 
+  // ── Insert payment record in the payments table ──
+  // Guard: skip if checkout.session.completed already inserted a record for this invoice
+  const invoiceAmount = invoice.amount_paid ? invoice.amount_paid / 100 : 0;
+  if (invoiceAmount > 0) {
+    const { data: existingPayment } = await db
+      .from("payments")
+      .select("id")
+      .eq("stripe_invoice_id", invoice.id)
+      .eq("tenant_id", subscription.tenant_id)
+      .limit(1)
+      .maybeSingle();
+
+    if (!existingPayment) {
+      const { error: paymentErr } = await db.from("payments").insert({
+        tenant_id: subscription.tenant_id,
+        subscription_id: subscription.id,
+        source: "stripe",
+        stripe_payment_intent_id: invoice.payment_intent || null,
+        stripe_invoice_id: invoice.id,
+        amount: invoiceAmount,
+        currency: invoice.currency || "usd",
+        status: "succeeded",
+        paid_at: new Date().toISOString(),
+      });
+      if (paymentErr) {
+        console.error("[stripe-webhook] Error inserting payment record:", paymentErr);
+      }
+    } else {
+      console.log(`[stripe-webhook] Payment record already exists for invoice ${invoice.id}, skipping`);
+    }
+  }
+
   console.log(`[stripe-webhook] Payment succeeded for subscription ${subscription.id}`);
 }
 
@@ -385,14 +475,27 @@ async function handleSubscriptionUpdated(event: any) {
     .update(updates)
     .eq("id", subscription.id);
 
-  // If canceled, deactivate all tenant models
+  // If canceled, deactivate all tenant models — BUT only if no other active subscription exists
   if (stripeSub.status === "canceled") {
-    await db
-      .from("tenant_platform_models")
-      .update({ is_active: false })
-      .eq("tenant_id", subscription.tenant_id);
+    const { data: otherActiveSub } = await db
+      .from("subscriptions")
+      .select("id")
+      .eq("tenant_id", subscription.tenant_id)
+      .not("id", "eq", subscription.id)
+      .not("status", "in", "(canceled,incomplete_expired)")
+      .limit(1)
+      .maybeSingle();
 
-    console.log(`[stripe-webhook] All models deactivated for tenant ${subscription.tenant_id}`);
+    if (!otherActiveSub) {
+      await db
+        .from("tenant_platform_models")
+        .update({ is_active: false })
+        .eq("tenant_id", subscription.tenant_id);
+
+      console.log(`[stripe-webhook] All models deactivated for tenant ${subscription.tenant_id}`);
+    } else {
+      console.log(`[stripe-webhook] Skipping model deactivation — tenant ${subscription.tenant_id} has another active subscription`);
+    }
   }
 
   console.log(`[stripe-webhook] Subscription ${subscription.id} updated to status: ${stripeSub.status}`);
@@ -418,13 +521,28 @@ async function handleSubscriptionDeleted(event: any) {
     })
     .eq("id", subscription.id);
 
-  // Deactivate all tenant models
-  await db
-    .from("tenant_platform_models")
-    .update({ is_active: false })
-    .eq("tenant_id", subscription.tenant_id);
+  // Deactivate all tenant models — BUT only if no other active subscription exists
+  // (e.g., a new checkout might have already created a replacement subscription)
+  const { data: otherActiveSub } = await db
+    .from("subscriptions")
+    .select("id")
+    .eq("tenant_id", subscription.tenant_id)
+    .not("id", "eq", subscription.id)
+    .not("status", "in", "(canceled,incomplete_expired)")
+    .limit(1)
+    .maybeSingle();
 
-  console.log(`[stripe-webhook] All models deactivated for tenant ${subscription.tenant_id}`);
+  if (!otherActiveSub) {
+    await db
+      .from("tenant_platform_models")
+      .update({ is_active: false })
+      .eq("tenant_id", subscription.tenant_id);
+
+    console.log(`[stripe-webhook] All models deactivated for tenant ${subscription.tenant_id}`);
+  } else {
+    console.log(`[stripe-webhook] Skipping model deactivation — tenant ${subscription.tenant_id} has another active subscription`);
+  }
+
   console.log(`[stripe-webhook] Subscription ${subscription.id} canceled`);
 }
 

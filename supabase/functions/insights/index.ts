@@ -7,6 +7,7 @@ import { createRequestLogger } from "../_shared/logger.ts";
 import { executePrompt } from "../_shared/ai-providers/index.ts";
 import { logAiUsage, resolveModel } from "../_shared/cost-calculator.ts";
 import { INSIGHTS_PROMPT, replaceVars } from "../_shared/prompts/load.ts";
+import { requireActiveSubscription } from "../_shared/subscription-guard.ts";
 
 /**
  * Insights Edge Function
@@ -93,6 +94,10 @@ serve(async (req: Request) => {
 
     // ─── POST: Generate new insights ─────────────────────────
     if (req.method === "POST") {
+      // Block expired subscriptions from generating new insights
+      const guardResponse = await requireActiveSubscription(db, tenantId);
+      if (guardResponse) return logger.done(withCors(req, guardResponse), authCtx);
+
       const body = await req.json().catch(() => ({}));
       // deno-lint-ignore no-explicit-any
       const inputLang = ((body as any).language || "en").trim();

@@ -40,6 +40,15 @@ export function FlowGate() {
 
   // ── Gate 0: Plan check (takes priority over onboarding) ─────
   if (!hasPlan) {
+    // Determine if user ever had a subscription (expired/canceled) vs never had one
+    const subStatus = currentTenant?.subscription_status;
+    const isExpired = subStatus === 'canceled' || subStatus === 'past_due' || subStatus === 'expired';
+
+    if (isExpired) {
+      // Had a plan but it expired — lock on plans page with expired message
+      return <Navigate to="/dashboard/plans?expired=true" replace />;
+    }
+
     // No plan — check if user still needs to see onboarding
     if (!hasSeenOnboarding) return <Navigate to="/dashboard/onboarding" replace />;
     // Already saw onboarding but no plan yet → send to plans

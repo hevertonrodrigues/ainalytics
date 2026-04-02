@@ -117,6 +117,23 @@ export function Sidebar() {
   /** Determine which setup step banner to show */
   const renderSetupBanner = () => {
     if (!hasPlan) {
+      // Check if this is an expired subscription vs never had a plan
+      const subStatus = currentTenant?.subscription_status;
+      const isExpired = subStatus === 'canceled' || subStatus === 'past_due' || subStatus === 'expired';
+
+      if (isExpired) {
+        return (
+          <div className="mx-3 mt-3 p-3 rounded-lg bg-error/10 border border-error/20">
+            <p className="text-xs font-medium text-error mb-1.5">{t('plans.expiredTitle')}</p>
+            <p className="text-xs text-text-secondary mb-2">{t('plans.expiredBannerDesc')}</p>
+            <NavLink to="/dashboard/plans?expired=true" className="btn btn-primary w-full text-xs py-1.5">
+              <CreditCard className="w-3.5 h-3.5" />
+              {t('plans.renewPlan')}
+            </NavLink>
+          </div>
+        );
+      }
+
       return (
         <div className="mx-3 mt-3 p-3 rounded-lg bg-warning/10 border border-warning/20">
           <p className="text-xs font-medium text-warning mb-1.5">{t('plans.noPlanTitle')}</p>

@@ -136,6 +136,20 @@ serve(async (req: Request) => {
       return logger.done(withCors(req, forbidden("Only tenant owners can subscribe to a plan")), authCtx);
     }
 
+    // Check for existing past_due Stripe subscription — must fix payment first
+    const { data: pastDueSub } = await db
+      .from("subscriptions")
+      .select("id")
+      .eq("tenant_id", auth.tenantId)
+      .eq("status", "past_due")
+      .not("stripe_subscription_id", "is", null)
+      .limit(1)
+      .maybeSingle();
+
+    if (pastDueSub) {
+      return logger.done(withCors(req, badRequest("You have a past-due subscription. Please resolve the pending payment before subscribing to a new plan.")), authCtx);
+    }
+
     // Fetch plan
     const { data: plan, error: planError } = await db
       .from("plans")

@@ -27,6 +27,7 @@ import {
   Download,
   AlertTriangle,
   Cpu,
+  Plus,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser } from './types';
@@ -486,27 +487,9 @@ export function UserDetailPage() {
           </DetailCard>
         )}
 
-        {/* Payment History */}
+        {/* Payment History — full list from payments table + manual register */}
         <DetailCard title={t('sa.paymentInfo')} icon={<CreditCard className="w-4 h-4" />} className={user.activation_code ? '' : 'md:col-span-1'}>
-          {user.total_payment_attempts > 0 ? (
-            <>
-              <DetailRow label={t('sa.totalPayments')} icon={<CreditCard className="w-3.5 h-3.5" />}>
-                <span className="font-medium">{user.total_payment_attempts}</span>
-              </DetailRow>
-              <DetailRow label={t('sa.lastPayment')} icon={<CreditCard className="w-3.5 h-3.5" />}>
-                <span className={user.last_payment_status === 'succeeded' ? 'text-success' : 'text-error'}>
-                  {user.last_payment_status} — ${user.last_payment_amount}
-                </span>
-              </DetailRow>
-              {user.last_payment_at && (
-                <DetailRow label={t('sa.paymentDate')} icon={<Calendar className="w-3.5 h-3.5" />}>
-                  {formatDateTime(user.last_payment_at, 'dateTime')}
-                </DetailRow>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-text-muted italic py-2">{t('sa.noPayments')}</p>
-          )}
+          <PaymentHistorySection tenantId={user.tenant_id} />
         </DetailCard>
 
         {/* Plan Limits */}
@@ -640,6 +623,242 @@ export function UserDetailPage() {
           onCancel={() => setDeleteTarget(null)}
           variant="danger"
         />
+      )}
+    </div>
+  );
+}
+
+// ── Payment History Section ──
+
+interface PaymentRecord {
+  id: string;
+  source: 'stripe' | 'manual' | 'activation_code';
+  amount: number;
+  currency: string;
+  status: string;
+  payment_method: string | null;
+  reference_number: string | null;
+  notes: string | null;
+  stripe_invoice_id: string | null;
+  paid_at: string;
+  created_at: string;
+}
+
+function PaymentHistorySection({ tenantId }: { tenantId: string | null }) {
+  const { t } = useTranslation();
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+
+  // Form state
+  const [formAmount, setFormAmount] = useState('');
+  const [formCurrency, setFormCurrency] = useState('brl');
+  const [formMethod, setFormMethod] = useState('bank_transfer');
+  const [formReference, setFormReference] = useState('');
+  const [formNotes, setFormNotes] = useState('');
+  const [formPaidAt, setFormPaidAt] = useState(new Date().toISOString().slice(0, 10));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
+
+  const fetchPayments = useCallback(async () => {
+    if (!tenantId) { setIsLoading(false); return; }
+    try {
+      const res = await apiClient.get<PaymentRecord[]>(
+        `/admin-crm-pipeline?entity=payments&tenant_id=${tenantId}`
+      );
+      setPayments(res.data || []);
+    } catch { /* ignore */ }
+    finally { setIsLoading(false); }
+  }, [tenantId]);
+
+  useEffect(() => { fetchPayments(); }, [fetchPayments]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tenantId || !formAmount) return;
+    setIsSubmitting(true);
+    setSubmitSuccess(false);
+    setSubmitError(false);
+    try {
+      await apiClient.post('/admin-crm-pipeline', {
+        tenant_id: tenantId,
+        amount: parseFloat(formAmount),
+        currency: formCurrency,
+        payment_method: formMethod,
+        reference_number: formReference || undefined,
+        notes: formNotes || undefined,
+        paid_at: formPaidAt ? new Date(formPaidAt).toISOString() : undefined,
+      });
+      setSubmitSuccess(true);
+      setFormAmount(''); setFormReference(''); setFormNotes('');
+      setTimeout(() => { setSubmitSuccess(false); setShowForm(false); }, 1500);
+      fetchPayments();
+    } catch {
+      setSubmitError(true);
+      setTimeout(() => setSubmitError(false), 3000);
+    }
+    setIsSubmitting(false);
+  }
+
+  const sourceLabel: Record<string, string> = {
+    stripe: t('sa.paymentSourceStripe'),
+    manual: t('sa.paymentSourceManual'),
+    activation_code: t('sa.paymentSourceActivation'),
+  };
+
+  const sourceColor: Record<string, string> = {
+    stripe: 'bg-brand-primary/10 text-brand-primary border-brand-primary/30',
+    manual: 'bg-warning/10 text-warning border-warning/30',
+    activation_code: 'bg-chart-cyan/10 text-chart-cyan border-chart-cyan/30',
+  };
+
+  if (!tenantId) return <p className="text-sm text-text-muted italic py-2">{t('sa.noPayments')}</p>;
+  if (isLoading) return <div className="animate-pulse bg-glass-element rounded-md h-16 w-full" />;
+
+  return (
+    <div className="space-y-3">
+      {/* Payment list */}
+      {payments.length > 0 ? (
+        <div className="space-y-2 max-h-64 overflow-y-auto">
+          {payments.map((p) => (
+            <div key={p.id} className="flex items-center justify-between bg-bg-tertiary rounded-lg px-3 py-2 border border-glass-border text-xs gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border shrink-0 ${sourceColor[p.source] || ''}`}>
+                  {sourceLabel[p.source] || p.source}
+                </span>
+                <span className="text-text-muted truncate">
+                  {formatDateTime(p.paid_at, 'dateTime')}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {p.payment_method && (
+                  <span className="text-text-muted">{p.payment_method}</span>
+                )}
+                {p.reference_number && (
+                  <span className="text-text-muted font-mono" title={p.reference_number}>
+                    #{p.reference_number.slice(0, 8)}
+                  </span>
+                )}
+                <span className={`font-medium ${p.status === 'succeeded' ? 'text-success' : p.status === 'refunded' ? 'text-error' : 'text-warning'}`}>
+                  {p.currency?.toUpperCase()} {p.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-text-muted italic py-2">{t('sa.noPayments')}</p>
+      )}
+
+      {/* Toggle form button */}
+      <button
+        onClick={() => setShowForm(!showForm)}
+        className="flex items-center gap-1.5 text-xs text-brand-primary hover:text-brand-accent transition-colors font-medium"
+      >
+        <Plus className="w-3.5 h-3.5" />
+        {t('sa.registerPayment')}
+      </button>
+
+      {/* Manual payment form */}
+      {showForm && (
+        <form onSubmit={handleSubmit} className="space-y-2.5 p-3 bg-bg-elevated/50 rounded-lg border border-glass-border">
+          <p className="text-xs text-text-muted mb-1">{t('sa.registerPaymentDesc')}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] text-text-muted uppercase tracking-wider">{t('sa.paymentAmount')}</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                required
+                value={formAmount}
+                onChange={(e) => setFormAmount(e.target.value)}
+                className="w-full bg-bg-tertiary border border-glass-border rounded-md px-2 py-1.5 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <label className="text-[10px] text-text-muted uppercase tracking-wider">{t('sa.paymentCurrency')}</label>
+              <select
+                value={formCurrency}
+                onChange={(e) => setFormCurrency(e.target.value)}
+                className="w-full bg-bg-tertiary border border-glass-border rounded-md px-2 py-1.5 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer"
+              >
+                <option value="brl">BRL</option>
+                <option value="usd">USD</option>
+                <option value="eur">EUR</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] text-text-muted uppercase tracking-wider">{t('sa.paymentMethod')}</label>
+              <select
+                value={formMethod}
+                onChange={(e) => setFormMethod(e.target.value)}
+                className="w-full bg-bg-tertiary border border-glass-border rounded-md px-2 py-1.5 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer"
+              >
+                <option value="bank_transfer">{t('sa.paymentMethodTransfer')}</option>
+                <option value="pix">{t('sa.paymentMethodPix')}</option>
+                <option value="cash">{t('sa.paymentMethodCash')}</option>
+                <option value="other">{t('sa.paymentMethodOther')}</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[10px] text-text-muted uppercase tracking-wider">{t('sa.paymentPaidAt')}</label>
+              <input
+                type="date"
+                value={formPaidAt}
+                onChange={(e) => setFormPaidAt(e.target.value)}
+                className="w-full bg-bg-tertiary border border-glass-border rounded-md px-2 py-1.5 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary cursor-pointer"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] text-text-muted uppercase tracking-wider">{t('sa.paymentReference')}</label>
+            <input
+              type="text"
+              value={formReference}
+              onChange={(e) => setFormReference(e.target.value)}
+              className="w-full bg-bg-tertiary border border-glass-border rounded-md px-2 py-1.5 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary"
+              placeholder={t('sa.paymentReferencePlaceholder')}
+            />
+          </div>
+          <div>
+            <label className="text-[10px] text-text-muted uppercase tracking-wider">{t('sa.paymentNotes')}</label>
+            <textarea
+              value={formNotes}
+              onChange={(e) => setFormNotes(e.target.value)}
+              rows={2}
+              className="w-full bg-bg-tertiary border border-glass-border rounded-md px-2 py-1.5 text-xs text-text-secondary focus:outline-none focus:ring-1 focus:ring-brand-primary resize-none"
+              placeholder={t('sa.paymentNotesPlaceholder')}
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="text-xs px-3 py-1.5 rounded-md border border-glass-border text-text-muted hover:text-text-primary transition-colors"
+            >
+              {t('common.cancel')}
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || !formAmount}
+              className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-medium transition-all ${
+                submitSuccess
+                  ? 'bg-success/10 text-success border border-success/30'
+                  : submitError
+                  ? 'bg-error/10 text-error border border-error/30'
+                  : 'bg-brand-primary/10 text-brand-primary border border-brand-primary/30 hover:bg-brand-primary/20'
+              } disabled:opacity-50`}
+            >
+              {isSubmitting ? <Loader2 className="w-3 h-3 animate-spin" /> : submitSuccess ? <Check className="w-3 h-3" /> : <Save className="w-3 h-3" />}
+              {isSubmitting ? t('sa.paymentRegistering') : submitSuccess ? t('sa.paymentRegistered') : submitError ? t('sa.paymentRegisterError') : t('sa.registerPayment')}
+            </button>
+          </div>
+        </form>
       )}
     </div>
   );

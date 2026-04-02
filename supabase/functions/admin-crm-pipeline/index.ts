@@ -15,11 +15,65 @@ serve(async (req: Request) => {
     const { user } = await verifySuperAdmin(req);
     authCtx = { user_id: user.id };
 
-    if (req.method !== "GET" && req.method !== "PATCH") {
+    if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "POST") {
       return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
 
     const db = createAdminClient();
+    const url = new URL(req.url);
+
+    // ── POST: Register manual payment ──
+    if (req.method === "POST") {
+      const body = await req.json();
+      const { tenant_id, subscription_id, amount, currency, payment_method, reference_number, notes, paid_at } = body;
+
+      if (!tenant_id) {
+        return logger.done(withCors(req, badRequest("tenant_id is required")), authCtx);
+      }
+      if (!amount || amount <= 0) {
+        return logger.done(withCors(req, badRequest("amount must be greater than 0")), authCtx);
+      }
+
+      // If subscription_id is not passed, find the active one for this tenant
+      let resolvedSubId = subscription_id || null;
+      if (!resolvedSubId) {
+        const { data: activeSub } = await db
+          .from("subscriptions")
+          .select("id")
+          .eq("tenant_id", tenant_id)
+          .in("status", ["active", "trialing"])
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        resolvedSubId = activeSub?.id || null;
+      }
+
+      const { data: payment, error: payErr } = await db
+        .from("payments")
+        .insert({
+          tenant_id,
+          subscription_id: resolvedSubId,
+          source: "manual",
+          payment_method: payment_method || "bank_transfer",
+          reference_number: reference_number || null,
+          notes: notes || null,
+          registered_by: user.id,
+          amount,
+          currency: currency || "usd",
+          status: "succeeded",
+          paid_at: paid_at || new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (payErr) {
+        console.error("[admin-crm-pipeline] Error registering manual payment:", payErr);
+        return logger.done(withCors(req, serverError("Failed to register payment")), authCtx);
+      }
+
+      console.log(`[admin-crm-pipeline] Manual payment registered for tenant ${tenant_id}: ${amount} ${currency || 'usd'}`);
+      return logger.done(withCors(req, ok(payment)), authCtx);
+    }
 
     // ── PATCH: Update subscription status/dates/plan ──
     if (req.method === "PATCH") {
@@ -41,13 +95,12 @@ serve(async (req: Request) => {
 
       // ── Plan change: cancel old + create new ──
       if (plan_id && (!sub || sub.plan_id !== plan_id)) {
-        // Cancel existing subscription if any
-        if (sub) {
-          await db
-            .from("subscriptions")
-            .update({ status: "canceled", canceled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-            .eq("id", sub.id);
-        }
+        // Cancel ALL existing non-canceled subscriptions for this tenant
+        await db
+          .from("subscriptions")
+          .update({ status: "canceled", canceled_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+          .eq("tenant_id", tenant_id)
+          .not("status", "in", "(canceled,incomplete_expired)");
 
         // Create new subscription with provided or default values
         const now = new Date();
@@ -94,6 +147,21 @@ serve(async (req: Request) => {
       if (updateErr) throw updateErr;
 
       return logger.done(withCors(req, ok({ updated: true })), authCtx);
+    }
+
+    // ── GET with ?entity=payments&tenant_id=... — return payments for a tenant ──
+    const entityParam = url.searchParams.get("entity");
+    const tenantParam = url.searchParams.get("tenant_id");
+
+    if (entityParam === "payments" && tenantParam) {
+      const { data: tenantPayments, error: tpErr } = await db
+        .from("payments")
+        .select("*")
+        .eq("tenant_id", tenantParam)
+        .order("paid_at", { ascending: false });
+
+      if (tpErr) throw tpErr;
+      return logger.done(withCors(req, ok(tenantPayments || [])), authCtx);
     }
 
     // ── Parallel data fetching (all flat queries, no PostgREST joins) ──

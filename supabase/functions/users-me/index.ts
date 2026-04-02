@@ -58,18 +58,41 @@ async function handleGet(req: Request): Promise<Response> {
 
   const tenantsList = (memberships || []).map((m: any) => m.tenants).filter(Boolean);
 
-  // For each tenant, fetch active subscription's plan_id
+  // For each tenant, fetch latest subscription info
   const tenants = await Promise.all(
     tenantsList.map(async (t: any) => {
-      const { data: sub } = await db
+      // First, check for active/trialing subscription
+      const { data: activeSub } = await db
         .from("subscriptions")
-        .select("plan_id")
+        .select("plan_id, status")
         .eq("tenant_id", t.id)
         .in("status", ["active", "trialing"])
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
-      return { ...t, active_plan_id: sub?.plan_id || null };
+        .maybeSingle();
+
+      if (activeSub) {
+        return {
+          ...t,
+          active_plan_id: activeSub.plan_id,
+          subscription_status: activeSub.status,
+        };
+      }
+
+      // No active sub — fetch the latest subscription of any status for context
+      const { data: latestSub } = await db
+        .from("subscriptions")
+        .select("plan_id, status")
+        .eq("tenant_id", t.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      return {
+        ...t,
+        active_plan_id: null,
+        subscription_status: latestSub?.status || null,
+      };
     })
   );
 

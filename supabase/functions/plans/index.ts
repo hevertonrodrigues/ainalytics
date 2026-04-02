@@ -150,12 +150,12 @@ async function handleSelectPlan(req: Request): Promise<Response> {
     return serverError("Failed to claim activation code");
   }
 
-  // 5. Cancel any existing active subscriptions and deactivate all models
+  // 5. Cancel any existing non-canceled subscriptions and deactivate all models
   await db
     .from("subscriptions")
     .update({ status: "canceled", canceled_at: new Date().toISOString() })
     .eq("tenant_id", auth.tenantId)
-    .in("status", ["active", "trialing"]);
+    .not("status", "in", "(canceled,incomplete_expired)");
 
   await db
     .from("tenant_platform_models")

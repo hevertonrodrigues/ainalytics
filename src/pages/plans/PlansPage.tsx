@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CreditCard, Ticket } from 'lucide-react';
+import { CreditCard, Ticket, AlertTriangle } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { useTenant } from '@/contexts/TenantContext';
 import { PricingPlans } from '@/components/PricingPlans';
@@ -50,6 +50,10 @@ export function PlansPage() {
   const [codeModalOpen, setCodeModalOpen] = useState(false);
   const [cancelModalOpen, setCancelModalOpen] = useState(false);
   const [canceling, setCanceling] = useState(false);
+
+  // Expired subscription detection
+  const [searchParams] = useSearchParams();
+  const isExpired = searchParams.get('expired') === 'true';
 
   // Activation code state
   const [activationCode, setActivationCode] = useState('');
@@ -249,6 +253,17 @@ export function PlansPage() {
         <h1 className="text-3xl font-bold text-text-primary">{t('plans.title')}</h1>
         <p className="text-text-secondary mt-2 text-sm max-w-lg mx-auto">{t('plans.subtitle')}</p>
       </div>
+
+      {/* Expired subscription banner */}
+      {isExpired && (
+        <div className="p-4 rounded-xl bg-error/10 border border-error/30 flex items-start gap-3">
+          <AlertTriangle className="w-5 h-5 text-error shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-error text-sm">{t('plans.expiredTitle')}</p>
+            <p className="text-text-secondary text-xs mt-1">{t('plans.expiredDesc')}</p>
+          </div>
+        </div>
+      )}
 
       {/* Alerts */}
       {error && (

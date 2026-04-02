@@ -14,6 +14,7 @@ import {
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 import { checkPromptLimit } from "../_shared/limits.ts";
+import { requireActiveSubscription } from "../_shared/subscription-guard.ts";
 
 serve(async (req: Request) => {
   const logger = createRequestLogger("topics-prompts", req);
@@ -60,6 +61,14 @@ serve(async (req: Request) => {
 // ────────────────────────────────────────────────────────────
 
 async function handleTopics(req: Request): Promise<Response> {
+  // Block write operations for expired subscriptions
+  if (req.method !== "GET") {
+    const auth = await verifyAuth(req);
+    const db = createAdminClient();
+    const guardResponse = await requireActiveSubscription(db, auth.tenantId);
+    if (guardResponse) return guardResponse;
+  }
+
   switch (req.method) {
     case "GET":
       return getTopics(req);
@@ -191,6 +200,14 @@ async function deleteTopic(req: Request): Promise<Response> {
 // ────────────────────────────────────────────────────────────
 
 async function handlePrompts(req: Request): Promise<Response> {
+  // Block write operations for expired subscriptions
+  if (req.method !== "GET") {
+    const auth = await verifyAuth(req);
+    const db = createAdminClient();
+    const guardResponse = await requireActiveSubscription(db, auth.tenantId);
+    if (guardResponse) return guardResponse;
+  }
+
   switch (req.method) {
     case "GET":
       return getPrompts(req);
