@@ -15,7 +15,7 @@ serve(async (req: Request) => {
     const { user } = await verifySuperAdmin(req);
     authCtx = { user_id: user.id };
 
-    if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "POST") {
+    if (req.method !== "GET" && req.method !== "PATCH" && req.method !== "POST" && req.method !== "PUT") {
       return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
     }
 
@@ -73,6 +73,69 @@ serve(async (req: Request) => {
 
       console.log(`[admin-crm-pipeline] Manual payment registered for tenant ${tenant_id}: ${amount} ${currency || 'usd'}`);
       return logger.done(withCors(req, ok(payment)), authCtx);
+    }
+
+    // ── PUT: Force run all prompts for a tenant ──
+    if (req.method === "PUT") {
+      const body = await req.json();
+      const { tenant_id, action } = body;
+
+      if (!tenant_id) {
+        return logger.done(withCors(req, badRequest("tenant_id is required")), authCtx);
+      }
+
+      if (action === "force_run_prompts") {
+        // 1. Cancel all queued/dispatched/processing runs for this tenant
+        const { data: canceledRuns, error: cancelErr } = await db
+          .from("prompt_execution_runs")
+          .update({
+            status: "canceled",
+            finished_at: new Date().toISOString(),
+            error_message: "Canceled by SA force-run",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("tenant_id", tenant_id)
+          .in("status", ["queued", "dispatched", "processing"])
+          .select("id");
+
+        if (cancelErr) {
+          console.error("[admin-crm-pipeline] Error canceling runs:", cancelErr);
+          return logger.done(withCors(req, serverError("Failed to cancel existing runs")), authCtx);
+        }
+
+        // 2. Set next_due_at to 1 minute from now for all active targets
+        const nextDue = new Date(Date.now() + 60 * 1000).toISOString();
+        const { data: updatedTargets, error: updateErr } = await db
+          .from("prompt_execution_targets")
+          .update({
+            next_due_at: nextDue,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("tenant_id", tenant_id)
+          .eq("schedule_status", "active")
+          .select("id");
+
+        if (updateErr) {
+          console.error("[admin-crm-pipeline] Error updating targets:", updateErr);
+          return logger.done(withCors(req, serverError("Failed to update execution targets")), authCtx);
+        }
+
+        const canceledCount = canceledRuns?.length || 0;
+        const updatedCount = updatedTargets?.length || 0;
+
+        console.log(
+          `[admin-crm-pipeline] Force run prompts for tenant ${tenant_id}: ` +
+          `canceled ${canceledCount} runs, updated ${updatedCount} targets to due at ${nextDue}`
+        );
+
+        return logger.done(withCors(req, ok({
+          canceled_runs: canceledCount,
+          updated_targets: updatedCount,
+          next_due_at: nextDue,
+        })), authCtx);
+      }
+
+      return logger.done(withCors(req, badRequest("Invalid action")), authCtx);
     }
 
     // ── PATCH: Update subscription status/dates/plan ──

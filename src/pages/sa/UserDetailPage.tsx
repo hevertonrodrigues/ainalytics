@@ -28,6 +28,7 @@ import {
   AlertTriangle,
   Cpu,
   Plus,
+  RefreshCw,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import type { CRMPipelineUser } from './types';
@@ -87,6 +88,10 @@ export function UserDetailPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [editPlanId, setEditPlanId] = useState<string>('');
   const [availablePlans, setAvailablePlans] = useState<{ id: string; name: string }[]>([]);
+
+  // Force run prompts state
+  const [isForceRunning, setIsForceRunning] = useState(false);
+  const [forceRunResult, setForceRunResult] = useState<{ success: boolean; updated_targets?: number } | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -230,6 +235,24 @@ export function UserDetailPage() {
     setIsSaving(false);
   }
 
+  async function forceRunPrompts() {
+    if (!user?.tenant_id) return;
+    setIsForceRunning(true);
+    setForceRunResult(null);
+    try {
+      const res = await apiClient.put<{ canceled_runs: number; updated_targets: number; next_due_at: string }>(
+        '/admin-crm-pipeline',
+        { tenant_id: user.tenant_id, action: 'force_run_prompts' }
+      );
+      setForceRunResult({ success: true, updated_targets: res.data.updated_targets });
+      setTimeout(() => setForceRunResult(null), 4000);
+    } catch {
+      setForceRunResult({ success: false });
+      setTimeout(() => setForceRunResult(null), 4000);
+    }
+    setIsForceRunning(false);
+  }
+
   const statusColors: Record<string, string> = {
     draft: 'bg-text-muted/10 text-text-muted border-text-muted/20',
     sent: 'bg-chart-cyan/10 text-chart-cyan border-chart-cyan/30',
@@ -309,7 +332,35 @@ export function UserDetailPage() {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
+            {user.tenant_id && (
+              <button
+                onClick={forceRunPrompts}
+                disabled={isForceRunning}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-medium transition-all border ${
+                  forceRunResult?.success
+                    ? 'bg-success/10 text-success border-success/30'
+                    : forceRunResult && !forceRunResult.success
+                    ? 'bg-error/10 text-error border-error/30'
+                    : 'bg-warning/10 text-warning border-warning/30 hover:bg-warning/20'
+                } disabled:opacity-50`}
+              >
+                {isForceRunning ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : forceRunResult?.success ? (
+                  <Check className="w-3.5 h-3.5" />
+                ) : (
+                  <RefreshCw className="w-3.5 h-3.5" />
+                )}
+                {isForceRunning
+                  ? t('sa.forceRunning')
+                  : forceRunResult?.success
+                  ? t('sa.forceRunSuccess', { count: forceRunResult.updated_targets || 0 })
+                  : forceRunResult && !forceRunResult.success
+                  ? t('sa.forceRunError')
+                  : t('sa.forceRunPrompts')}
+              </button>
+            )}
             <button
               onClick={() => setShowProposalModal(true)}
               className="btn-primary flex items-center gap-2 text-sm"
