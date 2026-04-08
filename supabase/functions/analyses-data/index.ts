@@ -4,6 +4,7 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import { extractBaseDomain, findOwnDomainIndex } from "../_shared/domain.ts";
 
 serve(async (req: Request) => {
   const logger = createRequestLogger("analyses-data", req);
@@ -130,7 +131,7 @@ serve(async (req: Request) => {
       .eq("id", tenantId)
       .single();
 
-    const ownDomainStr = (tenantData?.main_domain || "").toLowerCase();
+    const ownDomainStr = extractBaseDomain(tenantData?.main_domain || "");
 
     // Get platform info for names
     const { data: allPlatforms } = await db
@@ -235,9 +236,7 @@ serve(async (req: Request) => {
     enriched.sort((a: any, b: any) => b.score - a.score);
 
     // ── Own domain data ───────────────────────────────────────
-    const ownDomainIdx = ownDomainStr
-      ? enriched.findIndex((s: any) => s.domain?.toLowerCase() === ownDomainStr)
-      : -1;
+    const ownDomainIdx = findOwnDomainIndex(enriched, ownDomainStr);
 
     const ownDomain = ownDomainIdx >= 0
       ? {

@@ -5,6 +5,7 @@ import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 import { getSubscriptionLimits } from "../_shared/limits.ts";
+import { extractBaseDomain, findOwnDomainIndex } from "../_shared/domain.ts";
 
 /**
  * Dashboard Overview Edge Function
@@ -193,11 +194,10 @@ serve(async (req: Request) => {
       }))
       .sort((a: any, b: any) => b.total - a.total);
 
-    const ownDomain = tenant?.main_domain?.toLowerCase() || "";
-    // deno-lint-ignore no-explicit-any
-    const ownDomainSource = allSources.find((s: any) => s.domain?.toLowerCase() === ownDomain);
-    // deno-lint-ignore no-explicit-any
-    const ownDomainRank = allSources.findIndex((s: any) => s.domain?.toLowerCase() === ownDomain) + 1;
+    const ownDomain = extractBaseDomain(tenant?.main_domain || "");
+    const ownDomainIdx = findOwnDomainIndex(allSources, tenant?.main_domain || "");
+    const ownDomainSource = ownDomainIdx >= 0 ? allSources[ownDomainIdx] : undefined;
+    const ownDomainRank = ownDomainIdx >= 0 ? ownDomainIdx + 1 : 0;
 
     // ── Topics summary ────────────────────────────────────────
     const topics = topicsRes.data || [];
@@ -290,7 +290,7 @@ serve(async (req: Request) => {
         own_domain_total_mentions: ownDomainSource?.total || 0,
         total_sources_tracked: allSources.length,
         // deno-lint-ignore no-explicit-any
-        top_competitors: allSources.filter((s: any) => s.domain?.toLowerCase() !== ownDomain).slice(0, 5).map((s: any) => ({
+        top_competitors: allSources.filter((_: any, i: number) => i !== ownDomainIdx).slice(0, 5).map((s: any) => ({
           domain: s.domain,
           mentions: s.total,
         })),
