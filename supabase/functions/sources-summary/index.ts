@@ -54,12 +54,14 @@ serve(async (req: Request) => {
       // Mention counts from view (distinct answers per source)
       db.from("source_mention_counts")
         .select("source_id, mention_count")
-        .eq("tenant_id", tenantId),
+        .eq("tenant_id", tenantId)
+        .range(0, 9999),
 
       // Source domains
       db.from("sources")
         .select("id, domain")
-        .eq("tenant_id", tenantId),
+        .eq("tenant_id", tenantId)
+        .range(0, 9999),
     ]);
 
     const totalAnswers = answersRes.count ?? 0;

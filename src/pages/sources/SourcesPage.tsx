@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { useTenant } from '@/contexts/TenantContext';
 import { PageExplanation } from '@/components/PageExplanation';
+import { extractRootDomain } from '@/lib/domain';
 
 interface ScoreBreakdown {
   mention_rate: number;
@@ -136,21 +137,35 @@ export function SourcesPage() {
     }
   }, [meta, loadingMore, currentPage, searchTerm, loadSources]);
 
+  // Normalize own domain once for matching
+  const normalizedOwnDomain = useMemo(
+    () => (companyDomain ? extractRootDomain(companyDomain) : ''),
+    [companyDomain],
+  );
+
+  // Check if a source matches the tenant's own domain
+  const isOwnDomain = useCallback(
+    (domain: string) => {
+      if (!normalizedOwnDomain) return false;
+      const normalized = extractRootDomain(domain);
+      return normalized === normalizedOwnDomain;
+    },
+    [normalizedOwnDomain],
+  );
+
   // Put own domain first in the displayed list
   const displayedSources = useMemo(() => {
-    if (!companyDomain || currentPage > 1) return sources;
+    if (!normalizedOwnDomain || currentPage > 1) return sources;
 
     const copy = [...sources];
-    const ownIdx = copy.findIndex(
-      (s) => companyDomain && s.domain.toLowerCase() === companyDomain
-    );
+    const ownIdx = copy.findIndex((s) => isOwnDomain(s.domain));
     if (ownIdx > 0) {
       const own = copy.splice(ownIdx, 1)[0] as SourceSummary;
       copy.unshift(own);
     }
 
     return copy;
-  }, [sources, companyDomain, currentPage]);
+  }, [sources, normalizedOwnDomain, currentPage, isOwnDomain]);
 
 
   return (
@@ -213,7 +228,7 @@ export function SourcesPage() {
         <div className="flex flex-col space-y-3">
           {displayedSources.map((source) => {
             const isExpanded = expandedSources.has(source.id);
-            const isOwnSource = companyDomain && source.domain.toLowerCase() === companyDomain;
+            const isOwnSource = isOwnDomain(source.domain);
             
             return (
               <div key={source.id} className={`dashboard-card overflow-hidden ${

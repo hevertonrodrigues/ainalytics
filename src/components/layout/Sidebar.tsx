@@ -14,7 +14,7 @@ import {
   Maximize,
   Minimize,
   User,
-  // BookOpen,
+  BookOpen,
   ChevronUp,
   Cpu,
   Layers,
@@ -53,7 +53,7 @@ const ANALYTICS_NAV: NavItem[] = [
   { key: 'nav.prompts', path: '/dashboard/prompts', icon: List },
   { key: 'nav.insights', path: '/dashboard/insights', icon: Sun },
   { key: 'nav.analyses', path: '/dashboard/analyses', icon: BarChart3 },
-  // { key: 'nav.sources', path: '/dashboard/sources', icon: BookOpen },
+  { key: 'nav.sources', path: '/dashboard/sources', icon: BookOpen },
   { key: 'nav.llmText', path: '/dashboard/llmtext', icon: FileText },
   { key: 'nav.models', path: '/dashboard/models', icon: Layers, alwaysEnabled: true },
 ];
