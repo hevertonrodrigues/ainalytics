@@ -1,14 +1,30 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Globe } from 'lucide-react';
+import { Globe, Building2 } from 'lucide-react';
 import { PromptSource, PLATFORM_METADATA } from '@/types/dashboard';
 
 interface SourcesSummaryTableProps {
   sources: PromptSource[];
+  companyDomain?: string;
   onSourceClick: (source: PromptSource) => void;
 }
 
-export function SourcesSummaryTable({ sources, onSourceClick }: SourcesSummaryTableProps) {
+export function SourcesSummaryTable({ sources, companyDomain, onSourceClick }: SourcesSummaryTableProps) {
   const { t } = useTranslation();
+
+  // Sort own domain first
+  const displayedSources = useMemo(() => {
+    if (!companyDomain) return sources;
+    const copy = [...sources];
+    const ownIdx = copy.findIndex(
+      (s) => s.domain.toLowerCase() === companyDomain
+    );
+    if (ownIdx > 0) {
+      const own = copy.splice(ownIdx, 1)[0]!;
+      copy.unshift(own);
+    }
+    return copy;
+  }, [sources, companyDomain]);
 
   if (sources.length === 0) return null;
 
@@ -40,61 +56,78 @@ export function SourcesSummaryTable({ sources, onSourceClick }: SourcesSummaryTa
               </tr>
             </thead>
             <tbody className="divide-y divide-glass-border">
-              {sources.map((source, idx) => (
-                <tr 
-                  key={source.domain + idx} 
-                  className="hover:bg-glass-hover transition-colors group cursor-pointer"
-                  onClick={() => onSourceClick(source)}
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-1.5 rounded bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary/20 transition-colors">
-                        <Globe className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium text-text-primary truncate" title={source.domain}>
-                          {source.domain}
+              {displayedSources.map((source, idx) => {
+                const isOwnSource = !!companyDomain && source.domain.toLowerCase() === companyDomain;
+
+                return (
+                  <tr 
+                    key={source.domain + idx} 
+                    className={`hover:bg-glass-hover transition-colors group cursor-pointer ${
+                      isOwnSource ? 'bg-brand-primary/[0.03]' : ''
+                    }`}
+                    onClick={() => onSourceClick(source)}
+                  >
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-1.5 rounded shrink-0 transition-colors ${
+                          isOwnSource
+                            ? 'bg-gradient-to-br from-brand-primary to-brand-accent text-white'
+                            : 'bg-brand-primary/10 text-brand-primary group-hover:bg-brand-primary/20'
+                        }`}>
+                          {isOwnSource ? <Building2 className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                         </div>
-                        {source.name && (
-                          <div className="text-xs text-text-muted line-clamp-1" title={source.name}>
-                            {source.name}
+                        <div className="min-w-0 flex items-center gap-2">
+                          <div>
+                            <div className="text-sm font-medium text-text-primary truncate" title={source.domain}>
+                              {source.domain}
+                            </div>
+                            {source.name && (
+                              <div className="text-xs text-text-muted line-clamp-1" title={source.name}>
+                                {source.name}
+                              </div>
+                            )}
                           </div>
-                        )}
+                          {isOwnSource && (
+                            <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-brand-primary/10 text-brand-primary shrink-0">
+                              {t('sources.yourDomain', { defaultValue: 'Your Domain' })}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span className="text-sm font-semibold text-text-primary">
-                      {source.total_count}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      
-                      {Object.entries(source.platforms).map(([slug, count]) => {
-                        const meta = PLATFORM_METADATA[slug];
-                        return (
-                          <div
-                            key={slug}
-                            className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-glass-card border border-glass-border shadow-sm group/tag hover:border-glass-border-hover transition-colors"
-                            title={`${meta?.label || slug}: ${count} mentions`}
-                          >
-                            <span
-                              className={`w-2 h-2 rounded-full ${meta?.colorClass || 'bg-gray-500'} shadow-[0_0_5px_rgba(0,0,0,0.2)]`}
-                            />
-                            <span className="text-[10px] font-semibold text-text-secondary uppercase">
-                              {meta?.label || slug}
-                            </span>
-                            <span className="text-[10px] font-bold text-text-muted bg-text-muted/10 px-1 rounded-xs">
-                              {count}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className={`text-sm font-semibold ${isOwnSource ? 'text-brand-primary' : 'text-text-primary'}`}>
+                        {source.total_count}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-2">
+                        
+                        {Object.entries(source.platforms).map(([slug, count]) => {
+                          const meta = PLATFORM_METADATA[slug];
+                          return (
+                            <div
+                              key={slug}
+                              className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-glass-card border border-glass-border shadow-sm group/tag hover:border-glass-border-hover transition-colors"
+                              title={`${meta?.label || slug}: ${count} mentions`}
+                            >
+                              <span
+                                className={`w-2 h-2 rounded-full ${meta?.colorClass || 'bg-gray-500'} shadow-[0_0_5px_rgba(0,0,0,0.2)]`}
+                              />
+                              <span className="text-[10px] font-semibold text-text-secondary uppercase">
+                                {meta?.label || slug}
+                              </span>
+                              <span className="text-[10px] font-bold text-text-muted bg-text-muted/10 px-1 rounded-xs">
+                                {count}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

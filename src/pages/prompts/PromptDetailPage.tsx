@@ -6,6 +6,7 @@ import { apiClient } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTenant } from '@/contexts/TenantContext';
 import type { Prompt, PromptAnswer, Topic, TenantPlatformModel } from '@/types';
 
 // Components
@@ -24,6 +25,8 @@ export function PromptDetailPage() {
   const navigate = useNavigate();
   const { showToast } = useToast();
   const { profile } = useAuth();
+  const { currentTenant } = useTenant();
+  const companyDomain = currentTenant?.main_domain?.toLowerCase() || '';
 
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -301,6 +304,7 @@ export function PromptDetailPage() {
       {!error && (
         <SourcesSummaryTable 
           sources={promptSources} 
+          companyDomain={companyDomain}
           onSourceClick={(source) => setSelectedSource(source)}
         />
       )}
