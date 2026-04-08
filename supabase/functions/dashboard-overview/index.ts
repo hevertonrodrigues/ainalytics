@@ -6,6 +6,7 @@ import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 import { getSubscriptionLimits } from "../_shared/limits.ts";
 import { extractBaseDomain, findOwnDomainIndex } from "../_shared/domain.ts";
+import { fetchAllRows } from "../_shared/paginate.ts";
 
 /**
  * Dashboard Overview Edge Function
@@ -91,11 +92,12 @@ serve(async (req: Request) => {
         .eq("tenant_id", tenantId)
         .eq("is_active", true),
 
-      // 9. Sources mention counts (direct view query — no heavyweight RPC)
-      db.from("source_mention_counts")
-        .select("source_id, mention_count")
-        .eq("tenant_id", tenantId)
-        .limit(10000),
+      // 9. Sources mention counts — paginated (Supabase hard-caps at 1000/request)
+      fetchAllRows(() =>
+        db.from("source_mention_counts")
+          .select("source_id, mention_count")
+          .eq("tenant_id", tenantId)
+      ),
 
       // 10. Recent prompts (last 5)
       db.from("prompts")
@@ -173,12 +175,12 @@ serve(async (req: Request) => {
 
     // ── Build sources ranking ─────────────────────────────────
     // Build a domain→total lookup from mention counts + sources table
-    const mentionRows = sourcesSummaryRes.data || [];
-    const { data: sourcesData } = await db
-      .from("sources")
-      .select("id, domain")
-      .eq("tenant_id", tenantId)
-      .limit(10000);
+    const mentionRows = sourcesSummaryRes;
+    const sourcesData = await fetchAllRows(() =>
+      db.from("sources")
+        .select("id, domain")
+        .eq("tenant_id", tenantId)
+    );
 
     const sourceIdToDomain = new Map<string, string>();
     for (const s of (sourcesData || [])) {

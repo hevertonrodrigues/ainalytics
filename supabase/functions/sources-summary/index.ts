@@ -4,6 +4,7 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import { fetchAllRows } from "../_shared/paginate.ts";
 import {
   mentionRateScore, platformBreadthScore, promptCoverageScore,
   distributionScore, computeCompositeScore,
@@ -32,7 +33,7 @@ serve(async (req: Request) => {
     const tenantId = auth.tenantId;
 
     // ── 1. Parallel data fetch ──────────────────────────────
-    const [answersRes, promptsRes, platformsRes, mentionsRes, sourcesRes] = await Promise.all([
+    const [answersRes, promptsRes, platformsRes, mentionsData, sourcesData] = await Promise.all([
       // Total non-deleted answers (the denominator for %)
       db.from("prompt_answers")
         .select("*", { count: "exact", head: true })
@@ -51,17 +52,19 @@ serve(async (req: Request) => {
         .eq("tenant_id", tenantId)
         .eq("is_active", true),
 
-      // Mention counts from view (distinct answers per source)
-      db.from("source_mention_counts")
-        .select("source_id, mention_count")
-        .eq("tenant_id", tenantId)
-        .range(0, 9999),
+      // Mention counts — paginated (Supabase hard-caps at 1000/request)
+      fetchAllRows(() =>
+        db.from("source_mention_counts")
+          .select("source_id, mention_count")
+          .eq("tenant_id", tenantId)
+      ),
 
-      // Source domains
-      db.from("sources")
-        .select("id, domain")
-        .eq("tenant_id", tenantId)
-        .range(0, 9999),
+      // Source domains — paginated
+      fetchAllRows(() =>
+        db.from("sources")
+          .select("id, domain")
+          .eq("tenant_id", tenantId)
+      ),
     ]);
 
     const totalAnswers = answersRes.count ?? 0;
@@ -72,11 +75,11 @@ serve(async (req: Request) => {
 
     // ── 2. Join sources + mention counts ────────────────────
     const mentionMap = new Map<string, number>();
-    for (const m of (mentionsRes.data || [])) {
+    for (const m of mentionsData) {
       mentionMap.set(m.source_id, m.mention_count);
     }
 
-    let allSources = (sourcesRes.data || [])
+    let allSources = sourcesData
       .filter((s: any) => mentionMap.has(s.id))
       .map((s: any) => {
         const mc = mentionMap.get(s.id) || 0;
@@ -120,27 +123,31 @@ serve(async (req: Request) => {
     // ── 6. Fetch breakdowns for this page's sources ─────────
     const pageSourceIds = pageSources.map((s: any) => s.id);
 
-    const [promptBkRes, platformBkRes] = await Promise.all([
-      db.from("source_prompt_counts")
-        .select("source_id, prompt_id, prompt_text, cnt")
-        .eq("tenant_id", tenantId)
-        .in("source_id", pageSourceIds),
+    const [promptBkData, platformBkData] = await Promise.all([
+      fetchAllRows(() =>
+        db.from("source_prompt_counts")
+          .select("source_id, prompt_id, prompt_text, cnt")
+          .eq("tenant_id", tenantId)
+          .in("source_id", pageSourceIds)
+      ),
 
-      db.from("source_platform_counts")
-        .select("source_id, platform_id, platform_name, platform_slug, cnt")
-        .eq("tenant_id", tenantId)
-        .in("source_id", pageSourceIds),
+      fetchAllRows(() =>
+        db.from("source_platform_counts")
+          .select("source_id, platform_id, platform_name, platform_slug, cnt")
+          .eq("tenant_id", tenantId)
+          .in("source_id", pageSourceIds)
+      ),
     ]);
 
     // Index breakdowns by source_id
     const promptsBySource = new Map<string, any[]>();
-    for (const row of (promptBkRes.data || [])) {
+    for (const row of promptBkData) {
       if (!promptsBySource.has(row.source_id)) promptsBySource.set(row.source_id, []);
       promptsBySource.get(row.source_id)!.push(row);
     }
 
     const platformsBySource = new Map<string, any[]>();
-    for (const row of (platformBkRes.data || [])) {
+    for (const row of platformBkData) {
       if (!platformsBySource.has(row.source_id)) platformsBySource.set(row.source_id, []);
       platformsBySource.get(row.source_id)!.push(row);
     }

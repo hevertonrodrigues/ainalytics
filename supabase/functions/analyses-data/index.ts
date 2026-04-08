@@ -5,6 +5,7 @@ import { ok, badRequest, serverError } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 import { extractBaseDomain, findOwnDomainIndex } from "../_shared/domain.ts";
+import { fetchAllRows } from "../_shared/paginate.ts";
 
 serve(async (req: Request) => {
   const logger = createRequestLogger("analyses-data", req);
@@ -63,40 +64,44 @@ serve(async (req: Request) => {
     // Fetch the three lightweight views in parallel instead of the
     // heavyweight get_sources_summary_full RPC which returned unused
     // total_by_answer (~5 MB JSONB) and total_by_model columns.
-    const [mentionRes, promptRes, platformRes, allSourcesRes] = await Promise.all([
-      db.from("source_mention_counts")
-        .select("source_id, mention_count")
-        .eq("tenant_id", tenantId)
-        .limit(10000),
-      db.from("source_prompt_counts")
-        .select("source_id, prompt_id, prompt_text, cnt")
-        .eq("tenant_id", tenantId)
-        .limit(50000),
-      db.from("source_platform_counts")
-        .select("source_id, platform_id, platform_name, platform_slug, cnt")
-        .eq("tenant_id", tenantId)
-        .limit(50000),
-      db.from("sources")
-        .select("id, domain")
-        .eq("tenant_id", tenantId)
-        .limit(10000),
+    const [mentionData, promptData, platformData, allSourcesData] = await Promise.all([
+      fetchAllRows(() =>
+        db.from("source_mention_counts")
+          .select("source_id, mention_count")
+          .eq("tenant_id", tenantId)
+      ),
+      fetchAllRows(() =>
+        db.from("source_prompt_counts")
+          .select("source_id, prompt_id, prompt_text, cnt")
+          .eq("tenant_id", tenantId)
+      ),
+      fetchAllRows(() =>
+        db.from("source_platform_counts")
+          .select("source_id, platform_id, platform_name, platform_slug, cnt")
+          .eq("tenant_id", tenantId)
+      ),
+      fetchAllRows(() =>
+        db.from("sources")
+          .select("id, domain")
+          .eq("tenant_id", tenantId)
+      ),
     ]);
 
     // Build lookup maps keyed by source_id
     const mentionMap = new Map<string, number>();
-    for (const r of (mentionRes.data || [])) {
+    for (const r of mentionData) {
       mentionMap.set(r.source_id, r.mention_count);
     }
 
     const promptMap = new Map<string, any[]>();
-    for (const r of (promptRes.data || [])) {
+    for (const r of promptData) {
       const arr = promptMap.get(r.source_id) || [];
       arr.push({ prompt_id: r.prompt_id, prompt_text: r.prompt_text, count: r.cnt });
       promptMap.set(r.source_id, arr);
     }
 
     const platformMapBySource = new Map<string, any[]>();
-    for (const r of (platformRes.data || [])) {
+    for (const r of platformData) {
       const arr = platformMapBySource.get(r.source_id) || [];
       arr.push({
         platform_id: r.platform_id,
@@ -108,8 +113,8 @@ serve(async (req: Request) => {
     }
 
     // Assemble per-source objects (same shape the old RPC returned)
-    const allSources = (allSourcesRes.data || [])
-      .filter((s: any) => mentionMap.has(s.id))          // only sources with mentions
+    const allSources = allSourcesData
+      .filter((s: any) => mentionMap.has(s.id))
       .map((s: any) => ({
         id: s.id,
         domain: s.domain,
@@ -117,7 +122,7 @@ serve(async (req: Request) => {
         total_by_prompt: promptMap.get(s.id) || [],
         total_by_platform: platformMapBySource.get(s.id) || [],
       }))
-      .sort((a: any, b: any) => b.total - a.total);       // highest mentions first
+      .sort((a: any, b: any) => b.total - a.total);
 
     const totalCitations = allSources.reduce(
       (sum: number, s: any) => sum + (s.total || 0),
@@ -257,12 +262,13 @@ serve(async (req: Request) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const { data: timelineRaw } = await db
-      .from("prompt_answers")
-      .select("searched_at")
-      .eq("tenant_id", tenantId)
-      .eq("deleted", false)
-      .gte("searched_at", thirtyDaysAgo.toISOString());
+    const timelineRaw = await fetchAllRows(() =>
+      db.from("prompt_answers")
+        .select("searched_at")
+        .eq("tenant_id", tenantId)
+        .eq("deleted", false)
+        .gte("searched_at", thirtyDaysAgo.toISOString())
+    );
 
     const dayMap = new Map<string, number>();
     for (let i = 29; i >= 0; i--) {
@@ -270,7 +276,7 @@ serve(async (req: Request) => {
       d.setDate(d.getDate() - i);
       dayMap.set(d.toISOString().slice(0, 10), 0);
     }
-    for (const row of (timelineRaw || [])) {
+    for (const row of timelineRaw) {
       const day = (row.searched_at || "").slice(0, 10);
       if (day && dayMap.has(day)) {
         dayMap.set(day, (dayMap.get(day) || 0) + 1);

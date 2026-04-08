@@ -3,6 +3,7 @@ import { formatDate } from '@/lib/dateFormat';
 import { useTranslation } from 'react-i18next';
 import { ExternalLink, MessageSquare, Quote, ArrowLeft, Globe } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { fetchAllRows } from '@/lib/paginate';
 import { useParams, useNavigate } from 'react-router-dom';
 
 export function SourceDetailPage() {
@@ -35,32 +36,32 @@ export function SourceDetailPage() {
         if (sourceErr) throw sourceErr;
         if (mounted) setSource(sourceData);
 
-        // Fetch references
-        const { data, error: fetchErr } = await supabase
-          .from('prompt_answer_sources')
-          .select(`
-            id,
-            url,
-            title,
-            annotation,
-            created_at,
-            prompt:prompts!prompt_id(text),
-            answer:prompt_answers!answer_id(
-              deleted,
-              platform_slug,
-              model_id,
-              model:models!model_id(slug)
-            )
-          `)
-          .eq('source_id', id)
-          .order('created_at', { ascending: false });
-
-        if (fetchErr) throw fetchErr;
+        // Fetch references — paginated (Supabase hard-caps at 1000/request)
+        const data = await fetchAllRows(() =>
+          supabase
+            .from('prompt_answer_sources')
+            .select(`
+              id,
+              url,
+              title,
+              annotation,
+              created_at,
+              prompt:prompts!prompt_id(text),
+              answer:prompt_answers!answer_id(
+                deleted,
+                platform_slug,
+                model_id,
+                model:models!model_id(slug)
+              )
+            `)
+            .eq('source_id', id)
+            .order('created_at', { ascending: false })
+        );
         
         if (mounted) {
           setReferences(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ((data || []) as any[])
+            (data as any[])
               .map((row) => {
                 const prompt = Array.isArray(row.prompt) ? row.prompt[0] : row.prompt;
                 const answer = Array.isArray(row.answer) ? row.answer[0] : row.answer;

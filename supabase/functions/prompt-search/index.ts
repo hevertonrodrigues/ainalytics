@@ -4,6 +4,7 @@ import { verifyAuth } from "../_shared/auth.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { badRequest, ok, serverError } from "../_shared/response.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import { fetchAllRows } from "../_shared/paginate.ts";
 import {
   executeAndStorePromptAnswer,
   getErrorMessage,
@@ -449,16 +450,16 @@ async function handleGetAnswers(tenantId: string, req: Request): Promise<Respons
   const db = createAdminClient();
 
   if (promptId) {
-    const { data, error } = await db
-      .from("prompt_answers")
-      .select("*, model:models!model_id(id, slug, name)")
-      .eq("tenant_id", tenantId)
-      .eq("prompt_id", promptId)
-      .eq("deleted", false)
-      .order("searched_at", { ascending: false });
+    const data = await fetchAllRows(() =>
+      db.from("prompt_answers")
+        .select("*, model:models!model_id(id, slug, name)")
+        .eq("tenant_id", tenantId)
+        .eq("prompt_id", promptId)
+        .eq("deleted", false)
+        .order("searched_at", { ascending: false })
+    );
 
-    if (error) return serverError(error.message);
-    return ok((data || []).map((row) => toPromptAnswerApiShape(row as Record<string, unknown>)));
+    return ok(data.map((row) => toPromptAnswerApiShape(row as Record<string, unknown>)));
   }
 
   if (topicId) {
@@ -473,16 +474,16 @@ async function handleGetAnswers(tenantId: string, req: Request): Promise<Respons
     const promptIds = (prompts || []).map((prompt: { id: string }) => prompt.id);
     if (promptIds.length === 0) return ok([]);
 
-    const { data, error } = await db
-      .from("prompt_answers")
-      .select("*, model:models!model_id(id, slug, name)")
-      .eq("tenant_id", tenantId)
-      .in("prompt_id", promptIds)
-      .eq("deleted", false)
-      .order("searched_at", { ascending: false });
+    const data = await fetchAllRows(() =>
+      db.from("prompt_answers")
+        .select("*, model:models!model_id(id, slug, name)")
+        .eq("tenant_id", tenantId)
+        .in("prompt_id", promptIds)
+        .eq("deleted", false)
+        .order("searched_at", { ascending: false })
+    );
 
-    if (error) return serverError(error.message);
-    return ok((data || []).map((row) => toPromptAnswerApiShape(row as Record<string, unknown>)));
+    return ok(data.map((row) => toPromptAnswerApiShape(row as Record<string, unknown>)));
   }
 
   return badRequest("promptId or topicId query parameter is required");

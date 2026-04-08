@@ -9,6 +9,7 @@ import { logAiUsage, resolveModel } from "../_shared/cost-calculator.ts";
 import { INSIGHTS_PROMPT, replaceVars } from "../_shared/prompts/load.ts";
 import { requireActiveSubscription } from "../_shared/subscription-guard.ts";
 import { extractBaseDomain, findOwnDomainIndex } from "../_shared/domain.ts";
+import { fetchAllRows } from "../_shared/paginate.ts";
 
 /**
  * Insights Edge Function
@@ -291,24 +292,26 @@ async function aggregateTenantData(db: any, tenantId: string) {
     .eq("is_active", true);
 
   // 6. Sources summary (direct view queries — no heavyweight RPC)
-  const [mentionCountsRes, allSourcesRes] = await Promise.all([
-    db.from("source_mention_counts")
-      .select("source_id, mention_count")
-      .eq("tenant_id", tenantId)
-      .limit(10000),
-    db.from("sources")
-      .select("id, domain")
-      .eq("tenant_id", tenantId)
-      .limit(10000),
+  const [mentionCountsData, allSourcesData] = await Promise.all([
+    fetchAllRows(() =>
+      db.from("source_mention_counts")
+        .select("source_id, mention_count")
+        .eq("tenant_id", tenantId)
+    ),
+    fetchAllRows(() =>
+      db.from("sources")
+        .select("id, domain")
+        .eq("tenant_id", tenantId)
+    ),
   ]);
 
   const sourceIdToDomain = new Map<string, string>();
-  for (const s of (allSourcesRes.data || [])) {
+  for (const s of allSourcesData) {
     sourceIdToDomain.set(s.id, s.domain);
   }
 
   // deno-lint-ignore no-explicit-any
-  const allSources = (mentionCountsRes.data || [])
+  const allSources = mentionCountsData
     .filter((r: any) => sourceIdToDomain.has(r.source_id))
     .map((r: any) => ({
       domain: sourceIdToDomain.get(r.source_id)!,
@@ -339,15 +342,16 @@ async function aggregateTenantData(db: any, tenantId: string) {
   // 9. Answer trends (last 30 days)
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const { data: recentAnswers } = await db
-    .from("prompt_answers")
-    .select("searched_at")
-    .eq("tenant_id", tenantId)
-    .eq("deleted", false)
-    .gte("searched_at", thirtyDaysAgo.toISOString());
+  const recentAnswers = await fetchAllRows(() =>
+    db.from("prompt_answers")
+      .select("searched_at")
+      .eq("tenant_id", tenantId)
+      .eq("deleted", false)
+      .gte("searched_at", thirtyDaysAgo.toISOString())
+  );
 
   const answersByWeek: Record<string, number> = {};
-  for (const row of (recentAnswers || [])) {
+  for (const row of recentAnswers) {
     const d = new Date(row.searched_at);
     const weekKey = `W${Math.ceil(d.getDate() / 7)}`;
     answersByWeek[weekKey] = (answersByWeek[weekKey] || 0) + 1;

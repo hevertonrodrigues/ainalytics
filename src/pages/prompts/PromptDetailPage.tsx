@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Database } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
+import { fetchAllRows } from '@/lib/paginate';
 import { useToast } from '@/contexts/ToastContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
@@ -87,61 +88,55 @@ export function PromptDetailPage() {
         setError(t('errors.NOT_FOUND'));
       }
 
-      // 3. Fetch and aggregate sources
-      const { data: sourcesData, error: sourcesErr } = await supabase
-        .from('prompt_answer_sources')
-        .select(`
-          url,
-          title,
-          source:sources!source_id(domain, name),
-          answer:prompt_answers!answer_id(deleted, platform_slug)
-        `)
-        .eq('prompt_id', promptId);
+      // 3. Fetch and aggregate sources — paginated (Supabase hard-caps at 1000/request)
+      const sourcesData = await fetchAllRows(() =>
+        supabase
+          .from('prompt_answer_sources')
+          .select(`
+            url,
+            title,
+            source:sources!source_id(domain, name),
+            answer:prompt_answers!answer_id(deleted, platform_slug)
+          `)
+          .eq('prompt_id', promptId)
+      );
 
-      if (sourcesErr) {
-        console.error('Error fetching sources:', sourcesErr);
-      }
+      const aggregated = new Map<string, PromptSource>();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      for (const item of (sourcesData as any[])) {
+        const source = Array.isArray(item.source) ? item.source[0] : item.source;
+        const answer = Array.isArray(item.answer) ? item.answer[0] : item.answer;
 
-      if (sourcesData) {
-        const aggregated = new Map<string, PromptSource>();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        for (const item of (sourcesData as any[])) {
-          const source = Array.isArray(item.source) ? item.source[0] : item.source;
-          const answer = Array.isArray(item.answer) ? item.answer[0] : item.answer;
+        if (!answer || answer.deleted) continue;
 
-          if (!answer || answer.deleted) continue;
+        const domain = source?.domain || 'Unknown';
+        const name = source?.name || null;
+        const platform = answer.platform_slug || 'AI';
 
-          const domain = source?.domain || 'Unknown';
-          const name = source?.name || null;
-          const platform = answer.platform_slug || 'AI';
-
-          if (!aggregated.has(domain)) {
-            aggregated.set(domain, {
-              domain,
-              name,
-              total_count: 0,
-              platforms: {},
-              references: []
-            });
-          }
-          const entry = aggregated.get(domain)!;
-          entry.total_count++;
-          entry.platforms[platform] = (entry.platforms[platform] || 0) + 1;
-          
-          // Add reference if not already present (based on URL)
-          if (item.url && !entry.references.some(r => r.url === item.url)) {
-            entry.references.push({
-              url: item.url,
-              title: item.title || null
-            });
-          }
+        if (!aggregated.has(domain)) {
+          aggregated.set(domain, {
+            domain,
+            name,
+            total_count: 0,
+            platforms: {},
+            references: []
+          });
         }
-        setPromptSources(
-          Array.from(aggregated.values()).sort((a, b) => b.total_count - a.total_count)
-        );
-      } else {
-        setPromptSources([]);
+        const entry = aggregated.get(domain)!;
+        entry.total_count++;
+        entry.platforms[platform] = (entry.platforms[platform] || 0) + 1;
+        
+        // Add reference if not already present (based on URL)
+        if (item.url && !entry.references.some(r => r.url === item.url)) {
+          entry.references.push({
+            url: item.url,
+            title: item.title || null
+          });
+        }
       }
+      setPromptSources(
+        Array.from(aggregated.values()).sort((a, b) => b.total_count - a.total_count)
+      );
     } catch {
       setError(t('common.error'));
     } finally {
