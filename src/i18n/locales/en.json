@@ -2096,7 +2096,8 @@
       "errors": {
         "generic": "Failed to submit application. Please try again.",
         "invalidFileType": "Invalid format. Please upload PDF, DOC or DOCX.",
-        "fileTooLarge": "File too large. Maximum 10 MB."
+        "fileTooLarge": "File too large. Maximum 10 MB.",
+        "phoneRequired": "Phone is required (minimum 6 digits)"
       }
     }
   }

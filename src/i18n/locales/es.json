@@ -2088,7 +2088,8 @@
       "errors": {
         "generic": "Error al enviar la solicitud. Inténtalo de nuevo.",
         "invalidFileType": "Formato inválido. Sube un PDF, DOC o DOCX.",
-        "fileTooLarge": "Archivo demasiado grande. Máximo 10 MB."
+        "fileTooLarge": "Archivo demasiado grande. Máximo 10 MB.",
+        "phoneRequired": "Teléfono es obligatorio (mínimo 6 dígitos)"
       }
     }
   }

@@ -1226,6 +1226,30 @@ h6 {
   background: var(--color-bg-tertiary);
 }
 
+/* ─── Elevated variant: lighter input backgrounds for glass card forms ─── */
+.auth-form--elevated .auth-input-wrap input {
+  background: var(--color-bg-tertiary);
+}
+
+.auth-form--elevated .cd-input {
+  background: var(--color-bg-tertiary);
+}
+
+.auth-form--elevated .cd-file-input {
+  background: var(--color-bg-tertiary);
+}
+
+.auth-form--elevated .phone-input-container .iti input {
+  background: var(--color-bg-tertiary) !important;
+}
+
+[data-theme="light"] .auth-form--elevated .auth-input-wrap input,
+[data-theme="light"] .auth-form--elevated .cd-input,
+[data-theme="light"] .auth-form--elevated .cd-file-input,
+[data-theme="light"] .auth-form--elevated .phone-input-container .iti input {
+  background: var(--color-bg-elevated) !important;
+}
+
 .auth-input-toggle {
   position: absolute;
   right: 0.75rem;

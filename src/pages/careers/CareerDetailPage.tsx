@@ -3,13 +3,21 @@ import { useParams, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, MapPin, FileText, Building2, Briefcase,
-  Upload, CheckCircle2, AlertCircle, Loader2, Sparkles,
-  User, Mail, Phone, Linkedin,
+  Upload, CheckCircle2, AlertCircle,
+  User, Mail, Linkedin,
 } from 'lucide-react';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { LandingHeader } from '@/pages/landing/LandingHeader';
 import { LandingFooter } from '@/pages/landing/LandingFooter';
 import { executeRecaptcha } from '@/lib/recaptcha';
+import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
+import type { Iso2 } from 'intl-tel-input/data';
+
+const LANGUAGE_COUNTRY_MAP: Record<string, Iso2> = {
+  'pt-br': 'br',
+  'es': 'es',
+  'en': 'us',
+};
 
 /* ─── Types ────────────────────────────────────────────── */
 
@@ -66,7 +74,7 @@ function renderMarkdown(md: string): string {
 
 export function CareerDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,6 +90,7 @@ export function CareerDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -142,9 +151,18 @@ export function CareerDetailPage() {
       reader.readAsDataURL(file);
     });
 
+  const isPhoneInvalid = phoneTouched && phone && getPhoneDigitCount(phone) < MIN_PHONE_DIGITS;
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!opportunity) return;
+
+    // Validate phone
+    if (!phone || getPhoneDigitCount(phone) < MIN_PHONE_DIGITS) {
+      setError(t('careers.form.errors.phoneRequired'));
+      setPhoneTouched(true);
+      return;
+    }
 
     setError('');
     setSubmitting(true);
@@ -418,43 +436,22 @@ export function CareerDetailPage() {
           height: 1.125rem;
           color: var(--color-brand-primary);
         }
-        .cd-field {
-          margin-bottom: 1.25rem;
-        }
-        .cd-field label {
-          display: flex;
-          align-items: center;
-          gap: 0.375rem;
-          font-size: 0.8125rem;
-          font-weight: 600;
-          color: var(--color-text-secondary);
-          margin-bottom: 0.5rem;
-        }
-        .cd-field label svg {
-          width: 0.75rem;
-          height: 0.75rem;
-          color: var(--color-text-muted);
-        }
-        .cd-field .required-star {
-          color: var(--color-brand-accent, #fd79a8);
-          font-weight: 700;
-        }
         .cd-input {
           width: 100%;
-          padding: 0.75rem 1rem;
-          border-radius: 10px;
-          background: var(--color-bg-secondary, #12121a);
+          padding: 0.625rem 0.875rem;
+          border-radius: var(--radius-xs, 10px);
+          background: var(--color-bg-secondary);
           border: 1px solid var(--color-glass-border);
           color: var(--color-text-primary);
           font-size: 0.875rem;
-          font-family: inherit;
+          font-family: var(--font-body, inherit);
           transition: border-color 0.2s ease, box-shadow 0.2s ease;
           outline: none;
           box-sizing: border-box;
         }
         .cd-input:focus {
           border-color: var(--color-brand-primary);
-          box-shadow: 0 0 0 3px rgba(108,92,231,0.15);
+          box-shadow: 0 0 0 3px var(--color-brand-glow, rgba(108,92,231,0.15));
         }
         .cd-input::placeholder {
           color: var(--color-text-muted);
@@ -476,8 +473,8 @@ export function CareerDetailPage() {
           align-items: center;
           gap: 0.75rem;
           padding: 0.75rem 1rem;
-          border-radius: 10px;
-          background: var(--color-bg-secondary, #12121a);
+          border-radius: var(--radius-xs, 10px);
+          background: var(--color-bg-secondary);
           border: 1px dashed var(--color-glass-border);
           cursor: pointer;
           transition: border-color 0.2s ease;
@@ -513,37 +510,6 @@ export function CareerDetailPage() {
           height: 1px;
           background: var(--color-glass-border);
           margin: 1.5rem 0;
-        }
-        .cd-submit-btn {
-          width: 100%;
-          padding: 0.875rem 1.5rem;
-          border-radius: 12px;
-          border: none;
-          background: linear-gradient(135deg, var(--color-brand-primary), #7c6cf0);
-          color: white;
-          font-size: 0.9375rem;
-          font-weight: 700;
-          font-family: var(--font-display);
-          cursor: pointer;
-          transition: all 0.25s ease;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 0.5rem;
-          position: relative;
-          z-index: 1;
-        }
-        .cd-submit-btn:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 8px 24px rgba(108,92,231,0.35);
-        }
-        .cd-submit-btn:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-        .cd-submit-btn svg {
-          width: 1rem;
-          height: 1rem;
         }
         .cd-alert {
           display: flex;
@@ -735,7 +701,7 @@ export function CareerDetailPage() {
                 ) : (
                   <div className="cd-form-card">
                     <h3 className="cd-form-title">
-                      <Sparkles /> {t('careers.form.title')}
+                      {t('careers.form.title')}
                     </h3>
 
                     {error && (
@@ -744,57 +710,85 @@ export function CareerDetailPage() {
                       </div>
                     )}
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={handleSubmit} className="auth-form auth-form--elevated">
                       {/* Personal info */}
-                      <div className="cd-field">
-                        <label><User /> {t('careers.form.fullName')} <span className="required-star">*</span></label>
-                        <input
-                          type="text"
-                          className="cd-input"
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          required
-                          placeholder={t('careers.form.fullNamePlaceholder')}
-                        />
+                      <div className="auth-field">
+                        <label htmlFor="careers-name">
+                          {t('careers.form.fullName')} <span className="text-error">*</span>
+                        </label>
+                        <div className="auth-input-wrap">
+                          <User className="auth-input-icon" />
+                          <input
+                            id="careers-name"
+                            type="text"
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            required
+                            placeholder={t('careers.form.fullNamePlaceholder')}
+                            autoComplete="name"
+                          />
+                        </div>
                       </div>
 
-                      <div className="cd-field">
-                        <label><Mail /> {t('careers.form.email')} <span className="required-star">*</span></label>
-                        <input
-                          type="email"
-                          className="cd-input"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          required
-                          placeholder={t('careers.form.emailPlaceholder')}
-                        />
+                      <div className="auth-field">
+                        <label htmlFor="careers-email">
+                          {t('careers.form.email')} <span className="text-error">*</span>
+                        </label>
+                        <div className="auth-input-wrap">
+                          <Mail className="auth-input-icon" />
+                          <input
+                            id="careers-email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            placeholder={t('careers.form.emailPlaceholder')}
+                            autoComplete="email"
+                          />
+                        </div>
                       </div>
 
-                      <div className="cd-field">
-                        <label><Phone /> {t('careers.form.phone')}</label>
-                        <input
-                          type="tel"
-                          className="cd-input"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          placeholder={t('careers.form.phonePlaceholder')}
-                        />
+                      <div className="auth-field">
+                        <label htmlFor="careers-phone">
+                          {t('careers.form.phone')} <span className="text-error">*</span>
+                        </label>
+                        <div className="auth-input-wrap">
+                          <PhoneInput
+                            id="careers-phone"
+                            value={phone}
+                            onChange={(val) => {
+                              setPhone(val);
+                              setPhoneTouched(false);
+                            }}
+                            onBlur={() => setPhoneTouched(true)}
+                            defaultCountry={LANGUAGE_COUNTRY_MAP[i18n.language] || 'auto'}
+                            required
+                            placeholder={t('careers.form.phonePlaceholder')}
+                            className={isPhoneInvalid ? 'border-error' : ''}
+                          />
+                        </div>
                       </div>
 
-                      <div className="cd-field">
-                        <label><Linkedin /> {t('careers.form.linkedin')}</label>
-                        <input
-                          type="url"
-                          className="cd-input"
-                          value={linkedinUrl}
-                          onChange={(e) => setLinkedinUrl(e.target.value)}
-                          placeholder={t('careers.form.linkedinPlaceholder')}
-                        />
+                      <div className="auth-field">
+                        <label htmlFor="careers-linkedin">
+                          {t('careers.form.linkedin')}
+                        </label>
+                        <div className="auth-input-wrap">
+                          <Linkedin className="auth-input-icon" />
+                          <input
+                            id="careers-linkedin"
+                            type="url"
+                            value={linkedinUrl}
+                            onChange={(e) => setLinkedinUrl(e.target.value)}
+                            placeholder={t('careers.form.linkedinPlaceholder')}
+                            autoComplete="url"
+                          />
+                        </div>
                       </div>
 
                       {/* Resume upload */}
-                      <div className="cd-field">
-                        <label><Upload /> {t('careers.form.resume')}</label>
+                      <div className="auth-field">
+                        <label>{t('careers.form.resume')}</label>
                         <label className="cd-file-input">
                           <input
                             type="file"
@@ -821,20 +815,22 @@ export function CareerDetailPage() {
                           <h4 className="cd-questions-title">{t('careers.form.questionsTitle')}</h4>
 
                           {opportunity.questions.map((q) => (
-                            <div key={q.id} className="cd-field">
+                            <div key={q.id} className="auth-field">
                               <label>
                                 {q.question_text}
-                                {q.is_required && <span className="required-star">*</span>}
+                                {q.is_required && <span className="text-error">*</span>}
                               </label>
 
                               {q.question_type === 'text' && (
-                                <input
-                                  type="text"
-                                  className="cd-input"
-                                  value={answers[q.id] || ''}
-                                  onChange={(e) => updateAnswer(q.id, e.target.value)}
-                                  required={q.is_required}
-                                />
+                                <div className="auth-input-wrap">
+                                  <input
+                                    type="text"
+                                    value={answers[q.id] || ''}
+                                    onChange={(e) => updateAnswer(q.id, e.target.value)}
+                                    required={q.is_required}
+                                    style={{ paddingLeft: '0.875rem' }}
+                                  />
+                                </div>
                               )}
 
                               {q.question_type === 'textarea' && (
@@ -907,15 +903,13 @@ export function CareerDetailPage() {
                         </>
                       )}
 
-                      <div className="cd-divider" />
-
                       <button
                         type="submit"
-                        className="cd-submit-btn"
+                        className="auth-submit"
                         disabled={submitting}
                       >
                         {submitting ? (
-                          <><Loader2 style={{ animation: 'spin 1s linear infinite' }} /> {t('careers.form.submitting')}</>
+                          <span className="auth-spinner" />
                         ) : (
                           t('careers.form.submit')
                         )}

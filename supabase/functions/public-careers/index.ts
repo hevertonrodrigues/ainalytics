@@ -98,6 +98,9 @@ serve(async (req: Request) => {
       if (!body.email || typeof body.email !== "string" || !EMAIL_REGEX.test(body.email.trim())) {
         return logger.done(withCors(req, badRequest("A valid email is required")));
       }
+      if (!body.phone || typeof body.phone !== "string" || !body.phone.trim()) {
+        return logger.done(withCors(req, badRequest("phone is required")));
+      }
 
       // ── Verify reCAPTCHA ──
       const recaptcha = await verifyRecaptcha(body.recaptcha_token, "careers_apply");
@@ -193,7 +196,7 @@ serve(async (req: Request) => {
           opportunity_id: opp.id,
           full_name: body.full_name.trim(),
           email: body.email.trim().toLowerCase(),
-          phone: body.phone?.trim() || null,
+          phone: body.phone.trim(),
           linkedin_url: body.linkedin_url?.trim() || null,
           resume_url,
           answers,

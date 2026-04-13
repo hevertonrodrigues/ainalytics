@@ -2199,7 +2199,8 @@
       "errors": {
         "generic": "Erro ao enviar candidatura. Tente novamente.",
         "invalidFileType": "Formato inválido. Envie PDF, DOC ou DOCX.",
-        "fileTooLarge": "Arquivo muito grande. Máximo 10 MB."
+        "fileTooLarge": "Arquivo muito grande. Máximo 10 MB.",
+        "phoneRequired": "Telefone é obrigatório (mínimo 6 dígitos)"
       }
     }
   }
