@@ -5,6 +5,7 @@ import { Briefcase, MapPin, FileText, ChevronRight, Building2, Sparkles } from '
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { LandingHeader } from '@/pages/landing/LandingHeader';
 import { LandingFooter } from '@/pages/landing/LandingFooter';
+import { useForceLightTheme } from '@/hooks/useForceLightTheme';
 
 interface Opportunity {
   id: string;
@@ -19,6 +20,7 @@ interface Opportunity {
 
 export function CareersPage() {
   const { t } = useTranslation();
+  useForceLightTheme();
   const [scrolled, setScrolled] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);

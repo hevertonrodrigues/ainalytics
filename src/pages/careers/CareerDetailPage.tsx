@@ -11,6 +11,7 @@ import { LandingHeader } from '@/pages/landing/LandingHeader';
 import { LandingFooter } from '@/pages/landing/LandingFooter';
 import { executeRecaptcha } from '@/lib/recaptcha';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
+import { useForceLightTheme } from '@/hooks/useForceLightTheme';
 import type { Iso2 } from 'intl-tel-input/data';
 
 const LANGUAGE_COUNTRY_MAP: Record<string, Iso2> = {
@@ -75,6 +76,7 @@ function renderMarkdown(md: string): string {
 export function CareerDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { t, i18n } = useTranslation();
+  useForceLightTheme();
   const [scrolled, setScrolled] = useState(false);
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [loading, setLoading] = useState(true);
