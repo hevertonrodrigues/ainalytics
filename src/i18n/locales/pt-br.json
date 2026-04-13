@@ -1809,6 +1809,30 @@
       "efficiencyAvg": "média",
       "spendVsConversions": "Gasto vs Conversões",
       "noConversionsYet": "Sem conversões no período selecionado"
+    },
+    "jobApps": {
+      "title": "Candidaturas",
+      "subtitle": "{{count}} candidaturas recebidas",
+      "searchPlaceholder": "Buscar por nome, email ou vaga...",
+      "colName": "Candidato",
+      "colEmail": "Email",
+      "colPhone": "Telefone",
+      "colOpportunity": "Vaga",
+      "colStatus": "Status",
+      "colDate": "Data",
+      "noApplications": "Nenhuma candidatura encontrada",
+      "viewDetails": "Ver detalhes",
+      "resume": "Currículo",
+      "viewResume": "Baixar currículo",
+      "answers": "Respostas da Triagem",
+      "appliedAt": "Candidatou-se em",
+      "status": {
+        "new": "Novo",
+        "reviewing": "Analisando",
+        "interview": "Entrevista",
+        "rejected": "Rejeitado",
+        "hired": "Contratado"
+      }
     }
   },
   "proposal": {

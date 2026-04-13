@@ -21,6 +21,7 @@ import {
   BarChart3,
   Megaphone,
   Footprints,
+  Briefcase,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -46,6 +47,7 @@ const SA_NAV: NavItem[] = [
   { key: 'sa.costs.title', path: '/sa/costs', icon: DollarSign },
   { key: 'sa.metaAds.title', path: '/sa/meta-ads', icon: Megaphone },
   { key: 'timeline.title', path: '/sa/monitoring', icon: BarChart3 },
+  { key: 'sa.jobApps.title', path: '/sa/job-applications', icon: Briefcase },
 ];
 
 export function SASidebar() {

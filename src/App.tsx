@@ -27,6 +27,7 @@ const SAAICostsPage = lazy(() => import('@/pages/sa/AICostsPage').then(m => ({ d
 const SAMetaAdsPage = lazy(() => import('@/pages/sa/MetaAdsPage').then(m => ({ default: m.MetaAdsPage })));
 const SAMonitoringTimelinePage = lazy(() => import('@/pages/sa/MonitoringTimelinePage').then(m => ({ default: m.MonitoringTimelinePage })));
 const SAAnalyticsPage = lazy(() => import('@/pages/sa/AnalyticsPage').then(m => ({ default: m.AnalyticsPage })));
+const SAJobApplicationsPage = lazy(() => import('@/pages/sa/JobApplicationsPage').then(m => ({ default: m.JobApplicationsPage })));
 const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 
 // Lazy-loaded page components (route-level code splitting)
@@ -144,6 +145,7 @@ export function App() {
               <Route path="meta-ads" element={<SAMetaAdsPage />} />
               <Route path="monitoring" element={<SAMonitoringTimelinePage />} />
               <Route path="analytics" element={<SAAnalyticsPage />} />
+              <Route path="job-applications" element={<SAJobApplicationsPage />} />
               <Route path="users/:userId" element={<UserDetailPage />} />
             </Route>
 

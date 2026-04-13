@@ -1043,6 +1043,30 @@
       "efficiencyAvg": "avg",
       "spendVsConversions": "Spend vs Conversions",
       "noConversionsYet": "No conversions in the selected period"
+    },
+    "jobApps": {
+      "title": "Job Applications",
+      "subtitle": "{{count}} applications received",
+      "searchPlaceholder": "Search by name, email, or opportunity...",
+      "colName": "Candidate",
+      "colEmail": "Email",
+      "colPhone": "Phone",
+      "colOpportunity": "Opportunity",
+      "colStatus": "Status",
+      "colDate": "Applied",
+      "noApplications": "No applications found",
+      "viewDetails": "View details",
+      "resume": "Resume",
+      "viewResume": "Download resume",
+      "answers": "Screening Answers",
+      "appliedAt": "Applied at",
+      "status": {
+        "new": "New",
+        "reviewing": "Reviewing",
+        "interview": "Interview",
+        "rejected": "Rejected",
+        "hired": "Hired"
+      }
     }
   },
   "timeline": {
