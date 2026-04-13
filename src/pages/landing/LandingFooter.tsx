@@ -44,6 +44,7 @@ export function LandingFooter() {
           <h3>{t('landing.footer.company')}</h3>
           <a href="#about">{t('landing.footer.about')}</a>
           <a href="#blog">{t('landing.footer.blog')}</a>
+          <Link to="/careers">{t('landing.footer.careers')}</Link>
         </div>
 
         <div className="landing-footer-links">

@@ -445,6 +445,9 @@ verify_jwt = true
 enabled = true
 verify_jwt = true
 
+[functions.public-careers]
+verify_jwt = false
+
 [functions.admin-settings]
 enabled = true
 verify_jwt = true

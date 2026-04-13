@@ -63,6 +63,8 @@ const ProposalFullPage = lazy(() => import('@/pages/proposal/ProposalFullPage').
 const EbookPage = lazy(() => import('@/pages/ebook/EbookPage').then(m => ({ default: m.EbookPage })));
 const FreeAnalysisPage = lazy(() => import('@/pages/sales/FreeAnalysisPage').then(m => ({ default: m.FreeAnalysisPage })));
 const FreeAnalysisResultsPage = lazy(() => import('@/pages/sales/FreeAnalysisResultsPage').then(m => ({ default: m.FreeAnalysisResultsPage })));
+const CareersPage = lazy(() => import('@/pages/careers/CareersPage').then(m => ({ default: m.CareersPage })));
+const CareerDetailPage = lazy(() => import('@/pages/careers/CareerDetailPage').then(m => ({ default: m.CareerDetailPage })));
 
 const SUPPORTED_LANGS = new Set(
   (Array.isArray(i18n.options.supportedLngs) ? i18n.options.supportedLngs : ['en', 'es', 'pt-br']).filter(
@@ -114,6 +116,8 @@ export function App() {
           <Route path="/privacy" element={<LegalPage />} />
           <Route path="/proposal/:slug" element={<ProposalPublicPage />} />
           <Route path="/proposal/:slug/full" element={<ProposalFullPage />} />
+          <Route path="/careers" element={<CareersPage />} />
+          <Route path="/careers/:slug" element={<CareerDetailPage />} />
 
           {/* All other routes require AuthProvider */}
           <Route element={<AuthProvider><AuthOutlet /></AuthProvider>}>

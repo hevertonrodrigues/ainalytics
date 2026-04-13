@@ -486,7 +486,13 @@
     "hero": {
       "title": "La IA está hablando",
       "titleHighlight": "sobre",
-      "rotatingWords": ["USTED.", "SU MARCA.", "SU NEGOCIO.", "SUS PRODUCTOS.", "SUS COMPETIDORES."],
+      "rotatingWords": [
+        "USTED.",
+        "SU MARCA.",
+        "SU NEGOCIO.",
+        "SUS PRODUCTOS.",
+        "SUS COMPETIDORES."
+      ],
       "titleEnd": "¿Está escuchando?",
       "subtitle": "230 millones de personas le hicieron una pregunta a ChatGPT la semana pasada. Muchas de ellas preguntaron sobre su industria. Si su marca no aparece en esas respuestas — la de alguien más sí.",
       "cta": "Vea qué dice la IA sobre usted",
@@ -645,7 +651,7 @@
       "legal": "Legal",
       "about": "Nosotros",
       "blog": "Blog",
-      "careers": "Empleo",
+      "careers": "Trabaja con Nosotros",
       "privacy": "Política de Privacidad",
       "terms": "Términos de Servicio",
       "rights": "Todos los derechos reservados.",
@@ -1213,7 +1219,6 @@
     "alreadyLinked": "Esta organización ya tiene una empresa vinculada.",
     "progressTitle": "Análisis Completo en Curso",
     "progressSubtitle": "Estamos realizando un análisis exhaustivo de su sitio web — rastreando todas las páginas, verificando factores técnicos y generando insights con IA. Esto puede tardar unos minutos.",
-
     "msg": {
       "starting": "Iniciando análisis exhaustivo de {{domain}}…",
       "checkingRobots": "Escaneando robots.txt para permisos de rastreadores de IA…",
@@ -1323,7 +1328,6 @@
     "targetLanguage": "Idioma Objetivo",
     "targetLanguageHint": "El informe de IA se generará en este idioma y en inglés.",
     "reportLanguage": "Idioma del Informe",
-
     "scorePerfect": "Perfecto",
     "scoreGood": "Bueno",
     "scoreNeutral": "Neutro",
@@ -1337,7 +1341,6 @@
     "phaseBuildingPageList": "Construyendo lista de páginas...",
     "phaseScrapingPages": "Analizando páginas del sitio...",
     "phaseSavingScrapedData": "Guardando datos extraídos...",
-
     "phaseAlgorithmicScoring": "Calculando puntajes algorítmicos...",
     "phaseBuildingPrompt": "Preparando análisis de IA...",
     "phaseAiAnalysis": "IA analizando tu sitio web...",
@@ -1345,7 +1348,6 @@
     "phaseComputingScores": "Calculando puntajes GEO...",
     "phaseSavingReport": "Guardando reporte final...",
     "phaseFinishing": "Finalizando...",
-
     "pdfReportTitle": "Informe de Análisis GEO",
     "pdfGeoFactorScorecard": "Panel de Factores GEO",
     "pdfContentDataOverview": "Resumen de Contenido y Datos",
@@ -1398,10 +1400,22 @@
         "description": "Ainalytics monitorea lo que las plataformas de IA dicen sobre su marca en ChatGPT, Gemini, Claude, Grok y más. Vamos a guiarlo por las funciones principales de la plataforma.",
         "detail": "En los próximos pasos, aprenderá a analizar su empresa, crear tópicos y prompts, seleccionar modelos de IA y rastrear sus resultados de visibilidad.",
         "features": {
-          "0": { "title": "Temas y Categorías", "desc": "Agrupe sus prompts lógicamente en categorías distintas para una mejor organización y monitoreo." },
-          "1": { "title": "Prompts", "desc": "Gestione sus entradas e instrucciones de IA para probar frente a múltiples plataformas y modelos." },
-          "2": { "title": "Fuentes", "desc": "Organice materiales de referencia y bases de conocimiento que fundamenten las respuestas de su IA." },
-          "3": { "title": "Generación LLMs.txt", "desc": "Genere automáticamente un archivo llms.txt basado en su sitio web, listo para que lo consuman LLMs externos." }
+          "0": {
+            "title": "Temas y Categorías",
+            "desc": "Agrupe sus prompts lógicamente en categorías distintas para una mejor organización y monitoreo."
+          },
+          "1": {
+            "title": "Prompts",
+            "desc": "Gestione sus entradas e instrucciones de IA para probar frente a múltiples plataformas y modelos."
+          },
+          "2": {
+            "title": "Fuentes",
+            "desc": "Organice materiales de referencia y bases de conocimiento que fundamenten las respuestas de su IA."
+          },
+          "3": {
+            "title": "Generación LLMs.txt",
+            "desc": "Genere automáticamente un archivo llms.txt basado en su sitio web, listo para que lo consuman LLMs externos."
+          }
         }
       },
       "company": {
@@ -1409,9 +1423,18 @@
         "description": "Nuestro analizador GEO rastrea su sitio web, verifica factores técnicos como robots.txt, sitemap y datos estructurados, luego genera un informe impulsado por IA con recomendaciones accionables.",
         "detail": "Comprenda exactamente cómo las plataformas de IA ven su sitio web — desde la calidad del contenido hasta la preparación técnica. Este es su punto de partida para la optimización GEO.",
         "features": {
-          "0": { "title": "Rastreo Web", "desc": "Escaneamos sus páginas, meta tags, marcado schema y todos los recursos técnicos." },
-          "1": { "title": "25 Factores GEO", "desc": "Cada página se evalúa en 25 factores de optimización en 4 categorías." },
-          "2": { "title": "Informe IA", "desc": "Obtenga un análisis detallado de IA con fortalezas, debilidades y recomendaciones." }
+          "0": {
+            "title": "Rastreo Web",
+            "desc": "Escaneamos sus páginas, meta tags, marcado schema y todos los recursos técnicos."
+          },
+          "1": {
+            "title": "25 Factores GEO",
+            "desc": "Cada página se evalúa en 25 factores de optimización en 4 categorías."
+          },
+          "2": {
+            "title": "Informe IA",
+            "desc": "Obtenga un análisis detallado de IA con fortalezas, debilidades y recomendaciones."
+          }
         }
       },
       "models": {
@@ -1419,9 +1442,18 @@
         "description": "Elija qué plataformas de IA monitorear — ChatGPT, Claude, Gemini, Grok y más. Cada plataforma ve su marca de manera diferente, y necesita visibilidad en todas.",
         "detail": "Diferentes modelos de IA tienen diferentes datos de entrenamiento y comportamientos. Al monitorear múltiples plataformas, obtiene una imagen completa de su visibilidad IA.",
         "features": {
-          "0": { "title": "Multi-Plataforma", "desc": "Monitoree 5+ plataformas de IA principales simultáneamente en un solo dashboard." },
-          "1": { "title": "Selección de Modelos", "desc": "Elija modelos específicos por plataforma para un seguimiento granular." },
-          "2": { "title": "Modo Búsqueda Web", "desc": "Pruebe cómo responde la IA con y sin búsqueda web en tiempo real." }
+          "0": {
+            "title": "Multi-Plataforma",
+            "desc": "Monitoree 5+ plataformas de IA principales simultáneamente en un solo dashboard."
+          },
+          "1": {
+            "title": "Selección de Modelos",
+            "desc": "Elija modelos específicos por plataforma para un seguimiento granular."
+          },
+          "2": {
+            "title": "Modo Búsqueda Web",
+            "desc": "Pruebe cómo responde la IA con y sin búsqueda web en tiempo real."
+          }
         }
       },
       "topics": {
@@ -1429,10 +1461,22 @@
         "description": "Los Temas son categorías que representan sus productos, servicios o segmentos de mercado. Seleccione los relevantes para organizar su monitoreo.",
         "detail": "Elija entre 1 y 5 temas. Puede agregar más después desde su dashboard.",
         "items": {
-          "brand": { "title": "Reputación de Marca", "desc": "Monitoree cómo las plataformas de IA perciben y recomiendan su marca." },
-          "products": { "title": "Productos y Servicios", "desc": "Rastree menciones y recomendaciones de sus ofertas específicas." },
-          "industry": { "title": "Tendencias del Sector", "desc": "Vea cómo las plataformas de IA discuten su sector y dónde encaja usted." },
-          "compete": { "title": "Panorama Competitivo", "desc": "Compare su visibilidad con competidores en las recomendaciones de IA." }
+          "brand": {
+            "title": "Reputación de Marca",
+            "desc": "Monitoree cómo las plataformas de IA perciben y recomiendan su marca."
+          },
+          "products": {
+            "title": "Productos y Servicios",
+            "desc": "Rastree menciones y recomendaciones de sus ofertas específicas."
+          },
+          "industry": {
+            "title": "Tendencias del Sector",
+            "desc": "Vea cómo las plataformas de IA discuten su sector y dónde encaja usted."
+          },
+          "compete": {
+            "title": "Panorama Competitivo",
+            "desc": "Compare su visibilidad con competidores en las recomendaciones de IA."
+          }
         }
       },
       "prompts": {
@@ -1441,24 +1485,60 @@
         "detail": "Cada tema debe tener al menos 1 prompt. Los prompts se ejecutan automáticamente en todas las plataformas seleccionadas.",
         "items": {
           "brand": {
-            "0": { "title": "¿Qué es [Empresa]?", "desc": "Prueba el reconocimiento básico de marca y cómo la IA describe su empresa." },
-            "1": { "title": "¿Es [Empresa] confiable?", "desc": "Mide la reputación y señales de confianza asociadas a su marca." },
-            "2": { "title": "Reseñas de [Empresa]", "desc": "Verifica qué muestra la IA sobre reseñas y satisfacción de clientes." }
+            "0": {
+              "title": "¿Qué es [Empresa]?",
+              "desc": "Prueba el reconocimiento básico de marca y cómo la IA describe su empresa."
+            },
+            "1": {
+              "title": "¿Es [Empresa] confiable?",
+              "desc": "Mide la reputación y señales de confianza asociadas a su marca."
+            },
+            "2": {
+              "title": "Reseñas de [Empresa]",
+              "desc": "Verifica qué muestra la IA sobre reseñas y satisfacción de clientes."
+            }
           },
           "products": {
-            "0": { "title": "Mejores proveedores de [tipo de producto]", "desc": "Prueba si la IA recomienda sus productos en búsquedas de categoría." },
-            "1": { "title": "[Producto] vs alternativas", "desc": "Compara cómo la IA posiciona su oferta frente a competidores." },
-            "2": { "title": "¿Cómo elegir un [tipo de producto]?", "desc": "Verifica si su producto aparece en respuestas de guía de compra." }
+            "0": {
+              "title": "Mejores proveedores de [tipo de producto]",
+              "desc": "Prueba si la IA recomienda sus productos en búsquedas de categoría."
+            },
+            "1": {
+              "title": "[Producto] vs alternativas",
+              "desc": "Compara cómo la IA posiciona su oferta frente a competidores."
+            },
+            "2": {
+              "title": "¿Cómo elegir un [tipo de producto]?",
+              "desc": "Verifica si su producto aparece en respuestas de guía de compra."
+            }
           },
           "industry": {
-            "0": { "title": "Principales empresas en [sector]", "desc": "Prueba si la IA lo incluye entre los líderes del sector." },
-            "1": { "title": "Tendencias en [sector] 2025", "desc": "Verifica si su marca aparece en discusiones prospectivas del sector." },
-            "2": { "title": "Líderes de mercado en [sector]", "desc": "Mide su posicionamiento en consultas sobre liderazgo de mercado." }
+            "0": {
+              "title": "Principales empresas en [sector]",
+              "desc": "Prueba si la IA lo incluye entre los líderes del sector."
+            },
+            "1": {
+              "title": "Tendencias en [sector] 2025",
+              "desc": "Verifica si su marca aparece en discusiones prospectivas del sector."
+            },
+            "2": {
+              "title": "Líderes de mercado en [sector]",
+              "desc": "Mide su posicionamiento en consultas sobre liderazgo de mercado."
+            }
           },
           "compete": {
-            "0": { "title": "[Empresa] vs [Competidor]", "desc": "Consultas de comparación directa entre usted y competidores clave." },
-            "1": { "title": "Mejor alternativa a [Competidor]", "desc": "Prueba si la IA lo sugiere como alternativa a competidores." },
-            "2": { "title": "¿Por qué elegir [Empresa]?", "desc": "Evalúa el razonamiento de la IA para recomendar su marca." }
+            "0": {
+              "title": "[Empresa] vs [Competidor]",
+              "desc": "Consultas de comparación directa entre usted y competidores clave."
+            },
+            "1": {
+              "title": "Mejor alternativa a [Competidor]",
+              "desc": "Prueba si la IA lo sugiere como alternativa a competidores."
+            },
+            "2": {
+              "title": "¿Por qué elegir [Empresa]?",
+              "desc": "Evalúa el razonamiento de la IA para recomendar su marca."
+            }
           }
         }
       },
@@ -1467,9 +1547,18 @@
         "description": "Su dashboard muestra puntuaciones de visibilidad, frecuencia de mención, citas de fuentes y comparaciones competitivas — todo en un solo lugar. Vea exactamente dónde se encuentra en el panorama de IA.",
         "detail": "Desde scorecards de alto nivel hasta análisis de respuestas individuales, cada dato le ayuda a comprender y mejorar su visibilidad IA.",
         "features": {
-          "0": { "title": "Puntuaciones de Visibilidad", "desc": "Rastree su tasa de mención y sentimiento en todas las plataformas IA monitoreadas." },
-          "1": { "title": "Análisis de Fuentes", "desc": "Vea qué sitios web cita la IA al hablar de usted o sus competidores." },
-          "2": { "title": "Tendencias e Insights", "desc": "Insights semanales muestran riesgos emergentes y oportunidades en su visibilidad IA." }
+          "0": {
+            "title": "Puntuaciones de Visibilidad",
+            "desc": "Rastree su tasa de mención y sentimiento en todas las plataformas IA monitoreadas."
+          },
+          "1": {
+            "title": "Análisis de Fuentes",
+            "desc": "Vea qué sitios web cita la IA al hablar de usted o sus competidores."
+          },
+          "2": {
+            "title": "Tendencias e Insights",
+            "desc": "Insights semanales muestran riesgos emergentes y oportunidades en su visibilidad IA."
+          }
         }
       }
     },
@@ -1957,5 +2046,50 @@
     "stickyCta": "Descargar Guía Gratis",
     "successTitle": "¡Guía en camino!",
     "successDesc": "Revisa tu bandeja de entrada para descargar el PDF."
+  },
+  "careers": {
+    "badge": "Únete al equipo",
+    "title": {
+      "prefix": "Construye el futuro de la",
+      "accent": "visibilidad digital con IA"
+    },
+    "subtitle": "Buscamos personas talentosas para transformar cómo las empresas son descubiertas por la inteligencia artificial. Consulta nuestras vacantes abiertas.",
+    "backToList": "Volver a vacantes",
+    "empty": {
+      "title": "No hay vacantes abiertas en este momento",
+      "description": "Siempre estamos buscando talento. Vuelve pronto para ver nuevas oportunidades."
+    },
+    "notFound": {
+      "title": "Vacante no encontrada",
+      "description": "Esta vacante puede haber sido cerrada o el enlace es incorrecto.",
+      "backButton": "Ver todas las vacantes"
+    },
+    "form": {
+      "title": "Aplica ahora",
+      "fullName": "Nombre completo",
+      "fullNamePlaceholder": "Tu nombre completo",
+      "email": "Correo electrónico",
+      "emailPlaceholder": "tu@email.com",
+      "phone": "Teléfono",
+      "phonePlaceholder": "+34 612 345 678",
+      "linkedin": "LinkedIn",
+      "linkedinPlaceholder": "https://linkedin.com/in/tuperfil",
+      "resume": "Currículum",
+      "resumePlaceholder": "Haz clic para subir PDF, DOC o DOCX (máx. 10 MB)",
+      "questionsTitle": "Preguntas adicionales",
+      "selectPlaceholder": "Selecciona una opción",
+      "submit": "Enviar solicitud",
+      "submitting": "Enviando...",
+      "success": {
+        "title": "¡Solicitud enviada!",
+        "description": "¡Gracias por aplicar! Revisaremos tu perfil y te contactaremos pronto.",
+        "backButton": "Ver otras vacantes"
+      },
+      "errors": {
+        "generic": "Error al enviar la solicitud. Inténtalo de nuevo.",
+        "invalidFileType": "Formato inválido. Sube un PDF, DOC o DOCX.",
+        "fileTooLarge": "Archivo demasiado grande. Máximo 10 MB."
+      }
+    }
   }
 }

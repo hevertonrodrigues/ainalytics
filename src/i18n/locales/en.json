@@ -486,7 +486,13 @@
     "hero": {
       "title": "AI is talking",
       "titleHighlight": "about",
-      "rotatingWords": ["YOU.", "YOUR BRAND.", "YOUR BUSINESS.", "YOUR PRODUCTS.", "YOUR COMPETITORS."],
+      "rotatingWords": [
+        "YOU.",
+        "YOUR BRAND.",
+        "YOUR BUSINESS.",
+        "YOUR PRODUCTS.",
+        "YOUR COMPETITORS."
+      ],
       "titleEnd": "Are you even listening?",
       "subtitle": "230 million people asked ChatGPT a question last week. Many of them were asking about your industry. If your brand doesn't show up in those answers — someone else's does.",
       "cta": "See what AI says about you",
@@ -1221,7 +1227,6 @@
     "alreadyLinked": "This tenant already has a company linked.",
     "progressTitle": "Deep Analysis in Progress",
     "progressSubtitle": "We're performing a comprehensive analysis of your website — crawling all pages, checking technical factors, and generating AI-powered insights. This may take a few minutes.",
-
     "msg": {
       "starting": "Starting comprehensive analysis of {{domain}}…",
       "checkingRobots": "Scanning robots.txt for AI crawler permissions…",
@@ -1331,7 +1336,6 @@
     "targetLanguage": "Target Language",
     "targetLanguageHint": "The AI report will be generated in this language and in English.",
     "reportLanguage": "Report Language",
-
     "scorePerfect": "Perfect",
     "scoreGood": "Good",
     "scoreNeutral": "Neutral",
@@ -1345,7 +1349,6 @@
     "phaseBuildingPageList": "Building page list...",
     "phaseScrapingPages": "Scraping website pages...",
     "phaseSavingScrapedData": "Saving scraped data...",
-
     "phaseAlgorithmicScoring": "Computing algorithmic scores...",
     "phaseBuildingPrompt": "Preparing AI analysis...",
     "phaseAiAnalysis": "AI is analyzing your website...",
@@ -1353,7 +1356,6 @@
     "phaseComputingScores": "Computing GEO scores...",
     "phaseSavingReport": "Saving final report...",
     "phaseFinishing": "Finishing up...",
-
     "pdfReportTitle": "GEO Analysis Report",
     "pdfGeoFactorScorecard": "GEO Factor Scorecard",
     "pdfContentDataOverview": "Content & Data Overview",
@@ -1406,10 +1408,22 @@
         "description": "Ainalytics monitors what AI platforms say about your brand across ChatGPT, Gemini, Claude, Grok and more. Let's walk you through the core features of the platform.",
         "detail": "In the next steps, you'll learn how to analyze your company, create topics & prompts, select AI models, and track your visibility results.",
         "features": {
-          "0": { "title": "Topics & Categories", "desc": "Group your prompts logically into distinct categories for better organization and monitoring." },
-          "1": { "title": "Prompts", "desc": "Manage your AI inputs and instructions to test against multiple platforms and models." },
-          "2": { "title": "Sources", "desc": "Organize reference materials and knowledge bases that ground your AI responses." },
-          "3": { "title": "LLMs.txt Generation", "desc": "Automatically generate an llms.txt file based on your website, ready for external LLMs to consume." }
+          "0": {
+            "title": "Topics & Categories",
+            "desc": "Group your prompts logically into distinct categories for better organization and monitoring."
+          },
+          "1": {
+            "title": "Prompts",
+            "desc": "Manage your AI inputs and instructions to test against multiple platforms and models."
+          },
+          "2": {
+            "title": "Sources",
+            "desc": "Organize reference materials and knowledge bases that ground your AI responses."
+          },
+          "3": {
+            "title": "LLMs.txt Generation",
+            "desc": "Automatically generate an llms.txt file based on your website, ready for external LLMs to consume."
+          }
         }
       },
       "company": {
@@ -1417,9 +1431,18 @@
         "description": "Our GEO analyzer crawls your website, checks technical factors like robots.txt, sitemap, and structured data, then generates an AI-powered report with actionable insights.",
         "detail": "Understand exactly how AI platforms see your website — from content quality to technical readiness. This is your starting point for GEO optimization.",
         "features": {
-          "0": { "title": "Website Crawling", "desc": "We scan your pages, meta tags, schema markup, and all technical assets." },
-          "1": { "title": "25 GEO Factors", "desc": "Each page is scored across 25 optimization factors in 4 categories." },
-          "2": { "title": "AI Report", "desc": "Get a detailed AI analysis with strengths, weaknesses, and recommendations." }
+          "0": {
+            "title": "Website Crawling",
+            "desc": "We scan your pages, meta tags, schema markup, and all technical assets."
+          },
+          "1": {
+            "title": "25 GEO Factors",
+            "desc": "Each page is scored across 25 optimization factors in 4 categories."
+          },
+          "2": {
+            "title": "AI Report",
+            "desc": "Get a detailed AI analysis with strengths, weaknesses, and recommendations."
+          }
         }
       },
       "models": {
@@ -1427,9 +1450,18 @@
         "description": "Choose which AI platforms to monitor — ChatGPT, Claude, Gemini, Grok, and more. Each platform sees your brand differently, and you need visibility across all of them.",
         "detail": "Different AI models have different training data and behaviors. By monitoring multiple platforms, you get a complete picture of your AI visibility landscape.",
         "features": {
-          "0": { "title": "Multi-Platform", "desc": "Monitor 5+ major AI platforms simultaneously in one dashboard." },
-          "1": { "title": "Model Selection", "desc": "Choose specific models per platform for granular visibility tracking." },
-          "2": { "title": "Web Search Mode", "desc": "Test how AI responds with and without real-time web search enabled." }
+          "0": {
+            "title": "Multi-Platform",
+            "desc": "Monitor 5+ major AI platforms simultaneously in one dashboard."
+          },
+          "1": {
+            "title": "Model Selection",
+            "desc": "Choose specific models per platform for granular visibility tracking."
+          },
+          "2": {
+            "title": "Web Search Mode",
+            "desc": "Test how AI responds with and without real-time web search enabled."
+          }
         }
       },
       "topics": {
@@ -1437,10 +1469,22 @@
         "description": "Topics are categories that represent your products, services, or market segments. Select the ones relevant to your business to organize your monitoring.",
         "detail": "Choose between 1 and 5 topics. You can always add more later from your dashboard.",
         "items": {
-          "brand": { "title": "Brand Reputation", "desc": "Monitor how AI platforms perceive and recommend your brand overall." },
-          "products": { "title": "Products & Services", "desc": "Track mentions and recommendations of your specific offerings." },
-          "industry": { "title": "Industry Trends", "desc": "See how AI platforms discuss your industry and where you fit in." },
-          "compete": { "title": "Competitive Landscape", "desc": "Compare your visibility against competitors in AI recommendations." }
+          "brand": {
+            "title": "Brand Reputation",
+            "desc": "Monitor how AI platforms perceive and recommend your brand overall."
+          },
+          "products": {
+            "title": "Products & Services",
+            "desc": "Track mentions and recommendations of your specific offerings."
+          },
+          "industry": {
+            "title": "Industry Trends",
+            "desc": "See how AI platforms discuss your industry and where you fit in."
+          },
+          "compete": {
+            "title": "Competitive Landscape",
+            "desc": "Compare your visibility against competitors in AI recommendations."
+          }
         }
       },
       "prompts": {
@@ -1449,24 +1493,60 @@
         "detail": "Each topic should have at least 1 prompt. Prompts run automatically across all your selected platforms.",
         "items": {
           "brand": {
-            "0": { "title": "What is [Company]?", "desc": "Tests basic brand recognition and how AI describes your company." },
-            "1": { "title": "Is [Company] trustworthy?", "desc": "Measures reputation and trust signals associated with your brand." },
-            "2": { "title": "Reviews of [Company]", "desc": "Checks what AI surfaces about customer reviews and satisfaction." }
+            "0": {
+              "title": "What is [Company]?",
+              "desc": "Tests basic brand recognition and how AI describes your company."
+            },
+            "1": {
+              "title": "Is [Company] trustworthy?",
+              "desc": "Measures reputation and trust signals associated with your brand."
+            },
+            "2": {
+              "title": "Reviews of [Company]",
+              "desc": "Checks what AI surfaces about customer reviews and satisfaction."
+            }
           },
           "products": {
-            "0": { "title": "Best [product type] providers", "desc": "Tests if AI recommends your products in category searches." },
-            "1": { "title": "[Product] vs alternatives", "desc": "Compares how AI positions your offering against competitors." },
-            "2": { "title": "How to choose a [product type]?", "desc": "Checks if your product appears in buying-guide responses." }
+            "0": {
+              "title": "Best [product type] providers",
+              "desc": "Tests if AI recommends your products in category searches."
+            },
+            "1": {
+              "title": "[Product] vs alternatives",
+              "desc": "Compares how AI positions your offering against competitors."
+            },
+            "2": {
+              "title": "How to choose a [product type]?",
+              "desc": "Checks if your product appears in buying-guide responses."
+            }
           },
           "industry": {
-            "0": { "title": "Top companies in [industry]", "desc": "Tests if AI includes you among industry leaders." },
-            "1": { "title": "Trends in [industry] 2025", "desc": "Checks if your brand appears in forward-looking industry discussions." },
-            "2": { "title": "[Industry] market leaders", "desc": "Measures your positioning in market-leadership queries." }
+            "0": {
+              "title": "Top companies in [industry]",
+              "desc": "Tests if AI includes you among industry leaders."
+            },
+            "1": {
+              "title": "Trends in [industry] 2025",
+              "desc": "Checks if your brand appears in forward-looking industry discussions."
+            },
+            "2": {
+              "title": "[Industry] market leaders",
+              "desc": "Measures your positioning in market-leadership queries."
+            }
           },
           "compete": {
-            "0": { "title": "[Company] vs [Competitor]", "desc": "Direct comparison queries between you and key competitors." },
-            "1": { "title": "Best alternative to [Competitor]", "desc": "Tests if AI suggests you as an alternative to competitors." },
-            "2": { "title": "Why choose [Company] over others?", "desc": "Evaluates AI's reasoning for recommending your brand." }
+            "0": {
+              "title": "[Company] vs [Competitor]",
+              "desc": "Direct comparison queries between you and key competitors."
+            },
+            "1": {
+              "title": "Best alternative to [Competitor]",
+              "desc": "Tests if AI suggests you as an alternative to competitors."
+            },
+            "2": {
+              "title": "Why choose [Company] over others?",
+              "desc": "Evaluates AI's reasoning for recommending your brand."
+            }
           }
         }
       },
@@ -1475,9 +1555,18 @@
         "description": "Your dashboard shows visibility scores, mention frequency, source citations, and competitive comparisons — all in one place. See exactly where you stand in the AI landscape.",
         "detail": "From high-level scorecards to individual answer analysis, every data point helps you understand and improve your AI visibility.",
         "features": {
-          "0": { "title": "Visibility Scores", "desc": "Track your mention rate and sentiment across all monitored AI platforms." },
-          "1": { "title": "Source Analysis", "desc": "See which websites AI cites when talking about you or your competitors." },
-          "2": { "title": "Trend Insights", "desc": "Weekly insights show emerging risks and opportunities in your AI visibility." }
+          "0": {
+            "title": "Visibility Scores",
+            "desc": "Track your mention rate and sentiment across all monitored AI platforms."
+          },
+          "1": {
+            "title": "Source Analysis",
+            "desc": "See which websites AI cites when talking about you or your competitors."
+          },
+          "2": {
+            "title": "Trend Insights",
+            "desc": "Weekly insights show emerging risks and opportunities in your AI visibility."
+          }
         }
       }
     },
@@ -1965,5 +2054,50 @@
     "stickyCta": "Download Free Guide",
     "successTitle": "Guide on the way!",
     "successDesc": "Check your inbox to download the PDF."
+  },
+  "careers": {
+    "badge": "Join the team",
+    "title": {
+      "prefix": "Build the future of",
+      "accent": "AI-powered digital visibility"
+    },
+    "subtitle": "We are looking for talented people to transform how businesses are discovered by artificial intelligence. Check out our open positions.",
+    "backToList": "Back to all positions",
+    "empty": {
+      "title": "No open positions at this time",
+      "description": "We are always looking for talent. Check back soon for new opportunities."
+    },
+    "notFound": {
+      "title": "Position not found",
+      "description": "This position may have been closed or the link is incorrect.",
+      "backButton": "View all positions"
+    },
+    "form": {
+      "title": "Apply now",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Your full name",
+      "email": "Email",
+      "emailPlaceholder": "your@email.com",
+      "phone": "Phone",
+      "phonePlaceholder": "+1 (555) 123-4567",
+      "linkedin": "LinkedIn",
+      "linkedinPlaceholder": "https://linkedin.com/in/yourprofile",
+      "resume": "Resume / CV",
+      "resumePlaceholder": "Click to upload PDF, DOC or DOCX (max 10 MB)",
+      "questionsTitle": "Additional questions",
+      "selectPlaceholder": "Select an option",
+      "submit": "Submit application",
+      "submitting": "Submitting...",
+      "success": {
+        "title": "Application submitted!",
+        "description": "Thank you for applying! We will review your profile and get in touch soon.",
+        "backButton": "View other positions"
+      },
+      "errors": {
+        "generic": "Failed to submit application. Please try again.",
+        "invalidFileType": "Invalid format. Please upload PDF, DOC or DOCX.",
+        "fileTooLarge": "File too large. Maximum 10 MB."
+      }
+    }
   }
 }
