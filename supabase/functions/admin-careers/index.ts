@@ -38,7 +38,6 @@ serve(async (req: Request) => {
     const { tenantId, user } = await verifyAuth(req);
     authCtx = { tenant_id: tenantId, user_id: user.id };
     await requireSuperAdmin(user.id, tenantId);
-    const senderEmail = user.email;
 
     const db = createAdminClient();
 
@@ -170,9 +169,7 @@ serve(async (req: Request) => {
         ? content.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").trim()
         : content;
 
-      const replyTo = senderEmail && senderEmail.includes("@")
-        ? { email: senderEmail }
-        : { email: "contato@mail.ainalytics.tech", name: "Ainalytics" };
+      const replyTo = { email: "contato@mail.ainalytics.tech", name: "Ainalytics" };
 
       const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 
