@@ -1093,12 +1093,18 @@
       "date": "Date",
       "subject": "Subject",
       "noSubject": "(no subject)",
-      "replyTo": "Reply",
+      "replyTo": "Reply via email",
       "backToList": "Back",
       "loadError": "Failed to load emails",
       "prev": "Prev",
       "next": "Next",
-      "of": "of"
+      "of": "of",
+      "replyBtn": "Reply",
+      "replyPlaceholder": "Write your reply here...",
+      "sending": "Sending...",
+      "sendReply": "Send Reply",
+      "replySuccess": "Reply sent successfully",
+      "replyError": "Failed to send reply"
     }
   },
   "timeline": {

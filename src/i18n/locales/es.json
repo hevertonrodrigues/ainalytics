@@ -1085,12 +1085,18 @@
       "date": "Fecha",
       "subject": "Asunto",
       "noSubject": "(sin asunto)",
-      "replyTo": "Responder",
+      "replyTo": "Responder por correo",
       "backToList": "Volver",
       "loadError": "Error al cargar emails",
       "prev": "Anterior",
       "next": "Siguiente",
-      "of": "de"
+      "of": "de",
+      "replyBtn": "Responder",
+      "replyPlaceholder": "Escribe tu respuesta aquí...",
+      "sending": "Enviando...",
+      "sendReply": "Enviar Respuesta",
+      "replySuccess": "Respuesta enviada con éxito",
+      "replyError": "Error al enviar la respuesta"
     }
   },
   "timeline": {

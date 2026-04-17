@@ -9,8 +9,10 @@ import { createRequestLogger } from "../_shared/logger.ts";
  * admin-inbox — Super Admin only.
  *
  * GET    — List emails (with query params: filter, search, page)
+ * PATCH  — Fetch single email + mark as read
  * PUT    — Update email flags (is_read, is_starred, is_archived)
  * DELETE — Permanently delete an email
+ * POST   — Send a reply to an email via SendGrid
  */
 
 serve(async (req: Request) => {
@@ -182,6 +184,88 @@ serve(async (req: Request) => {
       if (error) throw error;
 
       return logger.done(withCors(req, ok({ deleted: targetIds.length })), authCtx);
+    }
+
+    // ─── POST: Send Reply via SendGrid ──────────────────────────────
+    if (req.method === "POST") {
+      const body = await req.json();
+      const { emailId, content } = body;
+
+      if (!emailId || !content) {
+        return logger.done(withCors(req, badRequest("emailId and content are required")), authCtx);
+      }
+
+      // 1. Get original email details
+      const { data: originalEmail, error: getError } = await db
+        .from("sa_inbox_emails")
+        .select("from_email, from_name, subject, message_id")
+        .eq("id", emailId)
+        .single();
+
+      if (getError || !originalEmail) {
+        return logger.done(withCors(req, notFound("Original email not found")), authCtx);
+      }
+
+      // 2. Prepare SendGrid payload
+      const sendgridKey = Deno.env.get("SENDGRID_API_KEY");
+      if (!sendgridKey) {
+        return logger.done(withCors(req, serverError("SendGrid API key not configured")), authCtx);
+      }
+
+      let subject = originalEmail.subject || "";
+      if (!subject.toLowerCase().startsWith("re:")) {
+        subject = `Re: ${subject}`;
+      }
+
+      const payload: any = {
+        personalizations: [
+          {
+            to: [
+              {
+                email: originalEmail.from_email,
+                name: originalEmail.from_name || undefined,
+              },
+            ],
+            subject: subject,
+          },
+        ],
+        from: {
+          email: "contato@mail.ainalytics.tech",
+          name: "Ainalytics", // Or pull from somewhere else if needed
+        },
+        content: [
+          {
+            type: "text/html",
+            value: content,
+          },
+        ],
+      };
+
+      // Add In-Reply-To headers if we have a message_id to keep thread intact
+      if (originalEmail.message_id) {
+        payload.headers = {
+          "In-Reply-To": originalEmail.message_id,
+          "References": originalEmail.message_id,
+        };
+      }
+
+      // 3. Send to SendGrid
+      const sgRes = await fetch("https://api.sendgrid.com/v3/mail/send", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${sendgridKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!sgRes.ok) {
+        const errText = await sgRes.text();
+        console.error("[admin-inbox] SendGrid error:", errText);
+        return logger.done(withCors(req, serverError("Failed to send email via SendGrid")), authCtx);
+      }
+
+      return logger.done(withCors(req, ok({ success: true })), authCtx);
     }
 
     return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);

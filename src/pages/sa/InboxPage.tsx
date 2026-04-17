@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Mail, Search, X, Star, Archive, Trash2, Eye, EyeOff,
   ChevronLeft, ChevronRight, Loader2, Inbox, MailOpen,
-  ArrowLeft, ExternalLink, StarOff,
+  ArrowLeft, ExternalLink, StarOff, Send, MessageSquareReply,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
@@ -57,6 +57,9 @@ export function InboxPage() {
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [page, setPage] = useState(1);
+  const [replyOpen, setReplyOpen] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -93,6 +96,8 @@ export function InboxPage() {
   // Open email detail
   const openEmail = async (email: Email) => {
     setDetailLoading(true);
+    setReplyOpen(false);
+    setReplyContent('');
     try {
       const res = await apiClient.patch<Email>('/admin-inbox', { id: email.id });
       setSelectedEmail(res.data);
@@ -149,6 +154,26 @@ export function InboxPage() {
       }
     } catch (err) {
       console.error('Failed to delete email:', err);
+    }
+  };
+
+  // Send reply
+  const sendReply = async (emailId: string) => {
+    if (!replyContent.trim()) return;
+    setSendingReply(true);
+    try {
+      // Content could contain paragraphs. Replace newlines with <br> for HTML email.
+      const htmlContent = replyContent.replace(/\n/g, '<br/>');
+      await apiClient.post('/admin-inbox', { emailId, content: htmlContent });
+      setReplyContent('');
+      setReplyOpen(false);
+      // Notify success
+      alert(t('sa.inbox.replySuccess') || 'Reply sent successfully');
+    } catch (err) {
+      console.error('Failed to send reply:', err);
+      alert(t('sa.inbox.replyError') || 'Failed to send reply');
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -264,15 +289,53 @@ export function InboxPage() {
                 )}
               </div>
 
-              {/* Reply button */}
-              <div className="px-6 py-4 border-t border-glass-border">
-                <a
-                  href={`mailto:${selectedEmail.from_email}?subject=Re: ${encodeURIComponent(selectedEmail.subject)}`}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-primary/10 text-brand-primary text-sm font-medium hover:bg-brand-primary/20 transition-colors"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  {t('sa.inbox.replyTo')}
-                </a>
+              {/* Reply section */}
+              <div className="px-6 py-4 border-t border-glass-border bg-glass-element rounded-b-xl">
+                {!replyOpen ? (
+                  <button
+                    onClick={() => setReplyOpen(true)}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-primary/10 text-brand-primary text-sm font-medium hover:bg-brand-primary/20 transition-colors"
+                  >
+                    <MessageSquareReply className="w-4 h-4" />
+                    {t('sa.inbox.replyBtn')}
+                  </button>
+                ) : (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <textarea
+                      value={replyContent}
+                      onChange={e => setReplyContent(e.target.value)}
+                      placeholder={t('sa.inbox.replyPlaceholder')}
+                      className="w-full min-h-[150px] p-4 bg-background border border-glass-border rounded-lg text-sm text-text-primary focus:outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 resize-y"
+                      disabled={sendingReply}
+                    />
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => sendReply(selectedEmail.id)}
+                        disabled={sendingReply || !replyContent.trim()}
+                        className="btn-primary"
+                      >
+                        {sendingReply ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            {t('sa.inbox.sending')}
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-4 h-4" />
+                            {t('sa.inbox.sendReply')}
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => setReplyOpen(false)}
+                        disabled={sendingReply}
+                        className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+                      >
+                        {t('common.cancel') || 'Cancel'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}

@@ -1859,12 +1859,18 @@
       "date": "Data",
       "subject": "Assunto",
       "noSubject": "(sem assunto)",
-      "replyTo": "Responder",
+      "replyTo": "Responder via email",
       "backToList": "Voltar",
       "loadError": "Falha ao carregar emails",
       "prev": "Anterior",
       "next": "Próximo",
-      "of": "de"
+      "of": "de",
+      "replyBtn": "Responder",
+      "replyPlaceholder": "Escreva sua resposta aqui...",
+      "sending": "Enviando...",
+      "sendReply": "Enviar Resposta",
+      "replySuccess": "Resposta enviada com sucesso",
+      "replyError": "Falha ao enviar resposta"
     }
   },
   "proposal": {

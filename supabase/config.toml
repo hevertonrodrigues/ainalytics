@@ -451,3 +451,11 @@ verify_jwt = false
 [functions.admin-settings]
 enabled = true
 verify_jwt = true
+
+[functions.sendgrid-inbound-webhook]
+enabled = true
+verify_jwt = false
+
+[functions.admin-inbox]
+enabled = true
+verify_jwt = true
