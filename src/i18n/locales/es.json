@@ -1058,6 +1058,25 @@
         "interview": "Entrevista",
         "rejected": "Rechazado",
         "hired": "Contratado"
+      },
+      "selectAll": "Seleccionar todos",
+      "selectRow": "Seleccionar candidato",
+      "selectedCount": "{{count}} seleccionado(s)",
+      "clearSelection": "Limpiar selección",
+      "email": {
+        "sendButton": "Enviar correo",
+        "modalTitle": "Enviar correo a los candidatos",
+        "modalSubtitle": "Se enviará un correo individual a cada uno de los {{count}} candidatos seleccionados.",
+        "recipientsLabel": "Destinatarios",
+        "subjectLabel": "Asunto",
+        "subjectPlaceholder": "p. ej. Próximos pasos en tu postulación",
+        "bodyLabel": "Mensaje",
+        "bodyPlaceholder": "Escribe tu mensaje aquí...",
+        "bodyHelp": "Los saltos de línea se conservan. Se permite HTML básico.",
+        "sending": "Enviando...",
+        "sendToCount": "Enviar a {{count}}",
+        "sentSuccess": "Correo enviado a {{count}} candidato(s).",
+        "sentWithFailures": "Enviado a {{sent}}, falló en {{failed}}."
       }
     },
     "inbox": {

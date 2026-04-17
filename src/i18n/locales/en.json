@@ -1066,6 +1066,25 @@
         "interview": "Interview",
         "rejected": "Rejected",
         "hired": "Hired"
+      },
+      "selectAll": "Select all",
+      "selectRow": "Select candidate",
+      "selectedCount": "{{count}} selected",
+      "clearSelection": "Clear selection",
+      "email": {
+        "sendButton": "Send email",
+        "modalTitle": "Send email to candidates",
+        "modalSubtitle": "An individual email will be sent to each of the {{count}} selected candidates.",
+        "recipientsLabel": "Recipients",
+        "subjectLabel": "Subject",
+        "subjectPlaceholder": "e.g. Next steps in your application",
+        "bodyLabel": "Message",
+        "bodyPlaceholder": "Write your message here...",
+        "bodyHelp": "Line breaks are preserved. Basic HTML is allowed.",
+        "sending": "Sending...",
+        "sendToCount": "Send to {{count}}",
+        "sentSuccess": "Email sent to {{count}} candidate(s).",
+        "sentWithFailures": "Sent to {{sent}}, failed for {{failed}}."
       }
     },
     "inbox": {

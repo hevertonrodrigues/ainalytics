@@ -10,6 +10,7 @@ import { createRequestLogger } from "../_shared/logger.ts";
  *
  * GET  /admin-careers              → list all applications (with opportunity title)
  * PUT  /admin-careers              → update application status
+ * POST /admin-careers              → send email to selected applications via SendGrid (one per recipient)
  */
 
 const ALLOWED_STATUSES = ["new", "reviewing", "interview", "rejected", "hired"];
@@ -123,6 +124,83 @@ serve(async (req: Request) => {
       }
 
       return logger.done(withCors(req, ok(data)), authCtx);
+    }
+
+    // ─── POST — Send email to selected applications via SendGrid ────
+    if (req.method === "POST") {
+      const body = await req.json();
+      const ids: string[] = Array.isArray(body.ids) ? body.ids : [];
+      const subject: string = typeof body.subject === "string" ? body.subject.trim() : "";
+      const content: string = typeof body.content === "string" ? body.content : "";
+
+      if (ids.length === 0) {
+        return logger.done(withCors(req, badRequest("ids is required")), authCtx);
+      }
+      if (!subject) {
+        return logger.done(withCors(req, badRequest("subject is required")), authCtx);
+      }
+      if (!content.trim()) {
+        return logger.done(withCors(req, badRequest("content is required")), authCtx);
+      }
+
+      const sendgridKey = Deno.env.get("SENDGRID_API_KEY");
+      if (!sendgridKey) {
+        return logger.done(withCors(req, serverError("SendGrid API key not configured")), authCtx);
+      }
+
+      const { data: recipients, error: fetchErr } = await db
+        .from("job_applications")
+        .select("id, full_name, email")
+        .in("id", ids);
+
+      if (fetchErr) {
+        console.error("[admin-careers] recipient fetch error:", fetchErr);
+        return logger.done(withCors(req, serverError("Failed to load recipients")), authCtx);
+      }
+
+      const valid = (recipients || []).filter((r) => r.email);
+      const htmlContent = /<[a-z][\s\S]*>/i.test(content)
+        ? content
+        : content.replace(/\n/g, "<br/>");
+
+      const results = await Promise.allSettled(
+        valid.map(async (r) => {
+          const payload = {
+            personalizations: [
+              {
+                to: [{ email: r.email, name: r.full_name || undefined }],
+                subject,
+              },
+            ],
+            from: { email: "contato@mail.ainalytics.tech", name: "Ainalytics" },
+            content: [{ type: "text/html", value: htmlContent }],
+          };
+
+          const sgRes = await fetch("https://api.sendgrid.com/v3/mail/send", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${sendgridKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          if (!sgRes.ok) {
+            const errText = await sgRes.text();
+            throw new Error(`SendGrid ${sgRes.status}: ${errText}`);
+          }
+          return r.id;
+        }),
+      );
+
+      const sent = results.filter((r) => r.status === "fulfilled").length;
+      const failed = results.length - sent;
+      if (failed > 0) {
+        const firstErr = results.find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
+        console.error("[admin-careers] send failures:", failed, firstErr?.reason);
+      }
+
+      return logger.done(withCors(req, ok({ sent, failed, total: results.length })), authCtx);
     }
 
     return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
