@@ -1104,7 +1104,17 @@
       "sending": "Sending...",
       "sendReply": "Send Reply",
       "replySuccess": "Reply sent successfully",
-      "replyError": "Failed to send reply"
+      "replyError": "Failed to send reply",
+      "you": "You",
+      "me": "me",
+      "messages_one": "{{count}} message",
+      "messages_other": "{{count}} messages",
+      "expandAll": "Expand all",
+      "collapseAll": "Collapse all",
+      "yesterday": "Yesterday",
+      "refresh": "Refresh",
+      "composing": "Composing reply",
+      "cancel": "Cancel"
     }
   },
   "timeline": {

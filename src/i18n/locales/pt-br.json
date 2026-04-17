@@ -1870,7 +1870,17 @@
       "sending": "Enviando...",
       "sendReply": "Enviar Resposta",
       "replySuccess": "Resposta enviada com sucesso",
-      "replyError": "Falha ao enviar resposta"
+      "replyError": "Falha ao enviar resposta",
+      "you": "Você",
+      "me": "eu",
+      "messages_one": "{{count}} mensagem",
+      "messages_other": "{{count}} mensagens",
+      "expandAll": "Expandir tudo",
+      "collapseAll": "Recolher tudo",
+      "yesterday": "Ontem",
+      "refresh": "Atualizar",
+      "composing": "Redigindo resposta",
+      "cancel": "Cancelar"
     }
   },
   "proposal": {

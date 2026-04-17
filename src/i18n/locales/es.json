@@ -1096,7 +1096,17 @@
       "sending": "Enviando...",
       "sendReply": "Enviar Respuesta",
       "replySuccess": "Respuesta enviada con éxito",
-      "replyError": "Error al enviar la respuesta"
+      "replyError": "Error al enviar la respuesta",
+      "you": "Tú",
+      "me": "yo",
+      "messages_one": "{{count}} mensaje",
+      "messages_other": "{{count}} mensajes",
+      "expandAll": "Expandir todo",
+      "collapseAll": "Contraer todo",
+      "yesterday": "Ayer",
+      "refresh": "Actualizar",
+      "composing": "Redactando respuesta",
+      "cancel": "Cancelar"
     }
   },
   "timeline": {
