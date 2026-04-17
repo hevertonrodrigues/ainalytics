@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Mail, Search, X, Star, Archive, Trash2, Eye, EyeOff,
   ChevronLeft, ChevronRight, Loader2, Inbox, MailOpen,
-  ArrowLeft, ExternalLink, StarOff, Send, MessageSquareReply,
+  ArrowLeft, StarOff, Send, MessageSquareReply,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
