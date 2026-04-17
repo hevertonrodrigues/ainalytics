@@ -1059,6 +1059,38 @@
         "rejected": "Rechazado",
         "hired": "Contratado"
       }
+    },
+    "inbox": {
+      "title": "Bandeja de Entrada",
+      "subtitle": "Emails recibidos en contato@mail.ainalytics.tech",
+      "searchPlaceholder": "Buscar por asunto, remitente...",
+      "noEmails": "No se encontraron emails",
+      "emptyInbox": "Tu bandeja de entrada está vacía",
+      "emptyInboxDesc": "Los emails enviados a contato@mail.ainalytics.tech aparecerán aquí.",
+      "filterInbox": "Bandeja de Entrada",
+      "filterUnread": "No Leídos",
+      "filterStarred": "Destacados",
+      "filterArchived": "Archivados",
+      "filterAll": "Todos",
+      "markRead": "Marcar como leído",
+      "markUnread": "Marcar como no leído",
+      "star": "Destacar",
+      "unstar": "Quitar destacado",
+      "archive": "Archivar",
+      "unarchive": "Desarchivar",
+      "delete": "Eliminar",
+      "deleteConfirm": "¿Estás seguro de eliminar este email permanentemente?",
+      "from": "De",
+      "to": "Para",
+      "date": "Fecha",
+      "subject": "Asunto",
+      "noSubject": "(sin asunto)",
+      "replyTo": "Responder",
+      "backToList": "Volver",
+      "loadError": "Error al cargar emails",
+      "prev": "Anterior",
+      "next": "Siguiente",
+      "of": "de"
     }
   },
   "timeline": {

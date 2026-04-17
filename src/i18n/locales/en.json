@@ -1067,6 +1067,38 @@
         "rejected": "Rejected",
         "hired": "Hired"
       }
+    },
+    "inbox": {
+      "title": "Inbox",
+      "subtitle": "Emails received at contato@mail.ainalytics.tech",
+      "searchPlaceholder": "Search by subject, sender...",
+      "noEmails": "No emails found",
+      "emptyInbox": "Your inbox is empty",
+      "emptyInboxDesc": "Emails sent to contato@mail.ainalytics.tech will appear here.",
+      "filterInbox": "Inbox",
+      "filterUnread": "Unread",
+      "filterStarred": "Starred",
+      "filterArchived": "Archived",
+      "filterAll": "All",
+      "markRead": "Mark as read",
+      "markUnread": "Mark as unread",
+      "star": "Star",
+      "unstar": "Unstar",
+      "archive": "Archive",
+      "unarchive": "Unarchive",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to permanently delete this email?",
+      "from": "From",
+      "to": "To",
+      "date": "Date",
+      "subject": "Subject",
+      "noSubject": "(no subject)",
+      "replyTo": "Reply",
+      "backToList": "Back",
+      "loadError": "Failed to load emails",
+      "prev": "Prev",
+      "next": "Next",
+      "of": "of"
     }
   },
   "timeline": {
