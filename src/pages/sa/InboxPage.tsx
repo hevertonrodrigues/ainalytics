@@ -54,7 +54,7 @@ export function InboxPage() {
   const [filter, setFilter] = useState<Filter>('inbox');
   const [search, setSearch] = useState('');
   const [searchDebounced, setSearchDebounced] = useState('');
-  const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
+  const [selectedThread, setSelectedThread] = useState<Email[] | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [replyOpen, setReplyOpen] = useState(false);
@@ -93,21 +93,22 @@ export function InboxPage() {
   // Reset page when filter or search changes
   useEffect(() => { setPage(1); }, [filter, searchDebounced]);
 
-  // Open email detail
+  // Open email thread
   const openEmail = async (email: Email) => {
     setDetailLoading(true);
     setReplyOpen(false);
     setReplyContent('');
     try {
-      const res = await apiClient.patch<Email>('/admin-inbox', { id: email.id });
-      setSelectedEmail(res.data);
+      const res = await apiClient.patch<Email[]>('/admin-inbox', { id: email.id });
+      // The backend returns an array of the thread emails
+      setSelectedThread(res.data);
       // Update list item to show as read
       setEmails(prev => prev.map(e => e.id === email.id ? { ...e, is_read: true } : e));
       setMeta(prev => ({ ...prev, unread: Math.max(0, prev.unread - (email.is_read ? 0 : 1)) }));
     } catch (err) {
-      console.error('Failed to load email:', err);
-      // Fallback: show what we have
-      setSelectedEmail(email);
+      console.error('Failed to load thread:', err);
+      // Fallback: show what we have as a thread of 1
+      setSelectedThread([email]);
     } finally {
       setDetailLoading(false);
     }
@@ -117,9 +118,9 @@ export function InboxPage() {
   const updateFlags = async (ids: string[], flags: Partial<Pick<Email, 'is_read' | 'is_starred' | 'is_archived'>>) => {
     try {
       await apiClient.put('/admin-inbox', { ids, ...flags });
-      setEmails(prev => prev.map(e => ids.includes(e.id) ? { ...e, ...flags } : e));
-      if (selectedEmail && ids.includes(selectedEmail.id)) {
-        setSelectedEmail(prev => prev ? { ...prev, ...flags } : null);
+      setEmails(prev => prev.map(e => ids.includes(e.id) || (selectedThread && selectedThread.some(te => ids.includes(te.id) && te.id === e.id)) ? { ...e, ...flags } : e));
+      if (selectedThread) {
+        setSelectedThread(prev => prev ? prev.map(e => ids.includes(e.id) ? { ...e, ...flags } : e) : null);
       }
       // Refresh counts
       fetchEmails();
@@ -149,7 +150,9 @@ export function InboxPage() {
       });
       if (res.ok) {
         setEmails(prev => prev.filter(e => !ids.includes(e.id)));
-        if (selectedEmail && ids.includes(selectedEmail.id)) setSelectedEmail(null);
+        if (selectedThread && selectedThread.some(e => ids.includes(e.id))) {
+          setSelectedThread(null);
+        }
         fetchEmails();
       }
     } catch (err) {
@@ -164,14 +167,28 @@ export function InboxPage() {
     try {
       // Content could contain paragraphs. Replace newlines with <br> for HTML email.
       const htmlContent = replyContent.replace(/\n/g, '<br/>');
-      await apiClient.post('/admin-inbox', { emailId, content: htmlContent });
+      const res = await apiClient.post<{ success: boolean; email: Email }>('/admin-inbox', { emailId, content: htmlContent });
+      
       setReplyContent('');
       setReplyOpen(false);
-      // Notify success
-      alert(t('sa.inbox.replySuccess') || 'Reply sent successfully');
+      
+      // Attempt to append to thread immediately for snappier UI
+      if (res.data?.email && selectedThread) {
+        setSelectedThread([...selectedThread, res.data.email]);
+      }
+      
+      // Use standard alert as fallback if no toast library exists, otherwise consider custom toast
+      // For now, to fulfill request "just show a toast and return to the previous page":
+      const { toast } = await import('react-hot-toast').catch(() => ({ toast: { success: alert, error: alert } }));
+      toast.success(t('sa.inbox.replySuccess') || 'Reply sent successfully');
+      
+      // Return to inbox
+      setSelectedThread(null);
+      fetchEmails();
     } catch (err) {
       console.error('Failed to send reply:', err);
-      alert(t('sa.inbox.replyError') || 'Failed to send reply');
+      const { toast } = await import('react-hot-toast').catch(() => ({ toast: { success: alert, error: alert } }));
+      toast.error(t('sa.inbox.replyError') || 'Failed to send reply');
     } finally {
       setSendingReply(false);
     }
@@ -187,13 +204,19 @@ export function InboxPage() {
   const totalPages = Math.ceil(meta.totalFiltered / meta.pageSize) || 1;
 
   // ─── Detail View ─────────────────────────────────────
-  if (selectedEmail) {
+  if (selectedThread && selectedThread.length > 0) {
+    const latestEmail = selectedThread[selectedThread.length - 1]; // The most recent message usually controls the display flags (read, star, archive)
+    const threadSubject = selectedThread[0].subject || t('sa.inbox.noSubject');
+    
+    // We treat bulk actions (archive, trash, star, mark read) on ALL ids in the thread
+    const threadIds = selectedThread.map(e => e.id);
+
     return (
       <div className="stagger-enter space-y-4">
         {/* Back + actions */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <button
-            onClick={() => setSelectedEmail(null)}
+            onClick={() => setSelectedThread(null)}
             className="flex items-center gap-1.5 text-sm text-text-secondary hover:text-text-primary transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -201,34 +224,34 @@ export function InboxPage() {
           </button>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => updateFlags([selectedEmail.id], { is_starred: !selectedEmail.is_starred })}
+              onClick={() => updateFlags(threadIds, { is_starred: !latestEmail.is_starred })}
               className="icon-btn"
-              title={selectedEmail.is_starred ? t('sa.inbox.unstar') : t('sa.inbox.star')}
+              title={latestEmail.is_starred ? t('sa.inbox.unstar') : t('sa.inbox.star')}
             >
-              {selectedEmail.is_starred
+              {latestEmail.is_starred
                 ? <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
                 : <StarOff className="w-4 h-4" />
               }
             </button>
             <button
-              onClick={() => updateFlags([selectedEmail.id], { is_read: !selectedEmail.is_read })}
+              onClick={() => updateFlags(threadIds, { is_read: !latestEmail.is_read })}
               className="icon-btn"
-              title={selectedEmail.is_read ? t('sa.inbox.markUnread') : t('sa.inbox.markRead')}
+              title={latestEmail.is_read ? t('sa.inbox.markUnread') : t('sa.inbox.markRead')}
             >
-              {selectedEmail.is_read ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {latestEmail.is_read ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
             <button
               onClick={() => {
-                updateFlags([selectedEmail.id], { is_archived: !selectedEmail.is_archived });
-                setSelectedEmail(null);
+                updateFlags(threadIds, { is_archived: !latestEmail.is_archived });
+                setSelectedThread(null);
               }}
               className="icon-btn"
-              title={selectedEmail.is_archived ? t('sa.inbox.unarchive') : t('sa.inbox.archive')}
+              title={latestEmail.is_archived ? t('sa.inbox.unarchive') : t('sa.inbox.archive')}
             >
               <Archive className="w-4 h-4" />
             </button>
             <button
-              onClick={() => deleteEmail([selectedEmail.id])}
+              onClick={() => deleteEmail(threadIds)}
               className="icon-btn text-error hover:text-error"
               title={t('sa.inbox.delete')}
             >
@@ -237,109 +260,118 @@ export function InboxPage() {
           </div>
         </div>
 
-        {/* Email content */}
-        <div className="dashboard-card">
+        {/* Thread Header */}
+        <div className="px-6 py-4 bg-glass-element border border-glass-border rounded-xl">
+           <h2 className="text-xl font-bold text-text-primary">
+             {threadSubject}
+           </h2>
+           <span className="text-sm text-text-muted">{selectedThread.length} message{selectedThread.length > 1 ? 's' : ''} in thread</span>
+        </div>
+
+        {/* Thread emails */}
+        <div className="space-y-4">
           {detailLoading ? (
-            <div className="flex items-center justify-center py-16">
+            <div className="flex items-center justify-center py-16 dashboard-card">
               <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
             </div>
           ) : (
-            <>
-              {/* Header */}
-              <div className="px-6 py-5 border-b border-glass-border">
-                <h2 className="text-lg font-bold text-text-primary mb-3">
-                  {selectedEmail.subject || t('sa.inbox.noSubject')}
-                </h2>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm">
-                  <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-full bg-brand-primary/10 flex items-center justify-center shrink-0">
-                      <Mail className="w-4 h-4 text-brand-primary" />
-                    </div>
-                    <div className="min-w-0">
-                      <span className="font-semibold text-text-primary block">
-                        {selectedEmail.from_name || selectedEmail.from_email}
-                      </span>
-                      {selectedEmail.from_name && (
-                        <span className="text-xs text-text-muted">&lt;{selectedEmail.from_email}&gt;</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-text-muted text-xs sm:ml-auto">
-                    {formatDateTime(selectedEmail.received_at, 'dateTime')}
-                  </div>
-                </div>
-                <div className="mt-2 text-xs text-text-muted">
-                  {t('sa.inbox.to')}: {selectedEmail.to_email}
-                </div>
-              </div>
-
-              {/* Body */}
-              <div className="px-6 py-5">
-                {selectedEmail.body_html ? (
-                  <div
-                    className="prose prose-sm prose-invert max-w-none [&_a]:text-brand-primary [&_img]:max-w-full [&_img]:rounded-lg"
-                    dangerouslySetInnerHTML={{ __html: selectedEmail.body_html }}
-                  />
-                ) : selectedEmail.body_text ? (
-                  <pre className="whitespace-pre-wrap text-sm text-text-primary font-body leading-relaxed">
-                    {selectedEmail.body_text}
-                  </pre>
-                ) : (
-                  <p className="text-sm text-text-muted italic">(empty body)</p>
-                )}
-              </div>
-
-              {/* Reply section */}
-              <div className="px-6 py-4 border-t border-glass-border bg-glass-element rounded-b-xl">
-                {!replyOpen ? (
-                  <button
-                    onClick={() => setReplyOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-primary/10 text-brand-primary text-sm font-medium hover:bg-brand-primary/20 transition-colors"
-                  >
-                    <MessageSquareReply className="w-4 h-4" />
-                    {t('sa.inbox.replyBtn')}
-                  </button>
-                ) : (
-                  <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <textarea
-                      value={replyContent}
-                      onChange={e => setReplyContent(e.target.value)}
-                      placeholder={t('sa.inbox.replyPlaceholder')}
-                      className="w-full min-h-[150px] p-4 bg-background border border-glass-border rounded-lg text-sm text-text-primary focus:outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 resize-y"
-                      disabled={sendingReply}
-                    />
+            selectedThread.map((email, index) => (
+              <div key={email.id} className="dashboard-card overflow-hidden">
+                {/* Header */}
+                <div className="px-6 py-5 border-b border-glass-border">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm">
                     <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => sendReply(selectedEmail.id)}
-                        disabled={sendingReply || !replyContent.trim()}
-                        className="btn-primary"
-                      >
-                        {sendingReply ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            {t('sa.inbox.sending')}
-                          </>
-                        ) : (
-                          <>
-                            <Send className="w-4 h-4" />
-                            {t('sa.inbox.sendReply')}
-                          </>
-                        )}
-                      </button>
-                      <button
-                        onClick={() => setReplyOpen(false)}
-                        disabled={sendingReply}
-                        className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
-                      >
-                        {t('common.cancel') || 'Cancel'}
-                      </button>
+                      <div className="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center shrink-0">
+                        <span className="font-bold text-brand-primary">
+                          {(email.from_name || email.from_email).charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-semibold text-text-primary block">
+                          {email.from_name || email.from_email}
+                        </span>
+                        <span className="text-xs text-text-muted">&lt;{email.from_email}&gt;</span>
+                      </div>
+                    </div>
+                    <div className="text-text-muted text-xs sm:ml-auto">
+                      {formatDateTime(email.received_at, 'dateTime')}
                     </div>
                   </div>
-                )}
+                  <div className="mt-2 text-xs text-text-muted">
+                    {t('sa.inbox.to')}: {email.to_email}
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div className="px-6 py-5">
+                  {email.body_html ? (
+                    <div
+                      className="prose prose-sm prose-invert max-w-none [&_a]:text-brand-primary [&_img]:max-w-full [&_img]:rounded-lg"
+                      dangerouslySetInnerHTML={{ __html: email.body_html }}
+                    />
+                  ) : email.body_text ? (
+                    <pre className="whitespace-pre-wrap text-sm text-text-primary font-body leading-relaxed">
+                      {email.body_text}
+                    </pre>
+                  ) : (
+                    <p className="text-sm text-text-muted italic">(empty body)</p>
+                  )}
+                </div>
               </div>
-            </>
+            ))
           )}
         </div>
+
+        {/* Reply section */}
+        {!detailLoading && selectedThread.length > 0 && (
+          <div className="px-6 py-4 bg-glass-element rounded-xl border border-glass-border">
+            {!replyOpen ? (
+              <button
+                onClick={() => setReplyOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-primary/10 text-brand-primary text-sm font-medium hover:bg-brand-primary/20 transition-colors"
+              >
+                <MessageSquareReply className="w-4 h-4" />
+                {t('sa.inbox.replyBtn')}
+              </button>
+            ) : (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                <textarea
+                  value={replyContent}
+                  onChange={e => setReplyContent(e.target.value)}
+                  placeholder={t('sa.inbox.replyPlaceholder')}
+                  className="w-full min-h-[150px] p-4 bg-background border border-glass-border rounded-lg text-sm text-text-primary focus:outline-none focus:border-brand-primary/50 focus:ring-1 focus:ring-brand-primary/50 resize-y"
+                  disabled={sendingReply}
+                />
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => sendReply(latestEmail.id)}
+                    disabled={sendingReply || !replyContent.trim()}
+                    className="btn-primary"
+                  >
+                    {sendingReply ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {t('sa.inbox.sending')}
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        {t('sa.inbox.sendReply')}
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setReplyOpen(false)}
+                    disabled={sendingReply}
+                    className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors"
+                  >
+                    {t('common.cancel') || 'Cancel'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }

@@ -64,12 +64,17 @@ serve(async (req: Request) => {
       }
     }
 
-    // Try to extract Message-ID from headers for dedup
+    // Try to extract Message-ID and In-Reply-To from headers for threading
     let messageId: string | null = null;
+    let inReplyTo: string | null = null;
     if (headersRaw) {
       const msgIdMatch = headersRaw.match(/^Message-ID:\s*<?(.+?)>?\s*$/mi);
       if (msgIdMatch) {
         messageId = msgIdMatch[1].trim();
+      }
+      const inReplyToMatch = headersRaw.match(/^In-Reply-To:\s*<?(.+?)>?\s*$/mi);
+      if (inReplyToMatch) {
+        inReplyTo = inReplyToMatch[1].trim();
       }
     }
 
@@ -87,10 +92,28 @@ serve(async (req: Request) => {
     // ── Insert into database ──
     const db = createAdminClient();
 
+    // Generate an ID for this email
+    const emailId = crypto.randomUUID();
+    let threadId = emailId; // Default thread_id to the email's own ID
+
+    if (inReplyTo) {
+      // Find parent's thread_id
+      const { data: parent } = await db
+        .from("sa_inbox_emails")
+        .select("thread_id")
+        .eq("message_id", inReplyTo)
+        .single();
+      if (parent && parent.thread_id) {
+        threadId = parent.thread_id;
+      }
+    }
+
     const { error: dbError } = await db
       .from("sa_inbox_emails")
       .upsert(
         {
+          id: emailId,
+          thread_id: threadId,
           message_id: messageId,
           from_email: sender.email,
           from_name: sender.name,

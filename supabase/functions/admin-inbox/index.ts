@@ -36,8 +36,8 @@ serve(async (req: Request) => {
       const pageSize = Math.min(50, Math.max(1, parseInt(url.searchParams.get("pageSize") || "30", 10)));
 
       let query = db
-        .from("sa_inbox_emails")
-        .select("id, from_email, from_name, to_email, subject, body_text, is_read, is_starred, is_archived, received_at", { count: "exact" });
+        .from("sa_inbox_threads_view")
+        .select("id, thread_id, from_email, from_name, to_email, subject, body_text, is_read, is_starred, is_archived, received_at", { count: "exact" });
 
       // Apply filters
       switch (filter) {
@@ -74,17 +74,17 @@ serve(async (req: Request) => {
 
       // Also get counts for sidebar badges
       const { count: totalCount } = await db
-        .from("sa_inbox_emails")
+        .from("sa_inbox_threads_view")
         .select("id", { count: "exact", head: true });
 
       const { count: unreadCount } = await db
-        .from("sa_inbox_emails")
+        .from("sa_inbox_threads_view")
         .select("id", { count: "exact", head: true })
         .eq("is_read", false)
         .eq("is_archived", false);
 
       const { count: starredCount } = await db
-        .from("sa_inbox_emails")
+        .from("sa_inbox_threads_view")
         .select("id", { count: "exact", head: true })
         .eq("is_starred", true)
         .eq("is_archived", false);
@@ -105,35 +105,46 @@ serve(async (req: Request) => {
       );
     }
 
-    // ─── GET single email (by id query param) ────────────────────────
-    // We'll handle this via PUT for reading (mark as read can happen there)
-    // But let's also support fetching a single email with full body
+    // ─── PATCH: Fetch full thread and mark as read ────────────────────────
     if (req.method === "PATCH") {
       const body = await req.json();
       const { id } = body;
 
       if (!id) return logger.done(withCors(req, badRequest("id is required")), authCtx);
 
-      const { data, error } = await db
+      const { data: targetEmail, error: findErr } = await db
         .from("sa_inbox_emails")
-        .select("*")
+        .select("thread_id")
         .eq("id", id)
         .single();
-
-      if (error || !data) {
+        
+      if (findErr || !targetEmail) {
         return logger.done(withCors(req, notFound("Email not found")), authCtx);
       }
 
-      // Auto-mark as read when opening
-      if (!data.is_read) {
+      // Fetch the whole thread
+      const { data: thread, error: threadErr } = await db
+        .from("sa_inbox_emails")
+        .select("*")
+        .eq("thread_id", targetEmail.thread_id)
+        .order("received_at", { ascending: true }); // older first
+
+      if (threadErr || !thread || thread.length === 0) {
+         return logger.done(withCors(req, notFound("Thread not found")), authCtx);
+      }
+
+      // Auto-mark any unread emails in the thread as read
+      const unreadIds = thread.filter(e => !e.is_read).map(e => e.id);
+      if (unreadIds.length > 0) {
         await db
           .from("sa_inbox_emails")
           .update({ is_read: true })
-          .eq("id", id);
-        data.is_read = true;
+          .in("id", unreadIds);
+          
+        thread.forEach(e => { if (unreadIds.includes(e.id)) e.is_read = true; });
       }
 
-      return logger.done(withCors(req, ok(data)), authCtx);
+      return logger.done(withCors(req, ok(thread)), authCtx);
     }
 
     // ─── PUT: Update flags ──────────────────────────────────────────
@@ -198,7 +209,7 @@ serve(async (req: Request) => {
       // 1. Get original email details
       const { data: originalEmail, error: getError } = await db
         .from("sa_inbox_emails")
-        .select("from_email, from_name, subject, message_id")
+        .select("from_email, from_name, subject, message_id, thread_id")
         .eq("id", emailId)
         .single();
 
@@ -265,7 +276,31 @@ serve(async (req: Request) => {
         return logger.done(withCors(req, serverError("Failed to send email via SendGrid")), authCtx);
       }
 
-      return logger.done(withCors(req, ok({ success: true })), authCtx);
+      // 4. Save the sent reply into the database
+      const replyMsgId = crypto.randomUUID();
+      const insertData = {
+        id: replyMsgId,
+        thread_id: originalEmail.thread_id,
+        message_id: `<${replyMsgId}@mail.ainalytics.tech>`,
+        from_email: "contato@mail.ainalytics.tech",
+        from_name: "Ainalytics",
+        to_email: originalEmail.from_email,
+        subject: subject,
+        body_html: content,
+        body_text: content.replace(/<br\/?>/g, "\n").replace(/<[^>]+>/g, ""), // simple strip HTML for plain text
+        is_read: true,
+        is_starred: false,
+        is_archived: false,      
+        received_at: new Date().toISOString(),
+      };
+      
+      const { error: dbInsertError } = await db.from("sa_inbox_emails").insert(insertData);
+      if (dbInsertError) {
+        console.error("[admin-inbox] Failed to save reply to DB:", dbInsertError);
+        // Continue, the email still sent
+      }
+
+      return logger.done(withCors(req, ok({ success: true, email: insertData })), authCtx);
     }
 
     return logger.done(withCors(req, badRequest(`Method ${req.method} not allowed`)), authCtx);
