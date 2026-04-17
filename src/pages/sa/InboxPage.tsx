@@ -14,6 +14,7 @@ import { formatDateTime } from '@/lib/dateFormat';
 
 interface Email {
   id: string;
+  thread_id?: string;
   from_email: string;
   from_name: string | null;
   to_email: string;
@@ -24,6 +25,7 @@ interface Email {
   is_starred: boolean;
   is_archived: boolean;
   received_at: string;
+  message_count?: number;
 }
 
 interface Meta {
@@ -116,43 +118,63 @@ export function InboxPage() {
     }
   };
 
-  // Update email flags
-  const updateFlags = async (ids: string[], flags: Partial<Pick<Email, 'is_read' | 'is_starred' | 'is_archived'>>) => {
+  // Update flags. Pass `{ threadIds }` to affect every email in the thread(s);
+  // pass `{ ids }` to affect a specific set of email rows.
+  const updateFlags = async (
+    target: { threadIds?: string[]; ids?: string[] },
+    flags: Partial<Pick<Email, 'is_read' | 'is_starred' | 'is_archived'>>,
+  ) => {
     try {
-      await apiClient.put('/admin-inbox', { ids, ...flags });
-      setEmails(prev => prev.map(e => ids.includes(e.id) || (selectedThread && selectedThread.some(te => ids.includes(te.id) && te.id === e.id)) ? { ...e, ...flags } : e));
+      const payload: Record<string, unknown> = { ...flags };
+      if (target.threadIds?.length) payload.thread_ids = target.threadIds;
+      else if (target.ids?.length) payload.ids = target.ids;
+      else return;
+
+      await apiClient.put('/admin-inbox', payload);
+
+      const matches = (e: Email): boolean =>
+        Boolean(target.threadIds && e.thread_id && target.threadIds.includes(e.thread_id)) ||
+        Boolean(target.ids && target.ids.includes(e.id));
+
+      setEmails(prev => prev.map(e => matches(e) ? { ...e, ...flags } : e));
       if (selectedThread) {
-        setSelectedThread(prev => prev ? prev.map(e => ids.includes(e.id) ? { ...e, ...flags } : e) : null);
+        setSelectedThread(prev => prev ? prev.map(e => matches(e) ? { ...e, ...flags } : e) : null);
       }
-      // Refresh counts
       fetchEmails();
     } catch (err) {
       console.error('Failed to update email:', err);
     }
   };
 
-  // Delete email
-  const deleteEmail = async (ids: string[]) => {
+  // Delete. Pass `{ threadIds }` to nuke whole thread(s), `{ ids }` for specific rows.
+  const deleteEmail = async (target: { threadIds?: string[]; ids?: string[] }) => {
     if (!window.confirm(t('sa.inbox.deleteConfirm'))) return;
     try {
-      // apiClient.delete doesn't support body, so we use a raw fetch
-      const { EDGE_FUNCTION_BASE } = await import('@/lib/constants');
+      const { EDGE_FUNCTION_BASE, SUPABASE_ANON_KEY } = await import('@/lib/constants');
       const { supabase } = await import('@/lib/supabase');
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token || '';
+
+      const body: Record<string, unknown> = {};
+      if (target.threadIds?.length) body.thread_ids = target.threadIds;
+      else if (target.ids?.length) body.ids = target.ids;
+      else return;
 
       const res = await fetch(`${EDGE_FUNCTION_BASE}/admin-inbox`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': (await import('@/lib/constants')).SUPABASE_ANON_KEY,
+          'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ ids }),
+        body: JSON.stringify(body),
       });
       if (res.ok) {
-        setEmails(prev => prev.filter(e => !ids.includes(e.id)));
-        if (selectedThread && selectedThread.some(e => ids.includes(e.id))) {
+        const matches = (e: Email) =>
+          (target.threadIds && e.thread_id && target.threadIds.includes(e.thread_id)) ||
+          (target.ids && target.ids.includes(e.id));
+        setEmails(prev => prev.filter(e => !matches(e)));
+        if (selectedThread && selectedThread.some(matches)) {
           setSelectedThread(null);
         }
         fetchEmails();
@@ -162,27 +184,22 @@ export function InboxPage() {
     }
   };
 
-  // Send reply
+  // Send reply — keeps the thread open and appends the sent email inline (gmail-style).
   const sendReply = async (emailId: string) => {
     if (!replyContent.trim()) return;
     setSendingReply(true);
     try {
-      // Content could contain paragraphs. Replace newlines with <br> for HTML email.
       const htmlContent = replyContent.replace(/\n/g, '<br/>');
       const res = await apiClient.post<{ success: boolean; email: Email }>('/admin-inbox', { emailId, content: htmlContent });
-      
+
       setReplyContent('');
       setReplyOpen(false);
-      
-      // Attempt to append to thread immediately for snappier UI
+
       if (res.data?.email && selectedThread) {
         setSelectedThread([...selectedThread, res.data.email]);
       }
-      
+
       showToast(t('sa.inbox.replySuccess') || 'Reply sent successfully');
-      
-      // Return to inbox
-      setSelectedThread(null);
       fetchEmails();
     } catch (err) {
       console.error('Failed to send reply:', err);
@@ -206,9 +223,7 @@ export function InboxPage() {
     const latestEmail = selectedThread[selectedThread.length - 1]!; // The most recent message usually controls the display flags (read, star, archive)
     const rootEmail = selectedThread[0]!;
     const threadSubject = rootEmail.subject || t('sa.inbox.noSubject');
-    
-    // We treat bulk actions (archive, trash, star, mark read) on ALL ids in the thread
-    const threadIds = selectedThread.map(e => e.id);
+    const threadKey = rootEmail.thread_id || rootEmail.id;
 
     return (
       <div className="stagger-enter space-y-4">
@@ -223,7 +238,7 @@ export function InboxPage() {
           </button>
           <div className="flex items-center gap-1">
             <button
-              onClick={() => updateFlags(threadIds, { is_starred: !latestEmail.is_starred })}
+              onClick={() => updateFlags({ threadIds: [threadKey] }, { is_starred: !latestEmail.is_starred })}
               className="icon-btn"
               title={latestEmail.is_starred ? t('sa.inbox.unstar') : t('sa.inbox.star')}
             >
@@ -233,7 +248,7 @@ export function InboxPage() {
               }
             </button>
             <button
-              onClick={() => updateFlags(threadIds, { is_read: !latestEmail.is_read })}
+              onClick={() => updateFlags({ threadIds: [threadKey] }, { is_read: !latestEmail.is_read })}
               className="icon-btn"
               title={latestEmail.is_read ? t('sa.inbox.markUnread') : t('sa.inbox.markRead')}
             >
@@ -241,7 +256,7 @@ export function InboxPage() {
             </button>
             <button
               onClick={() => {
-                updateFlags(threadIds, { is_archived: !latestEmail.is_archived });
+                updateFlags({ threadIds: [threadKey] }, { is_archived: !latestEmail.is_archived });
                 setSelectedThread(null);
               }}
               className="icon-btn"
@@ -250,7 +265,7 @@ export function InboxPage() {
               <Archive className="w-4 h-4" />
             </button>
             <button
-              onClick={() => deleteEmail(threadIds)}
+              onClick={() => deleteEmail({ threadIds: [threadKey] })}
               className="icon-btn text-error hover:text-error"
               title={t('sa.inbox.delete')}
             >
@@ -388,7 +403,7 @@ export function InboxPage() {
       <div className="flex flex-wrap gap-2">
         {FILTERS.map(f => {
           const count =
-            f.key === 'inbox' ? meta.total - (meta.starred || 0) :
+            f.key === 'inbox' ? meta.total :
             f.key === 'unread' ? meta.unread :
             f.key === 'starred' ? meta.starred :
             undefined;
@@ -458,7 +473,7 @@ export function InboxPage() {
             >
               {/* Star toggle */}
               <button
-                onClick={e => { e.stopPropagation(); updateFlags([email.id], { is_starred: !email.is_starred }); }}
+                onClick={e => { e.stopPropagation(); updateFlags({ threadIds: [email.thread_id || email.id] }, { is_starred: !email.is_starred }); }}
                 className="shrink-0 p-1 -m-1 hover:scale-110 transition-transform"
               >
                 {email.is_starred
@@ -509,14 +524,14 @@ export function InboxPage() {
               {/* Quick actions */}
               <div className="flex items-center gap-0.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity hidden lg:flex">
                 <button
-                  onClick={e => { e.stopPropagation(); updateFlags([email.id], { is_archived: true }); }}
+                  onClick={e => { e.stopPropagation(); updateFlags({ threadIds: [email.thread_id || email.id] }, { is_archived: true }); }}
                   className="icon-btn !p-1"
                   title={t('sa.inbox.archive')}
                 >
                   <Archive className="w-3.5 h-3.5" />
                 </button>
                 <button
-                  onClick={e => { e.stopPropagation(); updateFlags([email.id], { is_read: !email.is_read }); }}
+                  onClick={e => { e.stopPropagation(); updateFlags({ threadIds: [email.thread_id || email.id] }, { is_read: !email.is_read }); }}
                   className="icon-btn !p-1"
                   title={email.is_read ? t('sa.inbox.markUnread') : t('sa.inbox.markRead')}
                 >

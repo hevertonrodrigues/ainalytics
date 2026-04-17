@@ -37,7 +37,7 @@ serve(async (req: Request) => {
 
       let query = db
         .from("sa_inbox_threads_view")
-        .select("id, thread_id, from_email, from_name, to_email, subject, body_text, is_read, is_starred, is_archived, received_at", { count: "exact" });
+        .select("id, thread_id, from_email, from_name, to_email, subject, body_text, is_read, is_starred, is_archived, received_at, message_count", { count: "exact" });
 
       // Apply filters
       switch (filter) {
@@ -148,15 +148,10 @@ serve(async (req: Request) => {
     }
 
     // ─── PUT: Update flags ──────────────────────────────────────────
+    // Accepts { id } / { ids } (per-email) or { thread_id } / { thread_ids } (whole thread).
     if (req.method === "PUT") {
       const body = await req.json();
-      const { id, ids, is_read, is_starred, is_archived } = body;
-
-      // Support bulk updates (array of ids) or single id
-      const targetIds: string[] = ids || (id ? [id] : []);
-      if (targetIds.length === 0) {
-        return logger.done(withCors(req, badRequest("id or ids is required")), authCtx);
-      }
+      const { id, ids, thread_id, thread_ids, is_read, is_starred, is_archived } = body;
 
       const updates: Record<string, boolean> = {};
       if (typeof is_read === "boolean") updates.is_read = is_read;
@@ -167,34 +162,42 @@ serve(async (req: Request) => {
         return logger.done(withCors(req, badRequest("No valid fields to update")), authCtx);
       }
 
-      const { error } = await db
-        .from("sa_inbox_emails")
-        .update(updates)
-        .in("id", targetIds);
+      const threadTargets: string[] = thread_ids || (thread_id ? [thread_id] : []);
+      const emailTargets: string[] = ids || (id ? [id] : []);
 
+      if (threadTargets.length === 0 && emailTargets.length === 0) {
+        return logger.done(withCors(req, badRequest("id(s) or thread_id(s) is required")), authCtx);
+      }
+
+      const update = db.from("sa_inbox_emails").update(updates);
+      const { data, error } = threadTargets.length > 0
+        ? await update.in("thread_id", threadTargets).select("id")
+        : await update.in("id", emailTargets).select("id");
       if (error) throw error;
 
-      return logger.done(withCors(req, ok({ updated: targetIds.length })), authCtx);
+      return logger.done(withCors(req, ok({ updated: data?.length ?? 0 })), authCtx);
     }
 
     // ─── DELETE: Remove email permanently ───────────────────────────
+    // Accepts { id } / { ids } (per-email) or { thread_id } / { thread_ids } (whole thread).
     if (req.method === "DELETE") {
       const body = await req.json();
-      const { id, ids } = body;
+      const { id, ids, thread_id, thread_ids } = body;
 
-      const targetIds: string[] = ids || (id ? [id] : []);
-      if (targetIds.length === 0) {
-        return logger.done(withCors(req, badRequest("id or ids is required")), authCtx);
+      const threadTargets: string[] = thread_ids || (thread_id ? [thread_id] : []);
+      const emailTargets: string[] = ids || (id ? [id] : []);
+
+      if (threadTargets.length === 0 && emailTargets.length === 0) {
+        return logger.done(withCors(req, badRequest("id(s) or thread_id(s) is required")), authCtx);
       }
 
-      const { error } = await db
-        .from("sa_inbox_emails")
-        .delete()
-        .in("id", targetIds);
-
+      const del = db.from("sa_inbox_emails").delete();
+      const { data, error } = threadTargets.length > 0
+        ? await del.in("thread_id", threadTargets).select("id")
+        : await del.in("id", emailTargets).select("id");
       if (error) throw error;
 
-      return logger.done(withCors(req, ok({ deleted: targetIds.length })), authCtx);
+      return logger.done(withCors(req, ok({ deleted: data?.length ?? 0 })), authCtx);
     }
 
     // ─── POST: Send Reply via SendGrid ──────────────────────────────
@@ -228,6 +231,12 @@ serve(async (req: Request) => {
         subject = `Re: ${subject}`;
       }
 
+      const replyMsgId = crypto.randomUUID();
+      // Stored in DB without angle brackets (matches inbound webhook extraction format).
+      const storedMessageId = `${replyMsgId}@mail.ainalytics.tech`;
+      // Wire-format (headers) must include angle brackets per RFC 5322.
+      const wireMessageId = `<${storedMessageId}>`;
+
       const payload: any = {
         personalizations: [
           {
@@ -242,7 +251,7 @@ serve(async (req: Request) => {
         ],
         from: {
           email: "contato@mail.ainalytics.tech",
-          name: "Ainalytics", // Or pull from somewhere else if needed
+          name: "Ainalytics",
         },
         content: [
           {
@@ -250,17 +259,17 @@ serve(async (req: Request) => {
             value: content,
           },
         ],
+        headers: {
+          "Message-ID": wireMessageId,
+        },
       };
 
-      // Add In-Reply-To headers if we have a message_id to keep thread intact
       if (originalEmail.message_id) {
-        payload.headers = {
-          "In-Reply-To": originalEmail.message_id,
-          "References": originalEmail.message_id,
-        };
+        const parentWireId = `<${originalEmail.message_id}>`;
+        payload.headers["In-Reply-To"] = parentWireId;
+        payload.headers["References"] = parentWireId;
       }
 
-      // 3. Send to SendGrid
       const sgRes = await fetch("https://api.sendgrid.com/v3/mail/send", {
         method: "POST",
         headers: {
@@ -276,28 +285,25 @@ serve(async (req: Request) => {
         return logger.done(withCors(req, serverError("Failed to send email via SendGrid")), authCtx);
       }
 
-      // 4. Save the sent reply into the database
-      const replyMsgId = crypto.randomUUID();
       const insertData = {
         id: replyMsgId,
         thread_id: originalEmail.thread_id,
-        message_id: `<${replyMsgId}@mail.ainalytics.tech>`,
+        message_id: storedMessageId,
         from_email: "contato@mail.ainalytics.tech",
         from_name: "Ainalytics",
         to_email: originalEmail.from_email,
         subject: subject,
         body_html: content,
-        body_text: content.replace(/<br\/?>/g, "\n").replace(/<[^>]+>/g, ""), // simple strip HTML for plain text
+        body_text: content.replace(/<br\/?>/g, "\n").replace(/<[^>]+>/g, ""),
         is_read: true,
         is_starred: false,
-        is_archived: false,      
+        is_archived: false,
         received_at: new Date().toISOString(),
       };
-      
+
       const { error: dbInsertError } = await db.from("sa_inbox_emails").insert(insertData);
       if (dbInsertError) {
         console.error("[admin-inbox] Failed to save reply to DB:", dbInsertError);
-        // Continue, the email still sent
       }
 
       return logger.done(withCors(req, ok({ success: true, email: insertData })), authCtx);

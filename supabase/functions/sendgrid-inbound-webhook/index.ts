@@ -64,9 +64,11 @@ serve(async (req: Request) => {
       }
     }
 
-    // Try to extract Message-ID and In-Reply-To from headers for threading
+    // Try to extract Message-ID, In-Reply-To, and References from headers for threading
     let messageId: string | null = null;
     let inReplyTo: string | null = null;
+    let references: string[] = [];
+    
     if (headersRaw) {
       const msgIdMatch = headersRaw.match(/^Message-ID:\s*<?(.+?)>?\s*$/mi);
       if (msgIdMatch) {
@@ -75,6 +77,13 @@ serve(async (req: Request) => {
       const inReplyToMatch = headersRaw.match(/^In-Reply-To:\s*<?(.+?)>?\s*$/mi);
       if (inReplyToMatch) {
         inReplyTo = inReplyToMatch[1].trim();
+      }
+      const refMatch = headersRaw.match(/^References:\s*(.+)$/im);
+      if (refMatch) {
+        const refs = refMatch[1].match(/<[^>]+>/g);
+        if (refs) {
+          references = refs.map(r => r.replace(/[<>]/g, '').trim());
+        }
       }
     }
 
@@ -96,13 +105,21 @@ serve(async (req: Request) => {
     const emailId = crypto.randomUUID();
     let threadId = emailId; // Default thread_id to the email's own ID
 
-    if (inReplyTo) {
-      // Find parent's thread_id
+    // Collect message IDs to check for parent thread: In-Reply-To + all References
+    const threadLookupIds: string[] = [];
+    if (inReplyTo) threadLookupIds.push(inReplyTo);
+    threadLookupIds.push(...references);
+
+    if (threadLookupIds.length > 0) {
+      // Find parent's thread_id matching any of these references
       const { data: parent } = await db
         .from("sa_inbox_emails")
         .select("thread_id")
-        .eq("message_id", inReplyTo)
-        .single();
+        .in("message_id", threadLookupIds)
+        .not("thread_id", "is", null)
+        .limit(1)
+        .maybeSingle();
+        
       if (parent && parent.thread_id) {
         threadId = parent.thread_id;
       }
