@@ -1084,7 +1084,9 @@
         "sending": "Sending...",
         "sendToCount": "Send to {{count}}",
         "sentSuccess": "Email sent to {{count}} candidate(s).",
-        "sentWithFailures": "Sent to {{sent}}, failed for {{failed}}."
+        "sentWithFailures": "Sent to {{sent}}, failed for {{failed}}.",
+        "openedAt": "Opened on {{date}}",
+        "sentNotOpened": "Sent on {{date}} — not opened yet"
       }
     },
     "inbox": {

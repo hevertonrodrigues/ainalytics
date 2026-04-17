@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Briefcase, Search, X, ExternalLink, FileText,
   User, Mail, Phone, Linkedin, Loader2,
-  ChevronDown, Eye, Send,
+  ChevronDown, Eye, Send, MailCheck, MailX,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
@@ -29,6 +29,8 @@ interface Application {
   answers: Record<string, string>;
   status: string;
   created_at: string;
+  last_email_sent_at: string | null;
+  last_email_opened_at: string | null;
   opportunity: OpportunityRef;
 }
 
@@ -149,6 +151,7 @@ export function JobApplicationsPage() {
     }
     setEmailModalOpen(false);
     clearSelection();
+    fetchData();
   };
 
   const getQuestionsForOpp = (oppId: string) => questions.filter(q => q.opportunity_id === oppId);
@@ -325,13 +328,16 @@ export function JobApplicationsPage() {
                         {formatDateTime(app.created_at, 'dateTime')}
                       </td>
                       <td className="text-center">
-                        <button
-                          onClick={(e) => { e.stopPropagation(); setSelectedApp(app); }}
-                          className="icon-btn"
-                          title={t('sa.jobApps.viewDetails')}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        <div className="inline-flex items-center gap-1">
+                          <EmailStatusIcon app={app} t={t} />
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setSelectedApp(app); }}
+                            className="icon-btn"
+                            title={t('sa.jobApps.viewDetails')}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   </Fragment>
@@ -364,6 +370,31 @@ export function JobApplicationsPage() {
         />
       )}
     </div>
+  );
+}
+
+/* ─── Email Status Icon ────────────────────────────────────── */
+
+function EmailStatusIcon({ app, t }: {
+  app: { last_email_sent_at: string | null; last_email_opened_at: string | null };
+  t: (key: string, opts?: Record<string, unknown>) => string;
+}) {
+  if (!app.last_email_sent_at) return null;
+
+  if (app.last_email_opened_at) {
+    const title = t('sa.jobApps.email.openedAt', { date: formatDateTime(app.last_email_opened_at, 'dateTime') });
+    return (
+      <span className="inline-flex items-center text-success" title={title} aria-label={title}>
+        <MailCheck className="w-4 h-4" />
+      </span>
+    );
+  }
+
+  const title = t('sa.jobApps.email.sentNotOpened', { date: formatDateTime(app.last_email_sent_at, 'dateTime') });
+  return (
+    <span className="inline-flex items-center text-text-muted" title={title} aria-label={title}>
+      <MailX className="w-4 h-4" />
+    </span>
   );
 }
 
@@ -505,7 +536,7 @@ interface ModalProps {
   updating: boolean;
   onUpdateStatus: (status: string) => void;
   onClose: () => void;
-  t: (key: string) => string;
+  t: (key: string, opts?: Record<string, unknown>) => string;
 }
 
 function ApplicationModal({ app, questions, updating, onUpdateStatus, onClose, t }: ModalProps) {
@@ -591,6 +622,18 @@ function ApplicationModal({ app, questions, updating, onUpdateStatus, onClose, t
                   <p className="text-sm text-text-primary whitespace-pre-wrap">{answer}</p>
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Email tracking */}
+          {app.last_email_sent_at && (
+            <div className="flex items-center gap-2 text-xs bg-glass-element rounded-lg p-3">
+              <EmailStatusIcon app={app} t={t} />
+              <span className="text-text-secondary">
+                {app.last_email_opened_at
+                  ? t('sa.jobApps.email.openedAt', { date: formatDateTime(app.last_email_opened_at, 'dateTime') })
+                  : t('sa.jobApps.email.sentNotOpened', { date: formatDateTime(app.last_email_sent_at, 'dateTime') })}
+              </span>
             </div>
           )}
 

@@ -38,6 +38,7 @@ serve(async (req: Request) => {
     const { tenantId, user } = await verifyAuth(req);
     authCtx = { tenant_id: tenantId, user_id: user.id };
     await requireSuperAdmin(user.id, tenantId);
+    const senderEmail = user.email;
 
     const db = createAdminClient();
 
@@ -55,6 +56,8 @@ serve(async (req: Request) => {
           answers,
           status,
           created_at,
+          last_email_sent_at,
+          last_email_opened_at,
           opportunity:job_opportunities!opportunity_id (
             id,
             title,
@@ -109,6 +112,8 @@ serve(async (req: Request) => {
           answers,
           status,
           created_at,
+          last_email_sent_at,
+          last_email_opened_at,
           opportunity:job_opportunities!opportunity_id (
             id,
             title,
@@ -159,12 +164,25 @@ serve(async (req: Request) => {
       }
 
       const valid = (recipients || []).filter((r) => r.email);
-      const htmlContent = /<[a-z][\s\S]*>/i.test(content)
-        ? content
-        : content.replace(/\n/g, "<br/>");
+      const hasHtml = /<[a-z][\s\S]*>/i.test(content);
+      const baseHtml = hasHtml ? content : content.replace(/\n/g, "<br/>");
+      const textContent = hasHtml
+        ? content.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").trim()
+        : content;
+
+      const replyTo = senderEmail && senderEmail.includes("@")
+        ? { email: senderEmail }
+        : { email: "contato@mail.ainalytics.tech", name: "Ainalytics" };
+
+      const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 
       const results = await Promise.allSettled(
         valid.map(async (r) => {
+          const trackingPixel = supabaseUrl
+            ? `<img src="${supabaseUrl}/functions/v1/careers-email-track?id=${encodeURIComponent(r.id)}" width="1" height="1" alt="" style="display:block;border:0;width:1px;height:1px" />`
+            : "";
+          const htmlContent = baseHtml + trackingPixel;
+
           const payload = {
             personalizations: [
               {
@@ -173,7 +191,11 @@ serve(async (req: Request) => {
               },
             ],
             from: { email: "contato@mail.ainalytics.tech", name: "Ainalytics" },
-            content: [{ type: "text/html", value: htmlContent }],
+            reply_to: replyTo,
+            content: [
+              { type: "text/plain", value: textContent },
+              { type: "text/html", value: htmlContent },
+            ],
           };
 
           const sgRes = await fetch("https://api.sendgrid.com/v3/mail/send", {
@@ -193,11 +215,25 @@ serve(async (req: Request) => {
         }),
       );
 
-      const sent = results.filter((r) => r.status === "fulfilled").length;
+      const sentIds = results
+        .map((r, i) => (r.status === "fulfilled" ? valid[i].id : null))
+        .filter((v): v is string => v !== null);
+      const sent = sentIds.length;
       const failed = results.length - sent;
       if (failed > 0) {
         const firstErr = results.find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
         console.error("[admin-careers] send failures:", failed, firstErr?.reason);
+      }
+
+      if (sentIds.length > 0) {
+        const { error: stampErr } = await db
+          .from("job_applications")
+          .update({
+            last_email_sent_at: new Date().toISOString(),
+            last_email_opened_at: null,
+          })
+          .in("id", sentIds);
+        if (stampErr) console.error("[admin-careers] stamp sent_at error:", stampErr);
       }
 
       return logger.done(withCors(req, ok({ sent, failed, total: results.length })), authCtx);

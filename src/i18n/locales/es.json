@@ -1076,7 +1076,9 @@
         "sending": "Enviando...",
         "sendToCount": "Enviar a {{count}}",
         "sentSuccess": "Correo enviado a {{count}} candidato(s).",
-        "sentWithFailures": "Enviado a {{sent}}, falló en {{failed}}."
+        "sentWithFailures": "Enviado a {{sent}}, falló en {{failed}}.",
+        "openedAt": "Abierto el {{date}}",
+        "sentNotOpened": "Enviado el {{date}} — aún no se ha abierto"
       }
     },
     "inbox": {

@@ -1850,7 +1850,9 @@
         "sending": "Enviando...",
         "sendToCount": "Enviar para {{count}}",
         "sentSuccess": "E-mail enviado para {{count}} candidato(s).",
-        "sentWithFailures": "Enviado para {{sent}}, falhou para {{failed}}."
+        "sentWithFailures": "Enviado para {{sent}}, falhou para {{failed}}.",
+        "openedAt": "Aberto em {{date}}",
+        "sentNotOpened": "Enviado em {{date}} — ainda não foi aberto"
       }
     },
     "inbox": {
