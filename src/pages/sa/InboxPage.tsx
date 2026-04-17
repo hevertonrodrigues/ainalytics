@@ -6,6 +6,7 @@ import {
   ArrowLeft, StarOff, Send, MessageSquareReply,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
 import { SAPageHeader } from './SAPageHeader';
 import { formatDateTime } from '@/lib/dateFormat';
 
@@ -47,6 +48,7 @@ const FILTERS: { key: Filter; translationKey: string }[] = [
 
 export function InboxPage() {
   const { t } = useTranslation();
+  const { showToast } = useToast();
 
   const [emails, setEmails] = useState<Email[]>([]);
   const [meta, setMeta] = useState<Meta>({ page: 1, pageSize: 30, totalFiltered: 0, total: 0, unread: 0, starred: 0 });
@@ -177,18 +179,14 @@ export function InboxPage() {
         setSelectedThread([...selectedThread, res.data.email]);
       }
       
-      // Use standard alert as fallback if no toast library exists, otherwise consider custom toast
-      // For now, to fulfill request "just show a toast and return to the previous page":
-      const { toast } = await import('react-hot-toast').catch(() => ({ toast: { success: alert, error: alert } }));
-      toast.success(t('sa.inbox.replySuccess') || 'Reply sent successfully');
+      showToast(t('sa.inbox.replySuccess') || 'Reply sent successfully');
       
       // Return to inbox
       setSelectedThread(null);
       fetchEmails();
     } catch (err) {
       console.error('Failed to send reply:', err);
-      const { toast } = await import('react-hot-toast').catch(() => ({ toast: { success: alert, error: alert } }));
-      toast.error(t('sa.inbox.replyError') || 'Failed to send reply');
+      showToast(t('sa.inbox.replyError') || 'Failed to send reply');
     } finally {
       setSendingReply(false);
     }
@@ -205,8 +203,9 @@ export function InboxPage() {
 
   // ─── Detail View ─────────────────────────────────────
   if (selectedThread && selectedThread.length > 0) {
-    const latestEmail = selectedThread[selectedThread.length - 1]; // The most recent message usually controls the display flags (read, star, archive)
-    const threadSubject = selectedThread[0].subject || t('sa.inbox.noSubject');
+    const latestEmail = selectedThread[selectedThread.length - 1]!; // The most recent message usually controls the display flags (read, star, archive)
+    const rootEmail = selectedThread[0]!;
+    const threadSubject = rootEmail.subject || t('sa.inbox.noSubject');
     
     // We treat bulk actions (archive, trash, star, mark read) on ALL ids in the thread
     const threadIds = selectedThread.map(e => e.id);
@@ -275,7 +274,7 @@ export function InboxPage() {
               <Loader2 className="w-6 h-6 animate-spin text-brand-primary" />
             </div>
           ) : (
-            selectedThread.map((email, index) => (
+            selectedThread.map((email) => (
               <div key={email.id} className="dashboard-card overflow-hidden">
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-glass-border">
