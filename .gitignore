@@ -33,14 +33,16 @@ supabase/functions/*/.npmrc
 dumps/*
 
 
+_knowledge/*
 _mkt/*
+_people/*
 guide_docs/*
 scripts/*
 pagespeed_desktop.pdf
 pagespeed_mobile.pdf
 
 
-knowledge/*
+
 
 ebook-geo-ainalytics.docx
 ebook-geo-ainalytics.md
