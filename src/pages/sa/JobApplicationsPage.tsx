@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, Fragment, useMemo } from 'react';
+import { useState, useEffect, useCallback, Fragment, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Briefcase, Search, X, ExternalLink, FileText,
   User, Mail, Phone, Linkedin, Loader2,
-  ChevronDown, Eye, Send, MailCheck, MailX,
+  ChevronDown, Eye, Send, MailCheck, MailX, Code2,
 } from 'lucide-react';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
@@ -407,16 +407,58 @@ interface BulkEmailModalProps {
   t: (key: string, opts?: Record<string, unknown>) => string;
 }
 
+const EMAIL_VARIABLES = [
+  { token: 'NAME', labelKey: 'sa.jobApps.email.variables.name' },
+  { token: 'FIRST_NAME', labelKey: 'sa.jobApps.email.variables.firstName' },
+  { token: 'EMAIL', labelKey: 'sa.jobApps.email.variables.email' },
+  { token: 'OPPORTUNITY', labelKey: 'sa.jobApps.email.variables.opportunity' },
+] as const;
+
 function BulkEmailModal({ recipients, onClose, onSend, t }: BulkEmailModalProps) {
   const [subject, setSubject] = useState('');
   const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
+  const [activeField, setActiveField] = useState<'subject' | 'content'>('content');
+
+  const subjectRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape' && !sending) onClose(); };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose, sending]);
+
+  const insertVariable = (varName: string) => {
+    if (sending) return;
+    const token = `{{${varName}}}`;
+
+    if (activeField === 'subject') {
+      const el = subjectRef.current;
+      const start = el?.selectionStart ?? subject.length;
+      const end = el?.selectionEnd ?? subject.length;
+      const next = subject.slice(0, start) + token + subject.slice(end);
+      setSubject(next);
+      requestAnimationFrame(() => {
+        if (!subjectRef.current) return;
+        subjectRef.current.focus();
+        const pos = start + token.length;
+        subjectRef.current.setSelectionRange(pos, pos);
+      });
+    } else {
+      const el = contentRef.current;
+      const start = el?.selectionStart ?? content.length;
+      const end = el?.selectionEnd ?? content.length;
+      const next = content.slice(0, start) + token + content.slice(end);
+      setContent(next);
+      requestAnimationFrame(() => {
+        if (!contentRef.current) return;
+        contentRef.current.focus();
+        const pos = start + token.length;
+        contentRef.current.setSelectionRange(pos, pos);
+      });
+    }
+  };
 
   const canSend = subject.trim().length > 0 && content.trim().length > 0 && recipients.length > 0 && !sending;
 
@@ -473,13 +515,42 @@ function BulkEmailModal({ recipients, onClose, onSend, t }: BulkEmailModalProps)
           </div>
 
           <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Code2 className="w-3.5 h-3.5 text-text-muted" />
+              <label className="text-xs font-semibold text-text-secondary">
+                {t('sa.jobApps.email.variables.label')}
+              </label>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {EMAIL_VARIABLES.map(v => (
+                <button
+                  key={v.token}
+                  type="button"
+                  onClick={() => insertVariable(v.token)}
+                  disabled={sending}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-glass-element border border-glass-border text-xs font-medium text-text-secondary hover:border-brand-primary/40 hover:text-brand-primary hover:bg-brand-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={`{{${v.token}}}`}
+                >
+                  <span>{t(v.labelKey)}</span>
+                  <code className="font-mono text-[10px] text-text-muted">{`{{${v.token}}}`}</code>
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-text-muted mt-1.5">
+              {t('sa.jobApps.email.variables.help')}
+            </p>
+          </div>
+
+          <div>
             <label className="block text-xs font-semibold text-text-secondary mb-2">
               {t('sa.jobApps.email.subjectLabel')}
             </label>
             <input
+              ref={subjectRef}
               type="text"
               value={subject}
               onChange={e => setSubject(e.target.value)}
+              onFocus={() => setActiveField('subject')}
               disabled={sending}
               placeholder={t('sa.jobApps.email.subjectPlaceholder')}
               className="input-field w-full !text-sm"
@@ -491,8 +562,10 @@ function BulkEmailModal({ recipients, onClose, onSend, t }: BulkEmailModalProps)
               {t('sa.jobApps.email.bodyLabel')}
             </label>
             <textarea
+              ref={contentRef}
               value={content}
               onChange={e => setContent(e.target.value)}
+              onFocus={() => setActiveField('content')}
               disabled={sending}
               placeholder={t('sa.jobApps.email.bodyPlaceholder')}
               rows={10}

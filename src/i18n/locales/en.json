@@ -1086,7 +1086,15 @@
         "sentSuccess": "Email sent to {{count}} candidate(s).",
         "sentWithFailures": "Sent to {{sent}}, failed for {{failed}}.",
         "openedAt": "Opened on {{date}}",
-        "sentNotOpened": "Sent on {{date}} — not opened yet"
+        "sentNotOpened": "Sent on {{date}} — not opened yet",
+        "variables": {
+          "label": "Insert variable",
+          "help": "Click a variable to insert it where your cursor is. Each candidate will receive the email with their own values.",
+          "name": "Full name",
+          "firstName": "First name",
+          "email": "Email",
+          "opportunity": "Opportunity"
+        }
       }
     },
     "inbox": {
@@ -1136,6 +1144,115 @@
       "refresh": "Refresh",
       "composing": "Composing reply",
       "cancel": "Cancel"
+    },
+    "blog": {
+      "dashboard": {
+        "title": "Index AI — Blog",
+        "subtitle": "Manage news, trending, rankings and SEO meta for indexai.news"
+      },
+      "modules": {
+        "news":       { "title": "News",        "description": "Write, edit and publish news. Categories, tags, authors and translations." },
+        "trending":   { "title": "Trending",    "description": "Pick which news appear in the homepage trending feed." },
+        "categories": { "title": "Categories",  "description": "Editorial sections (research, product, case, opinion, latam, europe)." },
+        "tags":       { "title": "Tags",        "description": "Cross-cutting taxonomy: chatgpt, gemini, fintech, exclusive..." },
+        "authors":    { "title": "Authors",     "description": "Reporter profiles with localized roles and bios." },
+        "brands":     { "title": "Brands",      "description": "Brand catalog used by the rankings." },
+        "rankings":   { "title": "Rankings",    "description": "AVI snapshots, sectors and ranked items." },
+        "rankingFaq": { "title": "Ranking FAQ",  "description": "Q&A for the rankings page (FAQPage JSON-LD)." },
+        "ticker":     { "title": "Ticker",      "description": "Real-time engine signals shown at the top of every page." },
+        "localeMeta": { "title": "Locale meta", "description": "Per-language SEO config: site title, description, publisher, OG image, newsletter copy." },
+        "newsletter": { "title": "Newsletter",  "description": "Subscriber list and status management." }
+      },
+      "save": "Save",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "add": "Add",
+      "back": "Back",
+      "refresh": "Refresh",
+      "noResults": "No results",
+      "confirmDelete": "Are you sure you want to delete this entry?",
+      "allLanguages": "All languages",
+      "allStatuses": "All statuses",
+      "news": {
+        "title": "News",
+        "subtitle": "Manage published, scheduled and draft news.",
+        "newArticle": "New article",
+        "editorSubtitleNew": "Create a new article in PT/ES/EN.",
+        "editorSubtitleEdit": "Edit an existing article — content, tags, authors, SEO.",
+        "searchPlaceholder": "Search by title or id...",
+        "allStatuses": "All statuses",
+        "colTitle": "Title",
+        "colCategory": "Category",
+        "colStatus": "Status",
+        "colReadTime": "Read",
+        "colTrending": "Trending",
+        "colPublished": "Published",
+        "colId": "Article id (slug)",
+        "publish": "Publish",
+        "retract": "Retract",
+        "toggleTrending": "Toggle trending",
+        "confirmRetract": "Retract this article? It will return 410 Gone on the public API.",
+        "metaSection": "Meta",
+        "imageUrl": "Image URL",
+        "publishedAt": "Published at",
+        "isFeatured": "Featured",
+        "trendingPos": "Trending #",
+        "keywords": "Keywords (comma-separated)",
+        "authorsSection": "Authors",
+        "noAuthorsYet": "No authors yet — create some in the Authors module.",
+        "tagsSection": "Tags",
+        "contentSection": "Content (per locale)",
+        "slug": "Slug",
+        "displayDate": "Display date",
+        "title": "Title",
+        "dek": "Dek (subheading)",
+        "readTimeLabel": "Read-time label",
+        "imageAlt": "Image alt text",
+        "toc": "Table of contents (one per line)",
+        "body": "Body blocks",
+        "noBodyBlocks": "No blocks yet. Add a paragraph or heading.",
+        "sourcesSection": "Sources",
+        "sourcesHint": "External works the article cites. Emitted as NewsArticle.citation[] in JSON-LD.",
+        "noSources": "No sources yet.",
+        "sourceName": "Source name (e.g. University of São Paulo)"
+      },
+      "faq": {
+        "regionPlaceholder": "region (br/es/us, blank = all)",
+        "sectorPlaceholder": "sector id (blank = all)",
+        "scopeHint": "Empty fields = global FAQ. Specific (region, sector) overrides the global one.",
+        "questionPlaceholder": "Question",
+        "answerPlaceholder": "Answer",
+        "empty": "No FAQ entries for this scope yet."
+      },
+      "trending": {
+        "activeFeed": "Active trending feed",
+        "availablePool": "Published news (not in feed)",
+        "empty": "No articles in the trending feed.",
+        "noAvailable": "All published articles are already in the feed.",
+        "promote": "Promote",
+        "renormalize": "Renormalize positions"
+      },
+      "newsletter": {
+        "totalSubscribers": "Total subscribers",
+        "activeSubscribers": "Active",
+        "pendingSubscribers": "Pending"
+      },
+      "rankings": {
+        "newSnapshot": "New snapshot",
+        "itemsHeader": "Ranked items",
+        "editItems": "Edit items",
+        "hideItems": "Hide items"
+      },
+      "localeMeta": {
+        "missing": "No locale meta row for {{lang}}. Save once to create.",
+        "siteSection": "Site & SEO",
+        "publisherSection": "Publisher",
+        "trendingSection": "Trending (homepage)",
+        "rankingsSection": "Rankings page",
+        "categoriesSection": "Categories page",
+        "newsletterSection": "Newsletter CTA copy"
+      }
     }
   },
   "timeline": {
@@ -2192,6 +2309,118 @@
         "fileTooLarge": "File too large. Maximum 10 MB.",
         "phoneRequired": "Phone is required (minimum 6 digits)"
       }
+    }
+  },
+  "quickstart": {
+    "badge": "AI analysis in 30 seconds",
+    "heroTitle": "See your brand through the eyes of",
+    "heroTitleHighlight": "Artificial Intelligence",
+    "heroSubtitle": "Discover how ChatGPT, Claude and Gemini describe your company before your customers ever search.",
+    "urlPlaceholder": "yourcompany.com",
+    "urlCta": "Analyze",
+    "urlHint": "Free · No upfront signup · Results in seconds",
+    "trust1": "Multi-model AI analysis",
+    "trust2": "Instant GEO insights",
+    "trust3": "No credit card required",
+    "errors": {
+      "invalidUrl": "Please enter a valid URL (e.g. yourcompany.com)",
+      "invalidEmail": "Please enter a valid email",
+      "nameRequired": "Name is required",
+      "companyRequired": "Company is required",
+      "jobRoleRequired": "Job role is required"
+    },
+    "emailModal": {
+      "title": "Where should we send your analysis?",
+      "subtitle": "We're preparing the report for {{domain}}",
+      "label": "Work email",
+      "placeholder": "you@company.com",
+      "submit": "Continue",
+      "note": "We won't spam — just your report."
+    },
+    "registerModal": {
+      "title": "Complete your registration to see results",
+      "subtitle": "Last step before your full report",
+      "name": "Full name",
+      "namePlaceholder": "Jane Doe",
+      "phone": "WhatsApp",
+      "phonePlaceholder": "+1 (555) 000-0000",
+      "company": "Company",
+      "companyPlaceholder": "Your company name",
+      "jobRole": "Job role",
+      "jobRolePlaceholder": "e.g. Marketing Director",
+      "submit": "Show my results",
+      "note": "Your data is protected. We never share with third parties."
+    },
+    "result": {
+      "title": "Your analysis is ready!",
+      "subtitle": "We generated an initial analysis for {{domain}}. Create your free account to unlock the full details.",
+      "statGeoLabel": "GEO Score",
+      "statMentionsLabel": "AI Mentions",
+      "statSourcesLabel": "Cited Sources",
+      "cta": "Create free account",
+      "ctaNote": "Activate your free {{app}} trial"
+    },
+    "logoBar": {
+      "title": "Simultaneous analysis across every major AI platform"
+    },
+    "score": {
+      "titleStart": "Your ",
+      "titleHighlight": "live",
+      "titleEnd": " GEO dashboard in seconds",
+      "subtitle": "A preview of what your free analysis surfaces.",
+      "scoreLabel": "GEO Score",
+      "readinessLabel": "Level",
+      "readinessValue": "AI Optimized",
+      "factorTechnical": "Technical",
+      "factorContent": "Content",
+      "factorAuthority": "Authority",
+      "factorSemantic": "Semantic",
+      "exampleNote": "Illustrative example. Your real score depends on the full analysis."
+    },
+    "process": {
+      "titleStart": "Three steps. ",
+      "titleHighlight": "Zero friction.",
+      "subtitle": "From URL to insight in under a minute.",
+      "step1Title": "Drop your URL",
+      "step1Desc": "No upfront signup. Just your company domain.",
+      "step2Title": "AI runs across every model",
+      "step2Desc": "ChatGPT, Claude, Gemini, Grok and Perplexity produce real answers about your brand.",
+      "step3Title": "You get your GEO map",
+      "step3Desc": "Score, critical factors, cited sources and a prioritized action list."
+    },
+    "featuresSection": {
+      "titleStart": "Everything your brand needs to be ",
+      "titleHighlight": "found by AI",
+      "subtitle": "Built for modern marketing teams who already see AI as the new SEO.",
+      "f1Title": "Multi-model coverage",
+      "f1Desc": "Monitor every major AI in parallel — real responses, not simulations.",
+      "f2Title": "Citations and sources",
+      "f2Desc": "See exactly which sites AI cites when it mentions — or ignores — you.",
+      "f3Title": "Competitive benchmarking",
+      "f3Desc": "Compare your AI footprint against competitors in real time.",
+      "f4Title": "GEO recommendations",
+      "f4Desc": "Prioritized action list — what to fix first to climb AI rankings.",
+      "f5Title": "Continuous monitoring",
+      "f5Desc": "New insights every run. AI shifts — you keep up.",
+      "f6Title": "Built for teams",
+      "f6Desc": "Invite your team, set roles, and centralize your GEO operation."
+    },
+    "dashboardPreview": {
+      "titleStart": "Your ",
+      "titleHighlight": "live GEO cockpit",
+      "subtitle": "All in one place: scores, citations, trends and prioritized recommendations.",
+      "metric1Label": "AI mentions / month",
+      "metric2Label": "GEO Score",
+      "metric3Label": "Cited sources",
+      "trendLabel": "Last 30-day trend",
+      "sentimentLabel": "Sentiment",
+      "sentimentPositive": "Positive",
+      "sentimentNeutral": "Neutral"
+    },
+    "finalCta": {
+      "title": "Ready to see how AI describes your brand?",
+      "subtitle": "Start with your URL. We handle the rest.",
+      "note": "Free analysis · No commitment · Results in seconds"
     }
   }
 }

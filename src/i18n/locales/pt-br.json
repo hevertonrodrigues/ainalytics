@@ -1852,7 +1852,15 @@
         "sentSuccess": "E-mail enviado para {{count}} candidato(s).",
         "sentWithFailures": "Enviado para {{sent}}, falhou para {{failed}}.",
         "openedAt": "Aberto em {{date}}",
-        "sentNotOpened": "Enviado em {{date}} — ainda não foi aberto"
+        "sentNotOpened": "Enviado em {{date}} — ainda não foi aberto",
+        "variables": {
+          "label": "Inserir variável",
+          "help": "Clique em uma variável para inseri-la onde está o cursor. Cada candidato receberá o e-mail com seus próprios valores.",
+          "name": "Nome completo",
+          "firstName": "Primeiro nome",
+          "email": "E-mail",
+          "opportunity": "Vaga"
+        }
       }
     },
     "inbox": {
@@ -1902,6 +1910,115 @@
       "refresh": "Atualizar",
       "composing": "Redigindo resposta",
       "cancel": "Cancelar"
+    },
+    "blog": {
+      "dashboard": {
+        "title": "Index AI — Blog",
+        "subtitle": "Gerencie notícias, trending, rankings e meta SEO do indexai.news"
+      },
+      "modules": {
+        "news":       { "title": "Notícias",     "description": "Crie, edite e publique notícias. Categorias, tags, autores e traduções." },
+        "trending":   { "title": "Trending",     "description": "Selecione quais notícias aparecem no feed de tendência da home." },
+        "categories": { "title": "Categorias",   "description": "Seções editoriais (research, product, case, opinion, latam, europe)." },
+        "tags":       { "title": "Tags",         "description": "Taxonomia transversal: chatgpt, gemini, fintech, exclusive..." },
+        "authors":    { "title": "Autores",      "description": "Perfis de repórteres com cargos e bios localizados." },
+        "brands":     { "title": "Marcas",       "description": "Catálogo de marcas usado pelos rankings." },
+        "rankings":   { "title": "Rankings",     "description": "Snapshots AVI, setores e itens rankeados." },
+        "rankingFaq": { "title": "FAQ do Ranking","description": "Perguntas e respostas do ranking (FAQPage JSON-LD)." },
+        "ticker":     { "title": "Ticker",       "description": "Sinais em tempo real no topo de cada página." },
+        "localeMeta": { "title": "Meta por idioma", "description": "Configuração SEO por idioma: título, descrição, publisher, OG image, copy do newsletter." },
+        "newsletter": { "title": "Newsletter",   "description": "Lista de assinantes e gestão de status." }
+      },
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "edit": "Editar",
+      "delete": "Excluir",
+      "add": "Adicionar",
+      "back": "Voltar",
+      "refresh": "Atualizar",
+      "noResults": "Sem resultados",
+      "confirmDelete": "Tem certeza que quer excluir este registro?",
+      "allLanguages": "Todos os idiomas",
+      "allStatuses": "Todos os status",
+      "news": {
+        "title": "Notícias",
+        "subtitle": "Gerencie notícias publicadas, agendadas e rascunhos.",
+        "newArticle": "Nova matéria",
+        "editorSubtitleNew": "Crie uma nova matéria em PT/ES/EN.",
+        "editorSubtitleEdit": "Edite uma matéria existente — conteúdo, tags, autores, SEO.",
+        "searchPlaceholder": "Buscar por título ou id...",
+        "allStatuses": "Todos os status",
+        "colTitle": "Título",
+        "colCategory": "Categoria",
+        "colStatus": "Status",
+        "colReadTime": "Leitura",
+        "colTrending": "Trending",
+        "colPublished": "Publicado",
+        "colId": "Article id (slug)",
+        "publish": "Publicar",
+        "retract": "Retratar",
+        "toggleTrending": "Alternar trending",
+        "confirmRetract": "Retratar esta matéria? Ela retornará 410 Gone na API pública.",
+        "metaSection": "Meta",
+        "imageUrl": "URL da imagem",
+        "publishedAt": "Publicado em",
+        "isFeatured": "Destaque",
+        "trendingPos": "Trending #",
+        "keywords": "Keywords (separadas por vírgula)",
+        "authorsSection": "Autores",
+        "noAuthorsYet": "Sem autores — crie no módulo Autores.",
+        "tagsSection": "Tags",
+        "contentSection": "Conteúdo (por idioma)",
+        "slug": "Slug",
+        "displayDate": "Data exibida",
+        "title": "Título",
+        "dek": "Dek (subtítulo)",
+        "readTimeLabel": "Rótulo de tempo de leitura",
+        "imageAlt": "Alt da imagem",
+        "toc": "Índice (um por linha)",
+        "body": "Blocos do corpo",
+        "noBodyBlocks": "Sem blocos ainda. Adicione um parágrafo ou título.",
+        "sourcesSection": "Fontes",
+        "sourcesHint": "Obras externas citadas pelo artigo. Emitidas como NewsArticle.citation[] em JSON-LD.",
+        "noSources": "Nenhuma fonte ainda.",
+        "sourceName": "Nome da fonte (ex.: Universidade de São Paulo)"
+      },
+      "faq": {
+        "regionPlaceholder": "região (br/es/us, em branco = todas)",
+        "sectorPlaceholder": "id do setor (em branco = todos)",
+        "scopeHint": "Campos em branco = FAQ global. Um par (região, setor) específico sobrescreve o global.",
+        "questionPlaceholder": "Pergunta",
+        "answerPlaceholder": "Resposta",
+        "empty": "Sem entradas de FAQ para este escopo ainda."
+      },
+      "trending": {
+        "activeFeed": "Feed de trending ativo",
+        "availablePool": "Notícias publicadas (fora do feed)",
+        "empty": "Nenhuma matéria no feed de trending.",
+        "noAvailable": "Todas as notícias publicadas já estão no feed.",
+        "promote": "Promover",
+        "renormalize": "Renormalizar posições"
+      },
+      "newsletter": {
+        "totalSubscribers": "Total de assinantes",
+        "activeSubscribers": "Ativos",
+        "pendingSubscribers": "Pendentes"
+      },
+      "rankings": {
+        "newSnapshot": "Novo snapshot",
+        "itemsHeader": "Itens rankeados",
+        "editItems": "Editar itens",
+        "hideItems": "Ocultar itens"
+      },
+      "localeMeta": {
+        "missing": "Sem registro de meta para {{lang}}. Salve uma vez para criar.",
+        "siteSection": "Site & SEO",
+        "publisherSection": "Publisher",
+        "trendingSection": "Trending (homepage)",
+        "rankingsSection": "Página de rankings",
+        "categoriesSection": "Página de categorias",
+        "newsletterSection": "Copy do CTA do newsletter"
+      }
     }
   },
   "proposal": {
@@ -2295,6 +2412,118 @@
         "fileTooLarge": "Arquivo muito grande. Máximo 10 MB.",
         "phoneRequired": "Telefone é obrigatório (mínimo 6 dígitos)"
       }
+    }
+  },
+  "quickstart": {
+    "badge": "Análise de IA em 30 segundos",
+    "heroTitle": "Veja sua marca pelos olhos da",
+    "heroTitleHighlight": "Inteligência Artificial",
+    "heroSubtitle": "Descubra como ChatGPT, Claude e Gemini descrevem sua empresa antes mesmo que seus clientes pesquisem.",
+    "urlPlaceholder": "suaempresa.com",
+    "urlCta": "Analisar",
+    "urlHint": "Grátis · Sem cadastro inicial · Resultados em segundos",
+    "trust1": "Análise IA multi-modelo",
+    "trust2": "Insights GEO instantâneos",
+    "trust3": "Sem cartão de crédito",
+    "errors": {
+      "invalidUrl": "Por favor, digite uma URL válida (ex.: suaempresa.com)",
+      "invalidEmail": "Por favor, digite um e-mail válido",
+      "nameRequired": "Nome é obrigatório",
+      "companyRequired": "Empresa é obrigatória",
+      "jobRoleRequired": "Cargo é obrigatório"
+    },
+    "emailModal": {
+      "title": "Para onde enviamos sua análise?",
+      "subtitle": "Estamos preparando o relatório de {{domain}}",
+      "label": "E-mail profissional",
+      "placeholder": "voce@empresa.com",
+      "submit": "Continuar",
+      "note": "Não enviaremos spam. Apenas seu relatório."
+    },
+    "registerModal": {
+      "title": "Para ver o resultado, complete seu cadastro",
+      "subtitle": "Última etapa antes de liberar seu relatório completo",
+      "name": "Nome completo",
+      "namePlaceholder": "João Silva",
+      "phone": "WhatsApp",
+      "phonePlaceholder": "+55 (11) 99000-0000",
+      "company": "Empresa",
+      "companyPlaceholder": "Nome da sua empresa",
+      "jobRole": "Cargo",
+      "jobRolePlaceholder": "Ex.: Diretor de Marketing",
+      "submit": "Ver meu resultado",
+      "note": "Seus dados estão protegidos. Não compartilhamos com terceiros."
+    },
+    "result": {
+      "title": "Sua análise está pronta!",
+      "subtitle": "Geramos uma análise inicial de {{domain}}. Crie sua conta gratuita para liberar todos os detalhes.",
+      "statGeoLabel": "GEO Score",
+      "statMentionsLabel": "Menções em IA",
+      "statSourcesLabel": "Fontes Citadas",
+      "cta": "Criar conta grátis",
+      "ctaNote": "Ative seu trial gratuito do {{app}}"
+    },
+    "logoBar": {
+      "title": "Análise simultânea em todas as principais plataformas de IA"
+    },
+    "score": {
+      "titleStart": "Seu painel GEO ",
+      "titleHighlight": "ao vivo",
+      "titleEnd": " em segundos",
+      "subtitle": "Um vislumbre do que sua análise gratuita revela.",
+      "scoreLabel": "GEO Score",
+      "readinessLabel": "Nível",
+      "readinessValue": "AI Optimized",
+      "factorTechnical": "Técnico",
+      "factorContent": "Conteúdo",
+      "factorAuthority": "Autoridade",
+      "factorSemantic": "Semântico",
+      "exampleNote": "Exemplo ilustrativo. Sua pontuação real depende da análise completa."
+    },
+    "process": {
+      "titleStart": "Três passos. ",
+      "titleHighlight": "Zero atrito.",
+      "subtitle": "Do URL ao insight em menos de um minuto.",
+      "step1Title": "Você cola seu URL",
+      "step1Desc": "Sem cadastro inicial. Apenas o domínio da sua empresa.",
+      "step2Title": "A IA roda em todos os modelos",
+      "step2Desc": "ChatGPT, Claude, Gemini, Grok e Perplexity geram respostas reais sobre sua marca.",
+      "step3Title": "Você recebe seu mapa GEO",
+      "step3Desc": "Score, fatores críticos, fontes citadas e recomendações priorizadas."
+    },
+    "featuresSection": {
+      "titleStart": "Tudo que sua marca precisa para ser ",
+      "titleHighlight": "encontrada pela IA",
+      "subtitle": "Construído para times de marketing modernos que já enxergam a IA como o novo SEO.",
+      "f1Title": "Cobertura multi-modelo",
+      "f1Desc": "Monitore as principais IAs em paralelo, com respostas reais — não simulações.",
+      "f2Title": "Citações e fontes",
+      "f2Desc": "Veja exatamente quais sites a IA está citando ao mencionar — ou ignorar — você.",
+      "f3Title": "Benchmark competitivo",
+      "f3Desc": "Compare sua presença em IA com seus concorrentes em tempo real.",
+      "f4Title": "Recomendações GEO",
+      "f4Desc": "Plano de ação priorizado: o que mexer primeiro para subir no ranking de IA.",
+      "f5Title": "Monitoramento contínuo",
+      "f5Desc": "A cada execução, novos insights. A IA muda — você acompanha.",
+      "f6Title": "Multi-time",
+      "f6Desc": "Convide sua equipe, defina papéis e centralize a operação GEO."
+    },
+    "dashboardPreview": {
+      "titleStart": "Seu cockpit ",
+      "titleHighlight": "GEO ao vivo",
+      "subtitle": "Tudo num só lugar: pontuações, citações, tendências e recomendações priorizadas.",
+      "metric1Label": "Menções IA / mês",
+      "metric2Label": "GEO Score",
+      "metric3Label": "Fontes citadas",
+      "trendLabel": "Tendência últimos 30 dias",
+      "sentimentLabel": "Sentimento",
+      "sentimentPositive": "Positivo",
+      "sentimentNeutral": "Neutro"
+    },
+    "finalCta": {
+      "title": "Pronto para descobrir como a IA vê sua marca?",
+      "subtitle": "Comece com sua URL. O resto é com a gente.",
+      "note": "Análise gratuita · Sem compromisso · Resultado em segundos"
     }
   }
 }
