@@ -30,7 +30,7 @@ const ENTITY_TYPES = ['company', 'university', 'school', 'hospital', 'government
 
 export function BlogBrandsPage() {
   const { t } = useTranslation();
-  const { alert } = useDialog();
+  const { alert, confirm } = useDialog();
   const { data, isLoading, refetch, remove } = useBlogAdmin<BlogBrand>('brands');
   const [sectors, setSectors] = useState<SectorOpt[]>([]);
   const [subsectors, setSubsectors] = useState<SubsectorOpt[]>([]);
@@ -91,7 +91,7 @@ export function BlogBrandsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t('sa.blog.confirmDelete'))) return;
+    if (!(await confirm({ message: t('sa.blog.confirmDelete'), variant: 'danger' }))) return;
     await remove(id);
   };
 

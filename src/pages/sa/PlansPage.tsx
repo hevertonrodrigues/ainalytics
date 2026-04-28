@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Package, Plus, Pencil, Trash2, Check, X, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAdminCrud } from './useAdminCrud';
 import { SAPageHeader } from './SAPageHeader';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface Plan {
   id: string;
@@ -19,6 +20,7 @@ interface Plan {
 
 export function PlansPage() {
   const { t, i18n } = useTranslation();
+  const { confirm } = useDialog();
   const { data: plans, isLoading, create, update, remove } = useAdminCrud<Plan>('plans');
   const [editing, setEditing] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
@@ -87,7 +89,7 @@ export function PlansPage() {
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: string) => { if (confirm(t('sa.confirmDelete'))) await remove(id); };
+  const handleDelete = async (id: string) => { if (await confirm({ message: t('sa.confirmDelete'), variant: 'danger' })) await remove(id); };
 
   if (isLoading) return <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="dashboard-card p-6 h-20 animate-pulse bg-glass-element" />)}</div>;
 

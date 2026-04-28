@@ -7,11 +7,13 @@ import { AlertTriangle, AlertCircle, Info, CheckCircle, HelpCircle } from 'lucid
 import { useScrollLock } from '@/hooks/useScrollLock';
 
 /**
- * Imperative, promise-based replacement for `window.confirm` / `window.alert`.
+ * Imperative, promise-based replacement for `window.confirm`, `window.alert`
+ * and `window.prompt`.
  *
- *   const { confirm, alert } = useDialog();
+ *   const { confirm, alert, prompt } = useDialog();
  *   if (!(await confirm({ message: 'Delete?' }))) return;
  *   await alert({ message: 'Saved', variant: 'success' });
+ *   const url = await prompt({ message: 'URL:', defaultValue: 'https://' });
  *
  * Uses the project's design system (dashboard-card + Tailwind tokens) so it
  * matches the rest of the UI instead of the native, OS-styled prompt.
@@ -37,9 +39,20 @@ interface AlertOptions {
   variant?: AlertVariant;
 }
 
+interface PromptOptions {
+  message: string;
+  title?: string;
+  defaultValue?: string;
+  placeholder?: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  inputType?: 'text' | 'url' | 'email' | 'number';
+}
+
 interface DialogContextValue {
   confirm: (opts: ConfirmOptions) => Promise<boolean>;
   alert:   (opts: AlertOptions)   => Promise<void>;
+  prompt:  (opts: PromptOptions)  => Promise<string | null>;
 }
 
 interface ConfirmState extends ConfirmOptions {
@@ -52,7 +65,12 @@ interface AlertState extends AlertOptions {
   resolve: () => void;
 }
 
-type DialogState = ConfirmState | AlertState;
+interface PromptState extends PromptOptions {
+  kind: 'prompt';
+  resolve: (v: string | null) => void;
+}
+
+type DialogState = ConfirmState | AlertState | PromptState;
 
 // ── Context ─────────────────────────────────────────────────
 
@@ -82,9 +100,16 @@ export function DialogProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const handleConfirm = useCallback(() => {
+  const prompt = useCallback((opts: PromptOptions) => {
+    return new Promise<string | null>((resolve) => {
+      setDialog({ kind: 'prompt', ...opts, resolve });
+    });
+  }, []);
+
+  const handleConfirm = useCallback((value?: string) => {
     if (!dialog) return;
     if (dialog.kind === 'confirm') dialog.resolve(true);
+    else if (dialog.kind === 'prompt') dialog.resolve(value ?? '');
     else dialog.resolve();
     setDialog(null);
   }, [dialog]);
@@ -92,11 +117,12 @@ export function DialogProvider({ children }: { children: ReactNode }) {
   const handleCancel = useCallback(() => {
     if (!dialog) return;
     if (dialog.kind === 'confirm') dialog.resolve(false);
+    else if (dialog.kind === 'prompt') dialog.resolve(null);
     else dialog.resolve();
     setDialog(null);
   }, [dialog]);
 
-  const value = useMemo(() => ({ confirm, alert }), [confirm, alert]);
+  const value = useMemo(() => ({ confirm, alert, prompt }), [confirm, alert, prompt]);
 
   return (
     <DialogContext.Provider value={value}>
@@ -118,43 +144,60 @@ function DialogModal({
   dialog, onConfirm, onCancel,
 }: {
   dialog: DialogState;
-  onConfirm: () => void;
+  onConfirm: (value?: string) => void;
   onCancel: () => void;
 }) {
   const { t } = useTranslation();
   useScrollLock(true);
   const confirmBtnRef = useRef<HTMLButtonElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [inputValue, setInputValue] = useState(
+    dialog.kind === 'prompt' ? (dialog.defaultValue ?? '') : '',
+  );
 
-  // Esc closes (cancel for confirm, dismiss for alert) / Enter confirms.
+  const submit = useCallback(() => {
+    if (dialog.kind === 'prompt') onConfirm(inputValue);
+    else onConfirm();
+  }, [dialog.kind, inputValue, onConfirm]);
+
+  // Esc closes / Enter confirms (Enter inside input also confirms).
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
-      else if (e.key === 'Enter') { e.preventDefault(); onConfirm(); }
+      else if (e.key === 'Enter' && dialog.kind !== 'prompt') {
+        e.preventDefault();
+        submit();
+      }
     }
     document.addEventListener('keydown', onKey);
-    confirmBtnRef.current?.focus();
+    if (dialog.kind === 'prompt') {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    } else {
+      confirmBtnRef.current?.focus();
+    }
     return () => document.removeEventListener('keydown', onKey);
-  }, [onCancel, onConfirm]);
+  }, [onCancel, submit, dialog.kind]);
 
   const variantClass =
     dialog.kind === 'confirm'
       ? CONFIRM_VARIANT[dialog.variant ?? 'danger']
-      : ALERT_VARIANT[dialog.variant ?? 'info'];
+      : dialog.kind === 'alert'
+        ? ALERT_VARIANT[dialog.variant ?? 'info']
+        : CONFIRM_VARIANT.primary;
 
   const Icon = variantClass.icon;
-  const isConfirm = dialog.kind === 'confirm';
 
-  const confirmLabel = isConfirm
-    ? (dialog.confirmLabel ?? t('common.confirm'))
+  const confirmLabel =
+    dialog.kind === 'confirm' ? (dialog.confirmLabel ?? t('common.confirm'))
+    : dialog.kind === 'prompt' ? (dialog.confirmLabel ?? t('common.confirm'))
     : (dialog.okLabel ?? t('common.gotIt'));
 
-  const cancelLabel = isConfirm
-    ? (dialog.cancelLabel ?? t('common.cancel'))
-    : null;
+  const cancelLabel =
+    dialog.kind === 'alert' ? null
+    : (dialog.cancelLabel ?? t('common.cancel'));
 
-  const confirmBtnClass = isConfirm
-    ? variantClass.button
-    : ALERT_VARIANT[dialog.variant ?? 'info'].button;
+  const confirmBtnClass = variantClass.button;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -179,6 +222,20 @@ function DialogModal({
           </p>
         </div>
 
+        {dialog.kind === 'prompt' && (
+          <input
+            ref={inputRef}
+            type={dialog.inputType ?? 'text'}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') { e.preventDefault(); submit(); }
+            }}
+            placeholder={dialog.placeholder}
+            className="input w-full text-sm"
+          />
+        )}
+
         <div className="flex gap-3">
           {cancelLabel && (
             <button
@@ -192,7 +249,7 @@ function DialogModal({
           <button
             ref={confirmBtnRef}
             type="button"
-            onClick={onConfirm}
+            onClick={submit}
             className={`btn btn-sm flex-1 border-0 text-white ${confirmBtnClass}`}
           >
             {confirmLabel}

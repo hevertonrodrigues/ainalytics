@@ -2,6 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { useEffect, useState } from 'react';
+import { useDialog } from '@/contexts/DialogContext';
 import {
   Bold, Italic, Heading2, Heading3, Quote, List, ListOrdered,
   Link as LinkIcon, Code, Eye, Undo2, Redo2, Strikethrough,
@@ -42,6 +43,7 @@ function normalizeSafeHref(input: string): string | null {
  */
 export function RichTextEditor({ value, onChange, placeholder, initialMode = 'wysiwyg' }: Props) {
   const [mode, setMode] = useState<'wysiwyg' | 'html'>(initialMode);
+  const { prompt } = useDialog();
 
   const editor = useEditor({
     extensions: [
@@ -94,11 +96,17 @@ export function RichTextEditor({ value, onChange, placeholder, initialMode = 'wy
 
   const Sep = () => <span className="w-px h-5 bg-glass-border mx-1" />;
 
-  const promptLink = () => {
+  const promptLink = async () => {
     const previous = editor.getAttributes('link').href as string | undefined;
-    const href = window.prompt('URL:', previous || 'https://');
-    if (href === null) return;          // cancelled
-    if (href === '') {                   // cleared → unset
+    const href = await prompt({
+      title: 'Link',
+      message: 'URL:',
+      defaultValue: previous || 'https://',
+      placeholder: 'https://example.com',
+      inputType: 'url',
+    });
+    if (href === null) return;           // cancelled
+    if (href === '') {                    // cleared → unset
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
       return;
     }

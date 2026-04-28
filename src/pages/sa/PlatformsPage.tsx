@@ -5,6 +5,7 @@ import { Globe, Plus, Pencil, Trash2, Check, X, Loader2, ChevronDown, ChevronUp 
 import { useAdminCrud } from './useAdminCrud';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface Platform {
   id: string;
@@ -20,6 +21,7 @@ interface Model { id: string; name: string; slug: string; platform_id: string; }
 
 export function PlatformsPage() {
   const { t } = useTranslation();
+  const { confirm } = useDialog();
   const { data: platforms, isLoading, create, update, remove } = useAdminCrud<Platform>('platforms');
   const [models, setModels] = useState<Model[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
@@ -51,7 +53,7 @@ export function PlatformsPage() {
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: string) => { if (confirm(t('sa.confirmDelete'))) await remove(id); };
+  const handleDelete = async (id: string) => { if (await confirm({ message: t('sa.confirmDelete'), variant: 'danger' })) await remove(id); };
 
   // Get models for a platform
   const getModelsForPlatform = (platformId: string) => models.filter(m => m.platform_id === platformId);

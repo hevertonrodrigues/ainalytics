@@ -26,7 +26,7 @@ const EMPTY: FormState = {
 
 export function BlogCategoriesPage() {
   const { t } = useTranslation();
-  const { alert } = useDialog();
+  const { alert, confirm } = useDialog();
   const { data, isLoading, refetch, remove } = useBlogAdmin<BlogCategory>('categories');
   const [form, setForm] = useState<FormState>(EMPTY);
   const [editing, setEditing] = useState<string | null>(null);
@@ -78,7 +78,7 @@ export function BlogCategoriesPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t('sa.blog.confirmDelete'))) return;
+    if (!(await confirm({ message: t('sa.blog.confirmDelete'), variant: 'danger' }))) return;
     await remove(id);
   };
 

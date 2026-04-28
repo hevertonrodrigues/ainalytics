@@ -26,7 +26,7 @@ const EMPTY: FormState = {
 
 export function BlogAuthorsPage() {
   const { t } = useTranslation();
-  const { alert } = useDialog();
+  const { alert, confirm } = useDialog();
   const { data, isLoading, refetch, remove } = useBlogAdmin<BlogAuthor>('authors');
   const [form, setForm] = useState<FormState>(EMPTY);
   const [editing, setEditing] = useState<string | null>(null);
@@ -81,7 +81,7 @@ export function BlogAuthorsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t('sa.blog.confirmDelete'))) return;
+    if (!(await confirm({ message: t('sa.blog.confirmDelete'), variant: 'danger' }))) return;
     await remove(id);
   };
 

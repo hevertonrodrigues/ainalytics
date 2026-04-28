@@ -19,7 +19,7 @@ const EMPTY: FormState = {
 
 export function BlogTickerPage() {
   const { t } = useTranslation();
-  const { alert } = useDialog();
+  const { alert, confirm } = useDialog();
   const [langFilter, setLangFilter] = useState<Lang | ''>('');
   const { data, isLoading, refetch, remove } = useBlogAdmin<BlogTickerItem>('ticker', { query: { lang: langFilter || undefined } });
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -57,7 +57,7 @@ export function BlogTickerPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm(t('sa.blog.confirmDelete'))) return;
+    if (!(await confirm({ message: t('sa.blog.confirmDelete'), variant: 'danger' }))) return;
     await remove(id);
   };
 

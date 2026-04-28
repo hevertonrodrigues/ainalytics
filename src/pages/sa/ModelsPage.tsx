@@ -5,6 +5,7 @@ import { Cpu, Plus, Pencil, Trash2, Check, X, Loader2, Globe, ChevronDown, Chevr
 import { useAdminCrud } from './useAdminCrud';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface Model {
   id: string;
@@ -34,6 +35,7 @@ function fmtPrice(pricePerToken: number | null | undefined): string {
 
 export function ModelsPage() {
   const { t } = useTranslation();
+  const { confirm } = useDialog();
   const { data: models, isLoading, create, update, remove } = useAdminCrud<Model>('models');
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
@@ -82,7 +84,7 @@ export function ModelsPage() {
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: string) => { if (confirm(t('sa.confirmDelete'))) await remove(id); };
+  const handleDelete = async (id: string) => { if (await confirm({ message: t('sa.confirmDelete'), variant: 'danger' })) await remove(id); };
 
   const filtered = filterPlatform === 'all' ? models : models.filter(m => m.platform_id === filterPlatform);
 

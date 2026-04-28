@@ -29,7 +29,7 @@ const EMPTY: NewSnapshotState = {
 
 export function BlogRankingsPage() {
   const { t } = useTranslation();
-  const { alert } = useDialog();
+  const { alert, confirm } = useDialog();
   const { data: snapshots, isLoading, refetch, remove } = useBlogAdmin<RankingSnapshot>('rankings');
   const { data: brands } = useBlogAdmin<BlogBrand>('brands');
   const [showNew, setShowNew] = useState(false);
@@ -179,7 +179,7 @@ export function BlogRankingsPage() {
                     <button onClick={() => setSelectedId(selectedId === s.id ? null : s.id)} className="text-xs px-2 py-1 rounded-md bg-glass-element">
                       {selectedId === s.id ? t('sa.blog.rankings.hideItems') : t('sa.blog.rankings.editItems')}
                     </button>
-                    <button onClick={() => { if (confirm(t('sa.blog.confirmDelete'))) remove(s.id); }} className="icon-btn text-error/70 hover:text-error"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button onClick={async () => { if (await confirm({ message: t('sa.blog.confirmDelete'), variant: 'danger' })) remove(s.id); }} className="icon-btn text-error/70 hover:text-error"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
                 </td>
               </tr>

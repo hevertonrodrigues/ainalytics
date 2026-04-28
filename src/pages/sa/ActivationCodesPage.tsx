@@ -5,6 +5,7 @@ import { Key, Plus, Trash2, Copy, Check, Loader2, ChevronDown, ChevronUp } from 
 import { useAdminCrud } from './useAdminCrud';
 import { apiClient } from '@/lib/api';
 import { SAPageHeader } from './SAPageHeader';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface ActivationCode {
   id: string;
@@ -28,6 +29,7 @@ function generateCode(): string {
 
 export function ActivationCodesPage() {
   const { t } = useTranslation();
+  const { confirm } = useDialog();
   const { data: codes, isLoading, create, update, remove } = useAdminCrud<ActivationCode>('activation_codes');
   const [plans, setPlans] = useState<Plan[]>([]);
   const [creating, setCreating] = useState(false);
@@ -57,7 +59,7 @@ export function ActivationCodesPage() {
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const handleDelete = async (id: string) => { if (confirm(t('sa.confirmDelete'))) await remove(id); };
+  const handleDelete = async (id: string) => { if (await confirm({ message: t('sa.confirmDelete'), variant: 'danger' })) await remove(id); };
 
   if (isLoading) return <div className="space-y-4">{[1,2,3].map(i => <div key={i} className="dashboard-card p-6 h-20 animate-pulse bg-glass-element" />)}</div>;
 

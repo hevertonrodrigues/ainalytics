@@ -7,6 +7,7 @@ import { TemplateDownloadButton } from './JsonToolbar';
 import { NEWSLETTER_TEMPLATE } from './templates';
 import { type NewsletterSubscriber, type SubscriberStatus } from './types';
 import { formatDateTime } from '@/lib/dateFormat';
+import { useDialog } from '@/contexts/DialogContext';
 
 const STATUS_COLORS: Record<SubscriberStatus, string> = {
   pending:      'bg-yellow-500/15 text-yellow-500',
@@ -17,6 +18,7 @@ const STATUS_COLORS: Record<SubscriberStatus, string> = {
 
 export function BlogNewsletterPage() {
   const { t } = useTranslation();
+  const { confirm } = useDialog();
   const [statusFilter, setStatusFilter] = useState<SubscriberStatus | ''>('');
   const [search, setSearch] = useState('');
   const { data, isLoading, refetch, remove } = useBlogAdmin<NewsletterSubscriber>('newsletter', {
@@ -24,7 +26,7 @@ export function BlogNewsletterPage() {
   });
 
   const handleDelete = async (id: number) => {
-    if (!confirm(t('sa.blog.confirmDelete'))) return;
+    if (!(await confirm({ message: t('sa.blog.confirmDelete'), variant: 'danger' }))) return;
     await remove(id);
   };
 

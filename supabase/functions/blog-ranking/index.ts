@@ -14,6 +14,7 @@ import { errors, jsonResponse } from "../_shared/blog-response.ts";
 import { isSupportedLang, type Lang } from "../_shared/blog-langs.ts";
 import { buildSeo, loadLocaleMeta } from "../_shared/blog-seo.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
+import { buildWeekLabel, formatIntDelta, formatPctDelta } from "../_shared/blog-ranking-helpers.ts";
 
 const DEFAULT_REGION_BY_LANG: Record<Lang, string> = { pt: "br", es: "es", en: "us" };
 const ALLOWED_SORTS = new Set([
@@ -77,6 +78,7 @@ serve(async (req: Request) => {
 
     if (!snapshots || snapshots.length === 0) {
       const faq = await loadRankingFaq(db, lang as Lang, region, sector);
+      const methodology = await loadMethodology(db, lang as Lang);
       const seo = buildSeo({
         lang: lang as Lang, meta, path: `/${lang}/rankings`,
         title: `${meta.rankings_title} — ${meta.site_title}`,
@@ -86,10 +88,12 @@ serve(async (req: Request) => {
         {
           data: {
             lang, locale: seo.locale,
-            period: { label: period, from: null, to: null },
+            period: { label: period, from: null, to: null, weekNumber: null, weekLabel: null },
             filters: { region, sector, subsector, q: q || null, sort },
             items: [],
             stats: null,
+            methodology,
+            insights: [],
             faq,
           },
           seo,
@@ -108,7 +112,7 @@ serve(async (req: Request) => {
 
     const { data: itemRows, error: iErr } = await db
       .from("blog_ranking_items")
-      .select("rank, brand_id, score, delta, direction, snapshot_id")
+      .select("rank, brand_id, score, delta, direction, snapshot_id, engine_scores")
       .in("snapshot_id", snapshotIds);
     if (iErr) throw iErr;
 
@@ -150,7 +154,7 @@ serve(async (req: Request) => {
     const sectorLabel = new Map<string, string>();
     for (const r of sectorTr || []) sectorLabel.set((r as { sector: string }).sector, (r as { label: string }).label);
 
-    let items = (itemRows || []).map((r: { rank: number; brand_id: string; score: number; delta: string; direction: string; snapshot_id: number }) => {
+    let items = (itemRows || []).map((r: { rank: number; brand_id: string; score: number; delta: string; direction: string; snapshot_id: number; engine_scores: Record<string, number> | null }) => {
       const brand = brandMap.get(r.brand_id);
       return {
         rank: r.rank,
@@ -166,6 +170,7 @@ serve(async (req: Request) => {
         score: r.score,
         delta: r.delta,
         direction: r.direction,
+        engineScores: r.engine_scores ?? {},
         snapshotId: r.snapshot_id,
       };
     });
@@ -203,12 +208,45 @@ serve(async (req: Request) => {
 
     items = items.slice(0, limit);
 
-    const firstSnap = snapshots[0] as { period_from: string; period_to: string; period_label: string; queries_analyzed: number; sectors_covered: number; engines_monitored: string[]; generated_at: string };
+    const firstSnap = snapshots[0] as { id: number; period_from: string; period_to: string; period_label: string; queries_analyzed: number; sectors_covered: number; engines_monitored: string[]; generated_at: string; sector: string };
 
-    // FAQ — try the most-specific (region, sector) combo, then progressively
-    // less specific until we hit the (NULL, NULL) global default. Always
-    // returns an array; empty when nothing matches (CHANGES.md §3.1).
-    const faq = await loadRankingFaq(db, lang as Lang, region, sector);
+    // ── Derived stats ──────────────────────────────────────────────────────
+    // brandsIndexed = distinct brands across all current latest-by-sector snapshots.
+    const brandsIndexed = brandMap.size;
+
+    // Pull the previous snapshot for the same (region, sector(of firstSnap), period_label)
+    // to compute KPI deltas. We compare using the first snapshot only (the
+    // multi-sector "global" view falls back to whatever sector firstSnap is).
+    const { data: prevSnaps } = await db
+      .from("blog_ranking_snapshots")
+      .select("id, period_from, queries_analyzed, sectors_covered, engines_monitored")
+      .eq("region", region)
+      .eq("sector", firstSnap.sector)
+      .eq("period_label", period)
+      .lt("period_from", firstSnap.period_from)
+      .order("period_from", { ascending: false })
+      .limit(1);
+    const prevSnap = (prevSnaps && prevSnaps[0]) as
+      | { id: number; queries_analyzed: number; sectors_covered: number; engines_monitored: string[] }
+      | undefined;
+
+    let prevBrandsIndexed: number | null = null;
+    if (prevSnap) {
+      const { count } = await db
+        .from("blog_ranking_items")
+        .select("brand_id", { count: "exact", head: true })
+        .eq("snapshot_id", prevSnap.id);
+      prevBrandsIndexed = typeof count === "number" ? count : null;
+    }
+
+    const { weekNumber, weekLabel } = buildWeekLabel(lang as Lang, firstSnap.period_from, firstSnap.period_to);
+
+    // Methodology + insights run in parallel with the FAQ load below.
+    const [faq, methodology, insights] = await Promise.all([
+      loadRankingFaq(db, lang as Lang, region, sector),
+      loadMethodology(db, lang as Lang),
+      loadInsights(db, firstSnap.id, lang as Lang),
+    ]);
 
     const seo = buildSeo({
       lang: lang as Lang,
@@ -226,14 +264,30 @@ serve(async (req: Request) => {
           locale: seo.locale,
           title: meta.rankings_title,
           description: meta.rankings_description,
-          period: { label: period, from: firstSnap.period_from, to: firstSnap.period_to },
+          period: {
+            label: period,
+            from: firstSnap.period_from,
+            to: firstSnap.period_to,
+            weekNumber,
+            weekLabel,
+          },
           filters: { region, sector, subsector, q: q || null, sort },
           stats: {
             queriesAnalyzed: firstSnap.queries_analyzed,
+            queriesAnalyzedDelta: formatPctDelta(firstSnap.queries_analyzed, prevSnap?.queries_analyzed ?? null),
             sectorsCovered: firstSnap.sectors_covered,
+            sectorsCoveredDelta: formatIntDelta(firstSnap.sectors_covered, prevSnap?.sectors_covered ?? null),
             enginesMonitored: firstSnap.engines_monitored,
+            enginesMonitoredDelta: formatIntDelta(
+              firstSnap.engines_monitored?.length ?? null,
+              prevSnap?.engines_monitored?.length ?? null,
+            ),
+            brandsIndexed,
+            brandsIndexedDelta: formatIntDelta(brandsIndexed, prevBrandsIndexed),
           },
           items,
+          methodology,
+          insights,
           faq,
         },
         seo,
@@ -307,4 +361,86 @@ async function loadRankingFaq(
     .filter((r) => specificity(r) === best)
     .sort((a, b) => a.position - b.position)
     .map((r) => ({ question: r.question, answer: r.answer }));
+}
+
+// ─── Methodology + Insights loaders ─────────────────────────────────────────
+
+interface MethodologyPillar {
+  id: string;
+  name: string;
+  description: string;
+  weight: number;
+  position: number;
+}
+
+/**
+ * Load AVI methodology pillars with translations for the requested locale.
+ * Falls back to English if a translation is missing for the requested lang.
+ */
+async function loadMethodology(
+  // deno-lint-ignore no-explicit-any
+  db: any,
+  lang: Lang,
+): Promise<{ pillars: MethodologyPillar[] }> {
+  const { data: pillarRows, error } = await db
+    .from("blog_methodology_pillars")
+    .select("id, weight, position")
+    .eq("is_active", true)
+    .order("position", { ascending: true });
+  if (error) {
+    console.error("[blog-ranking] loadMethodology", error);
+    return { pillars: [] };
+  }
+  const ids = (pillarRows || []).map((p: { id: string }) => p.id);
+  if (ids.length === 0) return { pillars: [] };
+
+  const { data: trRows } = await db
+    .from("blog_methodology_pillar_translations")
+    .select("pillar_id, lang, name, description")
+    .in("pillar_id", ids)
+    .in("lang", [lang, "en"]);
+
+  type Tr = { pillar_id: string; lang: string; name: string; description: string };
+  const byIdLang = new Map<string, Tr>();
+  for (const r of (trRows || []) as Tr[]) byIdLang.set(`${r.pillar_id}::${r.lang}`, r);
+
+  return {
+    pillars: (pillarRows as Array<{ id: string; weight: number; position: number }>).map((p) => {
+      const tr = byIdLang.get(`${p.id}::${lang}`) || byIdLang.get(`${p.id}::en`);
+      return {
+        id: p.id,
+        name: tr?.name ?? p.id,
+        description: tr?.description ?? "",
+        weight: p.weight,
+        position: p.position,
+      };
+    }),
+  };
+}
+
+interface InsightCard {
+  position: number;
+  tag: string;
+  title: string;
+  text: string;
+}
+
+/** Load editorial insights bound to a snapshot+lang; returns [] when none. */
+async function loadInsights(
+  // deno-lint-ignore no-explicit-any
+  db: any,
+  snapshotId: number,
+  lang: Lang,
+): Promise<InsightCard[]> {
+  const { data, error } = await db
+    .from("blog_ranking_insights")
+    .select("position, tag, title, text")
+    .eq("snapshot_id", snapshotId)
+    .eq("lang", lang)
+    .order("position", { ascending: true });
+  if (error) {
+    console.error("[blog-ranking] loadInsights", error);
+    return [];
+  }
+  return (data || []) as InsightCard[];
 }
