@@ -24,6 +24,7 @@ const LandingFooter = lazy(() => import('./LandingFooter').then(m => ({ default:
 
 import { useCurrency } from '@/hooks/useCurrency';
 import { supabase } from '@/lib/supabase';
+import { useSeo, ORG_JSONLD, WEBSITE_JSONLD, HREFLANG_LANDING, SITE_URL } from '@/lib/seo';
 import type { Plan } from '@/types';
 import type { PricingPlan } from '@/components/PricingPlans';
 import { LandingHeader } from './LandingHeader';
@@ -105,6 +106,31 @@ function useSectionTracking() {
 export function LandingPage() {
   const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
+
+  // SEO/GEO — set per-language title/description, canonical pointing
+  // to the active locale URL, and Organization+WebSite JSON-LD that AI
+  // engines (ChatGPT, Claude, Gemini, Perplexity) ingest for entity
+  // recognition. The static index.html only ships the EN version; this
+  // hook overrides it with the active locale's copy.
+  const lang = (i18n.language || 'en').toLowerCase();
+  const canonicalLandingPath = lang === 'en' || !['en', 'es', 'pt-br'].includes(lang) ? '/' : `/${lang}`;
+  useSeo({
+    title: t('landing.seo.title', 'Ainalytics — AI Visibility Monitoring Platform | Know What AI Says About You'),
+    description: t(
+      'landing.seo.description',
+      "Monitor your brand's visibility across ChatGPT, Claude, Gemini and Grok. Ainalytics tracks how AI platforms talk about your brand in real time, so you never lose visibility to competitors.",
+    ),
+    canonical: `${SITE_URL}${canonicalLandingPath}`,
+    robots: 'index,follow',
+    og: {
+      type: 'website',
+      siteName: 'Ainalytics',
+      image: `${SITE_URL}/landing-hero.png`,
+      locale: lang === 'pt-br' ? 'pt_BR' : lang === 'es' ? 'es_ES' : 'en_US',
+    },
+    hreflang: HREFLANG_LANDING,
+    jsonLd: [WEBSITE_JSONLD, ORG_JSONLD],
+  });
   const [showStickyCta, setShowStickyCta] = useState(false);
   const [stickyCtaDismissed, setStickyCtaDismissed] = useState(false);
   const [interestModalOpen, setInterestModalOpen] = useState(false);

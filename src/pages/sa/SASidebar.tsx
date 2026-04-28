@@ -23,6 +23,7 @@ import {
   Footprints,
   Briefcase,
   Mail,
+  Newspaper,
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -50,6 +51,7 @@ const SA_NAV: NavItem[] = [
   { key: 'timeline.title', path: '/sa/monitoring', icon: BarChart3 },
   { key: 'sa.jobApps.title', path: '/sa/job-applications', icon: Briefcase },
   { key: 'sa.inbox.title', path: '/sa/inbox', icon: Mail },
+  { key: 'sa.blog.dashboard.title', path: '/sa/blog', icon: Newspaper },
 ];
 
 export function SASidebar() {

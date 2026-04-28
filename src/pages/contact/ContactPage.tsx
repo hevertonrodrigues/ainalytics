@@ -6,6 +6,7 @@ import { LandingHeader } from '@/pages/landing/LandingHeader';
 import { LandingFooter } from '@/pages/landing/LandingFooter';
 import { SupportFormFields } from '@/pages/support/SupportFormFields';
 import { executeRecaptcha } from '@/lib/recaptcha';
+import { useSeo, breadcrumbList, ORG_JSONLD, SITE_URL } from '@/lib/seo';
 
 /* ─── Constants ────────────────────────────────────────────── */
 
@@ -22,6 +23,28 @@ const PUBLIC_SUBJECT_KEYS = [
 export function ContactPage() {
   const { t } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
+
+  useSeo({
+    title: 'Contato · Ainalytics',
+    description:
+      'Fale com a equipe da Ainalytics — vendas, parcerias, demonstração ou dúvidas gerais. Resposta em até 48h úteis.',
+    canonical: `${SITE_URL}/contact`,
+    robots: 'index,follow',
+    og: { type: 'website', siteName: 'Ainalytics' },
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ContactPage',
+        url: `${SITE_URL}/contact`,
+        name: 'Contato · Ainalytics',
+        publisher: ORG_JSONLD,
+      },
+      breadcrumbList([
+        { name: 'Ainalytics', url: SITE_URL },
+        { name: 'Contato', url: `${SITE_URL}/contact` },
+      ]),
+    ],
+  });
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');

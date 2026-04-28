@@ -6,6 +6,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/constants';
 import { LandingHeader } from '@/pages/landing/LandingHeader';
 import { LandingFooter } from '@/pages/landing/LandingFooter';
 import { useForceLightTheme } from '@/hooks/useForceLightTheme';
+import { useSeo, breadcrumbList, SITE_URL } from '@/lib/seo';
 
 interface Opportunity {
   id: string;
@@ -24,6 +25,32 @@ export function CareersPage() {
   const [scrolled, setScrolled] = useState(false);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useSeo({
+    title: 'Careers · Ainalytics — Build the AI Visibility Platform',
+    description:
+      'Join Ainalytics — the AI Visibility Intelligence Platform. Open positions in engineering, product, marketing and customer success. Remote-first, multilingual team.',
+    canonical: `${SITE_URL}/careers`,
+    robots: 'index,follow',
+    og: { type: 'website', siteName: 'Ainalytics' },
+    jsonLd: [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'Ainalytics — Open positions',
+        itemListElement: opportunities.map((op, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          url: `${SITE_URL}/careers/${op.slug}`,
+          name: op.title,
+        })),
+      },
+      breadcrumbList([
+        { name: 'Ainalytics', url: SITE_URL },
+        { name: 'Careers', url: `${SITE_URL}/careers` },
+      ]),
+    ],
+  });
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);

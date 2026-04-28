@@ -154,7 +154,12 @@ serve(async (req: Request) => {
 
       const { data: recipients, error: fetchErr } = await db
         .from("job_applications")
-        .select("id, full_name, email")
+        .select(`
+          id,
+          full_name,
+          email,
+          opportunity:job_opportunities!opportunity_id ( title )
+        `)
         .in("id", ids);
 
       if (fetchErr) {
@@ -162,10 +167,46 @@ serve(async (req: Request) => {
         return logger.done(withCors(req, serverError("Failed to load recipients")), authCtx);
       }
 
-      const valid = (recipients || []).filter((r) => r.email);
+      type Recipient = {
+        id: string;
+        full_name: string | null;
+        email: string;
+        opportunity: { title: string | null } | { title: string | null }[] | null;
+      };
+
+      const getOpportunityTitle = (opp: Recipient["opportunity"]): string => {
+        if (!opp) return "";
+        if (Array.isArray(opp)) return opp[0]?.title ?? "";
+        return opp.title ?? "";
+      };
+
+      const escapeHtml = (s: string): string =>
+        s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+
+      const buildVariables = (r: Recipient, forHtml: boolean): Record<string, string> => {
+        const fullName = r.full_name?.trim() || "";
+        const firstName = fullName.split(/\s+/)[0] || "";
+        const opportunity = getOpportunityTitle(r.opportunity);
+        const map = {
+          NAME: fullName,
+          FIRST_NAME: firstName,
+          EMAIL: r.email || "",
+          OPPORTUNITY: opportunity,
+        };
+        if (!forHtml) return map;
+        return Object.fromEntries(Object.entries(map).map(([k, v]) => [k, escapeHtml(v)]));
+      };
+
+      const applyVariables = (template: string, vars: Record<string, string>): string =>
+        template.replace(/\{\{\s*([A-Z_]+)\s*\}\}/g, (match, key: string) =>
+          Object.prototype.hasOwnProperty.call(vars, key) ? vars[key] : match,
+        );
+
+      const valid = ((recipients || []) as unknown as Recipient[]).filter((r) => Boolean(r.email));
       const hasHtml = /<[a-z][\s\S]*>/i.test(content);
       const baseHtml = hasHtml ? content : content.replace(/\n/g, "<br/>");
-      const textContent = hasHtml
+      const baseText = hasHtml
         ? content.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").trim()
         : content;
 
@@ -175,22 +216,29 @@ serve(async (req: Request) => {
 
       const results = await Promise.allSettled(
         valid.map(async (r) => {
+          const textVars = buildVariables(r, false);
+          const htmlVars = buildVariables(r, true);
+
+          const personalizedSubject = applyVariables(subject, textVars);
+          const personalizedText = applyVariables(baseText, textVars);
+          const personalizedHtml = applyVariables(baseHtml, htmlVars);
+
           const trackingPixel = supabaseUrl
             ? `<img src="${supabaseUrl}/functions/v1/careers-email-track?id=${encodeURIComponent(r.id)}" width="1" height="1" alt="" style="display:block;border:0;width:1px;height:1px" />`
             : "";
-          const htmlContent = baseHtml + trackingPixel;
+          const htmlContent = personalizedHtml + trackingPixel;
 
           const payload = {
             personalizations: [
               {
                 to: [{ email: r.email, name: r.full_name || undefined }],
-                subject,
+                subject: personalizedSubject,
               },
             ],
             from: { email: "contato@mail.ainalytics.tech", name: "Ainalytics" },
             reply_to: replyTo,
             content: [
-              { type: "text/plain", value: textContent },
+              { type: "text/plain", value: personalizedText },
               { type: "text/html", value: htmlContent },
             ],
           };

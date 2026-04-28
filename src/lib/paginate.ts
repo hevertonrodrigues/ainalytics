@@ -31,8 +31,7 @@ export async function fetchAllRows<T = Record<string, any>>(
   const allRows: T[] = [];
   let from = 0;
 
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
+  for (;;) {
     const { data, error } = await buildQuery().range(from, from + pageSize - 1);
     if (error) throw error;
     if (!data || data.length === 0) break;

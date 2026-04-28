@@ -58,3 +58,12 @@ export async function executeRecaptcha(action: string): Promise<string | null> {
   await loadScript();
   return window.grecaptcha.execute(RECAPTCHA_SITE_KEY, { action });
 }
+
+export function isLocalhostBrowser(): boolean {
+  return typeof window !== 'undefined' &&
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+}
+
+export function executeRecaptchaForPublicAction(action: string): Promise<string | null> {
+  return isLocalhostBrowser() ? Promise.resolve(null) : executeRecaptcha(action);
+}

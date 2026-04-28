@@ -4,10 +4,20 @@ import { Link } from 'react-router-dom';
 import { Globe, ArrowLeft, FileQuestion, Mail, Loader2 } from 'lucide-react';
 import { APP_NAME } from '@/lib/constants';
 import { useProposalData, formatCurrency, formatDate, acceptProposal, SUPPORTED_LANGS } from './proposalShared';
+import { useSeo } from '@/lib/seo';
 
 export function ProposalFullPage() {
   const { proposal, loading, notFound, lang, setLang, slug, c } = useProposalData();
   const { t } = useTranslation();
+
+  // Per-customer document — link-only, never indexed. Same defense
+  // in depth as ProposalPublicPage (robots.txt + meta + X-Robots-Tag
+  // header from vercel.json + absent from sitemap.xml).
+  useSeo({
+    title: 'Proposta · Ainalytics',
+    description: 'Proposta comercial privada.',
+    robots: 'noindex,nofollow,noarchive,nosnippet,noimageindex',
+  });
 
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [acceptEmail, setAcceptEmail] = useState('');

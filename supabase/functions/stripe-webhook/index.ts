@@ -44,7 +44,16 @@ async function verifyStripeSignature(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  return parts.signatures.some((sig) => sig === expectedSig);
+  return parts.signatures.some((sig) => timingSafeEqual(sig, expectedSig));
+}
+
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return diff === 0;
 }
 
 // ────────────────────────────────────────────────────────────
@@ -76,9 +85,125 @@ async function stripeGet(endpoint: string) {
 // Event Handlers
 // ────────────────────────────────────────────────────────────
 
+// ────────────────────────────────────────────────────────────
+// Course (one-time) payment handlers — completely separate from
+// subscription handlers. Routed via `metadata.payment_type === "course"`.
+// ────────────────────────────────────────────────────────────
+
+async function handleCourseCheckoutCompleted(event: any) {
+  const session = event.data.object;
+  const metadata = session.metadata || {};
+  const purchaseId: string | undefined = metadata.course_purchase_id;
+  const courseSlug: string | undefined = metadata.course_slug;
+
+  if (!purchaseId) {
+    console.warn("[stripe-webhook] course session missing course_purchase_id:", session.id);
+    return;
+  }
+
+  const db = createAdminClient();
+
+  // Pull the (already-pending) row created by stripe-course-checkout.
+  const { data: purchase } = await db
+    .from("course_purchases")
+    .select("id, status, course_slug")
+    .eq("id", purchaseId)
+    .single();
+
+  if (!purchase) {
+    console.error("[stripe-webhook] course_purchase row not found:", purchaseId);
+    return;
+  }
+
+  // Idempotency: webhook may fire multiple times.
+  if (purchase.status === "succeeded") {
+    console.log(`[stripe-webhook] course_purchase ${purchaseId} already succeeded — skipping`);
+    return;
+  }
+
+  const paidAmount = session.amount_total ? session.amount_total / 100 : 0;
+  const currency = session.currency || "brl";
+  const paymentMethod =
+    Array.isArray(session.payment_method_types) && session.payment_method_types.length > 0
+      ? session.payment_method_types[0]
+      : null;
+
+  const { error: updErr } = await db
+    .from("course_purchases")
+    .update({
+      status: "succeeded",
+      paid_at: new Date().toISOString(),
+      stripe_session_id: session.id,
+      stripe_payment_intent_id: session.payment_intent || null,
+      stripe_customer_id: session.customer || null,
+      payment_method: paymentMethod,
+      amount: paidAmount || undefined,
+      currency,
+      raw_session: session,
+      raw_event: event,
+    })
+    .eq("id", purchaseId);
+
+  if (updErr) {
+    console.error("[stripe-webhook] Error updating course_purchase:", updErr);
+    return;
+  }
+
+  console.log(
+    `[stripe-webhook] course_purchase ${purchaseId} succeeded · course=${courseSlug || purchase.course_slug} · amount=${paidAmount} ${currency}`,
+  );
+}
+
+async function handleCourseChargeRefunded(event: any) {
+  const charge = event.data.object;
+  const paymentIntentId: string | undefined = charge.payment_intent;
+  const metadata = charge.metadata || {};
+  const purchaseId: string | undefined = metadata.course_purchase_id;
+
+  if (!paymentIntentId && !purchaseId) return;
+
+  const db = createAdminClient();
+
+  // Locate the row by metadata.course_purchase_id first, fall back to PI id.
+  const query = purchaseId
+    ? db.from("course_purchases").select("id, status").eq("id", purchaseId)
+    : db.from("course_purchases").select("id, status").eq("stripe_payment_intent_id", paymentIntentId);
+
+  const { data: purchase } = await query.maybeSingle();
+
+  if (!purchase) {
+    console.warn("[stripe-webhook] No course_purchase found for refund:", paymentIntentId, purchaseId);
+    return;
+  }
+
+  await db
+    .from("course_purchases")
+    .update({
+      status: "refunded",
+      refunded_at: new Date().toISOString(),
+      stripe_charge_id: charge.id,
+      raw_event: event,
+    })
+    .eq("id", purchase.id);
+
+  console.log(`[stripe-webhook] course_purchase ${purchase.id} refunded`);
+}
+
 async function handleCheckoutCompleted(event: any) {
   const session = event.data.object;
   const metadata = session.metadata || {};
+
+  // ── Route course payments to their own ledger (course_purchases) ──
+  // Course sessions are flagged with metadata.payment_type === "course"
+  // and use mode=payment. They MUST NOT touch subscriptions/payments.
+  if (metadata.payment_type === "course") {
+    return handleCourseCheckoutCompleted(event);
+  }
+  if (session.mode === "payment") {
+    console.warn("[stripe-webhook] Ignoring unrecognized one-time payment session:", session.id);
+    return;
+  }
+
   const tenantId = metadata.tenant_id;
   const planId = metadata.plan_id;
   const billingInterval = metadata.billing_interval || "monthly";
@@ -562,17 +687,19 @@ serve(async (req: Request) => {
     const body = await req.text();
     const sigHeader = req.headers.get("stripe-signature");
 
+    if (!STRIPE_WEBHOOK_SECRET || !STRIPE_SECRET_KEY) {
+      console.error("[stripe-webhook] Stripe secrets are not configured");
+      return logger.done(webhookResponse({ error: "Webhook not configured" }, 500));
+    }
+
     if (!sigHeader) {
       return logger.done(webhookResponse({ error: "Missing stripe-signature header" }, 400));
     }
 
-    // Verify webhook signature
-    if (STRIPE_WEBHOOK_SECRET) {
-      const isValid = await verifyStripeSignature(body, sigHeader, STRIPE_WEBHOOK_SECRET);
-      if (!isValid) {
-        console.error("[stripe-webhook] Invalid signature");
-        return logger.done(webhookResponse({ error: "Invalid signature" }, 400));
-      }
+    const isValid = await verifyStripeSignature(body, sigHeader, STRIPE_WEBHOOK_SECRET);
+    if (!isValid) {
+      console.error("[stripe-webhook] Invalid signature");
+      return logger.done(webhookResponse({ error: "Invalid signature" }, 400));
     }
 
     const event = JSON.parse(body);
@@ -593,6 +720,10 @@ serve(async (req: Request) => {
         break;
       case "customer.subscription.deleted":
         await handleSubscriptionDeleted(event);
+        break;
+      case "charge.refunded":
+        // Only acts on course payments — looks up by metadata.course_purchase_id
+        await handleCourseChargeRefunded(event);
         break;
       default:
         console.log(`[stripe-webhook] Unhandled event type: ${event.type}`);

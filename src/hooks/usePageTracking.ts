@@ -34,6 +34,5 @@ export function usePageTracking() {
       const exitDuration = Date.now() - enteredAt.current;
       trackPageExit(pathname, exitDuration);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 }

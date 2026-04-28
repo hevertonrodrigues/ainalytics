@@ -4,10 +4,23 @@ import { Link } from 'react-router-dom';
 import { Globe, ArrowRight, FileQuestion, Mail, Loader2 } from 'lucide-react';
 import { APP_NAME } from '@/lib/constants';
 import { useProposalData, formatCurrency, formatDate, acceptProposal, SUPPORTED_LANGS } from './proposalShared';
+import { useSeo } from '@/lib/seo';
 
 export function ProposalPublicPage() {
   const { proposal, loading, notFound, lang, setLang, slug, c } = useProposalData();
   const { t } = useTranslation();
+
+  // Per-customer pages: link-only access. Defense in depth —
+  //  • robots.txt disallows /proposal/
+  //  • this meta tag tells crawlers not to index, follow, archive,
+  //    snippet or image-index even if they reach the page directly
+  //  • vercel.json sends X-Robots-Tag with the same directives
+  //  • sitemap.xml does NOT list these URLs
+  useSeo({
+    title: 'Proposta · Ainalytics',
+    description: 'Proposta comercial privada.',
+    robots: 'noindex,nofollow,noarchive,nosnippet,noimageindex',
+  });
 
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [acceptEmail, setAcceptEmail] = useState('');

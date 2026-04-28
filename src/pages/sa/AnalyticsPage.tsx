@@ -173,10 +173,6 @@ export function AnalyticsPage() {
 
     // Cumulative: users who reached step X = users at step X + all users at later steps
     const cumulative: { key: string; label: string; color: string; count: number; cumCount: number; pct: number }[] = [];
-    let runningFromEnd = 0;
-    for (let i = FUNNEL_STEPS.length - 1; i >= 0; i--) {
-      runningFromEnd += counts[FUNNEL_STEPS[i]!.key] || 0;
-    }
     const total = data.funnel.length;
     let cumFromTop = 0;
     for (const step of FUNNEL_STEPS) {
@@ -364,11 +360,6 @@ export function AnalyticsPage() {
    ═════════════════════════════════════════════════════════════ */
 
 function OverviewTab({ stats, engagement }: { stats: ActivityStats | null; engagement: EngagementRow[] }) {
-  if (!stats) return <div className="text-text-muted text-center py-12">No data yet</div>;
-
-  // Daily activity chart (simple bar chart with CSS)
-  const maxEvents = Math.max(...(stats.daily?.map(d => d.events) ?? [1]), 1);
-
   // Aggregate engagement by event_type
   const engagementByType = useMemo(() => {
     const map = new Map<string, { count: number; users: number }>();
@@ -383,6 +374,11 @@ function OverviewTab({ stats, engagement }: { stats: ActivityStats | null; engag
       .sort((a, b) => b[1].count - a[1].count)
       .slice(0, 10);
   }, [engagement]);
+
+  if (!stats) return <div className="text-text-muted text-center py-12">No data yet</div>;
+
+  // Daily activity chart (simple bar chart with CSS)
+  const maxEvents = Math.max(...(stats.daily?.map(d => d.events) ?? [1]), 1);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

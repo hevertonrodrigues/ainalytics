@@ -1,3 +1,146 @@
+# =====================================================================
+# Ainalytics — robots.txt
+# Public marketing pages are open to all crawlers (search + AI).
+# Authenticated and per-customer routes are disallowed.
+# =====================================================================
+
+# ─── Default: allow everything not explicitly disallowed ─────────────
 User-agent: *
 Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /signin
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /proposal/
+Disallow: /analise-gratuita/resultado
+Disallow: /*?*token=
+Disallow: /*?*access_token=
+
+# ─── Search engines (explicit, defensive) ────────────────────────────
+User-agent: Googlebot
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+# ─── AI / LLM crawlers — explicitly allowed on public pages ──────────
+# OpenAI
+User-agent: GPTBot
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+# Anthropic
+User-agent: ClaudeBot
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+User-agent: Claude-Web
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+# Google extended (AI Overviews, Gemini training)
+User-agent: Google-Extended
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+# Common Crawl (powers many open LLMs)
+User-agent: CCBot
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+# Apple Intelligence / Apple search
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+# Meta AI
+User-agent: FacebookBot
+Allow: /
+
+User-agent: Meta-ExternalAgent
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+# Bytedance (Doubao)
+User-agent: Bytespider
+Allow: /
+Disallow: /dashboard/
+Disallow: /sa/
+Disallow: /proposal/
+
+# DeepSeek / Qwen / others using public crawler IDs are caught by `*`.
+
+# ─── Bad bots / scrapers (explicit deny) ─────────────────────────────
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# ─── Sitemap ─────────────────────────────────────────────────────────
 Sitemap: https://ainalytics.tech/sitemap.xml

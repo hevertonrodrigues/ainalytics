@@ -40,7 +40,7 @@ interface CreateProposalModalProps {
   editProposal?: EditProposalData | null;
 }
 
-const LANGS = ['en', 'es', 'pt-br'] as const;
+type ProposalLang = 'en' | 'es' | 'pt-br';
 
 /* Shared input classes — solid bg that works in both themes */
 const inputBase =
@@ -72,7 +72,7 @@ function getDefaultValidity(): string {
 
 export function CreateProposalModal({ isOpen, onClose, onCreated, userId, tenantId, userName, editProposal }: CreateProposalModalProps) {
   const { t, i18n } = useTranslation();
-  const currentLang = i18n.language as typeof LANGS[number];
+  const currentLang = i18n.language as ProposalLang;
   const isEditMode = !!editProposal;
 
   const [plans, setPlans] = useState<Plan[]>([]);

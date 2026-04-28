@@ -1,0 +1,1219 @@
+/* GEO Essencial — Course landing page (dark / roxo / glow)
+   All selectors scoped to .geo-course-page to avoid global collisions. */
+
+.geo-course-page {
+  /* Brand */
+  --ai-purple: #6c5ce7;
+  --ai-purple-bright: #8b7bff;
+  --ai-purple-dim: #4a3fb5;
+  --ai-pink: #fd79a8;
+  --ai-lilac: #a29bfe;
+  --ai-cyan: #5ee7df;
+
+  /* Surfaces */
+  --bg-0: #08070d;
+  --bg-1: #0d0c16;
+  --bg-2: #15131f;
+  --bg-3: #1c1929;
+  --bg-card: rgba(28, 25, 41, 0.6);
+  --border: rgba(162, 155, 254, 0.12);
+  --border-strong: rgba(162, 155, 254, 0.22);
+
+  /* Text */
+  --text-0: #ffffff;
+  --text-1: #e7e5f0;
+  --text-2: #a8a4be;
+  --text-3: #6e6985;
+  --text-4: #4a4660;
+
+  /* Status */
+  --green: #22c55e;
+  --amber: #f59e0b;
+  --red: #ef4444;
+
+  --radius-sm: 6px;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --shadow-glow: 0 0 80px -10px rgba(108, 92, 231, 0.5);
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.4);
+
+  background: var(--bg-0);
+  color: var(--text-1);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.geo-course-page *,
+.geo-course-page *::before,
+.geo-course-page *::after { box-sizing: border-box; }
+
+.geo-course-page h1,
+.geo-course-page h2,
+.geo-course-page h3,
+.geo-course-page h4,
+.geo-course-page h5 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text-0);
+  text-wrap: balance;
+  margin: 0;
+}
+
+.geo-course-page p { margin: 0; }
+.geo-course-page ul, .geo-course-page ol { margin: 0; padding: 0; list-style: none; }
+
+.geo-course-page code,
+.geo-course-page .mono { font-family: 'JetBrains Mono', monospace; }
+
+.geo-course-page a { color: inherit; text-decoration: none; }
+.geo-course-page button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; padding: 0; }
+
+/* ====== Background — orbs + grid ====== */
+.geo-course-page .bg-fx {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.geo-course-page .bg-fx::before {
+  content: ''; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(108, 92, 231, 0.25), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 30%, rgba(253, 121, 168, 0.10), transparent 60%),
+    radial-gradient(ellipse 60% 40% at 10% 80%, rgba(94, 231, 223, 0.08), transparent 60%);
+}
+.geo-course-page .bg-fx::after {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(162, 155, 254, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(162, 155, 254, 0.04) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 80%);
+}
+
+.geo-course-page main { position: relative; z-index: 1; }
+
+/* ====== Layout ====== */
+.geo-course-page .container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.geo-course-page .container-narrow { max-width: 880px; margin: 0 auto; padding: 0 32px; }
+
+.geo-course-page section { padding: 96px 0; position: relative; }
+.geo-course-page .section-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.18em;
+  color: var(--ai-lilac);
+  padding: 8px 14px;
+  background: rgba(108, 92, 231, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  margin-bottom: 24px;
+}
+.geo-course-page .section-eyebrow .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ai-purple-bright);
+  box-shadow: 0 0 12px var(--ai-purple-bright);
+}
+
+.geo-course-page h1.display { font-size: clamp(40px, 5.6vw, 76px); font-weight: 800; }
+.geo-course-page h2.display { font-size: clamp(34px, 4.4vw, 60px); font-weight: 700; }
+.geo-course-page h3.heading { font-size: clamp(22px, 2.4vw, 32px); font-weight: 600; }
+
+.geo-course-page .lead { font-size: clamp(17px, 1.4vw, 20px); color: var(--text-2); line-height: 1.55; max-width: 720px; }
+.geo-course-page .lead strong { color: var(--text-0); font-weight: 600; }
+
+.geo-course-page .text-grad {
+  background: linear-gradient(135deg, var(--ai-lilac), var(--ai-pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ====== Buttons ====== */
+.geo-course-page .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 16px 28px;
+  border-radius: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600; font-size: 16px;
+  transition: all .2s ease;
+  white-space: nowrap;
+  position: relative;
+  isolation: isolate;
+}
+.geo-course-page .btn-primary {
+  background: linear-gradient(135deg, var(--ai-purple) 0%, var(--ai-purple-bright) 100%);
+  color: white;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.1) inset,
+    0 8px 24px -8px rgba(108, 92, 231, 0.6),
+    0 0 40px -8px rgba(108, 92, 231, 0.5);
+}
+.geo-course-page .btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.15) inset,
+    0 12px 32px -8px rgba(108, 92, 231, 0.8),
+    0 0 60px -8px rgba(108, 92, 231, 0.7);
+}
+.geo-course-page .btn-primary::before {
+  content: ''; position: absolute; inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent 50%);
+  z-index: -1;
+}
+.geo-course-page .btn-ghost {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-1);
+}
+.geo-course-page .btn-ghost:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: var(--border-strong);
+}
+.geo-course-page .btn-lg { padding: 20px 36px; font-size: 18px; }
+.geo-course-page .btn-block { width: 100%; }
+
+/* ====== Top bar (announcement + nav) ====== */
+.geo-course-page .tarja {
+  position: relative;
+  background: linear-gradient(90deg, rgba(108, 92, 231, 0.18), rgba(253, 121, 168, 0.12), rgba(108, 92, 231, 0.18));
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  text-align: center;
+  font-size: 13px; color: var(--text-1);
+  z-index: 50;
+}
+.geo-course-page .tarja .pulse {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ai-pink); margin-right: 8px; vertical-align: middle;
+  box-shadow: 0 0 0 0 rgba(253, 121, 168, 0.7);
+  animation: geoPulse 2s infinite;
+}
+@keyframes geoPulse {
+  0% { box-shadow: 0 0 0 0 rgba(253, 121, 168, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(253, 121, 168, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(253, 121, 168, 0); }
+}
+
+.geo-course-page .nav {
+  position: sticky; top: 0; z-index: 40;
+  background: rgba(8, 7, 13, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.geo-course-page .nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  padding: 14px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px;
+}
+.geo-course-page .brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 17px;
+  color: var(--text-0);
+}
+.geo-course-page .brand-mark {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  position: relative;
+}
+.geo-course-page .nav-links {
+  display: flex; gap: 28px;
+  font-size: 14px; color: var(--text-2);
+}
+.geo-course-page .nav-links a:hover { color: var(--text-0); }
+.geo-course-page .nav-cta {
+  background: rgba(108, 92, 231, 0.12);
+  border: 1px solid var(--border-strong);
+  color: var(--text-0);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 14px; font-weight: 600;
+  transition: all .15s;
+}
+.geo-course-page .nav-cta:hover { background: rgba(108, 92, 231, 0.22); }
+
+/* ====== Hero ====== */
+.geo-course-page .hero { padding: 80px 0 96px; }
+.geo-course-page .hero-grid {
+  display: grid; grid-template-columns: 1.1fr 0.9fr;
+  gap: 64px; align-items: center;
+}
+.geo-course-page .hero h1 {
+  font-size: clamp(40px, 5vw, 68px);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  margin-bottom: 24px;
+}
+.geo-course-page .hero h1 .strike { text-decoration: line-through; text-decoration-color: rgba(253, 121, 168, 0.5); text-decoration-thickness: 3px; color: var(--text-3); }
+.geo-course-page .hero-sub {
+  font-size: 19px; color: var(--text-2);
+  line-height: 1.5; margin-bottom: 32px;
+  max-width: 580px;
+}
+.geo-course-page .hero-sub strong { color: var(--text-0); font-weight: 600; }
+.geo-course-page .hero-bullets {
+  display: flex; flex-direction: column; gap: 10px;
+  margin: 0 0 32px;
+}
+.geo-course-page .hero-bullets li {
+  display: flex; align-items: flex-start; gap: 10px;
+  font-size: 15px; color: var(--text-1);
+}
+.geo-course-page .hero-bullets li svg { flex-shrink: 0; margin-top: 4px; color: var(--ai-purple-bright); }
+.geo-course-page .hero-cta-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+.geo-course-page .hero-trust { font-size: 13px; color: var(--text-3); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.geo-course-page .hero-trust span { display: inline-flex; align-items: center; gap: 6px; }
+
+/* Hero visual */
+.geo-course-page .hero-visual { position: relative; height: 560px; }
+
+/* ====== Section: Pain ====== */
+.geo-course-page .pain-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin: 48px 0 32px;
+}
+.geo-course-page .stat {
+  padding: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  position: relative; overflow: hidden;
+  transition: all .25s;
+}
+.geo-course-page .stat:hover {
+  border-color: var(--border-strong);
+  transform: translateY(-2px);
+}
+.geo-course-page .stat .num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 44px; font-weight: 800; line-height: 1;
+  background: linear-gradient(135deg, var(--ai-lilac), var(--ai-pink));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 8px;
+}
+.geo-course-page .stat .label { font-size: 13px; color: var(--text-2); line-height: 1.4; }
+.geo-course-page .stat .src { font-size: 11px; color: var(--text-4); margin-top: 8px; font-family: 'JetBrains Mono', monospace; }
+
+.geo-course-page .pain-quote {
+  margin: 56px 0 0;
+  padding: 32px 40px;
+  border-left: 3px solid var(--ai-purple);
+  background: linear-gradient(90deg, rgba(108, 92, 231, 0.08), transparent);
+  font-size: 22px; line-height: 1.4; color: var(--text-0);
+  font-weight: 500;
+}
+
+/* ====== Course intro / value ====== */
+.geo-course-page .course-card {
+  background: linear-gradient(180deg, rgba(108, 92, 231, 0.08), rgba(108, 92, 231, 0.02));
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  padding: 64px;
+  position: relative;
+  overflow: hidden;
+}
+.geo-course-page .course-card::before {
+  content: ''; position: absolute; top: -100px; right: -100px;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(108, 92, 231, 0.3), transparent 70%);
+  filter: blur(40px);
+}
+.geo-course-page .course-meta {
+  display: flex; gap: 28px; flex-wrap: wrap;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; color: var(--text-2);
+  margin: 28px 0;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.geo-course-page .course-meta span { display: inline-flex; align-items: center; gap: 8px; }
+.geo-course-page .course-meta strong { color: var(--text-0); font-weight: 600; }
+
+.geo-course-page .course-deliverables {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+  margin-bottom: 32px;
+}
+.geo-course-page .course-deliverables li {
+  display: flex; gap: 10px; font-size: 14px; color: var(--text-1);
+  padding: 10px 14px; background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border); border-radius: 10px;
+}
+.geo-course-page .course-deliverables li svg {
+  color: var(--ai-purple-bright); flex-shrink: 0;
+}
+
+/* ====== For Who / Not For Who ====== */
+.geo-course-page .for-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px; margin-top: 48px;
+}
+.geo-course-page .for-card {
+  padding: 36px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+.geo-course-page .for-card.yes { border-color: rgba(34, 197, 94, 0.25); background: linear-gradient(180deg, rgba(34, 197, 94, 0.04), transparent); }
+.geo-course-page .for-card.no { border-color: rgba(239, 68, 68, 0.18); }
+.geo-course-page .for-card h3 {
+  font-size: 20px; font-weight: 700;
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px;
+}
+.geo-course-page .for-card.yes h3 { color: #4ade80; }
+.geo-course-page .for-card.no h3 { color: #f87171; }
+.geo-course-page .for-card ul { display: flex; flex-direction: column; gap: 14px; }
+.geo-course-page .for-card li {
+  display: flex; align-items: flex-start; gap: 12px;
+  font-size: 15px; color: var(--text-1); line-height: 1.5;
+}
+.geo-course-page .for-card li svg { flex-shrink: 0; margin-top: 4px; }
+.geo-course-page .for-card.yes li svg { color: #4ade80; }
+.geo-course-page .for-card.no li svg { color: #f87171; }
+
+/* ====== Modules ====== */
+.geo-course-page .modules-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 56px;
+}
+.geo-course-page .module {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all .2s;
+}
+.geo-course-page .module:hover { border-color: var(--border-strong); }
+.geo-course-page .module.open { border-color: var(--ai-purple-dim); background: rgba(108, 92, 231, 0.04); }
+.geo-course-page .module-header {
+  display: grid; grid-template-columns: 56px 1fr auto;
+  align-items: center; gap: 20px;
+  padding: 24px 28px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+.geo-course-page .module-num {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg, var(--ai-purple), var(--ai-purple-dim));
+  border-radius: 10px;
+  display: grid; place-items: center;
+  font-family: 'Outfit', sans-serif; font-weight: 700; color: white;
+  font-size: 16px;
+  box-shadow: 0 4px 16px -4px rgba(108, 92, 231, 0.5);
+}
+.geo-course-page .module-title { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 600; color: var(--text-0); }
+.geo-course-page .module-meta { font-size: 12px; color: var(--text-3); margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+.geo-course-page .module-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(108, 92, 231, 0.1);
+  display: grid; place-items: center;
+  transition: all .25s;
+}
+.geo-course-page .module.open .module-toggle { background: var(--ai-purple); transform: rotate(180deg); }
+.geo-course-page .module-toggle svg { color: var(--ai-purple-bright); }
+.geo-course-page .module.open .module-toggle svg { color: white; }
+.geo-course-page .module-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s ease;
+}
+.geo-course-page .module.open .module-body { max-height: 600px; }
+.geo-course-page .module-body-inner {
+  padding: 0 28px 24px 88px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.geo-course-page .lesson {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 14px;
+  align-items: center;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+}
+.geo-course-page .lesson-num { color: var(--text-3); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.geo-course-page .lesson-title { color: var(--text-1); }
+.geo-course-page .lesson-time { color: var(--text-3); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+
+/* ====== Stack value ====== */
+.geo-course-page .stack {
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  padding: 48px;
+  margin-top: 48px;
+}
+.geo-course-page .stack-row {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: 20px; align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px dashed var(--border);
+  font-size: 15px;
+}
+.geo-course-page .stack-row:last-of-type { border-bottom: none; }
+.geo-course-page .stack-row .icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: rgba(108, 92, 231, 0.12);
+  display: grid; place-items: center;
+  color: var(--ai-purple-bright);
+}
+.geo-course-page .stack-row .desc strong { display: block; color: var(--text-0); font-weight: 600; }
+.geo-course-page .stack-row .desc small { font-size: 12px; color: var(--text-3); display: block; margin-top: 2px; }
+.geo-course-page .stack-row .price { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--text-1); white-space: nowrap; }
+.geo-course-page .stack-total {
+  display: grid; grid-template-columns: 1fr auto;
+  margin-top: 16px; padding-top: 24px;
+  border-top: 2px solid var(--border-strong);
+  font-size: 18px; font-weight: 600;
+  color: var(--text-0);
+}
+.geo-course-page .stack-total .v { font-family: 'JetBrains Mono', monospace; }
+
+.geo-course-page .offer {
+  margin-top: 32px;
+  padding: 40px;
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(253, 121, 168, 0.08));
+  border: 1px solid rgba(162, 155, 254, 0.3);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+.geo-course-page .offer .from {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 18px; color: var(--text-3);
+  text-decoration: line-through;
+  margin-bottom: 8px;
+}
+.geo-course-page .offer .price-big {
+  font-family: 'Outfit', sans-serif;
+  font-size: 88px; font-weight: 800; line-height: 1;
+  color: var(--text-0);
+  letter-spacing: -0.04em;
+  margin-bottom: 8px;
+}
+.geo-course-page .offer .price-big small { font-size: 32px; vertical-align: super; color: var(--text-2); }
+.geo-course-page .offer .install { font-size: 15px; color: var(--text-2); margin-bottom: 24px; }
+.geo-course-page .offer .install strong { color: var(--text-0); }
+
+/* ====== Guarantee ====== */
+.geo-course-page .guarantee {
+  display: grid; grid-template-columns: 220px 1fr;
+  gap: 48px; align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  padding: 56px;
+}
+.geo-course-page .seal {
+  width: 220px; height: 220px;
+  position: relative;
+  display: grid; place-items: center;
+}
+.geo-course-page .seal-rotor {
+  position: absolute; inset: 0;
+  animation: geoRotate 30s linear infinite;
+}
+@keyframes geoRotate { to { transform: rotate(360deg); } }
+.geo-course-page .seal-center {
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ai-purple), var(--ai-purple-dim));
+  display: grid; place-items: center;
+  box-shadow: 0 0 60px -10px var(--ai-purple);
+  position: relative;
+  z-index: 2;
+}
+.geo-course-page .seal-center .big {
+  font-family: 'Outfit', sans-serif;
+  font-size: 56px; font-weight: 800;
+  color: white; line-height: 1;
+}
+.geo-course-page .seal-center .small {
+  font-size: 11px; color: rgba(255,255,255,0.85);
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 0.15em;
+}
+
+/* ====== Authority ====== */
+.geo-course-page .authority-card {
+  display: grid; grid-template-columns: 1.2fr 1fr;
+  gap: 64px; align-items: center;
+}
+
+/* ====== Before/After ====== */
+.geo-course-page .ba-table {
+  margin-top: 48px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.geo-course-page .ba-row {
+  display: grid; grid-template-columns: 1fr 56px 1fr;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+}
+.geo-course-page .ba-row:last-child { border-bottom: none; }
+.geo-course-page .ba-row.head {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.15em;
+  color: var(--text-3);
+  background: var(--bg-2);
+}
+.geo-course-page .ba-row.head > div { padding: 16px 24px; }
+.geo-course-page .ba-cell {
+  padding: 24px;
+  font-size: 15px; line-height: 1.45;
+}
+.geo-course-page .ba-cell.before { color: var(--text-3); }
+.geo-course-page .ba-cell.after { color: var(--text-0); font-weight: 500; background: rgba(108, 92, 231, 0.04); }
+.geo-course-page .ba-arrow {
+  display: grid; place-items: center;
+  color: var(--ai-purple-bright);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  background: var(--bg-2);
+}
+
+/* ====== Testimonials ====== */
+.geo-course-page .testimonials {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 20px; margin-top: 48px;
+}
+.geo-course-page .test-card {
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  display: flex; flex-direction: column; gap: 16px;
+}
+.geo-course-page .test-stars { color: #fbbf24; letter-spacing: 2px; }
+.geo-course-page .test-quote { font-size: 16px; color: var(--text-1); line-height: 1.5; flex: 1; }
+.geo-course-page .test-author { display: flex; align-items: center; gap: 12px; }
+.geo-course-page .test-avatar {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--ai-purple), var(--ai-pink));
+  display: grid; place-items: center;
+  color: white; font-weight: 700; font-size: 14px;
+}
+.geo-course-page .test-name { font-size: 14px; color: var(--text-0); font-weight: 600; }
+.geo-course-page .test-role { font-size: 12px; color: var(--text-3); }
+
+/* ====== Urgency / Countdown ====== */
+.geo-course-page .urgency {
+  background: linear-gradient(135deg, rgba(253, 121, 168, 0.08), rgba(108, 92, 231, 0.08));
+  border: 1px solid rgba(253, 121, 168, 0.2);
+  border-radius: var(--radius-xl);
+  padding: 56px;
+  text-align: center;
+}
+.geo-course-page .countdown {
+  display: flex; justify-content: center; gap: 12px;
+  margin: 32px 0;
+}
+.geo-course-page .countdown-cell {
+  background: var(--bg-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 20px 18px;
+  min-width: 90px;
+}
+.geo-course-page .countdown-cell .v {
+  font-family: 'Outfit', sans-serif;
+  font-size: 44px; font-weight: 800; line-height: 1;
+  color: var(--text-0); font-variant-numeric: tabular-nums;
+}
+.geo-course-page .countdown-cell .l {
+  font-size: 11px; color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 0.15em;
+  margin-top: 6px;
+}
+
+/* ====== FAQ ====== */
+.geo-course-page .faq-list { margin-top: 48px; display: flex; flex-direction: column; gap: 12px; }
+.geo-course-page .faq-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.geo-course-page .faq-item.open { border-color: var(--border-strong); }
+.geo-course-page .faq-q {
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 16px;
+  padding: 22px 24px;
+  width: 100%;
+  text-align: left;
+  font-size: 16px; font-weight: 600;
+  color: var(--text-0);
+  font-family: 'Outfit', sans-serif;
+}
+.geo-course-page .faq-icon {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  color: var(--ai-purple-bright);
+  transition: transform .25s;
+}
+.geo-course-page .faq-item.open .faq-icon { transform: rotate(45deg); }
+.geo-course-page .faq-a {
+  max-height: 0; overflow: hidden; transition: max-height .35s ease;
+}
+.geo-course-page .faq-item.open .faq-a { max-height: 400px; }
+.geo-course-page .faq-a-inner {
+  padding: 0 24px 24px;
+  font-size: 15px; line-height: 1.6; color: var(--text-2);
+}
+.geo-course-page .faq-a-inner strong { color: var(--text-1); }
+
+/* ====== Final CTA / Last Call ====== */
+.geo-course-page .last-call {
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 0%, rgba(108, 92, 231, 0.18), transparent 70%),
+    var(--bg-1);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  padding: 120px 0;
+}
+.geo-course-page .options {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px; margin: 48px 0;
+}
+.geo-course-page .option {
+  padding: 36px;
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+.geo-course-page .option.a {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+}
+.geo-course-page .option.b {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.15), rgba(253, 121, 168, 0.08));
+  border: 1px solid rgba(162, 155, 254, 0.4);
+}
+.geo-course-page .option-tag {
+  display: inline-block; padding: 6px 12px;
+  border-radius: 999px; font-size: 11px; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.geo-course-page .option.a .option-tag { background: rgba(239, 68, 68, 0.1); color: #fca5a5; }
+.geo-course-page .option.b .option-tag { background: rgba(108, 92, 231, 0.2); color: var(--ai-lilac); }
+.geo-course-page .option p { font-size: 15px; line-height: 1.6; }
+.geo-course-page .option.a p { color: var(--text-3); }
+.geo-course-page .option.b p { color: var(--text-1); }
+
+/* ====== PS ====== */
+.geo-course-page .ps-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  margin-top: 32px;
+}
+.geo-course-page .ps { font-size: 15px; line-height: 1.65; color: var(--text-2); margin-bottom: 16px; }
+.geo-course-page .ps:last-child { margin-bottom: 0; }
+.geo-course-page .ps strong { color: var(--text-0); font-weight: 700; }
+
+/* ====== Footer ====== */
+.geo-course-page footer {
+  padding: 48px 0;
+  border-top: 1px solid var(--border);
+  background: var(--bg-1);
+  position: relative;
+  z-index: 1;
+}
+.geo-course-page .footer-grid {
+  display: grid; grid-template-columns: 1fr auto auto;
+  gap: 32px; align-items: center;
+}
+.geo-course-page .footer-links { display: flex; gap: 24px; font-size: 13px; color: var(--text-3); }
+.geo-course-page .footer-links a:hover { color: var(--text-1); }
+.geo-course-page .footer-copy { font-size: 12px; color: var(--text-4); font-family: 'JetBrains Mono', monospace; }
+
+/* ====== Modal ====== */
+.geo-course-page .modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(8, 7, 13, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 100;
+  display: grid; place-items: center;
+  padding: 24px;
+  animation: geoFade .2s ease;
+}
+@keyframes geoFade { from { opacity: 0; } to { opacity: 1; } }
+.geo-course-page .modal {
+  background: var(--bg-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  width: 100%; max-width: 480px;
+  padding: 40px;
+  position: relative;
+  animation: geoSlideUp .3s ease;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+@keyframes geoSlideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.geo-course-page .modal-close {
+  position: absolute; top: 16px; right: 16px;
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  display: grid; place-items: center;
+  color: var(--text-3);
+}
+.geo-course-page .modal-close:hover { background: rgba(255,255,255,0.1); color: var(--text-1); }
+.geo-course-page .modal h3 { font-size: 24px; margin-bottom: 8px; }
+.geo-course-page .modal-sub { font-size: 14px; color: var(--text-2); margin-bottom: 28px; }
+
+.geo-course-page .field { margin-bottom: 16px; }
+.geo-course-page .field label {
+  display: block; font-size: 12px; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 8px; font-family: 'JetBrains Mono', monospace;
+}
+.geo-course-page .field input {
+  width: 100%; padding: 14px 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-0); font-size: 15px;
+  font-family: inherit;
+  transition: border-color .15s;
+}
+.geo-course-page .field input:focus { outline: none; border-color: var(--ai-purple); box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15); }
+
+.geo-course-page .payment-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.geo-course-page .payment-tab {
+  padding: 12px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px; color: var(--text-2);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all .15s;
+}
+.geo-course-page .payment-tab.active { border-color: var(--ai-purple); background: rgba(108, 92, 231, 0.08); color: var(--text-0); }
+
+.geo-course-page .modal-summary {
+  margin-top: 20px; padding-top: 20px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between;
+  font-size: 14px; color: var(--text-2);
+}
+.geo-course-page .modal-summary strong { color: var(--text-0); font-size: 18px; font-family: 'Outfit', sans-serif; }
+
+.geo-course-page .modal-success { text-align: center; }
+.geo-course-page .modal-success .check {
+  width: 80px; height: 80px; margin: 0 auto 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--green), #16a34a);
+  display: grid; place-items: center;
+  box-shadow: 0 0 40px -10px var(--green);
+  animation: geoPop .4s ease;
+}
+@keyframes geoPop { from { transform: scale(0); } to { transform: scale(1); } }
+
+/* ====== Reveal animation ====== */
+.geo-course-page .reveal { opacity: 0; transform: translateY(24px); transition: opacity .8s ease, transform .8s ease; }
+.geo-course-page .reveal.in { opacity: 1; transform: translateY(0); }
+
+/* ====== Spinner (used in checkout submit button) ====== */
+.geo-course-page .spin { animation: geoSpin 0.9s linear infinite; }
+@keyframes geoSpin { to { transform: rotate(360deg); } }
+
+/* ===== AI platform pills ===== */
+.geo-course-page .ai-pill {
+  display: inline-flex; align-items: center;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 500;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+/* ===== ChatGPT mockup ===== */
+.geo-course-page .chat-mock {
+  background: linear-gradient(180deg, #1a1a2e, #15131f);
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px -10px rgba(0,0,0,0.6), 0 0 0 1px rgba(108, 92, 231, 0.05);
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  transform: perspective(1000px) rotateY(-4deg) rotateX(2deg);
+  transform-origin: center;
+}
+.geo-course-page .chat-mock-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border);
+  font-size: 13px; color: var(--text-1);
+  font-weight: 600;
+  font-family: 'Outfit', sans-serif;
+}
+.geo-course-page .chat-mock-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+.geo-course-page .chat-mock-time {
+  margin-left: auto; font-size: 11px; color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace; font-weight: 400;
+}
+.geo-course-page .chat-mock-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.geo-course-page .chat-bubble {
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 14px; line-height: 1.5;
+}
+.geo-course-page .chat-bubble.user {
+  background: rgba(108, 92, 231, 0.12);
+  border: 1px solid rgba(108, 92, 231, 0.25);
+  align-self: flex-end;
+  max-width: 80%;
+  color: var(--text-0);
+}
+.geo-course-page .chat-bubble.bot {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  width: 100%;
+}
+.geo-course-page .chat-bubble-head {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 10px;
+}
+.geo-course-page .chat-typing { color: var(--text-2); font-size: 14px; margin-bottom: 12px; }
+.geo-course-page .chat-list {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.geo-course-page .chat-list li {
+  display: grid; grid-template-columns: 28px 1fr; gap: 10px;
+  padding: 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .35s ease, transform .35s ease;
+}
+.geo-course-page .chat-list li.in { opacity: 1; transform: translateY(0); }
+.geo-course-page .chat-rank {
+  width: 24px; height: 24px; border-radius: 6px;
+  background: rgba(108, 92, 231, 0.15);
+  color: var(--ai-purple-bright);
+  display: grid; place-items: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+}
+.geo-course-page .chat-list li strong {
+  display: block; font-size: 14px; font-weight: 600; color: var(--text-0);
+  font-family: 'Outfit', sans-serif; margin-bottom: 2px;
+}
+.geo-course-page .chat-list li .chat-desc {
+  display: block; font-size: 12px; color: var(--text-3); line-height: 1.4;
+}
+.geo-course-page .chat-brand-highlight {
+  background: linear-gradient(135deg, var(--ai-purple-bright), var(--ai-pink));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  position: relative;
+}
+.geo-course-page .chat-list li:first-child {
+  border-color: rgba(162, 155, 254, 0.3);
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.08), rgba(253, 121, 168, 0.04));
+  box-shadow: 0 0 24px -6px rgba(108, 92, 231, 0.4);
+}
+.geo-course-page .chat-sources {
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  font-size: 11px; color: var(--text-3);
+  font-family: 'JetBrains Mono', monospace;
+}
+.geo-course-page .chat-source-pill {
+  padding: 3px 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-2);
+  font-size: 10px;
+}
+.geo-course-page .chat-mock-foot {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 10px; padding: 12px;
+  border-top: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+.geo-course-page .chat-mock-input {
+  padding: 10px 14px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 13px; color: var(--text-3);
+}
+.geo-course-page .chat-mock-send {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--ai-purple), var(--ai-purple-bright));
+  border-radius: 10px;
+  display: grid; place-items: center;
+  color: white; font-weight: 700;
+}
+
+/* ===== Share of Model widget ===== */
+.geo-course-page .som-widget {
+  position: absolute;
+  bottom: -20px; right: -20px;
+  width: 320px;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--border-strong);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 20px 60px -10px rgba(0,0,0,0.7), 0 0 40px -10px rgba(0,206,201,0.2);
+  transform: perspective(1000px) rotateY(-4deg) rotateX(-3deg);
+  z-index: 2;
+}
+.geo-course-page .som-head { margin-bottom: 16px; }
+.geo-course-page .som-title {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 4px;
+}
+.geo-course-page .som-label {
+  font-size: 11px; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.15em;
+}
+.geo-course-page .som-trend {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; font-weight: 600;
+  color: #00CEC9;
+}
+.geo-course-page .som-sub { font-size: 12px; color: var(--text-3); }
+.geo-course-page .som-grid { display: flex; flex-direction: column; gap: 10px; }
+.geo-course-page .som-bar { display: flex; flex-direction: column; gap: 4px; }
+.geo-course-page .som-bar-head {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-1);
+  font-weight: 500;
+}
+.geo-course-page .som-bar-head .mono { color: var(--text-2); font-size: 11px; }
+.geo-course-page .som-bar-track {
+  height: 6px; background: rgba(255,255,255,0.05);
+  border-radius: 999px; overflow: hidden;
+}
+.geo-course-page .som-bar-fill {
+  height: 100%; border-radius: 999px;
+  transition: width .8s ease;
+}
+.geo-course-page .som-foot {
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px dashed var(--border);
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--text-3);
+}
+.geo-course-page .dot-live {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #00CEC9;
+  animation: geoLivePulse 1.5s ease-in-out infinite;
+}
+@keyframes geoLivePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,206,201,0.6); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 6px rgba(0,206,201,0); }
+}
+
+/* ===== Hero AI platforms strip ===== */
+.geo-course-page .ai-strip {
+  margin-top: 32px;
+  padding: 18px 24px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.geo-course-page .ai-strip-label {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.15em;
+}
+.geo-course-page .ai-strip-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ===== Hero badge with Nyx ===== */
+.geo-course-page .nyx-badge {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 8px 14px 8px 8px;
+  background: rgba(108, 92, 231, 0.08);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 13px; color: var(--text-1);
+  margin-bottom: 24px;
+}
+.geo-course-page .nyx-badge-icon {
+  width: 28px; height: 28px;
+  background: var(--bg-2);
+  border-radius: 50%;
+  display: grid; place-items: center;
+}
+.geo-course-page .nyx-badge strong { color: var(--text-0); }
+
+/* ===== Course meta icons ===== */
+.geo-course-page .course-meta-icon {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: rgba(108, 92, 231, 0.12);
+  color: var(--ai-purple-bright);
+  display: grid; place-items: center;
+  margin-right: 10px;
+}
+
+/* ===== Authority logo / Ainalytics card ===== */
+.geo-course-page .authority-visual {
+  background: linear-gradient(135deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.geo-course-page .authority-visual::before {
+  content: ''; position: absolute; top: -60px; right: -60px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, rgba(108, 92, 231, 0.3), transparent 70%);
+  filter: blur(30px);
+}
+.geo-course-page .authority-visual-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 28px; position: relative;
+}
+.geo-course-page .authority-visual-head .name {
+  font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 22px; color: var(--text-0);
+}
+.geo-course-page .authority-visual-head .live {
+  margin-left: auto; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #00CEC9;
+  padding: 4px 8px; background: rgba(0,206,201,0.1);
+  border: 1px solid rgba(0,206,201,0.25); border-radius: 4px;
+}
+.geo-course-page .authority-stat-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+.geo-course-page .authority-stat-row:last-child { border-bottom: none; }
+.geo-course-page .authority-stat-label { font-size: 13px; color: var(--text-2); }
+.geo-course-page .authority-stat-value {
+  font-family: 'Outfit', sans-serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--text-0);
+  background: linear-gradient(135deg, var(--ai-lilac), var(--ai-pink));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* ===== Bonus highlight in stack ===== */
+.geo-course-page .bonus-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 600;
+  color: #00CEC9;
+  background: rgba(0, 206, 201, 0.1);
+  border: 1px solid rgba(0, 206, 201, 0.25);
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 8px;
+  vertical-align: 1px;
+}
+
+/* ===== Trust-row inline (offer + last call) ===== */
+.geo-course-page .trust-row {
+  display: flex; justify-content: center; gap: 18px; flex-wrap: wrap;
+  margin-top: 18px; font-size: 13px; color: var(--text-3);
+}
+.geo-course-page .trust-row span {
+  display: inline-flex; align-items: center; gap: 6px;
+}
+
+/* ===== PIX QR placeholder ===== */
+.geo-course-page .pix-block {
+  padding: 24px; background: var(--bg-2); border-radius: 10px;
+  border: 1px solid var(--border); text-align: center; margin-bottom: 16px;
+}
+.geo-course-page .pix-block .label {
+  font-size: 13px; color: var(--text-3); margin-bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.geo-course-page .pix-block .qr {
+  width: 140px; height: 140px; margin: 0 auto;
+  background: white; border-radius: 8px;
+  display: grid; place-items: center; color: var(--ai-purple);
+}
+.geo-course-page .pix-block .amount {
+  font-size: 12px; color: var(--text-3); margin-top: 12px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ====== Mobile ====== */
+@media (max-width: 900px) {
+  .geo-course-page .container,
+  .geo-course-page .container-narrow { padding: 0 20px; }
+  .geo-course-page section { padding: 64px 0; }
+  .geo-course-page .nav-links { display: none; }
+  .geo-course-page .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+  .geo-course-page .hero-visual { height: auto; display: flex; flex-direction: column; gap: 16px; }
+  .geo-course-page .pain-stats { grid-template-columns: repeat(2, 1fr); }
+  .geo-course-page .for-grid { grid-template-columns: 1fr; }
+  .geo-course-page .testimonials { grid-template-columns: 1fr; }
+  .geo-course-page .options { grid-template-columns: 1fr; }
+  .geo-course-page .ba-row { grid-template-columns: 1fr; }
+  .geo-course-page .ba-row.head { display: none; }
+  .geo-course-page .ba-cell.before, .geo-course-page .ba-cell.after {
+    border-bottom: 1px solid var(--border);
+  }
+  .geo-course-page .ba-cell.before::before { content: 'ANTES'; display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-4); letter-spacing: 0.15em; margin-bottom: 8px; }
+  .geo-course-page .ba-cell.after::before { content: 'DEPOIS'; display: block; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ai-purple-bright); letter-spacing: 0.15em; margin-bottom: 8px; }
+  .geo-course-page .ba-arrow { display: none; }
+  .geo-course-page .course-card { padding: 32px; }
+  .geo-course-page .course-deliverables { grid-template-columns: 1fr; }
+  .geo-course-page .stack { padding: 24px; }
+  .geo-course-page .offer { padding: 28px 20px; }
+  .geo-course-page .offer .price-big { font-size: 64px; }
+  .geo-course-page .guarantee { grid-template-columns: 1fr; padding: 32px; gap: 32px; text-align: center; }
+  .geo-course-page .seal { margin: 0 auto; }
+  .geo-course-page .authority-card { grid-template-columns: 1fr; gap: 32px; }
+  .geo-course-page .countdown-cell { min-width: 64px; padding: 14px 10px; }
+  .geo-course-page .countdown-cell .v { font-size: 28px; }
+  .geo-course-page .footer-grid { grid-template-columns: 1fr; text-align: center; }
+  .geo-course-page .footer-links { justify-content: center; flex-wrap: wrap; }
+  .geo-course-page .module-header { grid-template-columns: 44px 1fr 32px; gap: 14px; padding: 18px 20px; }
+  .geo-course-page .module-num { width: 36px; height: 36px; font-size: 14px; }
+  .geo-course-page .module-title { font-size: 16px; }
+  .geo-course-page .module-body-inner { padding: 0 20px 20px 20px; }
+  .geo-course-page .stack-row { grid-template-columns: 36px 1fr; }
+  .geo-course-page .stack-row .price { grid-column: 2; padding-left: 0; font-size: 13px; }
+  .geo-course-page .pain-quote { padding: 20px 24px; font-size: 17px; }
+  .geo-course-page .last-call { padding: 80px 0; }
+  .geo-course-page .urgency { padding: 32px 20px; }
+  .geo-course-page .chat-mock { transform: none; position: relative; }
+  .geo-course-page .som-widget {
+    position: relative;
+    bottom: auto; right: auto;
+    width: 100%;
+    transform: none;
+  }
+}

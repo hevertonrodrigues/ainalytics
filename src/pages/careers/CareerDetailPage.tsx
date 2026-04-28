@@ -12,6 +12,7 @@ import { LandingFooter } from '@/pages/landing/LandingFooter';
 import { executeRecaptcha } from '@/lib/recaptcha';
 import { PhoneInput, getPhoneDigitCount, MIN_PHONE_DIGITS } from '@/components/PhoneInput';
 import { useForceLightTheme } from '@/hooks/useForceLightTheme';
+import { useSeo, jobPosting, breadcrumbList, SITE_URL } from '@/lib/seo';
 import type { Iso2 } from 'intl-tel-input/data';
 
 const LANGUAGE_COUNTRY_MAP: Record<string, Iso2> = {
@@ -81,6 +82,46 @@ export function CareerDetailPage() {
   const [opportunity, setOpportunity] = useState<Opportunity | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+
+  // SEO / GEO — JobPosting schema lets Google for Jobs surface this
+  // role and gives ChatGPT/Claude/Perplexity extractable hiring info.
+  // Only emits JSON-LD once the opportunity is loaded.
+  const jobUrl = opportunity ? `${SITE_URL}/careers/${opportunity.slug}` : `${SITE_URL}/careers`;
+  const plainDescription = opportunity?.description_md
+    ? opportunity.description_md.replace(/[#*_`>-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 480)
+    : '';
+  const isRemote = (opportunity?.location || '').toLowerCase().includes('remote');
+  useSeo({
+    title: opportunity ? `${opportunity.title} · Careers · Ainalytics` : 'Careers · Ainalytics',
+    description: opportunity
+      ? `${opportunity.title}${opportunity.location ? ` — ${opportunity.location}` : ''}. ${plainDescription}`.slice(0, 300)
+      : 'Open position at Ainalytics.',
+    canonical: jobUrl,
+    robots: opportunity ? 'index,follow' : 'noindex,follow',
+    og: { type: 'article', siteName: 'Ainalytics' },
+    jsonLd: opportunity
+      ? [
+          jobPosting({
+            title: opportunity.title,
+            description: plainDescription || opportunity.title,
+            url: jobUrl,
+            datePosted: opportunity.published_at,
+            employmentType:
+              opportunity.contract_type?.toLowerCase().includes('part') ? 'PART_TIME' :
+              opportunity.contract_type?.toLowerCase().includes('contract') ? 'CONTRACTOR' :
+              opportunity.contract_type?.toLowerCase().includes('intern') ? 'INTERN' :
+              'FULL_TIME',
+            remote: isRemote,
+            city: !isRemote ? (opportunity.location || undefined) : undefined,
+          }),
+          breadcrumbList([
+            { name: 'Ainalytics', url: SITE_URL },
+            { name: 'Careers', url: `${SITE_URL}/careers` },
+            { name: opportunity.title, url: jobUrl },
+          ]),
+        ]
+      : [],
+  });
 
   // Form state
   const [fullName, setFullName] = useState('');
