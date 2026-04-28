@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/contexts/AuthContext';
 import { APP_NAME, LOCALES } from '@/lib/constants';
 import { getAuthErrorMessage } from '@/lib/authErrors';
 import { trackActivity } from '@/lib/analytics';
+import { resolvePostLoginRedirect } from '@/lib/redirect';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { executeRecaptcha } from '@/lib/recaptcha';
 
@@ -13,6 +14,8 @@ const LOCALE_LABELS: Record<string, string> = { en: 'EN', es: 'ES', 'pt-br': 'PT
 export function SignIn() {
   const { t, i18n } = useTranslation();
   const { signIn } = useAuth();
+  const location = useLocation();
+  const redirectPath = resolvePostLoginRedirect(location.state);
 
   const changeLang = useCallback(
     (lng: string) => { i18n.changeLanguage(lng); },
@@ -46,8 +49,9 @@ export function SignIn() {
 
       await signIn(email, password);
       trackActivity({ event_type: 'signin_form', event_action: 'completed' });
-      // Hard redirect — guarantees AuthContext restores session from localStorage
-      window.location.href = '/dashboard';
+      // Hard redirect — guarantees AuthContext restores session from localStorage.
+      // Honors the page the user originally tried to access (e.g. /sa/...) when present.
+      window.location.href = redirectPath;
     } catch (err) {
       const msg = getAuthErrorMessage(err, t);
       trackActivity({

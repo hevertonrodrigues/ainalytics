@@ -1,14 +1,16 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { resolvePostLoginRedirect } from '@/lib/redirect';
 import type { ReactNode } from 'react';
 
 interface GuestRouteProps {
   children: ReactNode;
 }
 
-/** Redirects authenticated users away from auth pages to dashboard */
+/** Redirects authenticated users away from auth pages to the page they tried to access (or /dashboard). */
 export function GuestRoute({ children }: GuestRouteProps) {
   const { profile, loading, initialized } = useAuth();
+  const location = useLocation();
 
   if (!initialized || loading) {
     return (
@@ -19,7 +21,7 @@ export function GuestRoute({ children }: GuestRouteProps) {
   }
 
   if (profile) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={resolvePostLoginRedirect(location.state)} replace />;
   }
 
   return <>{children}</>;
