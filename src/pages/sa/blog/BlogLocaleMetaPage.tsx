@@ -6,9 +6,11 @@ import { SAPageHeader } from '../SAPageHeader';
 import { TemplateDownloadButton } from './JsonToolbar';
 import { LOCALE_META_TEMPLATE } from './templates';
 import { LANGS, type Lang, type LocaleMeta } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 export function BlogLocaleMetaPage() {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const [activeLang, setActiveLang] = useState<Lang>('pt');
   const [allMeta, setAllMeta] = useState<Record<Lang, LocaleMeta | null>>({ pt: null, es: null, en: null });
   const [meta, setMeta] = useState<LocaleMeta | null>(null);
@@ -45,7 +47,7 @@ export function BlogLocaleMetaPage() {
       const res = await blogAdmin.create<LocaleMeta>('locale_meta', payload);
       setAllMeta({ ...allMeta, [activeLang]: res.data });
     } catch (err) {
-      alert(`Save failed: ${(err as Error).message}`);
+      void alert({ message: `Save failed: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setSaving(false);
     }

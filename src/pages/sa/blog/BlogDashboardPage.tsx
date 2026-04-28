@@ -1,9 +1,13 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  Newspaper, FolderTree, Tags, Users, Building2, Trophy, Radio, Mail, Sparkles, Globe, HelpCircle,
+  Newspaper, FolderTree, Tags, Users, Building2, Trophy, Radio, Mail, Sparkles, Globe, HelpCircle, RefreshCw,
 } from 'lucide-react';
 import { SAPageHeader } from '../SAPageHeader';
+import { apiClient } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface ModuleCard {
   key: string;
@@ -28,13 +32,50 @@ const MODULES: ModuleCard[] = [
 
 export function BlogDashboardPage() {
   const { t } = useTranslation();
+  const { showToast } = useToast();
+  const { confirm } = useDialog();
+  const [isRevalidating, setIsRevalidating] = useState(false);
+
+  async function handleRevalidateAll() {
+    if (isRevalidating) return;
+    const ok = await confirm({
+      message: t('sa.blog.dashboard.revalidate.confirm'),
+      confirmLabel: t('sa.blog.dashboard.revalidate.label'),
+      variant: 'primary',
+    });
+    if (!ok) return;
+    setIsRevalidating(true);
+    try {
+      await apiClient.post('/blog-revalidate', { event: 'purge' });
+      showToast(t('sa.blog.dashboard.revalidate.success'), 'success');
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : t('sa.blog.dashboard.revalidate.error'),
+        'error',
+      );
+    } finally {
+      setIsRevalidating(false);
+    }
+  }
+
   return (
     <div className="stagger-enter space-y-6">
       <SAPageHeader
         title={t('sa.blog.dashboard.title')}
         subtitle={t('sa.blog.dashboard.subtitle')}
         icon={<Newspaper className="w-6 h-6 text-brand-primary" />}
-      />
+      >
+        <button
+          type="button"
+          onClick={handleRevalidateAll}
+          disabled={isRevalidating}
+          className="btn btn-primary btn-sm gap-1.5 disabled:opacity-60"
+          title={t('sa.blog.dashboard.revalidate.title')}
+        >
+          <RefreshCw className={`w-4 h-4 ${isRevalidating ? 'animate-spin' : ''}`} />
+          <span>{isRevalidating ? t('sa.blog.dashboard.revalidate.loading') : t('sa.blog.dashboard.revalidate.label')}</span>
+        </button>
+      </SAPageHeader>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {MODULES.map(({ key, path, icon: Icon, accent }) => (

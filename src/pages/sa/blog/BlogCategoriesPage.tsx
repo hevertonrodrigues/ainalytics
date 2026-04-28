@@ -6,6 +6,7 @@ import { SAPageHeader } from '../SAPageHeader';
 import { TemplateDownloadButton } from './JsonToolbar';
 import { CATEGORIES_TEMPLATE } from './templates';
 import { type BlogCategory, LANGS, type Lang } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface FormState {
   id: string;
@@ -25,6 +26,7 @@ const EMPTY: FormState = {
 
 export function BlogCategoriesPage() {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const { data, isLoading, refetch, remove } = useBlogAdmin<BlogCategory>('categories');
   const [form, setForm] = useState<FormState>(EMPTY);
   const [editing, setEditing] = useState<string | null>(null);
@@ -69,7 +71,7 @@ export function BlogCategoriesPage() {
       setCreating(false); setEditing(null);
       refetch();
     } catch (err) {
-      alert(`Save failed: ${(err as Error).message}`);
+      void alert({ message: `Save failed: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setSaving(false);
     }

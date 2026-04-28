@@ -6,6 +6,7 @@ import { SAPageHeader } from '../SAPageHeader';
 import { TemplateDownloadButton } from './JsonToolbar';
 import { RANKINGS_TEMPLATE } from './templates';
 import type { RankingSnapshot, RankingItem, BlogBrand } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface NewSnapshotState {
   period_label: string;
@@ -28,6 +29,7 @@ const EMPTY: NewSnapshotState = {
 
 export function BlogRankingsPage() {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const { data: snapshots, isLoading, refetch, remove } = useBlogAdmin<RankingSnapshot>('rankings');
   const { data: brands } = useBlogAdmin<BlogBrand>('brands');
   const [showNew, setShowNew] = useState(false);
@@ -69,7 +71,7 @@ export function BlogRankingsPage() {
       setShowNew(false); setNewSnap(EMPTY); setItems([]);
       refetch();
     } catch (err) {
-      alert(`Save failed: ${(err as Error).message}`);
+      void alert({ message: `Save failed: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setSaving(false);
     }

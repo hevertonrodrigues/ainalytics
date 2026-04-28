@@ -4,6 +4,7 @@ import { Download, Upload, Loader2 } from 'lucide-react';
 import { downloadJson, readJsonFile } from './jsonIO';
 import { blogAdmin } from './useBlogAdmin';
 import { normalizeBody } from './bodyConversion';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface TemplateProps {
   template: unknown;
@@ -37,6 +38,7 @@ interface NewsImportProps {
  */
 export function NewsImportButton({ onImported }: NewsImportProps) {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const fileRef = useRef<HTMLInputElement>(null);
   const [importing, setImporting] = useState(false);
 
@@ -48,7 +50,7 @@ export function NewsImportButton({ onImported }: NewsImportProps) {
       const data = await readJsonFile<{ articles?: unknown[] }>(file);
       const articles = data?.articles;
       if (!Array.isArray(articles)) {
-        alert(t('sa.blog.io.expectedShape', { shape: '{ "articles": [...] }' }));
+        void alert({ message: t('sa.blog.io.expectedShape', { shape: '{ "articles": [...] }' }), variant: 'warning' });
         return;
       }
       let ok = 0;
@@ -65,7 +67,7 @@ export function NewsImportButton({ onImported }: NewsImportProps) {
       }
       onImported({ ok, failed, total: articles.length });
     } catch (err) {
-      alert(`${t('sa.blog.io.importFailed')}: ${(err as Error).message}`);
+      void alert({ message: `${t('sa.blog.io.importFailed')}: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setImporting(false);
       if (fileRef.current) fileRef.current.value = '';

@@ -12,6 +12,7 @@ import { NewsImportButton, TemplateDownloadButton } from './JsonToolbar';
 import { NEWS_TEMPLATE } from './templates';
 import { SearchSelectMulti } from '@/components/ui/SearchSelectMulti';
 import { LANGS, type Lang, type BlogArticle, type ArticleStatus, type BlogCategory } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 const STATUS_COLORS: Record<ArticleStatus, string> = {
   draft:     'bg-text-muted/20 text-text-secondary',
@@ -39,6 +40,7 @@ function getTitleForLang(
 
 export function BlogNewsPage() {
   const { t, i18n } = useTranslation();
+  const { alert, confirm } = useDialog();
 
   // ─── filters ──────────────────────────────────────────────────────────────
 
@@ -91,7 +93,7 @@ export function BlogNewsPage() {
   // ─── action handlers ─────────────────────────────────────────────────────
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t('sa.blog.confirmDelete'))) return;
+    if (!(await confirm({ message: t('sa.blog.confirmDelete'), variant: 'danger' }))) return;
     await remove(id);
   };
   const handlePublish = async (id: string) => {
@@ -99,7 +101,7 @@ export function BlogNewsPage() {
     refetch();
   };
   const handleRetract = async (id: string) => {
-    if (!confirm(t('sa.blog.news.confirmRetract'))) return;
+    if (!(await confirm({ message: t('sa.blog.news.confirmRetract'), variant: 'warning' }))) return;
     await blogAdmin.call('POST', `/blog-admin/articles/${id}/retract`);
     refetch();
   };
@@ -111,15 +113,15 @@ export function BlogNewsPage() {
 
   const [converting, setConverting] = useState(false);
   const handleConvertAll = async () => {
-    if (!confirm(t('sa.blog.news.convertAllConfirm'))) return;
+    if (!(await confirm({ message: t('sa.blog.news.convertAllConfirm'), variant: 'primary' }))) return;
     setConverting(true);
     try {
       const res = await blogAdmin.call<{ scanned: number; converted: number }>('POST', '/blog-admin/articles/convert-bodies');
       const { scanned, converted } = res.data;
-      alert(t('sa.blog.news.convertAllDone', { scanned, converted }));
+      void alert({ message: t('sa.blog.news.convertAllDone', { scanned, converted }), variant: 'success' });
       if (converted > 0) refetch();
     } catch (err) {
-      alert(`${t('sa.blog.news.convertAllFailed')}: ${(err as Error).message}`);
+      void alert({ message: `${t('sa.blog.news.convertAllFailed')}: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setConverting(false);
     }
@@ -148,7 +150,7 @@ export function BlogNewsPage() {
             const failedMsg = failed.length
               ? `\n\n${t('sa.blog.io.failedRows')}:\n${failed.map((f) => `[${f.index}] ${f.error}`).join('\n')}`
               : '';
-            alert(t('sa.blog.io.importDone', { ok, total }) + failedMsg);
+            void alert({ message: t('sa.blog.io.importDone', { ok, total }) + failedMsg, variant: failed.length ? 'warning' : 'success' });
             refetch();
           }}
         />

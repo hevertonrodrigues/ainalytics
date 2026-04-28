@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { TenantProvider } from '@/contexts/TenantContext';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { DialogProvider } from '@/contexts/DialogContext';
 import { LayoutProvider } from '@/contexts/LayoutContext';
 import i18n from '@/i18n';
 import { useUTMTracking } from '@/hooks/useUTMTracking';
@@ -119,6 +120,7 @@ export function App() {
     <ThemeProvider>
       <LayoutProvider>
         <ToastProvider>
+        <DialogProvider>
         <BrowserRouter>
         <Suspense fallback={null}>
         <Routes>
@@ -225,6 +227,7 @@ export function App() {
         </Routes>
         </Suspense>
       </BrowserRouter>
+        </DialogProvider>
       </ToastProvider>
       </LayoutProvider>
     </ThemeProvider>

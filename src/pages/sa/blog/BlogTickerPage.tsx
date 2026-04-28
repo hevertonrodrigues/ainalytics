@@ -6,6 +6,7 @@ import { SAPageHeader } from '../SAPageHeader';
 import { TemplateDownloadButton } from './JsonToolbar';
 import { TICKER_TEMPLATE } from './templates';
 import { type BlogTickerItem, LANGS, type Lang } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface FormState {
   lang: Lang; position: number; engine_id: string; label: string;
@@ -18,6 +19,7 @@ const EMPTY: FormState = {
 
 export function BlogTickerPage() {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const [langFilter, setLangFilter] = useState<Lang | ''>('');
   const { data, isLoading, refetch, remove } = useBlogAdmin<BlogTickerItem>('ticker', { query: { lang: langFilter || undefined } });
   const [form, setForm] = useState<FormState>(EMPTY);
@@ -48,7 +50,7 @@ export function BlogTickerPage() {
       setCreating(false); setEditing(null);
       refetch();
     } catch (err) {
-      alert(`Save failed: ${(err as Error).message}`);
+      void alert({ message: `Save failed: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setSaving(false);
     }

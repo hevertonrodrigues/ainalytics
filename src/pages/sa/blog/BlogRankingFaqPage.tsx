@@ -6,9 +6,11 @@ import { SAPageHeader } from '../SAPageHeader';
 import { TemplateDownloadButton } from './JsonToolbar';
 import { RANKING_FAQ_TEMPLATE } from './templates';
 import { LANGS, type Lang, type RankingFaq } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 export function BlogRankingFaqPage() {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const [activeLang, setActiveLang] = useState<Lang>('pt');
   const [region, setRegion] = useState<string>('');     // '' = NULL = global
   const [sector, setSector] = useState<string>('');     // '' = NULL = global
@@ -102,7 +104,7 @@ export function BlogRankingFaqPage() {
       }
       reload();
     } catch (err) {
-      alert(`Save failed: ${(err as Error).message}`);
+      void alert({ message: `Save failed: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setSaving(false);
     }

@@ -6,6 +6,7 @@ import { SAPageHeader } from '../SAPageHeader';
 import { TemplateDownloadButton } from './JsonToolbar';
 import { AUTHORS_TEMPLATE } from './templates';
 import { type BlogAuthor, LANGS, type Lang } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface FormState {
   id: string; email: string; image_url: string;
@@ -25,6 +26,7 @@ const EMPTY: FormState = {
 
 export function BlogAuthorsPage() {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const { data, isLoading, refetch, remove } = useBlogAdmin<BlogAuthor>('authors');
   const [form, setForm] = useState<FormState>(EMPTY);
   const [editing, setEditing] = useState<string | null>(null);
@@ -72,7 +74,7 @@ export function BlogAuthorsPage() {
       setCreating(false); setEditing(null);
       refetch();
     } catch (err) {
-      alert(`Save failed: ${(err as Error).message}`);
+      void alert({ message: `Save failed: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setSaving(false);
     }

@@ -10,6 +10,7 @@ import {
   type BlogArticle, type ArticleTranslation, type ArticleStatus,
   type Lang, LANGS, type BlogCategory, type BlogTag, type BlogAuthor,
 } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 const EMPTY_TRANSLATION: ArticleTranslation = {
   slug: '',
@@ -27,6 +28,7 @@ const EMPTY_TRANSLATION: ArticleTranslation = {
 
 export function BlogNewsEditorPage() {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const navigate = useNavigate();
   const { id: articleId } = useParams<{ id: string }>();
   const isNew = !articleId || articleId === 'new';
@@ -148,7 +150,7 @@ export function BlogNewsEditorPage() {
         await blogAdmin.update<BlogArticle>('articles', article.id, payload);
       }
     } catch (err) {
-      alert(`Save failed: ${(err as Error).message}`);
+      void alert({ message: `Save failed: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setSaving(false);
     }
@@ -404,9 +406,9 @@ export function BlogNewsEditorPage() {
                 const result = forceConvertJsonBody(tr.body || '');
                 if (result.converted) {
                   updateTranslation(activeLang, 'body', result.html);
-                  alert(t('sa.blog.news.convertJsonDone'));
+                  void alert({ message: t('sa.blog.news.convertJsonDone'), variant: 'success' });
                 } else {
-                  alert(t('sa.blog.news.convertJsonNoOp'));
+                  void alert({ message: t('sa.blog.news.convertJsonNoOp'), variant: 'info' });
                 }
               }}
               className="text-xs px-2 py-1 rounded bg-glass-element text-text-secondary hover:bg-glass-hover flex items-center gap-1"

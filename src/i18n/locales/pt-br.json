@@ -1914,7 +1914,15 @@
     "blog": {
       "dashboard": {
         "title": "Index AI — Blog",
-        "subtitle": "Gerencie notícias, trending, rankings e meta SEO do indexai.news"
+        "subtitle": "Gerencie notícias, trending, rankings e meta SEO do indexai.news",
+        "revalidate": {
+          "label": "Revalidar site",
+          "loading": "Revalidando…",
+          "title": "Forçar a atualização de todas as páginas em cache do site público",
+          "confirm": "Revalidar todas as páginas em cache do indexai.news?",
+          "success": "Revalidação disparada. As páginas serão atualizadas na próxima visita.",
+          "error": "Falha ao disparar a revalidação. Tente novamente."
+        }
       },
       "modules": {
         "news":       { "title": "Notícias",     "description": "Crie, edite e publique notícias. Categorias, tags, autores e traduções." },

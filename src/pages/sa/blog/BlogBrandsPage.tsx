@@ -7,6 +7,7 @@ import { TemplateDownloadButton } from './JsonToolbar';
 import { BRANDS_TEMPLATE } from './templates';
 import { EDGE_FUNCTION_BASE } from '@/lib/constants';
 import type { BlogBrand } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface SectorOpt { id: string; label: string }
 interface SubsectorOpt { id: string; label: string; sector_id: string }
@@ -29,6 +30,7 @@ const ENTITY_TYPES = ['company', 'university', 'school', 'hospital', 'government
 
 export function BlogBrandsPage() {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const { data, isLoading, refetch, remove } = useBlogAdmin<BlogBrand>('brands');
   const [sectors, setSectors] = useState<SectorOpt[]>([]);
   const [subsectors, setSubsectors] = useState<SubsectorOpt[]>([]);
@@ -82,7 +84,7 @@ export function BlogBrandsPage() {
       setCreating(false); setEditing(null);
       refetch();
     } catch (err) {
-      alert(`Save failed: ${(err as Error).message}`);
+      void alert({ message: `Save failed: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setSaving(false);
     }

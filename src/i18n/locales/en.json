@@ -1148,7 +1148,15 @@
     "blog": {
       "dashboard": {
         "title": "Index AI — Blog",
-        "subtitle": "Manage news, trending, rankings and SEO meta for indexai.news"
+        "subtitle": "Manage news, trending, rankings and SEO meta for indexai.news",
+        "revalidate": {
+          "label": "Revalidate site",
+          "loading": "Revalidating…",
+          "title": "Force the public site to refresh every cached page",
+          "confirm": "Revalidate every cached page on indexai.news?",
+          "success": "Revalidation triggered. Pages will refresh on the next visit.",
+          "error": "Failed to trigger revalidation. Try again."
+        }
       },
       "modules": {
         "news":       { "title": "News",        "description": "Write, edit and publish news. Categories, tags, authors and translations." },

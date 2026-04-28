@@ -6,6 +6,7 @@ import { SAPageHeader } from '../SAPageHeader';
 import { TemplateDownloadButton } from './JsonToolbar';
 import { TAGS_TEMPLATE } from './templates';
 import { type BlogTag, LANGS, type Lang } from './types';
+import { useDialog } from '@/contexts/DialogContext';
 
 interface FormState {
   id: string; is_engine: boolean;
@@ -21,6 +22,7 @@ const EMPTY: FormState = {
 
 export function BlogTagsPage() {
   const { t } = useTranslation();
+  const { alert } = useDialog();
   const { data, isLoading, refetch, remove } = useBlogAdmin<BlogTag>('tags');
   const [form, setForm] = useState<FormState>(EMPTY);
   const [editing, setEditing] = useState<string | null>(null);
@@ -62,7 +64,7 @@ export function BlogTagsPage() {
       setCreating(false); setEditing(null);
       refetch();
     } catch (err) {
-      alert(`Save failed: ${(err as Error).message}`);
+      void alert({ message: `Save failed: ${(err as Error).message}`, variant: 'error' });
     } finally {
       setSaving(false);
     }
