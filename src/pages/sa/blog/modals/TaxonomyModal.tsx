@@ -145,7 +145,27 @@ export function TaxonomyModal({ entity, onClose }: Props) {
       variant: 'danger',
     });
     if (!ok) return;
-    await blogAdmin.remove(entity, id);
+    try {
+      await blogAdmin.remove(entity, id);
+    } catch (err) {
+      const e = err as Error & { code?: string; status?: number };
+      // Backend returns 409 CONFLICT with a usage breakdown when FKs block
+      // the delete. Show the message and offer a cascade retry that wipes
+      // every dependent row first (irreversible — confirmed by the operator).
+      if (e.code === 'CONFLICT' || e.status === 409) {
+        const cascadeOk = await confirm({
+          message:
+            `${e.message}\n\n` +
+            `Delete the dependent rows too? This cannot be undone.`,
+          confirmLabel: 'Delete cascade',
+          variant: 'danger',
+        });
+        if (!cascadeOk) return;
+        await blogAdmin.remove(entity, id, { cascade: true });
+      } else {
+        throw err;
+      }
+    }
     await reload();
   }
 

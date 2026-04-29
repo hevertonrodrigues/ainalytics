@@ -20,7 +20,7 @@
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifySuperAdmin } from "../_shared/admin-auth.ts";
-import { ok, badRequest, created, notFound, serverError, noContent } from "../_shared/response.ts";
+import { ok, badRequest, conflict, created, notFound, serverError, noContent } from "../_shared/response.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 import { normalizeArticleBody } from "../_shared/blog-html.ts";
@@ -336,11 +336,112 @@ async function handleTaxonomy(
   }
   if (req.method === "DELETE") {
     if (!id) return withCors(req, badRequest("id required"));
+    const cascade = url.searchParams.get("cascade") === "true";
+
+    // Optional cascade — wipe dependents first so the final delete clears
+    // its FK constraints. The admin UI surfaces a 409 first (with the
+    // dependency breakdown) and only retries with `?cascade=true` after
+    // explicit user confirmation, so this branch is never reached
+    // accidentally.
+    if (cascade) {
+      await cascadeDeleteTaxonomy(db, cfg.table, id);
+    }
+
     const { error } = await db.from(cfg.table).delete().eq(cfg.idCol, id);
-    if (error) throw error;
+    if (error) {
+      // 23503 = foreign_key_violation. Sectors / regions / engines are
+      // referenced by blog_brands, blog_ranking_snapshots, blog_ranking_items,
+      // etc. — all FKs are ON DELETE RESTRICT so the row stays consistent.
+      // Translate the raw DB error into a usable 409 with a usage breakdown
+      // so the admin UI can tell the user what to migrate or delete first
+      // (or offer a cascade retry).
+      if ((error as { code?: string }).code === "23503") {
+        const usage = await taxonomyUsage(db, cfg.table, id);
+        return withCors(req, conflict(
+          `${cfg.table} '${id}' is still in use: ${usage.join(", ") || "referenced rows"}. ` +
+          "Reassign or delete the dependent rows first.",
+        ));
+      }
+      throw error;
+    }
     return withCors(req, noContent());
   }
   return withCors(req, badRequest(`Method ${req.method} not allowed`));
+}
+
+// Cascade-delete every row that holds a RESTRICT FK to this taxonomy id, in
+// FK-safe order. Run BEFORE the final taxonomy delete. The admin UI must
+// only invoke this branch (`?cascade=true`) after the operator has seen the
+// usage breakdown and explicitly opted in.
+async function cascadeDeleteTaxonomy(
+  db: Db,
+  taxonomyTable: string,
+  id: string,
+): Promise<void> {
+  if (taxonomyTable === "blog_sectors") {
+    // 1. Items pinned directly to the sector (post-20260429050000 column).
+    await db.from("blog_ranking_items").delete().eq("sector_id", id);
+    // 2. Items belonging to brands in this sector — even when the item's own
+    //    sector_id has been overridden — would block the brand delete in
+    //    step 4 because blog_ranking_items.brand_id RESTRICTs.
+    const { data: brands } = await db.from("blog_brands").select("id").eq("sector", id);
+    const brandIds = (brands || []).map((b: { id: string }) => b.id);
+    if (brandIds.length) {
+      await db.from("blog_ranking_items").delete().in("brand_id", brandIds);
+    }
+    // 3. Snapshots in the sector. Their remaining items cascade away via
+    //    blog_ranking_items.snapshot_id (ON DELETE CASCADE).
+    await db.from("blog_ranking_snapshots").delete().eq("sector", id);
+    // 4. Brands in the sector — now FK-clean.
+    await db.from("blog_brands").delete().eq("sector", id);
+    // 5. blog_ranking_faq.sector and .region are SET NULL on delete, so
+    //    leaving them alone preserves the global rows.
+  } else if (taxonomyTable === "blog_regions") {
+    await db.from("blog_ranking_items").delete().eq("region_id", id);
+    await db.from("blog_ranking_snapshots").delete().eq("region", id);
+  } else if (taxonomyTable === "blog_engines") {
+    await db.from("blog_ticker_items").delete().eq("engine_id", id);
+  } else if (taxonomyTable === "blog_subsectors") {
+    // blog_brands.subsector_id is already ON DELETE SET NULL — nothing to do.
+    // The taxonomy row will delete cleanly.
+  }
+}
+
+// Returns a list of "table: count" strings for tables that still reference
+// the given taxonomy id. Best-effort — silently skips tables that don't
+// exist (e.g. blog_ranking_items.sector_id only exists post-20260429050000).
+async function taxonomyUsage(
+  db: Db,
+  taxonomyTable: string,
+  id: string,
+): Promise<string[]> {
+  const probes: Array<{ table: string; col: string }> = [];
+  if (taxonomyTable === "blog_sectors") {
+    probes.push(
+      { table: "blog_brands", col: "sector" },
+      { table: "blog_ranking_snapshots", col: "sector" },
+      { table: "blog_ranking_items", col: "sector_id" },
+    );
+  } else if (taxonomyTable === "blog_regions") {
+    probes.push(
+      { table: "blog_ranking_snapshots", col: "region" },
+      { table: "blog_ranking_items", col: "region_id" },
+    );
+  } else if (taxonomyTable === "blog_engines") {
+    probes.push({ table: "blog_ticker_items", col: "engine_id" });
+  } else if (taxonomyTable === "blog_subsectors") {
+    probes.push({ table: "blog_brands", col: "subsector_id" });
+  }
+  const out: string[] = [];
+  for (const p of probes) {
+    const { count, error } = await db
+      .from(p.table)
+      .select("*", { count: "exact", head: true })
+      .eq(p.col, id);
+    if (error) continue;
+    if ((count ?? 0) > 0) out.push(`${p.table} (${count})`);
+  }
+  return out;
 }
 
 // ─── Languages ──────────────────────────────────────────────────────────────

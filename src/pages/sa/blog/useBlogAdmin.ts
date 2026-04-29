@@ -69,8 +69,13 @@ export function useBlogAdmin<T extends { id?: string | number }>(
     return res.data;
   }, [entity]);
 
-  const remove = useCallback(async (id: string | number): Promise<void> => {
-    await apiClient.delete(buildPath(entity, { id: String(id) }));
+  const remove = useCallback(async (
+    id: string | number,
+    opts: { cascade?: boolean } = {},
+  ): Promise<void> => {
+    const qs: Record<string, string> = { id: String(id) };
+    if (opts.cascade) qs.cascade = "true";
+    await apiClient.delete(buildPath(entity, qs));
     setData((prev) => prev.filter((item) => String(item.id) !== String(id)));
   }, [entity]);
 
@@ -87,8 +92,11 @@ export const blogAdmin = {
     apiClient.post<T>(buildPath(entity), body),
   update: <T>(entity: Entity, id: string | number, body: unknown) =>
     apiClient.put<T>(buildPath(entity, { id: String(id) }), body),
-  remove: (entity: Entity, id: string | number) =>
-    apiClient.delete(buildPath(entity, { id: String(id) })),
+  remove: (entity: Entity, id: string | number, opts: { cascade?: boolean } = {}) => {
+    const qs: Record<string, string> = { id: String(id) };
+    if (opts.cascade) qs.cascade = "true";
+    return apiClient.delete(buildPath(entity, qs));
+  },
   // Direct path call (for special routes like /blog-admin/articles/:id/publish)
   call: <T>(method: 'GET' | 'POST' | 'PUT' | 'DELETE', path: string, body?: unknown) => {
     const fullPath = path.startsWith('/') ? path : `/${path}`;
