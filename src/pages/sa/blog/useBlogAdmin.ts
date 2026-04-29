@@ -4,7 +4,9 @@ import { apiClient } from '@/lib/api';
 type Entity =
   | 'languages' | 'locale_meta' | 'authors' | 'categories' | 'tags' | 'brands'
   | 'articles' | 'ticker' | 'rankings' | 'rankings_items' | 'ranking_faq'
-  | 'newsletter';
+  | 'newsletter'
+  // Lookup taxonomies (April 2026 refactor)
+  | 'sectors' | 'subsectors' | 'regions' | 'engines';
 
 function buildPath(entity: Entity, qs?: Record<string, string | number | undefined>): string {
   const params = new URLSearchParams({ entity });

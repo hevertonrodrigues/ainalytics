@@ -3,8 +3,7 @@
  *
  * The blog API does NOT use the `{ success, data, error }` envelope used by
  * the rest of the SaaS — it returns the response shape exactly as documented
- * in `_api-doc/api.md` (so the external blog frontend can consume it
- * directly).
+ * in /docs/api.md (so the external blog frontend can consume it directly).
  *
  * Every localized GET sets:
  *   - `Content-Language` (BCP-47)

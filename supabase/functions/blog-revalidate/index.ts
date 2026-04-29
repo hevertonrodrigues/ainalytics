@@ -12,7 +12,7 @@
 //   tags?: string[]
 // }
 //
-// See _api-doc/REVALIDATION.md for the full contract.
+// See /docs/api.md §7 (on-demand revalidation) for the full contract.
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { handleCors, withCors } from "../_shared/cors.ts";
 import { verifySuperAdmin } from "../_shared/admin-auth.ts";

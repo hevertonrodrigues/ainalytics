@@ -7,6 +7,7 @@
 - **Production URL**: https://ainalytics.tech
 - **Supabase Project ID**: `kjfvhiffsusdqphgjsdz`
 - **Deployment**: Vercel (frontend) + Supabase (backend)
+- **Sister project**: [`indexai`](../indexai) — Next.js 16 news portal at https://indexai.news that consumes the public Blog API exposed by this backend (see §23).
 
 ---
 
@@ -126,15 +127,16 @@ ainalytics/
 │   ├── config.toml, seed.sql, .env.local, .env.vault_secrets
 │   ├── email_templates/
 │   ├── migrations/               # 94 migration files
-│   ├── functions/                # 30 Edge Functions
+│   ├── functions/                # 55 Edge Functions (SaaS app + admin + blog API)
 │   │   ├── _shared/              # auth, admin-auth, cors, response, supabase, logger, sentry, verify-recaptcha, cost-calculator, scoring, prompt-execution, llm-generation, deep-analyze-core, suggest-topics
 │   │   │   ├── ai-providers/     # openai, anthropic, gemini, grok, perplexity, index, types, normalize, model-fetcher
 │   │   │   └── prompts/          # load, deep-analyze, extract-website-info, generate-llm-txt, insights, scrape-company-analyze
+│   │   ├── blog-*/               # 14 public Blog API functions consumed by indexai (§23)
 │   │   └── [function-dirs]/      # Individual functions
 │   └── snippets/
 ├── shared/geo-config.json        # GEO config (consumed by frontend + backend)
 ├── .agents/                      # rules/ (7), skills/ (4), workflows/ (4)
-├── scripts/, tests/, guide_docs/, knowledge/, public/
+├── scripts/, tests/, guide_docs/, public/
 └── package.json, vite.config.ts, vercel.json, tsconfig.json, eslint.config.js
 ```
 
@@ -275,8 +277,9 @@ Files: `openai.ts`, `anthropic.ts`, `gemini.ts`, `grok.ts`, `perplexity.ts`, `in
 ### Prompt Templates (`_shared/prompts/`)
 `load.ts`, `deep-analyze.ts`, `extract-website-info.ts`, `generate-llm-txt.ts`, `insights.ts`, `scrape-company-analyze.ts`
 
-### Function List (30 functions)
+### Function List (55 functions)
 
+#### SaaS app (tenant-authenticated)
 | Function | Description |
 |---|---|
 | `users-me` | User profile & tenant data |
@@ -295,20 +298,63 @@ Files: `openai.ts`, `anthropic.ts`, `gemini.ts`, `grok.ts`, `perplexity.ts`, `in
 | `get-website-information` | Website metadata extraction |
 | `scrape-company` | Company website scraping |
 | `pre-analyze` | GEO pre-analysis |
+| `free-analyze` | Public GEO quick analysis |
 | `deep-analyze` | AI deep analysis (SA-only) |
 | `proposals` | Sales proposal management (CRUD + public view) |
-| `stripe-checkout` | Stripe checkout sessions |
-| `stripe-webhook` | Stripe webhook handler |
-| `stripe-cancel` | Subscription cancellation |
+| `track-activity` | Frontend activity tracker |
+
+#### Public / marketing (no auth)
+| Function | Description |
+|---|---|
 | `faq` | FAQ management |
 | `public-contact` | Public contact form |
+| `public-careers` | Public careers listing/applications |
 | `interest-leads` | Lead capture |
 | `support-contact` | Support ticket creation |
-| `admin-crm-pipeline` | CRM pipeline data (SA) |
-| `admin-active-users` | Active user analytics (SA) |
-| `admin-ai-costs` | AI cost tracking (SA) |
-| `admin-monitoring-timeline` | Monitoring metrics (SA) |
-| `admin-settings` | Admin configuration (SA) |
+| `careers-email-track` | Careers email open/click tracking |
+| `sendgrid-inbound-webhook` | SendGrid inbound email webhook |
+
+#### Stripe
+| Function | Description |
+|---|---|
+| `stripe-checkout` | Stripe checkout sessions |
+| `stripe-course-checkout` | Stripe checkout for academy courses |
+| `stripe-webhook` | Stripe webhook handler |
+| `stripe-cancel` | Subscription cancellation |
+
+#### Super Admin (SA-only)
+| Function | Description |
+|---|---|
+| `admin-crm-pipeline` | CRM pipeline data |
+| `admin-active-users` | Active user analytics |
+| `admin-ai-costs` | AI cost tracking |
+| `admin-analytics` | Aggregated analytics |
+| `admin-careers` | Careers admin |
+| `admin-inbox` | Admin inbox |
+| `admin-meta-ads` | Meta Ads integration metrics |
+| `admin-metrics-overview` | Metrics overview |
+| `admin-monitoring-timeline` | Monitoring metrics |
+| `admin-settings` | Admin configuration |
+
+#### Public Blog API (consumed by `indexai` — see §23)
+Deployed with `--no-verify-jwt`. Every read returns `{ data, seo }` with weak ETag + `Content-Language` headers and Next.js-friendly `Cache-Control`.
+
+| Function | Description |
+|---|---|
+| `blog-categories` | List localized categories |
+| `blog-news` | List news + article detail (`/{lang}` and `/{lang}/{slug}`) |
+| `blog-trending` | Trending hero feed |
+| `blog-ticker` | Engine status ticker items |
+| `blog-ranking` | AVI ranking items (filterable) |
+| `blog-ranking-sectors` | Sector + subsector taxonomy |
+| `blog-ranking-timeline` | ISO-week ranking timeline |
+| `blog-engine-profiles` | Engine profile cards |
+| `blog-engines` | Engine catalog |
+| `blog-sectors` | Sector catalog |
+| `blog-regions` | Region catalog |
+| `blog-newsletter` | POST `/register` — newsletter signup |
+| `blog-admin` | Authenticated admin CRUD for blog content |
+| `blog-revalidate` | Calls `indexai`'s `/api/revalidate` webhook after writes |
 
 ### Edge Function Pattern
 
@@ -588,3 +634,63 @@ npm run functions              # Edge Functions
 - [ ] Responsive design
 - [ ] Design system tokens (CSS variables)
 - [ ] No hardcoded strings (`t()`)
+
+---
+
+## 23. Public Blog API → `indexai` Integration
+
+The 14 `blog-*` Edge Functions form a **public-read API** consumed by the sister project [`indexai`](../indexai) (a Next.js 16 news portal at https://indexai.news).
+
+- **Base URL**: `https://kjfvhiffsusdqphgjsdz.supabase.co/functions/v1`
+- **Auth**: none (deployed `--no-verify-jwt`); rate limit + abuse handled at the edge.
+- **Languages**: every endpoint takes `{lang}` ∈ `pt | es | en` as the first path segment. No fallback — 404 `unsupported_lang` on anything else.
+- **Response envelope**: `{ data, seo }`. The `seo` block is pre-built so the frontend can map it directly into `generateMetadata` + JSON-LD (`NewsArticle` / `WebSite` are pre-rendered server-side; `BreadcrumbList`, `CollectionPage`, `FAQPage` assembled client-side).
+- **Caching contract**: weak `ETag` (SHA-1 of body) + `Cache-Control: public, s-maxage=…, stale-while-revalidate=…`. Honor `If-None-Match` → `304`. `If-Modified-Since` is **not** honored.
+- **Detailed contracts**: see [`../docs/api.md`](../docs/api.md) (canonical Blog API reference) and [`../docs/ranking-research.md`](../docs/ranking-research.md) (ranking taxonomy + methodology).
+
+### Endpoint summary
+
+| # | Path | Cache (s-maxage) |
+|---|---|---|
+| 1 | `GET /blog-categories/{lang}` | 3600 |
+| 2 | `GET /blog-news/{lang}?q=&category=&sort=&limit=&cursor=` | 300 (0 when `q=`) |
+| 2 | `GET /blog-news/{lang}/{slug}` | 3600 |
+| 3 | `GET /blog-trending/{lang}?limit=10` | 300 |
+| 4 | `GET /blog-ticker/{lang}` | 60 |
+| 5 | `GET /blog-ranking-sectors/{lang}` | 3600 |
+| 6 | `GET /blog-ranking/{lang}?q=&sector=&subsector=&region=&sort=&limit=` | 300 |
+| 7 | `GET /blog-ranking-timeline/{lang}` | 600 |
+| 8 | `GET /blog-engine-profiles/{lang}` | 3600 |
+| A1 | `GET /blog-regions/{lang}` | 3600 |
+| A2 | `GET /blog-sectors/{lang}` | 3600 |
+| A3 | `GET /blog-engines/{lang}` | 3600 |
+| 9 | `POST /blog-newsletter/register` | uncached |
+
+### Revalidation handshake
+
+After every write, **the admin must call `indexai`'s on-demand revalidation webhook** so visitors see fresh content immediately (rather than waiting up to 1h for ISR):
+
+```
+POST https://indexai.news/api/revalidate
+Headers: x-revalidate-secret: <REVALIDATE_SECRET>
+Body:    { event, lang, slug?, tags? }
+```
+
+Events → tags:
+
+| Event | Tags revalidated on indexai |
+|---|---|
+| `article.published` / `.updated` / `.deleted` | `blog:news:{lang}`, `blog:trending:{lang}`, `blog:ticker:{lang}`, `blog:article:{slug}` |
+| `category.changed` | `blog:categories:{lang}` |
+| `ranking.updated` | `blog:ranking:{lang}`, `blog:ranking-sectors:{lang}`, `blog:ranking-timeline:{lang}`, `blog:engine-profiles:{lang}`, `blog:regions:{lang}`, `blog:sectors:{lang}`, `blog:engines:{lang}` |
+| `purge` | `blog` (umbrella) |
+
+`blog-revalidate` Edge Function wraps this call; fire **one request per locale** when the same article exists in multiple languages. Fire-and-forget — the publish UI must not block on it.
+
+### Environment / secrets
+
+Set on the Supabase project:
+- `INDEXAI_REVALIDATE_URL` = `https://indexai.news/api/revalidate`
+- `INDEXAI_REVALIDATE_SECRET` = same value the indexai Vercel project has as `REVALIDATE_SECRET`
+
+Rotation: deploy the new value to Vercel **first** (it immediately rejects the old one), then update Supabase secrets. A few seconds of 401s are harmless — the page still refreshes when its ISR window expires.

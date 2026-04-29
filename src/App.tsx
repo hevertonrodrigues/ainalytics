@@ -33,16 +33,12 @@ const SAInboxPage = lazy(() => import('@/pages/sa/InboxPage').then(m => ({ defau
 const SABlogDashboardPage = lazy(() => import('@/pages/sa/blog/BlogDashboardPage').then(m => ({ default: m.BlogDashboardPage })));
 const SABlogNewsPage = lazy(() => import('@/pages/sa/blog/BlogNewsPage').then(m => ({ default: m.BlogNewsPage })));
 const SABlogNewsEditorPage = lazy(() => import('@/pages/sa/blog/BlogNewsEditorPage').then(m => ({ default: m.BlogNewsEditorPage })));
-const SABlogTrendingPage = lazy(() => import('@/pages/sa/blog/BlogTrendingPage').then(m => ({ default: m.BlogTrendingPage })));
-const SABlogCategoriesPage = lazy(() => import('@/pages/sa/blog/BlogCategoriesPage').then(m => ({ default: m.BlogCategoriesPage })));
-const SABlogTagsPage = lazy(() => import('@/pages/sa/blog/BlogTagsPage').then(m => ({ default: m.BlogTagsPage })));
-const SABlogAuthorsPage = lazy(() => import('@/pages/sa/blog/BlogAuthorsPage').then(m => ({ default: m.BlogAuthorsPage })));
-const SABlogBrandsPage = lazy(() => import('@/pages/sa/blog/BlogBrandsPage').then(m => ({ default: m.BlogBrandsPage })));
 const SABlogRankingsPage = lazy(() => import('@/pages/sa/blog/BlogRankingsPage').then(m => ({ default: m.BlogRankingsPage })));
-const SABlogRankingFaqPage = lazy(() => import('@/pages/sa/blog/BlogRankingFaqPage').then(m => ({ default: m.BlogRankingFaqPage })));
 const SABlogTickerPage = lazy(() => import('@/pages/sa/blog/BlogTickerPage').then(m => ({ default: m.BlogTickerPage })));
 const SABlogLocaleMetaPage = lazy(() => import('@/pages/sa/blog/BlogLocaleMetaPage').then(m => ({ default: m.BlogLocaleMetaPage })));
 const SABlogNewsletterPage = lazy(() => import('@/pages/sa/blog/BlogNewsletterPage').then(m => ({ default: m.BlogNewsletterPage })));
+// Trending/Categories/Tags/Authors/Brands/RankingFaq are now embedded inside
+// the News and Rankings hub pages — no standalone routes.
 const LandingPage = lazy(() => import('@/pages/landing/LandingPage').then(m => ({ default: m.LandingPage })));
 const QuickStartPage = lazy(() => import('@/pages/landing/QuickStartPage').then(m => ({ default: m.QuickStartPage })));
 const CourseGeoEssencialPage = lazy(() => import('@/pages/landing/CourseGeoEssencialPage').then(m => ({ default: m.CourseGeoEssencialPage })));
@@ -169,17 +165,14 @@ export function App() {
               <Route path="inbox" element={<SAInboxPage />} />
               <Route path="users/:userId" element={<UserDetailPage />} />
 
-              {/* Blog admin */}
+              {/* Blog admin — News & Rankings hubs (consolidated) plus three
+                  cross-cutting tools that don't fit either hub. Old standalone
+                  routes (trending, categories, tags, authors, brands,
+                  ranking-faq) now live inside the hubs as modal panes. */}
               <Route path="blog" element={<SABlogDashboardPage />} />
               <Route path="blog/news" element={<SABlogNewsPage />} />
               <Route path="blog/news/:id" element={<SABlogNewsEditorPage />} />
-              <Route path="blog/trending" element={<SABlogTrendingPage />} />
-              <Route path="blog/categories" element={<SABlogCategoriesPage />} />
-              <Route path="blog/tags" element={<SABlogTagsPage />} />
-              <Route path="blog/authors" element={<SABlogAuthorsPage />} />
-              <Route path="blog/brands" element={<SABlogBrandsPage />} />
               <Route path="blog/rankings" element={<SABlogRankingsPage />} />
-              <Route path="blog/ranking-faq" element={<SABlogRankingFaqPage />} />
               <Route path="blog/ticker" element={<SABlogTickerPage />} />
               <Route path="blog/locale-meta" element={<SABlogLocaleMetaPage />} />
               <Route path="blog/newsletter" element={<SABlogNewsletterPage />} />

@@ -112,7 +112,7 @@ serve(async (req: Request) => {
 
     const { data: itemRows, error: iErr } = await db
       .from("blog_ranking_items")
-      .select("rank, brand_id, score, delta, direction, snapshot_id, engine_scores")
+      .select("rank, brand_id, score, delta, direction, snapshot_id, engine_scores, sector_id, region_id")
       .in("snapshot_id", snapshotIds);
     if (iErr) throw iErr;
 
@@ -154,15 +154,22 @@ serve(async (req: Request) => {
     const sectorLabel = new Map<string, string>();
     for (const r of sectorTr || []) sectorLabel.set((r as { sector: string }).sector, (r as { label: string }).label);
 
-    let items = (itemRows || []).map((r: { rank: number; brand_id: string; score: number; delta: string; direction: string; snapshot_id: number; engine_scores: Record<string, number> | null }) => {
+    let items = (itemRows || []).map((r: { rank: number; brand_id: string; score: number; delta: string; direction: string; snapshot_id: number; engine_scores: Record<string, number> | null; sector_id: string; region_id: string }) => {
       const brand = brandMap.get(r.brand_id);
+      // Per-item sector_id / region_id are the source of truth (denormalized
+      // from the parent snapshot, with room for per-item overrides). Fall
+      // back to the brand-level classification only if the row pre-dates
+      // the 20260429050000 migration.
+      const sectorId = r.sector_id || brand?.sector || null;
+      const regionId = r.region_id || (brand?.country ? brand.country.toLowerCase() : null);
       return {
         rank: r.rank,
         brandId: r.brand_id,
         name: brand?.name || r.brand_id,
         country: brand?.country || null,
-        sectorId: brand?.sector || null,
-        sectorLabel: sectorLabel.get(brand?.sector || "") || brand?.sector || "",
+        regionId,
+        sectorId,
+        sectorLabel: sectorLabel.get(sectorId || "") || sectorId || "",
         subsectorId: brand?.subsector_id || null,
         subsectorLabel: subsectorLabel.get(brand?.subsector_id || "") || null,
         homepageDomain: brand?.homepage_domain || null,

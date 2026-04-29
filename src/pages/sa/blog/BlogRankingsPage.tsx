@@ -1,12 +1,19 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trophy, Plus, Loader2, Check, X, Trash2 } from 'lucide-react';
+import { Trophy, Plus, Loader2, Check, X, Trash2, Building2, Map, Cpu, HelpCircle, Layers } from 'lucide-react';
 import { useBlogAdmin, blogAdmin } from './useBlogAdmin';
 import { SAPageHeader } from '../SAPageHeader';
 import { TemplateDownloadButton } from './JsonToolbar';
 import { RANKINGS_TEMPLATE } from './templates';
 import type { RankingSnapshot, RankingItem, BlogBrand } from './types';
 import { useDialog } from '@/contexts/DialogContext';
+import { EmbedPageModal } from './modals/EmbedPageModal';
+import { TaxonomyModal, type TaxonomyEntity } from './modals/TaxonomyModal';
+
+const BrandsEditor     = lazy(() => import('./BlogBrandsPage').then((m) => ({ default: m.BlogBrandsPage })));
+const RankingFaqEditor = lazy(() => import('./BlogRankingFaqPage').then((m) => ({ default: m.BlogRankingFaqPage })));
+
+type ManagePane = 'brands' | 'faq' | TaxonomyEntity | null;
 
 interface NewSnapshotState {
   period_label: string;
@@ -38,6 +45,7 @@ export function BlogRankingsPage() {
   const [saving, setSaving] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [selectedItems, setSelectedItems] = useState<RankingItem[]>([]);
+  const [managePane, setManagePane] = useState<ManagePane>(null);
 
   // Load detail items for selected snapshot
   useEffect(() => {
@@ -95,6 +103,29 @@ export function BlogRankingsPage() {
         subtitle={t('sa.blog.modules.rankings.description')}
         icon={<Trophy className="w-6 h-6 text-brand-primary" />}
       >
+        {/* Cross-cutting management panes — open as modals to keep the
+            Rankings hub a single page. */}
+        <button onClick={() => setManagePane('brands')} className="btn btn-ghost btn-sm gap-1.5" title="Manage brands">
+          <Building2 className="w-4 h-4" />
+          <span className="hidden sm:inline">Brands</span>
+        </button>
+        <button onClick={() => setManagePane('sectors')} className="btn btn-ghost btn-sm gap-1.5" title="Manage sectors">
+          <Layers className="w-4 h-4" />
+          <span className="hidden sm:inline">Sectors</span>
+        </button>
+        <button onClick={() => setManagePane('regions')} className="btn btn-ghost btn-sm gap-1.5" title="Manage regions">
+          <Map className="w-4 h-4" />
+          <span className="hidden sm:inline">Regions</span>
+        </button>
+        <button onClick={() => setManagePane('engines')} className="btn btn-ghost btn-sm gap-1.5" title="Manage engines">
+          <Cpu className="w-4 h-4" />
+          <span className="hidden sm:inline">Engines</span>
+        </button>
+        <button onClick={() => setManagePane('faq')} className="btn btn-ghost btn-sm gap-1.5" title="Manage ranking FAQ">
+          <HelpCircle className="w-4 h-4" />
+          <span className="hidden sm:inline">FAQ</span>
+        </button>
+        <span className="hidden sm:inline-block w-px h-5 bg-glass-border" />
         <TemplateDownloadButton template={RANKINGS_TEMPLATE} filename="rankings-template.json" />
         <button onClick={() => setShowNew(true)} className="btn btn-primary flex items-center gap-2">
           <Plus className="w-4 h-4" />{t('sa.blog.rankings.newSnapshot')}
@@ -227,6 +258,22 @@ export function BlogRankingsPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {(managePane === 'brands' || managePane === 'faq') && (
+        <EmbedPageModal
+          title={managePane === 'brands' ? 'Manage brands' : 'Manage ranking FAQ'}
+          onClose={() => { setManagePane(null); refetch(); }}
+        >
+          <Suspense fallback={<div className="py-12 text-center text-text-muted"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>}>
+            {managePane === 'brands' && <BrandsEditor />}
+            {managePane === 'faq'    && <RankingFaqEditor />}
+          </Suspense>
+        </EmbedPageModal>
+      )}
+
+      {(managePane === 'sectors' || managePane === 'subsectors' || managePane === 'regions' || managePane === 'engines') && (
+        <TaxonomyModal entity={managePane} onClose={() => { setManagePane(null); refetch(); }} />
       )}
     </div>
   );

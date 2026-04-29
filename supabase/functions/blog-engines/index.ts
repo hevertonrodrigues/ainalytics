@@ -1,8 +1,9 @@
-// blog-engine-profiles — GET /blog-engine-profiles/:lang
+// blog-engines — GET /blog-engines/:lang
 //
-// Per-engine cards for the rankings page: id, label, color, localized tags
-// and bias paragraph. Pure editorial copy, refreshed at the same cadence as
-// the rankings.
+// Lean public endpoint that returns the flat list of AI engines tracked by
+// the platform. Use this to populate engine filter dropdowns / chips on the
+// front end. For the rich per-engine cards (with localized tags + bias
+// paragraph used on the rankings page), use `/blog-engine-profiles/{lang}`.
 import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
 import { handlePublicCors, withPublicCors } from "../_shared/blog-cors.ts";
 import { createAdminClient } from "../_shared/supabase.ts";
@@ -11,16 +12,15 @@ import { isSupportedLang, type Lang } from "../_shared/blog-langs.ts";
 import { buildSeo, loadLocaleMeta } from "../_shared/blog-seo.ts";
 import { createRequestLogger } from "../_shared/logger.ts";
 
-interface EngineProfile {
+interface Engine {
   id: string;
   label: string;
   color: string;
-  tags: string[];
-  bias: string;
+  position: number;
 }
 
 serve(async (req: Request) => {
-  const logger = createRequestLogger("blog-engine-profiles", req);
+  const logger = createRequestLogger("blog-engines", req);
   if (req.method === "OPTIONS") return handlePublicCors();
   if (req.method !== "GET") {
     return logger.done(withPublicCors(errors.badRequest(`Method ${req.method} not allowed`)));
@@ -37,34 +37,18 @@ serve(async (req: Request) => {
     const db = createAdminClient();
     const meta = await loadLocaleMeta(db, lang as Lang);
 
-    const { data: profileRows, error } = await db
+    const { data: rows, error } = await db
       .from("blog_engines")
       .select("id, label, color, position")
       .eq("is_active", true)
       .order("position", { ascending: true });
     if (error) throw error;
 
-    const ids = (profileRows || []).map((p: { id: string }) => p.id);
-    let tagsBias = new Map<string, { tags: string[]; bias: string }>();
-    if (ids.length > 0) {
-      const { data: trRows } = await db
-        .from("blog_engine_translations")
-        .select("engine_id, lang, tags, bias")
-        .in("engine_id", ids)
-        .in("lang", [lang, "en"]);
-      type Tr = { engine_id: string; lang: string; tags: string[]; bias: string };
-      const byKey = new Map<string, Tr>();
-      for (const r of (trRows || []) as Tr[]) byKey.set(`${r.engine_id}::${r.lang}`, r);
-      for (const id of ids) {
-        const tr = byKey.get(`${id}::${lang}`) || byKey.get(`${id}::en`);
-        tagsBias.set(id, { tags: tr?.tags ?? [], bias: tr?.bias ?? "" });
-      }
-    }
-
-    const profiles: EngineProfile[] = (profileRows as Array<{ id: string; label: string; color: string }>).map((p) => {
-      const tb = tagsBias.get(p.id) || { tags: [], bias: "" };
-      return { id: p.id, label: p.label, color: p.color, tags: tb.tags, bias: tb.bias };
-    });
+    // The lean list keeps the parent label as-is (engine names like "ChatGPT"
+    // are universal). The locale-specific tags+bias live on /blog-engine-profiles.
+    const items: Engine[] = (rows as Array<{ id: string; label: string; color: string; position: number }>).map((r) => ({
+      id: r.id, label: r.label, color: r.color, position: r.position,
+    }));
 
     const seo = buildSeo({
       lang: lang as Lang,
@@ -75,7 +59,7 @@ serve(async (req: Request) => {
     });
 
     const response = await jsonResponse(
-      { data: { items: profiles }, seo },
+      { data: { items }, seo },
       {
         locale: seo.locale,
         canonicalUrl: seo.canonical,
@@ -85,7 +69,7 @@ serve(async (req: Request) => {
     );
     return logger.done(withPublicCors(response));
   } catch (err) {
-    console.error("[blog-engine-profiles]", err);
+    console.error("[blog-engines]", err);
     return logger.done(withPublicCors(errors.internal()));
   }
 });

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Newspaper, Plus, Pencil, Trash2, Search, ExternalLink, Loader2, Sparkles,
-  Wand2, AlertTriangle,
+  Wand2, AlertTriangle, FolderTree, Tags as TagsIcon, Users,
 } from 'lucide-react';
 import { useBlogAdmin, blogAdmin } from './useBlogAdmin';
 import { SAPageHeader } from '../SAPageHeader';
@@ -13,6 +13,13 @@ import { NEWS_TEMPLATE } from './templates';
 import { SearchSelectMulti } from '@/components/ui/SearchSelectMulti';
 import { LANGS, type Lang, type BlogArticle, type ArticleStatus, type BlogCategory } from './types';
 import { useDialog } from '@/contexts/DialogContext';
+import { EmbedPageModal } from './modals/EmbedPageModal';
+
+const CategoriesEditor = lazy(() => import('./BlogCategoriesPage').then((m) => ({ default: m.BlogCategoriesPage })));
+const TagsEditor       = lazy(() => import('./BlogTagsPage').then((m) => ({ default: m.BlogTagsPage })));
+const AuthorsEditor    = lazy(() => import('./BlogAuthorsPage').then((m) => ({ default: m.BlogAuthorsPage })));
+
+type ManagePane = 'categories' | 'tags' | 'authors' | null;
 
 const STATUS_COLORS: Record<ArticleStatus, string> = {
   draft:     'bg-text-muted/20 text-text-secondary',
@@ -47,6 +54,8 @@ export function BlogNewsPage() {
   const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const [trendingOnly, setTrendingOnly] = useState(false);
+  const [managePane, setManagePane] = useState<ManagePane>(null);
   const [activeLang, setActiveLang] = useState<Lang>(() => {
     const sys = i18n.language?.toLowerCase();
     if (sys === 'es') return 'es';
@@ -61,6 +70,13 @@ export function BlogNewsPage() {
       q: search || undefined,
     },
   });
+
+  // Trending is just a flag on each article (trending_position != null), so
+  // we filter client-side rather than threading a server-side query param.
+  const visibleArticles = useMemo(
+    () => trendingOnly ? articles.filter((a) => a.trending_position != null) : articles,
+    [articles, trendingOnly],
+  );
 
   // ─── categories — for the multi-select options ───────────────────────────
 
@@ -134,6 +150,21 @@ export function BlogNewsPage() {
         subtitle={t('sa.blog.news.subtitle')}
         icon={<Newspaper className="w-6 h-6 text-brand-primary" />}
       >
+        {/* Manage modal triggers — open the existing CRUD pages inline so we
+            keep one News hub instead of five separate dashboard cards. */}
+        <button onClick={() => setManagePane('categories')} className="btn btn-ghost btn-sm gap-1.5" title="Manage categories">
+          <FolderTree className="w-4 h-4" />
+          <span className="hidden sm:inline">Categories</span>
+        </button>
+        <button onClick={() => setManagePane('tags')} className="btn btn-ghost btn-sm gap-1.5" title="Manage tags">
+          <TagsIcon className="w-4 h-4" />
+          <span className="hidden sm:inline">Tags</span>
+        </button>
+        <button onClick={() => setManagePane('authors')} className="btn btn-ghost btn-sm gap-1.5" title="Manage authors">
+          <Users className="w-4 h-4" />
+          <span className="hidden sm:inline">Authors</span>
+        </button>
+        <span className="hidden sm:inline-block w-px h-5 bg-glass-border" />
         <button
           type="button"
           onClick={handleConvertAll}
@@ -192,6 +223,22 @@ export function BlogNewsPage() {
             formatCount={(n) => t('sa.blog.news.nSelected', { n })}
           />
         </div>
+        <button
+          type="button"
+          onClick={() => setTrendingOnly(v => !v)}
+          className={`btn btn-sm gap-1.5 ${
+            trendingOnly ? 'btn-primary' : 'btn-ghost'
+          }`}
+          title="Show only trending articles"
+        >
+          <Sparkles className="w-3.5 h-3.5" />
+          <span>Trending</span>
+          {trendingOnly && (
+            <span className="text-[10px] font-mono">
+              {visibleArticles.length}
+            </span>
+          )}
+        </button>
         <button onClick={() => refetch()} className="btn btn-secondary btn-sm">
           {t('sa.blog.refresh')}
         </button>
@@ -237,7 +284,7 @@ export function BlogNewsPage() {
               </tr>
             </thead>
             <tbody>
-              {articles.map((a) => {
+              {visibleArticles.map((a) => {
                 const trs = a.translations || {};
                 const { title, lang: shownLang, missing } = getTitleForLang(trs, activeLang);
                 const slug = trs[activeLang]?.slug || trs.pt?.slug || trs.en?.slug || trs.es?.slug || '';
@@ -322,6 +369,21 @@ export function BlogNewsPage() {
           </table>
         )}
       </div>
+
+      {managePane && (
+        <EmbedPageModal
+          title={managePane === 'categories' ? 'Manage categories'
+               : managePane === 'tags'       ? 'Manage tags'
+               : 'Manage authors'}
+          onClose={() => { setManagePane(null); refetch(); }}
+        >
+          <Suspense fallback={<div className="py-12 text-center text-text-muted"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></div>}>
+            {managePane === 'categories' && <CategoriesEditor />}
+            {managePane === 'tags'       && <TagsEditor />}
+            {managePane === 'authors'    && <AuthorsEditor />}
+          </Suspense>
+        </EmbedPageModal>
+      )}
     </div>
   );
 }

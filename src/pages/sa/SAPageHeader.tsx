@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useIsEmbedded } from './blog/modals/EmbedPageModal';
 
 interface SAPageHeaderProps {
   title: string;
@@ -15,6 +16,14 @@ interface SAPageHeaderProps {
  */
 export function SAPageHeader({ title, subtitle, icon, children }: SAPageHeaderProps) {
   const [expanded, setExpanded] = useState(false);
+  const embedded = useIsEmbedded();
+
+  // When the page is hosted inside an EmbedPageModal the modal renders its
+  // own title bar — collapse our header to a thin action row so we don't
+  // get a double-header. Children (action buttons) still render.
+  if (embedded) {
+    return children ? <div className="flex items-center justify-end gap-2 -mt-2 mb-2">{children}</div> : null;
+  }
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">

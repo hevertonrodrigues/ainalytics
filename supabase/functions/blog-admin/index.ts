@@ -40,6 +40,11 @@ const ENTITIES = [
   "rankings_items",
   "ranking_faq",
   "newsletter",
+  // Lookups newly added (April 2026 refactor)
+  "sectors",
+  "subsectors",
+  "regions",
+  "engines",
 ] as const;
 
 type Entity = typeof ENTITIES[number];
@@ -153,7 +158,7 @@ serve(async (req: Request) => {
       // Rankings snapshot create
       if (sub === "rankings" && segments[2] === "snapshots" && req.method === "POST") {
         const body = await req.json().catch(() => ({}));
-        const items: Array<{ rank: number; brandId: string; score: number; delta: string; direction: string }> = Array.isArray(body.items) ? body.items : [];
+        const items: Array<{ rank: number; brandId: string; score: number; delta: string; direction: string; sectorId?: string; regionId?: string }> = Array.isArray(body.items) ? body.items : [];
         const insertSnap = await db.from("blog_ranking_snapshots").insert({
           period_label: body.period_label || "weekly",
           period_from: body.period_from,
@@ -175,6 +180,11 @@ serve(async (req: Request) => {
             score: i.score,
             delta: i.delta,
             direction: i.direction,
+            // Per-item ids default to the parent snapshot's classification.
+            // Callers can override with i.sectorId / i.regionId for items
+            // that belong to a different bucket than the snapshot itself.
+            sector_id: i.sectorId || body.sector,
+            region_id: i.regionId || body.region,
           })));
           if (itemsError) throw itemsError;
         }
@@ -228,7 +238,110 @@ const ENTITY_HANDLERS: Partial<Record<Entity, Handler>> = {
   rankings_items: handleRankingItems,
   ranking_faq: handleRankingFaq,
   newsletter: handleNewsletter,
+  // Lookup taxonomies (sectors/subsectors/regions/engines) all share the same
+  // shape: a parent row with id + position + is_active and per-locale labels
+  // + descriptions. The generic handler keeps each one to ~3 lines below.
+  sectors:    (req, _u, db, id) => handleTaxonomy(req, db, id, {
+    table: "blog_sectors", trTable: "blog_sector_translations", idCol: "id", trIdCol: "sector_id",
+    fields: ["position", "is_active"],
+    trFields: ["label", "description"],
+  }),
+  subsectors: (req, _u, db, id) => handleTaxonomy(req, db, id, {
+    table: "blog_subsectors", trTable: "blog_subsector_translations", idCol: "id", trIdCol: "subsector_id",
+    fields: ["sector_id", "position", "is_active"],
+    trFields: ["label"],
+  }),
+  regions:    (req, _u, db, id) => handleTaxonomy(req, db, id, {
+    table: "blog_regions", trTable: "blog_region_translations", idCol: "id", trIdCol: "region_id",
+    fields: ["position", "is_active"],
+    trFields: ["label", "description"],
+  }),
+  engines:    (req, _u, db, id) => handleTaxonomy(req, db, id, {
+    table: "blog_engines", trTable: "blog_engine_translations", idCol: "id", trIdCol: "engine_id",
+    fields: ["label", "color", "position", "is_active"],
+    trFields: ["tags", "bias"],
+  }),
 };
+
+// ─── Generic taxonomy handler (used for sectors/subsectors/regions/engines) ─
+
+interface TaxonomyConfig {
+  table: string;
+  trTable: string;
+  idCol: string;
+  trIdCol: string;
+  fields: string[];   // updatable parent fields (excluding id)
+  trFields: string[]; // updatable translation fields (excluding lang + parent id)
+}
+
+async function handleTaxonomy(
+  req: Request, db: Db, id: string | null, cfg: TaxonomyConfig,
+): Promise<Response> {
+  const url = new URL(req.url);
+  if (req.method === "GET") {
+    if (id) {
+      const { data, error } = await db.from(cfg.table).select("*").eq(cfg.idCol, id).single();
+      if (error || !data) return withCors(req, notFound(`${cfg.table} not found`));
+      const { data: trs } = await db.from(cfg.trTable).select("*").eq(cfg.trIdCol, id);
+      return withCors(req, ok({ ...data, translations: trs || [] }));
+    }
+    // Optional `with_counts=articles|brands|ticker` — wires the lookup to a
+    // count of dependent rows so the management modal can show a usage badge.
+    const withCounts = url.searchParams.get("with_counts");
+    const { data: rows, error } = await db.from(cfg.table).select("*").order("position");
+    if (error) throw error;
+    const ids = (rows || []).map((r: Record<string, unknown>) => r[cfg.idCol]);
+    const { data: trs } = await db.from(cfg.trTable).select(`${cfg.trIdCol}, lang, ${cfg.trFields.join(", ")}`);
+    const byParent = new Map<string, Record<string, Json>>();
+    for (const r of (trs || []) as Record<string, Json>[]) {
+      const m = byParent.get(String(r[cfg.trIdCol])) || {};
+      m[String(r.lang)] = r;
+      byParent.set(String(r[cfg.trIdCol]), m);
+    }
+    let counts = new Map<string, number>();
+    if (withCounts === "brands" && cfg.table === "blog_sectors") {
+      const { data: cs } = await db.from("blog_brands").select("sector").in("sector", ids);
+      for (const r of (cs || []) as Array<{ sector: string }>) counts.set(r.sector, (counts.get(r.sector) || 0) + 1);
+    } else if (withCounts === "snapshots" && (cfg.table === "blog_sectors" || cfg.table === "blog_regions")) {
+      const col = cfg.table === "blog_sectors" ? "sector" : "region";
+      const { data: cs } = await db.from("blog_ranking_snapshots").select(col).in(col, ids);
+      for (const r of (cs || []) as Record<string, string>[]) counts.set(r[col], (counts.get(r[col]) || 0) + 1);
+    }
+    return withCors(req, ok((rows || []).map((r: Record<string, unknown>) => ({
+      ...r,
+      translations: byParent.get(String(r[cfg.idCol])) || {},
+      ...(withCounts ? { count: counts.get(String(r[cfg.idCol])) || 0 } : {}),
+    }))));
+  }
+  if (req.method === "POST" || req.method === "PUT") {
+    const body = await req.json();
+    const row = body.row || body;
+    const translations: Record<string, Record<string, Json>> | null = body.translations || null;
+    if (!row?.[cfg.idCol]) return withCors(req, badRequest(`${cfg.idCol} required`));
+    const writable: Record<string, Json> = { [cfg.idCol]: row[cfg.idCol] };
+    for (const f of cfg.fields) if (row[f] !== undefined) writable[f] = row[f];
+    const { data, error } = await db.from(cfg.table).upsert(writable, { onConflict: cfg.idCol }).select().single();
+    if (error) throw error;
+    if (translations) {
+      const trRows: Json[] = [];
+      for (const [lang, tr] of Object.entries(translations)) {
+        if (!SUPPORTED_LANGS.includes(lang) || !tr) continue;
+        const trRow: Record<string, Json> = { [cfg.trIdCol]: row[cfg.idCol], lang };
+        for (const f of cfg.trFields) if ((tr as Record<string, Json>)[f] !== undefined) trRow[f] = (tr as Record<string, Json>)[f];
+        trRows.push(trRow);
+      }
+      if (trRows.length) await db.from(cfg.trTable).upsert(trRows, { onConflict: `${cfg.trIdCol},lang` });
+    }
+    return withCors(req, ok(data));
+  }
+  if (req.method === "DELETE") {
+    if (!id) return withCors(req, badRequest("id required"));
+    const { error } = await db.from(cfg.table).delete().eq(cfg.idCol, id);
+    if (error) throw error;
+    return withCors(req, noContent());
+  }
+  return withCors(req, badRequest(`Method ${req.method} not allowed`));
+}
 
 // ─── Languages ──────────────────────────────────────────────────────────────
 
@@ -599,6 +712,27 @@ async function handleArticles(req: Request, url: URL, db: Db, id: string | null)
     if (Array.isArray(tags)) {
       await db.from("blog_article_tags").delete().eq("article_id", article.id);
       if (tags.length) {
+        // Auto-create any tag id we don't have yet — the editor lets the
+        // author type a new tag and we want it to "just work" without a
+        // separate "create tag" trip. Existing rows are untouched.
+        const { data: existing } = await db.from("blog_tags").select("id").in("id", tags);
+        const known = new Set((existing || []).map((r: { id: string }) => r.id));
+        const missing = tags.filter((id) => id && !known.has(id));
+        if (missing.length > 0) {
+          await db.from("blog_tags").upsert(
+            missing.map((id) => ({ id, is_engine: false })),
+            { onConflict: "id" },
+          );
+          // Also create a per-locale label so the tag is usable everywhere.
+          // We default the slug+label to the tag id; the admin can refine
+          // them later from the Tags modal.
+          await db.from("blog_tag_translations").upsert(
+            SUPPORTED_LANGS.flatMap((lang) =>
+              missing.map((id) => ({ tag_id: id, lang, slug: id, label: id })),
+            ),
+            { onConflict: "tag_id,lang" },
+          );
+        }
         await db.from("blog_article_tags").insert(tags.map((t) => ({ article_id: article.id, tag_id: t })));
       }
     }
@@ -716,11 +850,29 @@ async function handleRankingItems(req: Request, url: URL, db: Db, _id: string | 
     const body = await req.json();
     const items = Array.isArray(body) ? body : (body.items || []);
     if (!snapshotId) return withCors(req, badRequest("snapshot_id required"));
+
+    // Look up the parent snapshot so we can default item-level
+    // sector_id/region_id from the snapshot's classification when the
+    // caller doesn't provide overrides.
+    const { data: snap, error: snapErr } = await db
+      .from("blog_ranking_snapshots")
+      .select("region, sector")
+      .eq("id", snapshotId)
+      .single();
+    if (snapErr || !snap) return withCors(req, notFound("Snapshot not found"));
+
     await db.from("blog_ranking_items").delete().eq("snapshot_id", snapshotId);
     if (items.length) {
       // deno-lint-ignore no-explicit-any
       const { error } = await db.from("blog_ranking_items").insert(items.map((i: any) => ({
-        snapshot_id: Number(snapshotId), rank: i.rank, brand_id: i.brand_id, score: i.score, delta: i.delta, direction: i.direction,
+        snapshot_id: Number(snapshotId),
+        rank: i.rank,
+        brand_id: i.brand_id,
+        score: i.score,
+        delta: i.delta,
+        direction: i.direction,
+        sector_id: i.sector_id || i.sectorId || snap.sector,
+        region_id: i.region_id || i.regionId || snap.region,
       })));
       if (error) throw error;
     }
